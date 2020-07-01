@@ -13,14 +13,13 @@
     <nav class="navbar navbar-default navbar-fixed-top">
         <div class="container">
             <div class="navbar-header">
-                <a class="navbar-brand" href="#">Sistema</a>
+                <a class="navbar-brand" href="#">PlusVita Administración</a>
             </div>
             <ul class="nav navbar-nav">
                 <li class="active"><a href="#">Link <span class="sr-only">(current)</span></a></li>
-                {% if is_granted('IS_AUTHENTICATED_REMEMBERED') %}
-                    <li><a href="{{ path('app_logout') }}">LogOut</a></li>
+                {% if app.user %}
+                    <li><a href="{{ path('app_logout') }}">{{ app.user.username }} - LogOut</a></li>
                 {% endif %}
-
             </ul>
         </div>
     </nav>
