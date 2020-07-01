@@ -1,0 +1,28 @@
+body { padding-top: 70px; }
+.form_caja .btn-default.btn {
+    width: 100%;
+    background-color: #3379b6;
+    color: #fff;
+    font-size: 22px;
+}
+/*
+table {
+    width: 716px; !* 140px * 5 column + 16px scrollbar width *!
+    border-spacing: 0;
+}
+
+tbody, thead tr { display: block; }
+
+tbody {
+    height: 500px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+tbody td, thead th {
+    width: 240px;
+}
+
+thead th:last-child {
+    width: 256px; !* 140px + 16px scrollbar width *!
+}*/
