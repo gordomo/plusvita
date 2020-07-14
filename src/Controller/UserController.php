@@ -100,7 +100,6 @@ class UserController extends AbstractController
             ],
                 'multiple'=>true,
             ])
-            ->add('password', PasswordType::class)
             ->add('email', EmailType::class)
             ->add('telefono', TelType::class)
             ->add('save', SubmitType::class, ['label' => 'Guardar'])
