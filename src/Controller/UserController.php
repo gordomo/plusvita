@@ -6,8 +6,10 @@ use App\Entity\User;
 use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TelType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,6 +28,7 @@ class UserController extends AbstractController
     {
         return $this->render('user/index.html.twig', [
             'users' => $userRepository->findAll(),
+            'userActive' => 'active'
         ]);
     }
 
@@ -36,7 +39,7 @@ class UserController extends AbstractController
     {
         $user = new User();
         $form = $this->createFormBuilder($user)
-            ->add('username', TextType::class)
+            ->add('username', TextType::class, ['required' => true])
             ->add('roles', ChoiceType::class, ['choices'  => [
                                                             'Administrador' => "ROLE_ADMIN",
                                                             'Usuario' => "ROLE_USER",
@@ -45,6 +48,8 @@ class UserController extends AbstractController
                                                           'multiple'=>true,
                                                         ])
             ->add('password', PasswordType::class)
+            ->add('email', EmailType::class)
+            ->add('telefono', TelType::class)
             ->add('save', SubmitType::class, ['label' => 'Guardar'])
             ->getForm();
 
@@ -66,6 +71,7 @@ class UserController extends AbstractController
         return $this->render('user/new.html.twig', [
             'user' => $user,
             'form' => $form->createView(),
+            'userActive' => 'active'
         ]);
     }
 
@@ -76,6 +82,7 @@ class UserController extends AbstractController
     {
         return $this->render('user/show.html.twig', [
             'user' => $user,
+            'userActive' => 'active'
         ]);
     }
 
@@ -86,15 +93,28 @@ class UserController extends AbstractController
     {
         $form = $this->createFormBuilder($user)
             ->add('username', TextType::class)
-            //->add('roles', ChoiceField::class)
+            ->add('roles', ChoiceType::class, ['choices'  => [
+                'Administrador' => "ROLE_ADMIN",
+                'Usuario' => "ROLE_USER",
+                'Otro' => "ROLE_OTRO",
+            ],
+                'multiple'=>true,
+            ])
             ->add('password', PasswordType::class)
+            ->add('email', EmailType::class)
+            ->add('telefono', TelType::class)
             ->add('save', SubmitType::class, ['label' => 'Guardar'])
             ->getForm();
 
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->getDoctrine()->getManager()->flush();
+            $roles = $form->get('roles')->getData() ?? ['ROLE_USER'];
+            $user->setRoles($roles);
+
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($user);
+            $entityManager->flush();
 
             return $this->redirectToRoute('user_index');
         }
@@ -102,6 +122,7 @@ class UserController extends AbstractController
         return $this->render('user/edit.html.twig', [
             'user' => $user,
             'form' => $form->createView(),
+            'userActive' => 'active'
         ]);
     }
 

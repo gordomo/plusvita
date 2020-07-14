@@ -5,6 +5,19 @@ body { padding-top: 70px; }
     color: #fff;
     font-size: 22px;
 }
+.nav-link.active {
+    background-color: #ddd;
+}
+
+.btn-action {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.form-group .control-label.required:after {
+    content:" *";
+    color:red;
+}
 /*
 table {
     width: 716px; !* 140px * 5 column + 16px scrollbar width *!

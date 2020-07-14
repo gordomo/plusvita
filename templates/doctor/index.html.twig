@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Doctor index{% endblock %}
+{% block panelTitle %}Doctores{% endblock %}
+{% block body %}
+
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Especialidad</th>
+                <th>Firma Digital</th>
+                <th>Matricula</th>
+                <th>Username</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for doctor in doctors %}
+            <tr>
+                <td>{{ doctor.id }}</td>
+                <td>{{ doctor.nombre }}</td>
+                <td>{{ doctor.apellido }}</td>
+                <td>{{ doctor.especialidad ? doctor.especialidad|json_encode(constant('JSON_PRETTY_PRINT'))|replace({'[': '', ']': ''}) : '' }}</td>
+                <td><a href="{{ asset('uploads/firmas/' ~ doctor.firma) }}" target="_blank">Ver firma digital</a></td>
+                <td>{{ doctor.matricula }}</td>
+                <td>{{ doctor.username }}</td>
+                <td>
+                    <a href="{{ path('doctor_show', {'id': doctor.id}) }}">show</a>
+                    <a href="{{ path('doctor_edit', {'id': doctor.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="10">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('doctor_new') }}">Create new</a>
+{% endblock %}

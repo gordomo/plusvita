@@ -12,6 +12,14 @@
     {{ form_widget(form.roles) }}
 </div>
 <div class="form-group">
+    {{ form_label(form.email, 'Email') }}
+    {{ form_widget(form.email) }}
+</div>
+<div class="form-group">
+    {{ form_label(form.telefono, 'Teléfono') }}
+    {{ form_widget(form.telefono) }}
+</div>
+<div class="form-group">
     {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary'}}) }}
     <a class="btn btn-default" href="{{ path('user_index') }}">volver</a>
 </div>

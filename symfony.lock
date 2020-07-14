@@ -220,6 +220,9 @@
             "ref": "fadbfe33303a76e25cb63401050439aa9b1a9c7f"
         }
     },
+    "symfony/mime": {
+        "version": "v5.1.2"
+    },
     "symfony/options-resolver": {
         "version": "v5.1.2"
     },
@@ -230,6 +233,9 @@
         "version": "v1.17.1"
     },
     "symfony/polyfill-intl-icu": {
+        "version": "v1.17.1"
+    },
+    "symfony/polyfill-intl-idn": {
         "version": "v1.17.1"
     },
     "symfony/polyfill-intl-normalizer": {

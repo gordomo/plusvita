@@ -2,6 +2,7 @@
 
 namespace App\Security;
 
+use App\Entity\Doctor;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -68,10 +69,12 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator implements P
         }
 
         $user = $this->entityManager->getRepository(User::class)->findOneBy(['username' => $credentials['username']]);
+        dd($user);
 
         if (!$user) {
-            // fail authentication with a custom error
-            throw new CustomUserMessageAuthenticationException('Username could not be found.');
+            $user = $this->entityManager->getRepository(Doctor::class)->findOneBy(['username' => $credentials['username']]);
+            /*dd($user);
+            throw new CustomUserMessageAuthenticationException('Username could not be found.');*/
         }
 
         return $user;
@@ -92,13 +95,13 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator implements P
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, $providerKey)
     {
-        $targetPath = $this->urlGenerator->generate('user_index');
+        $targetPath = $this->urlGenerator->generate('dashboard_index');
 
-        foreach ($token->getUser()->getRoles() as $userRoles) {
+        /*foreach ($token->getUser()->getRoles() as $userRoles) {
             if($userRoles == 'ROLE_ADMIN') {
                 $targetPath = $this->urlGenerator->generate('user_index');
             }
-        }
+        }*/
 
         return new RedirectResponse($targetPath);
     }

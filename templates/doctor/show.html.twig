@@ -1,0 +1,54 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Doctor{% endblock %}
+
+{% block body %}
+    <h1>Doctor</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ doctor.id }}</td>
+            </tr>
+            <tr>
+                <th>Nombre</th>
+                <td>{{ doctor.nombre }}</td>
+            </tr>
+            <tr>
+                <th>Apellido</th>
+                <td>{{ doctor.apellido }}</td>
+            </tr>
+            <tr>
+                <th>Especialidad</th>
+                <td>{{ doctor.especialidad ? doctor.especialidad|json_encode : '' }}</td>
+            </tr>
+            <tr>
+                <th>Firma</th>
+                <td>{{ doctor.firma }}</td>
+            </tr>
+            <tr>
+                <th>Roles</th>
+                <td>{{ doctor.roles ? doctor.roles|json_encode : '' }}</td>
+            </tr>
+            <tr>
+                <th>Matricula</th>
+                <td>{{ doctor.matricula }}</td>
+            </tr>
+            <tr>
+                <th>Username</th>
+                <td>{{ doctor.username }}</td>
+            </tr>
+            <tr>
+                <th>Password</th>
+                <td>{{ doctor.password }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('doctor_index') }}">back to list</a>
+
+    <a href="{{ path('doctor_edit', {'id': doctor.id}) }}">edit</a>
+
+    {{ include('doctor/_delete_form.html.twig') }}
+{% endblock %}

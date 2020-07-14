@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Doctor{% endblock %}
+{% block panelTitle %}Nuevo Doctor{% endblock %}
+{% block body %}
+
+
+    {{ include('doctor/_form.html.twig') }}
+
+    <a href="{{ path('doctor_index') }}">back to list</a>
+{% endblock %}
