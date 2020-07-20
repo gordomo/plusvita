@@ -1,0 +1,28 @@
+
+<!-- Sidebar -->
+<div class="bg-light border-right" id="sidebar-wrapper">
+    <div class="sidebar-heading">Start Bootstrap </div>
+    <div class="list-group list-group-flush">
+        {% if app.user %}
+            <a class="list-group-item list-group-item-action bg-light " href="{{ path('dashboard_index') }}">
+                <i class="fas fa-chart-line"></i>
+                Dashboard
+            </a>
+        {% endif %}
+        {% if app.user and 'ROLE_ADMIN' in app.user.roles %}
+            <a class="list-group-item list-group-item-action bg-light " href="{{ path('user_index') }}">
+                <i class="fas fa-users"></i>
+                Usuarios
+            </a>
+            <a class="list-group-item list-group-item-action bg-light " href="{{ path('doctor_index') }}">
+                <i class="fas fa-user-md"></i>
+                Doctores
+            </a>
+            <a class="list-group-item list-group-item-action bg-light " href="{{ path('cliente_index') }}">
+                <i class="fas fa-user-injured"></i>
+                Clientes
+            </a>
+        {% endif %}
+    </div>
+</div>
+<!-- /#sidebar-wrapper -->

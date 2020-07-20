@@ -1,0 +1,10 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Cliente{% endblock %}
+{% block panelTitle %}Nuevo Cliente{% endblock %}
+{% block body %}
+
+    {{ include('cliente/_form.html.twig') }}
+
+    <a href="{{ path('cliente_index') }}">Volver</a>
+{% endblock %}

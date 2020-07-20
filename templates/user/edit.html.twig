@@ -4,4 +4,5 @@
 {% block panelTitle %}Editar Usuario{% endblock %}
 {% block body %}
     {{ include('user/_form-edit.html.twig', {'button_label': 'Update'}) }}
+    {{ include('user/_delete_form.html.twig') }}
 {% endblock %}

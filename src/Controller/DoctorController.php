@@ -2,10 +2,14 @@
 
 namespace App\Controller;
 
+use App\Entity\Cliente;
 use App\Entity\Doctor;
+use App\Form\ClienteType;
 use App\Form\DoctorType;
 use App\Repository\DoctorRepository;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
@@ -29,7 +33,7 @@ class DoctorController extends AbstractController
     {
         return $this->render('doctor/index.html.twig', [
             'doctors' => $doctorRepository->findAll(),
-            'doctoresActive' => 'active'
+            
         ]);
     }
 
@@ -107,7 +111,7 @@ class DoctorController extends AbstractController
         return $this->render('doctor/new.html.twig', [
             'doctor' => $doctor,
             'form' => $form->createView(),
-            'doctoresActive' => 'active'
+            
         ]);
     }
 
@@ -118,19 +122,82 @@ class DoctorController extends AbstractController
     {
         return $this->render('doctor/show.html.twig', [
             'doctor' => $doctor,
-            'doctoresActive' => 'active'
+            
         ]);
     }
 
     /**
      * @Route("/{id}/edit", name="doctor_edit", methods={"GET","POST"})
      */
-    public function edit(Request $request, Doctor $doctor): Response
+    public function edit(Request $request, Doctor $doctor, SluggerInterface $slugger): Response
     {
-        $form = $this->createForm(DoctorType::class, $doctor);
+        $form = $this->createFormBuilder($doctor)
+            ->add('nombre', TextType::class)
+            ->add('apellido', TextType::class)
+            ->add('especialidad', ChoiceType::class, ['choices'  => [
+                'Pediatra' => "pediatra",
+                'Clinico' => "clinico",
+                'Otro' => "otro",
+            ],
+                'multiple'=>true,
+            ])
+            ->add('firmaPdf', FileType::class, [
+                'label' => 'Firma Digital (PDF file)',
+                'mapped' => false,
+                'required' => false,
+                'constraints' => [
+                    new File([
+                        'maxSize' => '1024k',
+                        'mimeTypes' => [
+                            'application/pdf',
+                            'application/x-pdf',
+                        ],
+                        'mimeTypesMessage' => 'Solo archivos con formato PDF son permitidos',
+                    ])
+                ],
+            ])
+            ->add('matricula', TextType::class)
+            ->add('clientes', EntityType::class, [
+                // looks for choices from this entity
+                'class' => Cliente::class,
+
+                // uses the User.username property as the visible option string
+                'choice_label' => 'nombreApellido',
+
+                // used to render a select box, check boxes or radios
+                'multiple' => true,
+                'expanded' => true,
+            ])
+            ->add('save', SubmitType::class, ['label' => 'Guardar'])
+            ->getForm();
+
+
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $firmaPdfFile = $form->get('firmaPdf')->getData();
+            if ($firmaPdfFile) {
+                $originalFilename = pathinfo($firmaPdfFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $form->get('username');
+                $safeFilename = $slugger->slug($originalFilename);
+                $newFilename = $safeFilename.'-'.uniqid().'.'.$firmaPdfFile->guessExtension();
+
+                try {
+                    $firmaPdfFile->move(
+                        $this->getParameter('firmas_directory'),
+                        $newFilename
+                    );
+                } catch (FileException $e) {
+                    // ... handle exception if something happens during file upload
+                }
+
+                // updates the 'brochureFilename' property to store the PDF file name
+                // instead of its contents
+                $filesystem = new Filesystem();
+                $filesystem->remove($this->getParameter('firmas_directory').'/'.$doctor->getFirma());
+                $doctor->setFirma($newFilename);
+            }
+
             $this->getDoctrine()->getManager()->flush();
 
             return $this->redirectToRoute('doctor_index');
@@ -139,7 +206,7 @@ class DoctorController extends AbstractController
         return $this->render('doctor/edit.html.twig', [
             'doctor' => $doctor,
             'form' => $form->createView(),
-            'doctoresActive' => 'active'
+            
         ]);
     }
 

@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\DoctorRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -57,6 +59,22 @@ class Doctor implements UserInterface
      * @ORM\Column(type="string", length=255)
      */
     private $password;
+
+    /**
+     * @ORM\ManyToMany(targetEntity=Cliente::class, inversedBy="docReferente")
+     */
+    private $clientes;
+
+
+    public function __construct()
+    {
+        $this->clientes = new ArrayCollection();
+    }
+
+    public function getNombreApellido(): ?string
+    {
+        return $this->getNombre() . ' ' . $this->getApellido();
+    }
 
     public function getId(): ?int
     {
@@ -174,5 +192,45 @@ class Doctor implements UserInterface
     public function eraseCredentials()
     {
         // TODO: Implement eraseCredentials() method.
+    }
+
+
+
+    public function setClientes(?Cliente $clientes): self
+    {
+        $this->clientes = $clientes;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Cliente[]
+     */
+    public function getClientes(): Collection
+    {
+        return $this->clientes;
+    }
+
+    public function addCliente(Cliente $cliente): self
+    {
+        if (!$this->clientes->contains($cliente)) {
+            $this->clientes[] = $cliente;
+            $cliente->setDocReferente($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCliente(Cliente $cliente): self
+    {
+        if ($this->clientes->contains($cliente)) {
+            $this->clientes->removeElement($cliente);
+            // set the owning side to null (unless already changed)
+            if ($cliente->getDocReferente() === $this) {
+                $cliente->setDocReferente(null);
+            }
+        }
+
+        return $this;
     }
 }

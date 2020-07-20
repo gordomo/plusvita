@@ -48,7 +48,8 @@ security:
     # Note: Only the *first* access control that matches will be used
     access_control:
         - { path: ^/dashboard, roles: IS_AUTHENTICATED_FULLY }
-        - { path: ^/user, roles: ROLE_ADMIN }
-        - { path: ^/doctor, roles: ROLE_ADMIN }
+        - { path: ^/user, roles: [IS_AUTHENTICATED_FULLY, ROLE_ADMIN] }
+        - { path: ^/doctor, roles: [IS_AUTHENTICATED_FULLY, ROLE_ADMIN] }
+        - { path: ^/cliente, roles: [IS_AUTHENTICATED_FULLY, ROLE_ADMIN] }
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }

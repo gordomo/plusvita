@@ -1,0 +1,44 @@
+{{ form_start(form) }}
+<div class="form-group">
+    {{ form_label(form.nombre, 'Nombre') }}
+    {{ form_widget(form.nombre) }}
+</div>
+<div class="form-group">
+    {{ form_label(form.apellido, 'Apellido') }}
+    {{ form_widget(form.apellido) }}
+</div>
+<div class="form-group">
+    {{ form_label(form.dni, 'Número de Documento') }}
+    {{ form_widget(form.dni) }}
+</div>
+<div class="form-group">
+    {{ form_label(form.email, 'Email') }}
+    {{ form_widget(form.email) }}
+</div>
+<div class="form-group">
+    {{ form_widget(form.telefono) }}
+</div>
+<div class="form-group">
+    {{ form_widget(form.hClinica) }}
+</div>
+<div class="form-group">
+    {{ form_widget(form.fIngreso) }}
+</div>
+<div class="form-group">
+    {{ form_widget(form.motivoIng) }}
+</div>
+<div class="form-group">
+    {{ form_widget(form.docReferente) }}
+</div>
+<div class="form-group">
+    {{ form_widget(form.vieneDe) }}
+</div>
+<div class="form-group">
+    {{ form_widget(form.docDerivante) }}
+</div>
+
+<div class="form-group">
+    {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary'}}) }}
+    <a class="btn btn-default" href="{{ path('doctor_index') }}">volver</a>
+</div>
+{{ form_end(form) }}

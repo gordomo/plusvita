@@ -1,0 +1,67 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Cliente index{% endblock %}
+{% block panelTitle %}Clientes{% endblock %}
+{% block body %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>H. Clínica</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Dni</th>
+                <th>Email</th>
+                <th>Teléfono</th>
+                <th>Fecha Ingreso</th>
+                <th>Fecha Egreso</th>
+                <th>Ingreso por</th>
+                <th>Motivo Egreso</th>
+                <th>Doc Referente</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for cliente in clientes %}
+            <tr class="{{ cliente.activo ? 'activo' : '' }}">
+                <td>{{ cliente.hClinica }}</td>
+                <td>{{ cliente.nombre }}</td>
+                <td>{{ cliente.apellido }}</td>
+                <td>{{ cliente.dni }}</td>
+                <td>{{ cliente.email }}</td>
+                <td>{{ cliente.telefono }}</td>
+                <td>{{ cliente.fIngreso ? cliente.fIngreso|date('Y-m-d') : '' }}</td>
+                <td>{{ cliente.fEgreso ? cliente.fEgreso|date('Y-m-d') : '' }}</td>
+                <td>
+                    {% if(cliente.motivoIng == 1) %}
+                        Patologia 1
+                    {% endif %}
+                    {% if(cliente.motivoIng == 2) %}
+                        Patologia 2
+                    {% endif %}
+                    {% if(cliente.motivoIng == 3) %}
+                        Patologia 3
+                    {% endif %}
+                </td>
+                <td>
+                    {{ cliente.motivoEgr }}
+                </td>
+                <td>
+                    {% for doc in cliente.docReferente %}
+                        {{ doc.nombre }}
+                    {% endfor %}
+                </td>
+                <td>
+                    <a href="{{ path('cliente_edit', {'id': cliente.id}) }}">Editar</a>
+                    <a href="{{ path('cliente_show', {'id': cliente.id}) }}">Ver</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="15">No existen registros</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('cliente_new') }}">Ingresar nuevo Cliente</a>
+{% endblock %}

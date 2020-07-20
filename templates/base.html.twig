@@ -1,86 +1,57 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <title>{% block title %}Bienvenidos!{% endblock %}</title>
-        {% block stylesheets %}
-            <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
-            <link rel="stylesheet" href="{{ asset('assets/css/bootstrap-datepicker.min.css') }}">
-            <link rel="stylesheet" href="{{ asset('assets/css/main.css') }}">
-        {% endblock %}
-    </head>
-    <body>
-    <nav class="navbar navbar-default navbar-fixed-top">
-        <div class="container">
-            <div class="navbar-header">
-                <a class="navbar-brand" href="#">PlusVita Administración</a>
-            </div>
-            <ul class="nav navbar-nav">
-                {% if app.user %}
-                    <li class="active"><a href="#">Link <span class="sr-only">(current)</span></a></li>
-                    <li><a href="{{ path('app_logout') }}">{{ app.user.username }} - LogOut</a></li>
-                {% endif %}
-            </ul>
-        </div>
-    </nav>
-    <div class="container-fluid">
-        <div class="row">
-            <nav class="col-md-2 d-none d-md-block bg-light sidebar">
-                <div class="sidebar-sticky">
-                    <ul class="nav flex-column">
-                        {% if app.user %}
-                        <li class="nav-item">
-                            <a class="nav-link {{ dashboardActive|default('') }}" href="{{ path('dashboard_index') }}">
-                                <span class="glyphicon glyphicon-home" aria-hidden="true"></span>
-                                Dashboard
-                            </a>
-                        </li>
-                        {% endif %}
-                        {% if app.user and 'ROLE_ADMIN' in app.user.roles %}
-                            <li class="nav-item">
-                                <a class="nav-link {{ userActive|default('') }}" href="{{ path('user_index') }}">
-                                    <span class="glyphicon glyphicon-user" aria-hidden="true"></span>
-                                    Usuarios
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ doctoresActive|default('') }}" href="{{ path('doctor_index') }}">
-                                    <span class="glyphicon glyphicon-user" aria-hidden="true"></span>
-                                    Doctores
-                                </a>
-                            </li>
-                        {% endif %}
-                    </ul>
+<html lang="en"><head>
 
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
 
-                </div>
-            </nav>
+    <title>{% block title %}Bienvenidos!{% endblock %}</title>
+    {% block stylesheets %}
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+        <link rel="stylesheet" href="{{ asset('assets/css/bootstrap-datepicker.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/simple-sidebar.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/main.css') }}">
+    {% endblock %}
+</head>
 
-            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4"><div class="chartjs-size-monitor" style="position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; overflow: hidden; pointer-events: none; visibility: hidden; z-index: -1;"><div class="chartjs-size-monitor-expand" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;"><div style="position:absolute;width:1000000px;height:1000000px;left:0;top:0"></div></div><div class="chartjs-size-monitor-shrink" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;"><div style="position:absolute;width:200%;height:200%;left:0; top:0"></div></div></div>
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">{% block panelTitle %}{% endblock %}</h1>
-                    {#<div class="btn-toolbar mb-2 mb-md-0">
-                        <div class="btn-group mr-2">
-                            <button class="btn btn-sm btn-outline-secondary">Share</button>
-                            <button class="btn btn-sm btn-outline-secondary">Export</button>
-                        </div>
-                    </div>#}
-                </div>
+<body>
 
-            </main>
+<div class="d-flex" id="wrapper">
+
+    {{ include('sidebar.html.twig') }}
+
+    <!-- Page Content -->
+    <div id="page-content-wrapper">
+
+        {{ include('navbar.html.twig') }}
+
+        <div class="container-fluid">
+            <h1 class="mt-4">{% block panelTitle %}Dashboard{% endblock %}</h1>
+            {% block body %}{% endblock %}
         </div>
     </div>
-    <div class="container">
-        {% block body %}{% endblock %}
-    </div>
-        {% block javascripts %}
-            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-            <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
-            <script src="{{ asset('assets/js/bootstrap-datepicker.min.js') }}"></script>
-            <script src="{{ asset('assets/js/main.js') }}"></script>
-            <script type="text/javascript">
+    <!-- /#page-content-wrapper -->
 
-            </script>
-        {% endblock %}
-    </body>
-</html>
+</div>
+<!-- /#wrapper -->
+{% block javascripts %}
+<!-- Bootstrap core JavaScript -->
+<!-- JS, Popper.js, and jQuery -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+<script src="https://kit.fontawesome.com/c917f210f8.js" crossorigin="anonymous"></script>
+<script src="{{ asset('assets/js/bootstrap-datepicker.min.js') }}"></script>
+<script src="{{ asset('assets/js/main.js') }}"></script>
+<script type="text/javascript">
+    <!-- Menu Toggle Script -->
+    $("#menu-toggle").click(function(e) {
+        e.preventDefault();
+        $("#wrapper").toggleClass("toggled");
+    });
+</script>
+{% endblock %}
+
+
+
+</body></html>

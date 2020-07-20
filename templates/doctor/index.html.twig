@@ -29,17 +29,16 @@
                 <td>{{ doctor.matricula }}</td>
                 <td>{{ doctor.username }}</td>
                 <td>
-                    <a href="{{ path('doctor_show', {'id': doctor.id}) }}">show</a>
-                    <a href="{{ path('doctor_edit', {'id': doctor.id}) }}">edit</a>
+                    <a href="{{ path('doctor_edit', {'id': doctor.id}) }}">Editar</a>
                 </td>
             </tr>
         {% else %}
             <tr>
-                <td colspan="10">no records found</td>
+                <td colspan="10">No existen registros</td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
 
-    <a href="{{ path('doctor_new') }}">Create new</a>
+    <a href="{{ path('doctor_new') }}">Ingresar nuevo Doctor</a>
 {% endblock %}

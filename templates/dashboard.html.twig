@@ -4,6 +4,46 @@
 {% block panelTitle %}Dashboard{% endblock %}
 {% block body %}
     {% if not app.user %}
+        Por favor, ingrese con su usuario y contraseña
+        <a href="{{ path('app_login') }}">ingresar</a>
+    {% elseif is_granted('ROLE_ADMIN') %}
+        <div class="container">
+            <div class="row">
 
+                <div class="col-md-4">
+                    <a href="{{ path('user_index') }}">
+                        <div class="card text-white bg-success mb-3" style="max-width: 18rem;">
+                            <div class="card-header">Usuarios</div>
+                            <div class="card-body">
+                                <p class="card-text">Desde este gestor manejamos los usuarios y sus permisos</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="col-md-4">
+                    <a href="{{ path('doctor_index') }}">
+                        <div class="card text-white bg-primary mb-3" style="max-width: 18rem;">
+                            <div class="card-header ">Doctores</div>
+                            <div class="card-body">
+                                <p class="card-text">Desde este gestor se crean y administran los Profesionales</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="col-md-4">
+                    <a href="{{ path('cliente_index') }}">
+                        <div class="card text-white bg-primary mb-3" style="max-width: 18rem;">
+                            <div class="card-header ">Clientes</div>
+                            <div class="card-body">
+                                <p class="card-text">Desde este gestor se crean y administran los Clientes</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+        </div>
     {% endif %}
 {% endblock %}

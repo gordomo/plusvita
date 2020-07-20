@@ -1,12 +1,13 @@
-body { padding-top: 70px; }
+
 .form_caja .btn-default.btn {
     width: 100%;
     background-color: #3379b6;
     color: #fff;
     font-size: 22px;
 }
-.nav-link.active {
-    background-color: #ddd;
+.list-group-item.activa {
+    background-color: #dae0e5 !important;
+    color: #495057 !important;
 }
 
 .btn-action {
@@ -17,6 +18,16 @@ body { padding-top: 70px; }
 .form-group .control-label.required:after {
     content:" *";
     color:red;
+}
+.borrarForm {
+    display: inline-block;
+    margin-bottom: 15px;
+}
+.sidebar-sticky {
+    padding-top: 50px;
+}
+.btn-default {
+    border: 1px solid #000000;
 }
 /*
 table {
