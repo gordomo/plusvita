@@ -65,6 +65,64 @@ class Doctor implements UserInterface
      */
     private $clientes;
 
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $modalidad;
+
+    /**
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private $vtoContrato;
+
+    /**
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private $inicioContrato;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $tipo;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $dni;
+
+    /**
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private $vtoMatricula;
+
+
+    const ESPECIALIDADES = [
+                            'Clínico' => 0,
+                            'Fonoaudiología' => 1,
+                            'Kinesiología Motora' => 2,
+                            'Kinesiología Respiratoria' => 3,
+                            'Psicología' => 4,
+                            'Psicopedagogía' => 5,
+                            'Terapia Ocupacional' => 6,
+                            'Hidroterapia' => 7,
+                            'Nutrición' => 8,
+                            'Terapia Intensiva' => 9,
+                            'Dirección' => 10,
+                            'Sub Dirección' => 11,
+                            'Clínica Médica' => 12,
+                            'Psicriatía' => 13,
+                            'Neurología' => 14,
+                            'Fisiatría' => 15,
+                            'Cardiología' => 16,
+                            'Hematología' => 17,
+                            'Cirugía' => 18,
+                            'Urología' => 19,
+                            'Infectología' => 20,
+                            'Traumatología' => 21,
+                            'Trabajo Social' => 22,
+                            'Guardia Médica' => 23,
+                            ];
+
 
     public function __construct()
     {
@@ -101,7 +159,7 @@ class Doctor implements UserInterface
     public function setApellido(string $apellido): self
     {
         $this->apellido = $apellido;
-
+    //<td>{{ doctor.especialidad ? doctor.especialidad|json_encode(constant('JSON_PRETTY_PRINT'))|replace({'[': '', ']': ''}) : '' }}</td>
         return $this;
     }
 
@@ -230,6 +288,78 @@ class Doctor implements UserInterface
                 $cliente->setDocReferente(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getModalidad(): ?string
+    {
+        return $this->modalidad;
+    }
+
+    public function setModalidad(string $modalidad): self
+    {
+        $this->modalidad = $modalidad;
+
+        return $this;
+    }
+
+    public function getVtoContrato(): ?\DateTimeInterface
+    {
+        return $this->vtoContrato;
+    }
+
+    public function setVtoContrato(?\DateTimeInterface $vtoContrato): self
+    {
+        $this->vtoContrato = $vtoContrato;
+
+        return $this;
+    }
+
+    public function getInicioContrato(): ?\DateTimeInterface
+    {
+        return $this->inicioContrato;
+    }
+
+    public function setInicioContrato(?\DateTimeInterface $inicioContrato): self
+    {
+        $this->inicioContrato = $inicioContrato;
+
+        return $this;
+    }
+
+    public function getTipo(): ?string
+    {
+        return $this->tipo;
+    }
+
+    public function setTipo(string $tipo): self
+    {
+        $this->tipo = $tipo;
+
+        return $this;
+    }
+
+    public function getDni(): ?string
+    {
+        return $this->dni;
+    }
+
+    public function setDni(string $dni): self
+    {
+        $this->dni = $dni;
+
+        return $this;
+    }
+
+    public function getVtoMatricula(): ?\DateTimeInterface
+    {
+        return $this->vtoMatricula;
+    }
+
+    public function setVtoMatricula(?\DateTimeInterface $vtoMatricula): self
+    {
+        $this->vtoMatricula = $vtoMatricula;
 
         return $this;
     }
