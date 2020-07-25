@@ -12,15 +12,21 @@
         {% if app.user and 'ROLE_ADMIN' in app.user.roles %}
             <a class="list-group-item list-group-item-action bg-light " href="{{ path('user_index') }}">
                 <i class="fas fa-users"></i>
-                Usuarios
+                Administradores
             </a>
             <a class="list-group-item list-group-item-action bg-light " href="{{ path('doctor_index') }}">
                 <i class="fas fa-user-md"></i>
-                Doctores
+                Staff
             </a>
             <a class="list-group-item list-group-item-action bg-light " href="{{ path('cliente_index') }}">
                 <i class="fas fa-user-injured"></i>
                 Clientes
+            </a>
+        {% endif %}
+        {% if app.user %}
+            <a class="list-group-item list-group-item-action bg-light " href="{{ path('app_logout') }}">
+                <i class="fas fa-chevron-circle-left"></i>
+                Salir
             </a>
         {% endif %}
     </div>

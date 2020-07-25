@@ -1,4 +1,6 @@
-
+.content {
+    overflow: auto;
+}
 .form_caja .btn-default.btn {
     width: 100%;
     background-color: #3379b6;
@@ -29,7 +31,16 @@
 .btn-default {
     border: 1px solid #000000;
 }
-/*
+.content {
+    padding: 0px 50px;
+}
+.usuariosOnDash, .clientesOnDash {
+    background-color: #b088be;
+}
+.staffOnDash {
+    background-color: #60b9b9;
+}
+/*      #60b9b9     #b088be
 table {
     width: 716px; !* 140px * 5 column + 16px scrollbar width *!
     border-spacing: 0;

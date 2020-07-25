@@ -3,6 +3,11 @@
 {% block title %}Edit Doctor{% endblock %}
 {% block panelTitle %}Editar Doctor{% endblock %}
 {% block body %}
-    {{ include('doctor/_form-edit.html.twig') }}
+    {{ include('doctor/_form.html.twig') }}
     {{ include('doctor/_delete_form.html.twig') }}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('assets/js/staff.js') }}"></script>
 {% endblock %}

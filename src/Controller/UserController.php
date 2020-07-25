@@ -42,10 +42,10 @@ class UserController extends AbstractController
             ->add('username', TextType::class, ['required' => true])
             ->add('roles', ChoiceType::class, ['choices'  => [
                                                             'Administrador' => "ROLE_ADMIN",
-                                                            'Usuario' => "ROLE_USER",
-                                                            'Otro' => "ROLE_OTRO",
+                                                            'Operador' => "ROLE_USER",
                                                             ],
                                                           'multiple'=>true,
+                                                          'expanded'=>true,
                                                         ])
             ->add('password', PasswordType::class)
             ->add('email', EmailType::class)

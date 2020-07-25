@@ -17,17 +17,19 @@
 <body>
 
 <div class="d-flex" id="wrapper">
-
-    {{ include('sidebar.html.twig') }}
-
+    {% if app.user %}
+        {{ include('sidebar.html.twig') }}
+    {% endif  %}
     <!-- Page Content -->
     <div id="page-content-wrapper">
-
-        {{ include('navbar.html.twig') }}
-
+        {% if app.user %}
+            {{ include('navbar.html.twig') }}
+        {% endif  %}
         <div class="container-fluid">
-            <h1 class="mt-4">{% block panelTitle %}Dashboard{% endblock %}</h1>
+            <h1 class="mt-4">{% block panelTitle %}{% endblock %}</h1>
+
             {% block body %}{% endblock %}
+
         </div>
     </div>
     <!-- /#page-content-wrapper -->
@@ -44,11 +46,7 @@
 <script src="{{ asset('assets/js/bootstrap-datepicker.min.js') }}"></script>
 <script src="{{ asset('assets/js/main.js') }}"></script>
 <script type="text/javascript">
-    <!-- Menu Toggle Script -->
-    $("#menu-toggle").click(function(e) {
-        e.preventDefault();
-        $("#wrapper").toggleClass("toggled");
-    });
+
 </script>
 {% endblock %}
 

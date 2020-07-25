@@ -1,11 +1,15 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}New Doctor{% endblock %}
-{% block panelTitle %}Nuevo Doctor{% endblock %}
+{% block title %}Nuevo Miembro del Staff{% endblock %}
+{% block panelTitle %}Nuevo Miembro del Staff{% endblock %}
 {% block body %}
 
 
     {{ include('doctor/_form.html.twig') }}
 
-    <a href="{{ path('doctor_index') }}">back to list</a>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('assets/js/staff.js') }}"></script>
 {% endblock %}

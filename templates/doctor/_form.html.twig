@@ -1,3 +1,77 @@
 {{ form_start(form) }}
-    {{ form_widget(form) }}
+<br>
+<div class="form-row">
+    <div class="col-sm">
+            {{ form_label(form.nombre, 'Nombre') }}
+            {{ form_widget(form.nombre) }}
+    </div>
+    <div class="col-sm">
+            {{ form_label(form.apellido, 'Apellido') }}
+            {{ form_widget(form.apellido) }}
+    </div>
+</div>
+<br>
+<div class="form-row">
+    <div class="col-sm">
+        {{ form_label(form.dni, 'DNI') }}
+        {{ form_widget(form.dni) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.tipo, 'Tipo de contrato') }}
+        {{ form_widget(form.tipo) }}
+    </div>
+</div>
+<br>
+<div class="form-row">
+    <div class="col-sm">
+        {{ form_label(form.modalidad, 'Modalidad') }}
+        {{ form_widget(form.modalidad) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.inicioContrato, 'Inicio del Contrato') }}
+        {{ form_widget(form.inicioContrato) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.vtoContrato, 'Vencimiento del Contrato') }}
+        {{ form_widget(form.vtoContrato) }}
+    </div>
+</div>
+<br>
+<div class="form-row {{ claseParaEspecialidad }}">
+    <div class="col-sm">
+    {{ form_label(form.especialidad, 'Especialidad') }}
+    {{ form_widget(form.especialidad) }}
+    </div>
+</div>
+<br>
+<div class="form-row">
+    <div class="col-sm">
+    {{ form_label(form.firmaPdf, 'Firma en Pdf') }}<br>
+    {{ form_widget(form.firmaPdf) }}
+    </div>
+    <div class="col-sm">
+    {{ form_label(form.matricula, 'Matricula') }}
+    {{ form_widget(form.matricula) }}
+    </div>
+    <div class="col-sm d-none">
+        {{ form_label(form.vtoMatricula, 'Vencimiento Matricula') }}
+        {{ form_widget(form.vtoMatricula) }}
+    </div>
+</div>
+<br>
+<div class="form-row">
+    <div class="col-sm">
+    {{ form_label(form.username, 'Nombre de Usuario') }}
+    {{ form_widget(form.username) }}
+    </div>
+    <div class="col-sm">
+    {{ form_label(form.password, 'Password') }}
+    {{ form_widget(form.password) }}
+    </div>
+</div>
+<br>
+<div class="form-group">
+    {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary'}}) }}
+    <a class="btn btn-default" href="{{ path('doctor_index') }}">volver</a>
+</div>
 {{ form_end(form) }}

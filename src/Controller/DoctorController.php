@@ -11,6 +11,7 @@ use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -22,7 +23,7 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\Validator\Constraints\File;
 
 /**
- * @Route("/doctor")
+ * @Route("/staff")
  */
 class DoctorController extends AbstractController
 {
@@ -43,17 +44,26 @@ class DoctorController extends AbstractController
     public function new(Request $request,  SluggerInterface $slugger): Response
     {
         $doctor = new Doctor();
-        //$form = $this->createForm(DoctorType::class, $doctor);
+        $claseParaEspecialidad = empty($doctor->getEspecialidad()) ? 'd-none' : '';
 
         $form = $this->createFormBuilder($doctor)
             ->add('nombre', TextType::class)
             ->add('apellido', TextType::class)
-            ->add('especialidad', ChoiceType::class, ['choices'  => [
-                'Pediatra' => "pediatra",
-                'Clinico' => "clinico",
-                'Otro' => "otro",
-            ],
-                'multiple'=>true,
+            ->add('dni', TextType::class)
+            ->add('tipo', ChoiceType::class, ['choices' => ['Tipo de contrato 1' => 1, 'Tipo de contrato 2' => 2, 'Tipo de contrato 3' => 3]])
+            ->add('modalidad', ChoiceType::class, ['choices' => ['Seleccione una Modalidad' => 0, 'Empleado' => 1, 'Profesional' => 2, 'Contratado' => 3]])
+            ->add('inicioContrato', DateType::class, [ 'widget' => 'single_text'])
+            ->add('vtoContrato', DateType::class, [ 'widget' => 'single_text'] )
+            ->add('vtoMatricula', DateType::class, [ 'widget' => 'single_text'] )
+            ->add('especialidad', ChoiceType::class,
+                [
+                    'choices'  => $doctor::ESPECIALIDADES,
+                    'multiple'=>true,
+                    'expanded' => true,
+                    'choice_attr' => function($choice, $key, $value) {
+                        // adds a class like attending_yes, attending_no, etc
+                        return ['class' => 'attending_'.strtolower($key)];
+                    },
             ])
             ->add('firmaPdf', FileType::class, [
                 'label' => 'Firma Digital (PDF file)',
@@ -111,6 +121,7 @@ class DoctorController extends AbstractController
         return $this->render('doctor/new.html.twig', [
             'doctor' => $doctor,
             'form' => $form->createView(),
+            'claseParaEspecialidad' => $claseParaEspecialidad,
             
         ]);
     }
@@ -131,16 +142,27 @@ class DoctorController extends AbstractController
      */
     public function edit(Request $request, Doctor $doctor, SluggerInterface $slugger): Response
     {
+        $claseParaEspecialidad = empty($doctor->getEspecialidad()) ? 'd-none' : '';
+
         $form = $this->createFormBuilder($doctor)
             ->add('nombre', TextType::class)
             ->add('apellido', TextType::class)
-            ->add('especialidad', ChoiceType::class, ['choices'  => [
-                'Pediatra' => "pediatra",
-                'Clinico' => "clinico",
-                'Otro' => "otro",
-            ],
-                'multiple'=>true,
-            ])
+            ->add('dni', TextType::class)
+            ->add('tipo', ChoiceType::class, ['choices' => ['Tipo de contrato 1' => 1, 'Tipo de contrato 2' => 2, 'Tipo de contrato 3' => 3]])
+            ->add('modalidad', ChoiceType::class, ['choices' => ['Seleccione una Modalidad' => 0, 'Empleado' => 1, 'Profesional' => 2, 'Contratado' => 3]])
+            ->add('inicioContrato', DateType::class, [ 'widget' => 'single_text'])
+            ->add('vtoContrato', DateType::class, [ 'widget' => 'single_text'] )
+            ->add('vtoMatricula', DateType::class, [ 'widget' => 'single_text'] )
+            ->add('especialidad', ChoiceType::class,
+                [
+                    'choices'  => $doctor::ESPECIALIDADES,
+                    'multiple'=>true,
+                    'expanded' => true,
+                    'choice_attr' => function($choice, $key, $value) {
+                        // adds a class like attending_yes, attending_no, etc
+                        return ['class' => 'attending_'.strtolower($key)];
+                    },
+                ])
             ->add('firmaPdf', FileType::class, [
                 'label' => 'Firma Digital (PDF file)',
                 'mapped' => false,
@@ -157,17 +179,8 @@ class DoctorController extends AbstractController
                 ],
             ])
             ->add('matricula', TextType::class)
-            ->add('clientes', EntityType::class, [
-                // looks for choices from this entity
-                'class' => Cliente::class,
-
-                // uses the User.username property as the visible option string
-                'choice_label' => 'nombreApellido',
-
-                // used to render a select box, check boxes or radios
-                'multiple' => true,
-                'expanded' => true,
-            ])
+            ->add('username', TextType::class)
+            ->add('password', PasswordType::class)
             ->add('save', SubmitType::class, ['label' => 'Guardar'])
             ->getForm();
 
@@ -206,6 +219,7 @@ class DoctorController extends AbstractController
         return $this->render('doctor/edit.html.twig', [
             'doctor' => $doctor,
             'form' => $form->createView(),
+            'claseParaEspecialidad' => $claseParaEspecialidad,
             
         ]);
     }

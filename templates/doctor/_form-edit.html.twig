@@ -1,28 +1,42 @@
 {{ form_start(form) }}
-<div class="form-group">
-    {{ form_label(form.nombre, 'Nombre') }}
-    {{ form_widget(form.nombre) }}
+<br>
+<div class="form-row">
+    <div class="col">
+        <b>{{ form_label(form.nombre, 'Nombre') }}</b>
+        {{ form_widget(form.nombre) }}
+    </div>
+    <div class="col">
+        <b>{{ form_label(form.apellido, 'Apellido') }}</b>
+        {{ form_widget(form.apellido) }}
+    </div>
 </div>
-<div class="form-group">
-    {{ form_label(form.apellido, 'Apellido') }}
-    {{ form_widget(form.apellido) }}
+<br>
+<div class="form-row">
+    <div class="col">
+        <b>{{ form_label(form.firmaPdf, 'Firma en Pdf') }}</b><br>
+        {{ form_widget(form.firmaPdf) }}
+    </div>
+    <div class="col">
+        <b>{{ form_label(form.matricula, 'Matricula') }}</b>
+        {{ form_widget(form.matricula) }}
+    </div>
 </div>
-<div class="form-group">
-    {{ form_label(form.especialidad, 'Especialidad') }}
-    {{ form_widget(form.especialidad) }}
+<br>
+<div class="form-row">
+    <div class="col">
+        <b>{{ form_label(form.clientes, 'Clientes') }}</b>
+        {{ form_widget(form.clientes) }}
+    </div>
 </div>
-<div class="form-group">
-    {{ form_label(form.firmaPdf, 'Firma en Pdf') }}
-    {{ form_widget(form.firmaPdf) }}
+<br>
+<div class="form-row">
+    <div class="col">
+        <b>{{ form_label(form.especialidad, 'Especialidad') }}</b>
+        {{ form_widget(form.especialidad) }}
+    </div>
 </div>
-<div class="form-group">
-    {{ form_label(form.matricula, 'Matricula') }}
-    {{ form_widget(form.matricula) }}
-</div>
-<div class="form-group">
-    {{ form_label(form.clientes, 'Clientes') }}
-    {{ form_widget(form.clientes) }}
-</div>
+<br>
+
 <div class="form-group">
     {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary'}}) }}
     <a class="btn btn-default" href="{{ path('doctor_index') }}">volver</a>

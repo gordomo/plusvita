@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}User index{% endblock %}
-{% block panelTitle %}Usuarios{% endblock %}
+{% block title %}Administradores{% endblock %}
+{% block panelTitle %}Administradores{% endblock %}
 {% block body %}
     <table class="table">
         <thead>
@@ -24,9 +24,7 @@
                         {% if role == "ROLE_ADMIN" %}
                             Administrador
                         {% elseif role == "ROLE_USER" %}
-                            Usuario
-                        {% else %}
-                            Otro
+                            Operador
                         {% endif %}
                     {% endfor %}
                 </td>
@@ -38,11 +36,11 @@
             </tr>
         {% else %}
             <tr>
-                <td colspan="5">No se encontraron Usuarios</td>
+                <td colspan="5">No se encontraron Usuarios Administradores</td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
 
-    <a href="{{ path('user_new') }}">Crear nuevo Usuario</a>
+    <a href="{{ path('user_new') }}">Crear nuevo Usuario Administrador</a>
 {% endblock %}
