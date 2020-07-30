@@ -62,6 +62,7 @@ class DoctorController extends AbstractController
     public function new(Request $request,  SluggerInterface $slugger): Response
     {
         $doctor = new Doctor();
+        $doctor->setRoles([]);
         $doctor->setInicioContrato(new \DateTime());
 
         $claseParaEspecialidad = empty($doctor->getModalidad()) ? 'd-none' : '';
@@ -75,7 +76,7 @@ class DoctorController extends AbstractController
             $firmaPdfFile = $form->get('firmaPdf')->getData();
             if ($firmaPdfFile) {
                 $originalFilename = pathinfo($firmaPdfFile->getClientOriginalName(), PATHINFO_FILENAME);
-                $form->get('username');
+                $form->get('dni');
                 $safeFilename = $slugger->slug($originalFilename);
                 $newFilename = $safeFilename.'-'.uniqid().'.'.$firmaPdfFile->guessExtension();
 

@@ -25,7 +25,9 @@ $( document ).on('change', '.js-staff-tipo', function () {
         });
 })
 if($('#doctor_modalidad').is(':visible')) {
-    var parentModalidadHtml = $('#doctor_modalidad').parent().html();
+    var parentModalidadHtml = '<div class="form-row"><div class="col-sm">';
+    parentModalidadHtml += $('#doctor_modalidad').parent().html();
+    parentModalidadHtml += '</div></div>'
     $('#doctor_modalidad').parent().html('');
     $('.js-staff-modalidad-target').html(parentModalidadHtml);
     $('#doctor_modalidad').find('.checkbox').each(function(index, value) {
