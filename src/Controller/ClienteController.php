@@ -59,6 +59,7 @@ class ClienteController extends AbstractController
     public function new(Request $request): Response
     {
         $cliente = new Cliente();
+        $cliente->setActivo(true);
         $cliente->setFIngreso(new \DateTime());
         $form = $this->createForm(ClienteType::class, $cliente);
         $form->handleRequest($request);
