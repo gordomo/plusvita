@@ -46,12 +46,12 @@ class Doctor implements UserInterface
     private $roles = [];
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $matricula;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $username;
 
@@ -66,9 +66,9 @@ class Doctor implements UserInterface
     private $clientes;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="json", nullable=true)
      */
-    private $modalidad;
+    private $modalidad = [];
 
     /**
      * @ORM\Column(type="date", nullable=true)
@@ -95,34 +95,35 @@ class Doctor implements UserInterface
      */
     private $vtoMatricula;
 
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $email;
 
-    const ESPECIALIDADES = [
-                            'Clínico' => 0,
-                            'Fonoaudiología' => 1,
-                            'Kinesiología Motora' => 2,
-                            'Kinesiología Respiratoria' => 3,
-                            'Psicología' => 4,
-                            'Psicopedagogía' => 5,
-                            'Terapia Ocupacional' => 6,
-                            'Hidroterapia' => 7,
-                            'Nutrición' => 8,
-                            'Terapia Intensiva' => 9,
-                            'Dirección' => 10,
-                            'Sub Dirección' => 11,
-                            'Clínica Médica' => 12,
-                            'Psicriatía' => 13,
-                            'Neurología' => 14,
-                            'Fisiatría' => 15,
-                            'Cardiología' => 16,
-                            'Hematología' => 17,
-                            'Cirugía' => 18,
-                            'Urología' => 19,
-                            'Infectología' => 20,
-                            'Traumatología' => 21,
-                            'Trabajo Social' => 22,
-                            'Guardia Médica' => 23,
-                            ];
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $legajo;
 
+    /**
+     * @ORM\Column(type="date", length=255, nullable=true)
+     */
+    private $fechaBaja;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $motivoBaja;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $concepto;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $telefono;
 
     public function __construct()
     {
@@ -159,7 +160,7 @@ class Doctor implements UserInterface
     public function setApellido(string $apellido): self
     {
         $this->apellido = $apellido;
-    //<td>{{ doctor.especialidad ? doctor.especialidad|json_encode(constant('JSON_PRETTY_PRINT'))|replace({'[': '', ']': ''}) : '' }}</td>
+
         return $this;
     }
 
@@ -190,15 +191,15 @@ class Doctor implements UserInterface
     public function getRoles(): ?array
     {
         $roles = $this->roles;
-        // guarantee every user at least has ROLE_DOCTOR
-        $roles[] = 'ROLE_DOCTOR';
+
+        $roles[] = 'ROLE_STAFF';
 
         return array_unique($roles);
     }
 
     public function setRoles(array $roles): self
     {
-        $this->roles = '[ROLE_DOCTOR]';
+        $this->roles = '[ROLE_STAFF]';
 
         return $this;
     }
@@ -292,12 +293,12 @@ class Doctor implements UserInterface
         return $this;
     }
 
-    public function getModalidad(): ?string
+    public function getModalidad(): ?array
     {
         return $this->modalidad;
     }
 
-    public function setModalidad(string $modalidad): self
+    public function setModalidad(array $modalidad): self
     {
         $this->modalidad = $modalidad;
 
@@ -360,6 +361,78 @@ class Doctor implements UserInterface
     public function setVtoMatricula(?\DateTimeInterface $vtoMatricula): self
     {
         $this->vtoMatricula = $vtoMatricula;
+
+        return $this;
+    }
+
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(string $email): self
+    {
+        $this->email = $email;
+
+        return $this;
+    }
+
+    public function getLegajo(): ?string
+    {
+        return $this->legajo;
+    }
+
+    public function setLegajo(string $legajo): self
+    {
+        $this->legajo = $legajo;
+
+        return $this;
+    }
+
+    public function getFechaBaja(): ?string
+    {
+        return $this->fechaBaja;
+    }
+
+    public function setFechaBaja(?string $fechaBaja): self
+    {
+        $this->fechaBaja = $fechaBaja;
+
+        return $this;
+    }
+
+    public function getMotivoBaja(): ?string
+    {
+        return $this->motivoBaja;
+    }
+
+    public function setMotivoBaja(?string $motivoBaja): self
+    {
+        $this->motivoBaja = $motivoBaja;
+
+        return $this;
+    }
+
+    public function getConcepto(): ?string
+    {
+        return $this->concepto;
+    }
+
+    public function setConcepto(?string $concepto): self
+    {
+        $this->concepto = $concepto;
+
+        return $this;
+    }
+
+    public function getTelefono(): ?string
+    {
+        return $this->telefono;
+    }
+
+    public function setTelefono(string $telefono): self
+    {
+        $this->telefono = $telefono;
 
         return $this;
     }

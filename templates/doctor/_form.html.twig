@@ -9,24 +9,61 @@
             {{ form_label(form.apellido, 'Apellido') }}
             {{ form_widget(form.apellido) }}
     </div>
-</div>
-<br>
-<div class="form-row">
     <div class="col-sm">
         {{ form_label(form.dni, 'DNI') }}
         {{ form_widget(form.dni) }}
     </div>
+</div>
+<br>
+<div class="form-row">
     <div class="col-sm">
-        {{ form_label(form.tipo, 'Tipo de contrato') }}
-        {{ form_widget(form.tipo) }}
+        {{ form_label(form.telefono, 'Teléfono') }}
+        {{ form_widget(form.telefono) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.email, 'Email') }}
+        {{ form_widget(form.email) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.legajo, 'Nro de Legajo') }}
+        {{ form_widget(form.legajo) }}
     </div>
 </div>
 <br>
 <div class="form-row">
     <div class="col-sm">
-        {{ form_label(form.modalidad, 'Modalidad') }}
-        {{ form_widget(form.modalidad) }}
+        {{ form_label(form.fechaBaja, 'Fecha de Baja') }}
+        {{ form_widget(form.fechaBaja) }}
     </div>
+    <div class="col-sm">
+        {{ form_label(form.motivoBaja, 'Motivo de la Baja') }}
+        {{ form_widget(form.motivoBaja) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.concepto, 'Concepto') }}
+        {{ form_widget(form.concepto) }}
+    </div>
+</div>
+<br>
+<div class="form-row">
+    <div class="col-sm">
+        {{ form_label(form.tipo, 'Tipo de contrato') }}
+        {{ form_widget(form.tipo, {'attr': {'data-staff_tipo_select-url': path('staff_tipo_select'), 'class': 'js-staff-tipo'}}) }}
+    </div>
+</div>
+<br>
+<div class="js-staff-modalidad-target">
+    {%  if form.modalidad is defined %}
+        <div class="form-row">
+            <div class="col-sm">
+                {{ form_label(form.modalidad, 'Categoria') }}
+                {{ form_widget(form.modalidad) }}
+            </div>
+        </div>
+    {% endif %}
+</div>
+<br>
+<div class="form-row">
     <div class="col-sm">
         {{ form_label(form.inicioContrato, 'Inicio del Contrato') }}
         {{ form_widget(form.inicioContrato) }}
@@ -37,13 +74,13 @@
     </div>
 </div>
 <br>
-<div class="form-row {{ claseParaEspecialidad }}">
+{#<div class="form-row ">
     <div class="col-sm">
     {{ form_label(form.especialidad, 'Especialidad') }}
     {{ form_widget(form.especialidad) }}
     </div>
 </div>
-<br>
+<br>#}
 <div class="form-row">
     <div class="col-sm">
     {{ form_label(form.firmaPdf, 'Firma en Pdf') }}<br>
@@ -53,22 +90,22 @@
     {{ form_label(form.matricula, 'Matricula') }}
     {{ form_widget(form.matricula) }}
     </div>
-    <div class="col-sm d-none">
+    <div class="col-sm">
         {{ form_label(form.vtoMatricula, 'Vencimiento Matricula') }}
         {{ form_widget(form.vtoMatricula) }}
     </div>
 </div>
 <br>
+{%  if form.password is defined %}
 <div class="form-row">
     <div class="col-sm">
-    {{ form_label(form.username, 'Nombre de Usuario') }}
-    {{ form_widget(form.username) }}
+        {{ form_label(form.password, 'Password') }}
+        {{ form_widget(form.password) }}
     </div>
-    <div class="col-sm">
-    {{ form_label(form.password, 'Password') }}
-    {{ form_widget(form.password) }}
-    </div>
+    <div class="col-sm"></div>
+    <div class="col-sm"></div>
 </div>
+{% endif %}
 <br>
 <div class="form-group">
     {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary'}}) }}

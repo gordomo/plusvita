@@ -8,9 +8,9 @@
             <tr>
                 <th scope="col">Nombre</th>
                 <th scope="col">Apellido</th>
-                <th scope="col">Especialidad</th>
-                <th scope="col">Firma Digital</th>
-                <th scope="col">Matricula</th>
+                <th scope="col">Tipo</th>
+                <th scope="col">Legajo</th>
+                <th scope="col">Inicio Contrato</th>
                 <th scope="col">actions</th>
             </tr>
         </thead>
@@ -20,85 +20,17 @@
                 <td>{{ doctor.nombre }}</td>
                 <td>{{ doctor.apellido }}</td>
                 <td>
-                    {% for value in doctor.especialidad %}
-                            {% if value == '0' %}
-                                Clínico
-                            {% endif %}
-                            {% if value ==  '1' %}
-                                Fonoaudiología
-                            {% endif %}
-                            {% if value ==  '2' %}
-                                Kinesiología Motora
-                            {% endif %}
-                            {% if value ==  '3' %}
-                                Kinesiología Respiratoria
-                            {% endif %}
-                            {% if value ==  '4' %}
-                                Psicología
-                            {% endif %}
-                            {% if value ==  '5' %}
-                                Psicopedagogía
-                            {% endif %}
-                            {% if value ==  '6' %}
-                                Terapia Ocupacional
-                            {% endif %}
-                            {% if value ==  '7' %}
-                                Hidroterapia
-                            {% endif %}
-                            {% if value ==  '8' %}
-                                Nutrición
-                            {% endif %}
-                            {% if value ==  '9' %}
-                                Terapia Intensiva
-                            {% endif %}
-                            {% if value ==  '10' %}
-                                Dirección
-                            {% endif %}
-                            {% if value ==  '11' %}
-                                Sub Dirección
-                            {% endif %}
-                            {% if value ==  '12' %}
-                                Clínica Médica
-                            {% endif %}
-                            {% if value ==  '13' %}
-                                Psicriatía
-                            {% endif %}
-                            {% if value ==  '14' %}
-                                Neurología
-                            {% endif %}
-                            {% if value ==  '15' %}
-                                Fisiatría
-                            {% endif %}
-                            {% if value ==  '16' %}
-                                Cardiología
-                            {% endif %}
-                            {% if value ==  '17' %}
-                                Hematología
-                            {% endif %}
-                            {% if value ==  '18' %}
-                                Cirugía
-                            {% endif %}
-                            {% if value ==  '19' %}
-                                Urología
-                            {% endif %}
-                            {% if value ==  '20' %}
-                                Infectología
-                            {% endif %}
-                            {% if value ==  '21' %}
-                                Traumatología
-                            {% endif %}
-                            {% if value ==  '22' %}
-                                Trabajo Social
-                            {% endif %}
-                            {% if value ==  '23' %}
-                                Guardia Médica
-                            {% endif %}
-                    {% endfor %}
+                    {{ doctor.modalidad | json_encode(constant('JSON_PRETTY_PRINT')) | replace({'[': '', ']': '', '\\': ''})}}
                 </td>
-                <td><a href="{{ asset('uploads/firmas/' ~ doctor.firma) }}" target="_blank">Ver firma digital</a></td>
-                <td>{{ doctor.matricula }}</td>
                 <td>
-                    <a href="{{ path('doctor_edit', {'id': doctor.id}) }}">Editar</a>
+                    {{ doctor.legajo }}
+                    {#<a href="{{ asset('uploads/firmas/' ~ doctor.firma) }}" target="_blank">Ver firma digital</a>#}
+                </td>
+                <td>
+                    {{ doctor.inicioContrato | date('Y-m-d') }}
+                </td>
+                <td>
+                    <a href="{{ path('doctor_edit', {'id': doctor.id}) }}">Editar/Ver</a>
                 </td>
             </tr>
         {% else %}

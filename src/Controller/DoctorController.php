@@ -39,52 +39,34 @@ class DoctorController extends AbstractController
     }
 
     /**
+     * @Route("/tipo-select", name="staff_tipo_select")
+     */
+    public function getModalidadesSelect(Request $request)
+    {
+        $doctor = new Doctor();
+        $doctor->setTipo($request->query->get('tipo'));
+        $form = $this->createForm(DoctorType::class, $doctor);
+        if (!$form->has('modalidad')) {
+            return new Response(null, 204);
+        }
+
+        return $this->render('doctor/_modalidad.html.twig', [
+            'form' => $form->createView(),
+        ]);
+
+    }
+
+    /**
      * @Route("/new", name="doctor_new", methods={"GET","POST"})
      */
     public function new(Request $request,  SluggerInterface $slugger): Response
     {
         $doctor = new Doctor();
-        $claseParaEspecialidad = empty($doctor->getEspecialidad()) ? 'd-none' : '';
+        $doctor->setInicioContrato(new \DateTime());
 
-        $form = $this->createFormBuilder($doctor)
-            ->add('nombre', TextType::class)
-            ->add('apellido', TextType::class)
-            ->add('dni', TextType::class)
-            ->add('tipo', ChoiceType::class, ['choices' => ['Tipo de contrato 1' => 1, 'Tipo de contrato 2' => 2, 'Tipo de contrato 3' => 3]])
-            ->add('modalidad', ChoiceType::class, ['choices' => ['Seleccione una Modalidad' => 0, 'Empleado' => 1, 'Profesional' => 2, 'Contratado' => 3]])
-            ->add('inicioContrato', DateType::class, [ 'widget' => 'single_text'])
-            ->add('vtoContrato', DateType::class, [ 'widget' => 'single_text'] )
-            ->add('vtoMatricula', DateType::class, [ 'widget' => 'single_text'] )
-            ->add('especialidad', ChoiceType::class,
-                [
-                    'choices'  => $doctor::ESPECIALIDADES,
-                    'multiple'=>true,
-                    'expanded' => true,
-                    'choice_attr' => function($choice, $key, $value) {
-                        // adds a class like attending_yes, attending_no, etc
-                        return ['class' => 'attending_'.strtolower($key)];
-                    },
-            ])
-            ->add('firmaPdf', FileType::class, [
-                'label' => 'Firma Digital (PDF file)',
-                'mapped' => false,
-                'required' => false,
-                'constraints' => [
-                    new File([
-                        'maxSize' => '1024k',
-                        'mimeTypes' => [
-                            'application/pdf',
-                            'application/x-pdf',
-                        ],
-                        'mimeTypesMessage' => 'Solo archivos con formato PDF son permitidos',
-                    ])
-                ],
-            ])
-            ->add('matricula', TextType::class)
-            ->add('username', TextType::class)
-            ->add('password', PasswordType::class)
-            ->add('save', SubmitType::class, ['label' => 'Guardar'])
-            ->getForm();
+        $claseParaEspecialidad = empty($doctor->getModalidad()) ? 'd-none' : '';
+
+        $form = $this->createForm(DoctorType::class, $doctor);
 
         $form->handleRequest($request);
 
@@ -144,46 +126,7 @@ class DoctorController extends AbstractController
     {
         $claseParaEspecialidad = empty($doctor->getEspecialidad()) ? 'd-none' : '';
 
-        $form = $this->createFormBuilder($doctor)
-            ->add('nombre', TextType::class)
-            ->add('apellido', TextType::class)
-            ->add('dni', TextType::class)
-            ->add('tipo', ChoiceType::class, ['choices' => ['Tipo de contrato 1' => 1, 'Tipo de contrato 2' => 2, 'Tipo de contrato 3' => 3]])
-            ->add('modalidad', ChoiceType::class, ['choices' => ['Seleccione una Modalidad' => 0, 'Empleado' => 1, 'Profesional' => 2, 'Contratado' => 3]])
-            ->add('inicioContrato', DateType::class, [ 'widget' => 'single_text'])
-            ->add('vtoContrato', DateType::class, [ 'widget' => 'single_text'] )
-            ->add('vtoMatricula', DateType::class, [ 'widget' => 'single_text'] )
-            ->add('especialidad', ChoiceType::class,
-                [
-                    'choices'  => $doctor::ESPECIALIDADES,
-                    'multiple'=>true,
-                    'expanded' => true,
-                    'choice_attr' => function($choice, $key, $value) {
-                        // adds a class like attending_yes, attending_no, etc
-                        return ['class' => 'attending_'.strtolower($key)];
-                    },
-                ])
-            ->add('firmaPdf', FileType::class, [
-                'label' => 'Firma Digital (PDF file)',
-                'mapped' => false,
-                'required' => false,
-                'constraints' => [
-                    new File([
-                        'maxSize' => '1024k',
-                        'mimeTypes' => [
-                            'application/pdf',
-                            'application/x-pdf',
-                        ],
-                        'mimeTypesMessage' => 'Solo archivos con formato PDF son permitidos',
-                    ])
-                ],
-            ])
-            ->add('matricula', TextType::class)
-            ->add('username', TextType::class)
-            ->add('password', PasswordType::class)
-            ->add('save', SubmitType::class, ['label' => 'Guardar'])
-            ->getForm();
-
+        $form = $this->createForm(DoctorType::class, $doctor, array('is_new' => false));
 
         $form->handleRequest($request);
 
