@@ -89,6 +89,16 @@ class Cliente
      */
     private $docDerivante;
 
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $modalidad;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $motivoIngEspecifico;
+
 
     public function __construct()
     {
@@ -295,6 +305,30 @@ class Cliente
     public function setDocDerivante(?string $docDerivante): self
     {
         $this->docDerivante = $docDerivante;
+
+        return $this;
+    }
+
+    public function getModalidad(): ?string
+    {
+        return $this->modalidad;
+    }
+
+    public function setModalidad(string $modalidad): self
+    {
+        $this->modalidad = $modalidad;
+
+        return $this;
+    }
+
+    public function getMotivoIngEspecifico(): ?string
+    {
+        return $this->motivoIngEspecifico;
+    }
+
+    public function setMotivoIngEspecifico(?string $motivoIngEspecifico): self
+    {
+        $this->motivoIngEspecifico = $motivoIngEspecifico;
 
         return $this;
     }

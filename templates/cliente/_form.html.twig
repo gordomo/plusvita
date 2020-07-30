@@ -1,3 +1,79 @@
 {{ form_start(form) }}
-    {{ form_widget(form) }}
+<br>
+<div class="form-row">
+    <div class="col-sm">
+        {{ form_label(form.nombre, 'Nombre') }}
+        {{ form_widget(form.nombre) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.apellido, 'Apellido') }}
+        {{ form_widget(form.apellido) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.dni, 'DNI') }}
+        {{ form_widget(form.dni) }}
+    </div>
+</div>
+<br>
+<div class="form-row">
+    <div class="col-sm">
+        {{ form_label(form.telefono, 'Teléfono') }}
+        {{ form_widget(form.telefono) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.email, 'Email') }}
+        {{ form_widget(form.email) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.hClinica, 'Historia Clinica') }}
+        {{ form_widget(form.hClinica) }}
+    </div>
+</div>
+<br>
+<div class="form-row">
+    <div class="col-sm">
+        {{ form_label(form.modalidad) }}
+        {{ form_widget(form.modalidad) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.motivoIng) }}
+        {{ form_widget(form.motivoIng, {'attr': {'data-cliente-motivo_ingreso-select-url': path('paciente_patologia_select'), 'class': 'js-cliente-motivo'}}) }}
+    </div>
+    <div class="col-sm">
+        <div class="js-cliente-motivo-target">
+            {%  if form.motivoIngEspecifico is defined %}
+                {{ form_label(form.motivoIngEspecifico) }}
+                {{ form_widget(form.motivoIngEspecifico) }}
+            {% endif %}
+        </div>
+    </div>
+</div>
+<br>
+<div class="form-row">
+    <div class="col-sm">
+        {{ form_label(form.docReferente) }}
+        {{ form_widget(form.docReferente) }}
+    </div>
+</div>
+<br>
+
+<div class="form-row">
+    <div class="col-sm">
+        {{ form_label(form.vieneDe) }}
+        {{ form_widget(form.vieneDe) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.docDerivante) }}
+        {{ form_widget(form.docDerivante) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.fIngreso) }}
+        {{ form_widget(form.fIngreso) }}
+    </div>
+</div>
+<br>
+<div class="form-group">
+    {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary'}}) }}
+    <a class="btn btn-default" href="{{ path('doctor_index') }}">volver</a>
+</div>
 {{ form_end(form) }}

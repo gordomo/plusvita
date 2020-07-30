@@ -35,41 +35,32 @@ class ClienteController extends AbstractController
     }
 
     /**
+     * @Route("/patologia-select", name="paciente_patologia_select")
+     */
+    public function getPatologiasSelect(Request $request): Response
+    {
+        $cliente = new Cliente();
+        $cliente->setMotivoIng($request->query->get('motivoIng'));
+        $form = $this->createForm(ClienteType::class, $cliente);
+
+        if (!$form->has('motivoIngEspecifico')) {
+            return new Response(null, 204);
+        }
+
+        return $this->render('cliente/_motivoIngEspecifico.html.twig', [
+            'form' => $form->createView(),
+        ]);
+
+    }
+
+    /**
      * @Route("/new", name="cliente_new", methods={"GET","POST"})
      */
     public function new(Request $request): Response
     {
         $cliente = new Cliente();
-        $form = $this->createFormBuilder($cliente)
-            ->add('nombre', TextType::class)
-            ->add('activo', HiddenType::class, ['data' => true,])
-            ->add('apellido', TextType::class)
-            ->add('dni', NumberType::class, ['html5' => true, 'label' => 'Número de Documento'])
-            ->add('email', EmailType::class)
-            ->add('telefono', TextType::class, ['label' => 'Teléfono'])
-            ->add('hClinica', TextType::class, ['label' => 'Número de Historia Clínica'])
-            ->add('fIngreso', DateType::class, ['label' => 'Fecha de Ingreso', 'required'=>false, 'widget' => 'single_text'])
-            ->add('motivoIng', ChoiceType::class, [
-                'label' => 'Motivo Ingreso',
-                'choices'  => [
-                    'Patología 1' => "1",
-                    'Patología 2' => "2",
-                    'Patología 3' => "3",
-                ],
-                'multiple'=>false,
-                'expanded'=>true,
-            ])
-            ->add('docReferente', EntityType::class, [
-                'class' => Doctor::class,
-                'choice_label' => 'NombreApellido',
-                'multiple' => true,
-                'label' => 'Doctores (el primer seleccionado será considerado el referente)',
-            ])
-            ->add('vieneDe', TextType::class, ['label' => 'Institución de la cual proviene', 'required'=>false])
-            ->add('docDerivante', TextType::class, ['label' => 'Doctor Derivante', 'required'=>false])
-
-            ->add('save', SubmitType::class, ['label' => 'Guardar'])
-            ->getForm();
+        $cliente->setFIngreso(new \DateTime());
+        $form = $this->createForm(ClienteType::class, $cliente);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -104,35 +95,7 @@ class ClienteController extends AbstractController
      */
     public function edit(Request $request, Cliente $cliente): Response
     {
-        $form = $this->createFormBuilder($cliente)
-            ->add('nombre', TextType::class)
-            ->add('apellido', TextType::class)
-            ->add('dni', NumberType::class, ['html5' => true])
-            ->add('email', EmailType::class)
-            ->add('telefono', TextType::class, ['label' => 'Teléfono'])
-            ->add('hClinica', TextType::class, ['label' => 'Número de Historia Clínica'])
-            ->add('fIngreso', DateType::class, ['label' => 'Fecha de Ingreso', 'required'=>false, 'widget' => 'single_text'])
-            ->add('motivoIng', ChoiceType::class, [
-                'label' => 'Motivo Ingreso',
-                'choices'  => [
-                    'Patología 1' => "1",
-                    'Patología 2' => "2",
-                    'Patología 3' => "3",
-                ],
-                'multiple'=>false,
-                'expanded'=>true,
-            ])
-            ->add('docReferente', EntityType::class, [
-                'class' => Doctor::class,
-                'choice_label' => 'NombreApellido',
-                'multiple' => true,
-                'label' => 'Doctores (el primer seleccionado será considerado el referente)',
-            ])
-            ->add('vieneDe', TextType::class, ['label' => 'Institución de la cual proviene', 'required'=>false])
-            ->add('docDerivante', TextType::class, ['label' => 'Doctor Derivante', 'required'=>false])
-
-            ->add('save', SubmitType::class, ['label' => 'Guardar'])
-            ->getForm();
+        $form = $this->createForm(ClienteType::class, $cliente);
 
         $form->handleRequest($request);
 
