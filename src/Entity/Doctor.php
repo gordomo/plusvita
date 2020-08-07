@@ -125,6 +125,26 @@ class Doctor implements UserInterface
      */
     private $telefono;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $libretaSanitaria;
+
+    /**
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private $vtoLibretaSanitaria;
+
+    /**
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private $emisionLibretaSanitaria;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $posicionEnArchivo;
+
     public function __construct()
     {
         $this->clientes = new ArrayCollection();
@@ -433,6 +453,54 @@ class Doctor implements UserInterface
     public function setTelefono(string $telefono): self
     {
         $this->telefono = $telefono;
+
+        return $this;
+    }
+
+    public function getLibretaSanitaria(): ?string
+    {
+        return $this->libretaSanitaria;
+    }
+
+    public function setLibretaSanitaria(?string $libretaSanitaria): self
+    {
+        $this->libretaSanitaria = $libretaSanitaria;
+
+        return $this;
+    }
+
+    public function getVtoLibretaSanitaria(): ?\DateTimeInterface
+    {
+        return $this->vtoLibretaSanitaria;
+    }
+
+    public function setVtoLibretaSanitaria(?\DateTimeInterface $vtoLibretaSanitaria): self
+    {
+        $this->vtoLibretaSanitaria = $vtoLibretaSanitaria;
+
+        return $this;
+    }
+
+    public function getEmisionLibretaSanitaria(): ?\DateTimeInterface
+    {
+        return $this->emisionLibretaSanitaria;
+    }
+
+    public function setEmisionLibretaSanitaria(?\DateTimeInterface $emisionLibretaSanitaria): self
+    {
+        $this->emisionLibretaSanitaria = $emisionLibretaSanitaria;
+
+        return $this;
+    }
+
+    public function getPosicionEnArchivo(): ?string
+    {
+        return $this->posicionEnArchivo;
+    }
+
+    public function setPosicionEnArchivo(?string $posicionEnArchivo): self
+    {
+        $this->posicionEnArchivo = $posicionEnArchivo;
 
         return $this;
     }

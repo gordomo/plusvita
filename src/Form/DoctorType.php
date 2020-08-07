@@ -21,33 +21,6 @@ use Symfony\Component\Validator\Constraints\File;
 
 class DoctorType extends AbstractType
 {
-    const ESPECIALIDADES = [
-        'Clínico' => 0,
-        'Fonoaudiología' => 1,
-        'Kinesiología Motora' => 2,
-        'Kinesiología Respiratoria' => 3,
-        'Psicología' => 4,
-        'Psicopedagogía' => 5,
-        'Terapia Ocupacional' => 6,
-        'Hidroterapia' => 7,
-        'Nutrición' => 8,
-        'Terapia Intensiva' => 9,
-        'Dirección' => 10,
-        'Sub Dirección' => 11,
-        'Clínica Médica' => 12,
-        'Psicriatía' => 13,
-        'Neurología' => 14,
-        'Fisiatría' => 15,
-        'Cardiología' => 16,
-        'Hematología' => 17,
-        'Cirugía' => 18,
-        'Urología' => 19,
-        'Infectología' => 20,
-        'Traumatología' => 21,
-        'Trabajo Social' => 22,
-        'Guardia Médica' => 23,
-    ];
-
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
@@ -57,15 +30,7 @@ class DoctorType extends AbstractType
             ->add('telefono', NumberType::class, ['html5' => true])
             ->add('email', EmailType::class)
             ->add('legajo', NumberType::class)
-            ->add('fechaBaja', DateType::class, [ 'widget' => 'single_text', 'required' => false])
-            ->add('motivoBaja', ChoiceType::class,
-                [
-                    'label' => 'Motivo de la Baja',
-                    'placeholder' => 'Seleccione un Motivo',
-                    'choices' => ['Fianlizacion de contrato' => 1, 'Despido' => 2, 'Renuncia' => 3],
-                    'required' => false
-                ])
-            ->add('concepto', TextType::class, ['required' => false])
+            ->add('posicionEnArchivo', NumberType::class)
             ->add('tipo', ChoiceType::class,
                 [
                     'label' => 'Tipo de Contrato',
@@ -74,6 +39,11 @@ class DoctorType extends AbstractType
             ->add('inicioContrato', DateType::class, [ 'widget' => 'single_text'])
             ->add('vtoContrato', DateType::class, [ 'widget' => 'single_text', 'required' => false] )
             ->add('vtoMatricula', DateType::class, [ 'widget' => 'single_text', 'required' => false] )
+
+            ->add('libretaSanitaria', NumberType::class, [ 'html5' => true, 'required' => false])
+            ->add('vtoLibretaSanitaria', DateType::class, [ 'widget' => 'single_text', 'required' => false] )
+            ->add('emisionLibretaSanitaria', DateType::class, [ 'widget' => 'single_text', 'required' => false] )
+
             ->add('firmaPdf', FileType::class, [
                 'label' => 'Firma Digital (PDF file)',
                 'mapped' => false,
@@ -93,6 +63,17 @@ class DoctorType extends AbstractType
         if($options['is_new']) {
             $builder
                 ->add('password', PasswordType::class);
+        } else {
+            $builder
+            ->add('fechaBaja', DateType::class, [ 'widget' => 'single_text', 'required' => false])
+                ->add('motivoBaja', ChoiceType::class,
+                    [
+                        'label' => 'Motivo de la Baja',
+                        'placeholder' => 'Seleccione un Motivo',
+                        'choices' => ['Fianlizacion de contrato' => 1, 'Despido' => 2, 'Renuncia' => 3, 'Abanadono' => 3],
+                        'required' => false
+                    ])
+                ->add('concepto', TextType::class, ['required' => false]);
         }
             $builder
             ->add('save', SubmitType::class, ['label' => 'Guardar'])
@@ -144,35 +125,35 @@ class DoctorType extends AbstractType
             'Coordinador de enfermeria'
         ];
         $directo = [
-            'nutricionista',
-            'director medico',
-            'sub director medico',
-            'trabajadora social',
-            'psiquiatra',
-            'infectologo',
-            'contador',
-            'abogado',
-            'estudio contable',
+            'Nutricionista',
+            'Director medico',
+            'Sub director medico',
+            'Trabajadora social',
+            'Psiquiatra',
+            'Infectologo',
+            'Contador',
+            'Abogado',
+            'Estudio contable',
         ];
         $prestacion = [
-            'profesional por prestacion',
-            'medico de guardia',
-            'kinesiologo',
-            'kinesiologo respiratorio',
-            'terapista ocupacional',
-            'fonoaudiologo',
-            'psicologo',
-            'fisiatra',
-            'neurologo',
-            'cardiologo',
-            'urologo',
-            'hematologo',
-            'neumonologo',
+            'Profesional por prestacion',
+            'Medico de guardia',
+            'Kinesiologo',
+            'Kinesiologo respiratorio',
+            'Terapista ocupacional',
+            'Fonoaudiologo',
+            'Psicologo',
+            'Fisiatra',
+            'Neurologo',
+            'Cardiologo',
+            'Urologo',
+            'Hematologo',
+            'Neumonologo',
         ];
         $sinContrato = [
-            'cirujano',
-            'traumatologo',
-            'neumonologo',
+            'Cirujano',
+            'Traumatologo',
+            'Neumonologo',
         ];
 
         $modalidades = [

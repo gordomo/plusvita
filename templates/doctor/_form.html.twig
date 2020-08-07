@@ -28,23 +28,13 @@
         {{ form_label(form.legajo, 'Nro de Legajo') }}
         {{ form_widget(form.legajo) }}
     </div>
-</div>
-<br>
-<div class="form-row">
     <div class="col-sm">
-        {{ form_label(form.fechaBaja, 'Fecha de Baja') }}
-        {{ form_widget(form.fechaBaja) }}
-    </div>
-    <div class="col-sm">
-        {{ form_label(form.motivoBaja, 'Motivo de la Baja') }}
-        {{ form_widget(form.motivoBaja) }}
-    </div>
-    <div class="col-sm">
-        {{ form_label(form.concepto, 'Concepto') }}
-        {{ form_widget(form.concepto) }}
+        {{ form_label(form.posicionEnArchivo, 'N de Posicion en Archivo') }}
+        {{ form_widget(form.posicionEnArchivo) }}
     </div>
 </div>
 <br>
+
 <div class="form-row">
     <div class="col-sm">
         {{ form_label(form.tipo, 'Tipo de contrato') }}
@@ -81,21 +71,55 @@
     </div>
 </div>
 <br>#}
+
 <div class="form-row">
     <div class="col-sm">
     {{ form_label(form.firmaPdf, 'Firma en Pdf') }}<br>
     {{ form_widget(form.firmaPdf) }}
+        <a target="_blank" href="{{ asset('uploads/firmas/') }}{{ doctor.firma }}" >ver firma</a>
     </div>
-    <div class="col-sm">
+
+    <div class="col-sm d-none vtoMatricula">
     {{ form_label(form.matricula, 'Matricula') }}
     {{ form_widget(form.matricula) }}
     </div>
-    <div class="col-sm">
+    <div class="col-sm d-none vtoMatricula">
         {{ form_label(form.vtoMatricula, 'Vencimiento Matricula') }}
         {{ form_widget(form.vtoMatricula) }}
     </div>
 </div>
 <br>
+<div class="form-row d-none libretaSanitaria">
+    <div class="col-sm">
+        {{ form_label(form.libretaSanitaria, 'N de libreta Sanitaria') }}<br>
+        {{ form_widget(form.libretaSanitaria) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.emisionLibretaSanitaria, 'EmisionL ibreta Sanitaria') }}
+        {{ form_widget(form.emisionLibretaSanitaria) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.vtoLibretaSanitaria, 'Vto libreta Sanitaria') }}
+        {{ form_widget(form.vtoLibretaSanitaria) }}
+    </div>
+</div>
+<br>
+{%  if form.fechaBaja is defined %}
+<div class="form-row">
+    <div class="col-sm">
+        {{ form_label(form.fechaBaja, 'Fecha de Baja') }}
+        {{ form_widget(form.fechaBaja) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.motivoBaja, 'Motivo de la Baja') }}
+        {{ form_widget(form.motivoBaja) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.concepto, 'Concepto') }}
+        {{ form_widget(form.concepto) }}
+    </div>
+</div>
+{% endif %}
 {%  if form.password is defined %}
 <div class="form-row">
     <div class="col-sm">

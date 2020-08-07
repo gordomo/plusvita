@@ -34,7 +34,10 @@
 .content {
     padding: 0px 50px;
 }
-.usuariosOnDash, .clientesOnDash {
+.usuariosOnDash {
+    background-color: #889cbe;
+}
+.clientesOnDash {
     background-color: #b088be;
 }
 .staffOnDash {

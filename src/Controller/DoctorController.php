@@ -65,13 +65,11 @@ class DoctorController extends AbstractController
         $doctor->setRoles([]);
         $doctor->setInicioContrato(new \DateTime());
 
-        $claseParaEspecialidad = empty($doctor->getModalidad()) ? 'd-none' : '';
-
-        $form = $this->createForm(DoctorType::class, $doctor);
+        $form = $this->createForm(DoctorType::class, $doctor, ['is_new' => true]);
 
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted()) {
 
             $firmaPdfFile = $form->get('firmaPdf')->getData();
             if ($firmaPdfFile) {
@@ -104,7 +102,6 @@ class DoctorController extends AbstractController
         return $this->render('doctor/new.html.twig', [
             'doctor' => $doctor,
             'form' => $form->createView(),
-            'claseParaEspecialidad' => $claseParaEspecialidad,
             
         ]);
     }
@@ -125,18 +122,17 @@ class DoctorController extends AbstractController
      */
     public function edit(Request $request, Doctor $doctor, SluggerInterface $slugger): Response
     {
-        $claseParaEspecialidad = empty($doctor->getEspecialidad()) ? 'd-none' : '';
-
-        $form = $this->createForm(DoctorType::class, $doctor, array('is_new' => false));
+        $form = $this->createForm(DoctorType::class, $doctor, ['is_new' => false]);
 
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted()) {
             $firmaPdfFile = $form->get('firmaPdf')->getData();
             if ($firmaPdfFile) {
                 $originalFilename = pathinfo($firmaPdfFile->getClientOriginalName(), PATHINFO_FILENAME);
-                $form->get('username');
+                $form->get('dni');
                 $safeFilename = $slugger->slug($originalFilename);
+
                 $newFilename = $safeFilename.'-'.uniqid().'.'.$firmaPdfFile->guessExtension();
 
                 try {
@@ -151,7 +147,11 @@ class DoctorController extends AbstractController
                 // updates the 'brochureFilename' property to store the PDF file name
                 // instead of its contents
                 $filesystem = new Filesystem();
-                $filesystem->remove($this->getParameter('firmas_directory').'/'.$doctor->getFirma());
+                if(!empty($doctor->getFirma())) {
+                    if ($filesystem->exists($this->getParameter('firmas_directory').'/'.$doctor->getFirma())) {
+                        $filesystem->remove($this->getParameter('firmas_directory').'/'.$doctor->getFirma());
+                    }
+                }
                 $doctor->setFirma($newFilename);
             }
 
@@ -163,7 +163,6 @@ class DoctorController extends AbstractController
         return $this->render('doctor/edit.html.twig', [
             'doctor' => $doctor,
             'form' => $form->createView(),
-            'claseParaEspecialidad' => $claseParaEspecialidad,
             
         ]);
     }
