@@ -99,6 +99,31 @@ class Cliente
      */
     private $motivoIngEspecifico;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $habitacion;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $nCama;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $familiarResponsableNombre;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $familiarResponsableTel;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $familiarResponsableMail;
+
 
     public function __construct()
     {
@@ -329,6 +354,66 @@ class Cliente
     public function setMotivoIngEspecifico(?string $motivoIngEspecifico): self
     {
         $this->motivoIngEspecifico = $motivoIngEspecifico;
+
+        return $this;
+    }
+
+    public function getHabitacion(): ?string
+    {
+        return $this->habitacion;
+    }
+
+    public function setHabitacion(?string $habitacion): self
+    {
+        $this->habitacion = $habitacion;
+
+        return $this;
+    }
+
+    public function getNCama(): ?string
+    {
+        return $this->nCama;
+    }
+
+    public function setNCama(?string $nCama): self
+    {
+        $this->nCama = $nCama;
+
+        return $this;
+    }
+
+    public function getFamiliarResponsableNombre(): ?string
+    {
+        return $this->familiarResponsableNombre;
+    }
+
+    public function setFamiliarResponsableNombre(?string $familiarResponsableNombre): self
+    {
+        $this->familiarResponsableNombre = $familiarResponsableNombre;
+
+        return $this;
+    }
+
+    public function getFamiliarResponsableTel(): ?string
+    {
+        return $this->familiarResponsableTel;
+    }
+
+    public function setFamiliarResponsableTel(?string $familiarResponsableTel): self
+    {
+        $this->familiarResponsableTel = $familiarResponsableTel;
+
+        return $this;
+    }
+
+    public function getFamiliarResponsableMail(): ?string
+    {
+        return $this->familiarResponsableMail;
+    }
+
+    public function setFamiliarResponsableMail(?string $familiarResponsableMail): self
+    {
+        $this->familiarResponsableMail = $familiarResponsableMail;
 
         return $this;
     }

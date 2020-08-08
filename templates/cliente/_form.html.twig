@@ -51,12 +51,28 @@
 <br>
 <div class="form-row">
     <div class="col-sm">
+        {{ form_label(form.habitacion) }}
+        {{ form_widget(form.habitacion) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.nCama) }}
+        {{ form_widget(form.nCama) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.fIngreso) }}
+        {{ form_widget(form.fIngreso) }}
+    </div>
+</div>
+<br>
+<div class="form-row">
+    <div class="col-sm">
         {{ form_label(form.docReferente) }}
         {{ form_widget(form.docReferente) }}
     </div>
 </div>
-<br>
-
+<br><br>
+<hr>
+<h4>Institución de la cual proviene</h4>
 <div class="form-row">
     <div class="col-sm">
         {{ form_label(form.vieneDe) }}
@@ -66,14 +82,30 @@
         {{ form_label(form.docDerivante) }}
         {{ form_widget(form.docDerivante) }}
     </div>
+</div>
+<br><br>
+<hr>
+<h4>Familiar Responsable</h4>
+<div class="form-row">
     <div class="col-sm">
-        {{ form_label(form.fIngreso) }}
-        {{ form_widget(form.fIngreso) }}
+        {{ form_label(form.familiarResponsableNombre) }}
+        {{ form_widget(form.familiarResponsableNombre) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.familiarResponsableTel) }}
+        {{ form_widget(form.familiarResponsableTel) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.familiarResponsableMail) }}
+        {{ form_widget(form.familiarResponsableMail) }}
     </div>
 </div>
 <br>
+
 <div class="form-group">
     {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary'}}) }}
-    <a class="btn btn-default" href="{{ path('doctor_index') }}">volver</a>
+    <a class="btn btn-default" href="{{ path('cliente_index') }}">volver</a>
 </div>
+<br>
+
 {{ form_end(form) }}

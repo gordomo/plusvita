@@ -60,10 +60,15 @@ class ClienteType extends AbstractType
                 'choice_label' => 'NombreApellido',
                 'multiple' => true,
                 'expanded'=>true,
-                'label' => 'Doctores (el primer seleccionado será considerado el referente)',
+                'label' => 'Profesionales (el primer seleccionado será considerado referente)',
             ])
-            ->add('vieneDe', TextType::class, ['label' => 'Institución de la cual proviene', 'required'=>false])
-            ->add('docDerivante', TextType::class, ['label' => 'Doctor Derivante', 'required'=>false])
+            ->add('habitacion', TextType::class, ['label' => 'Habitación', 'required'=>false])
+            ->add('nCama', TextType::class, ['label' => 'Numero de Cama', 'required'=>false])
+            ->add('familiarResponsableNombre', TextType::class, ['label' => 'Nombre', 'required'=>false])
+            ->add('familiarResponsableTel', TextType::class, ['label' => 'Teléfono', 'required'=>false])
+            ->add('familiarResponsableMail', TextType::class, ['label' => 'EMail', 'required'=>false])
+            ->add('vieneDe', TextType::class, ['label' => 'Nombre', 'required'=>false])
+            ->add('docDerivante', TextType::class, ['label' => 'Profecional Derivante', 'required'=>false])
 
             ->add('save', SubmitType::class, ['label' => 'Guardar', 'attr' => ['class' => 'btn-success']]);
 
