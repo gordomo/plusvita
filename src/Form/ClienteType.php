@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\Cliente;
 use App\Entity\Doctor;
+use Doctrine\ORM\EntityRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -58,6 +59,14 @@ class ClienteType extends AbstractType
             ->add('docReferente', EntityType::class, [
                 'class' => Doctor::class,
                 'choice_label' => 'NombreApellido',
+                'query_builder' => function (EntityRepository $er) {
+                    return $er->createQueryBuilder('u')
+                            ->where("JSON_CONTAINS (u.modalidad, '\"Fisiatra\"', '$') = 1")
+                            ->orWhere("JSON_CONTAINS (u.modalidad, '\"Director medico\"', '$') = 1")
+                            ->orWhere("JSON_CONTAINS (u.modalidad, '\"Sub director medico\"', '$') = 1");
+                },
+
+
                 'multiple' => true,
                 'expanded'=>true,
                 'label' => 'Profesionales (el primer seleccionado será considerado referente)',

@@ -30,7 +30,6 @@ class DoctorType extends AbstractType
             ->add('telefono', NumberType::class, ['html5' => true])
             ->add('email', EmailType::class)
             ->add('legajo', NumberType::class)
-            ->add('posicionEnArchivo', NumberType::class)
             ->add('tipo', ChoiceType::class,
                 [
                     'label' => 'Tipo de Contrato',
@@ -59,13 +58,18 @@ class DoctorType extends AbstractType
                     ])
                 ],
             ])
-            ->add('matricula', TextType::class, ['required' => false]);
+            ->add('matricula', TextType::class, ['required' => false])
+            ->add('save', SubmitType::class, ['label' => 'Guardar']);
+
+        //campos a mostrar para nuevo staff
         if($options['is_new']) {
             $builder
                 ->add('password', PasswordType::class);
-        } else {
+        }
+        //campos a mostrar para staff existente
+        else {
             $builder
-            ->add('fechaBaja', DateType::class, [ 'widget' => 'single_text', 'required' => false])
+                ->add('fechaBaja', DateType::class, [ 'widget' => 'single_text', 'required' => false])
                 ->add('motivoBaja', ChoiceType::class,
                     [
                         'label' => 'Motivo de la Baja',
@@ -73,11 +77,9 @@ class DoctorType extends AbstractType
                         'choices' => ['Fianlizacion de contrato' => 1, 'Despido' => 2, 'Renuncia' => 3, 'Abanadono' => 3],
                         'required' => false
                     ])
-                ->add('concepto', TextType::class, ['required' => false]);
+                ->add('concepto', TextType::class, ['required' => false])
+                ->add('posicionEnArchivo', NumberType::class, ['required' => false]);
         }
-            $builder
-            ->add('save', SubmitType::class, ['label' => 'Guardar'])
-        ;
 
         $builder->get('tipo')->addEventListener(FormEvents::POST_SUBMIT, function(FormEvent $event) {
                 $form = $event->getForm();

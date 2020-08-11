@@ -28,10 +28,12 @@
         {{ form_label(form.legajo, 'Nro de Legajo') }}
         {{ form_widget(form.legajo) }}
     </div>
+    {%  if form.posicionEnArchivo is defined %}
     <div class="col-sm">
         {{ form_label(form.posicionEnArchivo, 'N de Posicion en Archivo') }}
         {{ form_widget(form.posicionEnArchivo) }}
     </div>
+    {% endif %}
 </div>
 <br>
 
