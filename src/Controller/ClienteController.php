@@ -61,7 +61,7 @@ class ClienteController extends AbstractController
         $cliente = new Cliente();
         $cliente->setActivo(true);
         $cliente->setFIngreso(new \DateTime());
-        $form = $this->createForm(ClienteType::class, $cliente);
+        $form = $this->createForm(ClienteType::class, $cliente, ['is_new' => true]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -96,7 +96,7 @@ class ClienteController extends AbstractController
      */
     public function edit(Request $request, Cliente $cliente): Response
     {
-        $form = $this->createForm(ClienteType::class, $cliente);
+        $form = $this->createForm(ClienteType::class, $cliente, ['is_new' => false]);
 
         $form->handleRequest($request);
 

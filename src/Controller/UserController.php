@@ -47,6 +47,7 @@ class UserController extends AbstractController
                                                           'multiple'=>true,
                                                           'expanded'=>true,
                                                         ])
+            ->add('legajo', TextType::class)
             ->add('password', PasswordType::class)
             ->add('email', EmailType::class)
             ->add('telefono', TelType::class)

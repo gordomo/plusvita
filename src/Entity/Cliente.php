@@ -124,6 +124,20 @@ class Cliente
      */
     private $familiarResponsableMail;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $obraSocial;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $vinculoResponsable;
+
+    /**
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private $fNacimiento;
 
     public function __construct()
     {
@@ -417,4 +431,42 @@ class Cliente
 
         return $this;
     }
+
+    public function getObraSocial(): ?string
+    {
+        return $this->obraSocial;
+    }
+
+    public function setObraSocial(?string $obraSocial): self
+    {
+        $this->obraSocial = $obraSocial;
+
+        return $this;
+    }
+
+    public function getVinculoResponsable(): ?string
+    {
+        return $this->vinculoResponsable;
+    }
+
+    public function setVinculoResponsable(?string $vinculoResponsable): self
+    {
+        $this->vinculoResponsable = $vinculoResponsable;
+
+        return $this;
+    }
+
+    public function getFNacimiento(): ?\DateTimeInterface
+    {
+        return $this->fNacimiento;
+    }
+
+    public function setFNacimiento(?\DateTimeInterface $fNacimiento): self
+    {
+        $this->fNacimiento = $fNacimiento;
+
+        return $this;
+    }
+
+
 }

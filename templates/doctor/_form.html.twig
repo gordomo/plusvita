@@ -28,12 +28,6 @@
         {{ form_label(form.legajo, 'Nro de Legajo') }}
         {{ form_widget(form.legajo) }}
     </div>
-    {%  if form.posicionEnArchivo is defined %}
-    <div class="col-sm">
-        {{ form_label(form.posicionEnArchivo, 'N de Posicion en Archivo') }}
-        {{ form_widget(form.posicionEnArchivo) }}
-    </div>
-    {% endif %}
 </div>
 <br>
 
@@ -107,6 +101,8 @@
 </div>
 <br>
 {%  if form.fechaBaja is defined %}
+    <hr>
+    <h4>Información para la baja</h4>
 <div class="form-row">
     <div class="col-sm">
         {{ form_label(form.fechaBaja, 'Fecha de Baja') }}
@@ -120,6 +116,12 @@
         {{ form_label(form.concepto, 'Concepto') }}
         {{ form_widget(form.concepto) }}
     </div>
+    {%  if form.posicionEnArchivo is defined %}
+        <div class="col-sm">
+            {{ form_label(form.posicionEnArchivo, 'N de Posicion en Archivo') }}
+            {{ form_widget(form.posicionEnArchivo) }}
+        </div>
+    {% endif %}
 </div>
 {% endif %}
 {%  if form.password is defined %}

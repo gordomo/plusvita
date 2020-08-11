@@ -44,6 +44,11 @@ class User implements UserInterface
      */
     private $telefono;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $legajo;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -136,6 +141,18 @@ class User implements UserInterface
     public function setTelefono(string $telefono): self
     {
         $this->telefono = $telefono;
+
+        return $this;
+    }
+
+    public function getLegajo(): ?string
+    {
+        return $this->legajo;
+    }
+
+    public function setLegajo(?string $legajo): self
+    {
+        $this->legajo = $legajo;
 
         return $this;
     }

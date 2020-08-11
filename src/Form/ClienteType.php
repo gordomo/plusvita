@@ -27,9 +27,19 @@ class ClienteType extends AbstractType
             ->add('nombre', TextType::class)
             ->add('apellido', TextType::class)
             ->add('dni', NumberType::class, ['html5' => true, 'label' => 'Número de Documento'])
-            ->add('email', EmailType::class)
-            ->add('telefono', TextType::class, ['label' => 'Teléfono'])
-            ->add('hClinica', TextType::class, ['label' => 'Número de Historia Clínica'])
+            ->add('email', EmailType::class, ['required'=>false,])
+            ->add('telefono', TextType::class, ['label' => 'Teléfono', 'required'=>false,])
+            ->add('fNacimiento', DateType::class, ['label' => 'Fecha de Nacimiento', 'required'=>false, 'widget' => 'single_text'])
+            ->add('hClinica', TextType::class, ['label' => 'Número de Historia Clínica', 'required'=>false,])
+            ->add('obraSocial', ChoiceType::class, [
+                'label' => 'Obra Social',
+                'placeholder' => 'Seleccione una Obra Social',
+                'choices'  => [
+                    'Swiss medical' => "1",
+                    'OSDE' => "2",
+                    'Otra' => "3",
+                ],
+            ])
             ->add('fIngreso', DateType::class, ['label' => 'Fecha de Ingreso', 'required'=>false, 'widget' => 'single_text'])
             ->add('modalidad', ChoiceType::class, [
                 'label' => 'Modalidad',
@@ -76,10 +86,33 @@ class ClienteType extends AbstractType
             ->add('familiarResponsableNombre', TextType::class, ['label' => 'Nombre', 'required'=>false])
             ->add('familiarResponsableTel', TextType::class, ['label' => 'Teléfono', 'required'=>false])
             ->add('familiarResponsableMail', TextType::class, ['label' => 'EMail', 'required'=>false])
+            ->add('vinculoResponsable', TextType::class, ['label' => 'Vinculo', 'required'=>false])
             ->add('vieneDe', TextType::class, ['label' => 'Nombre', 'required'=>false])
             ->add('docDerivante', TextType::class, ['label' => 'Profecional Derivante', 'required'=>false])
 
             ->add('save', SubmitType::class, ['label' => 'Guardar', 'attr' => ['class' => 'btn-success']]);
+
+//motivoEgr
+        if(!$options['is_new']) {
+            $builder
+                ->add('fEgreso', DateType::class, ['label' => 'Fecha de Egreso', 'required'=>false, 'widget' => 'single_text'])
+                ->add('motivoEgr', ChoiceType::class, [
+                    'label' => 'Motivo de Egreso',
+                    'choices'  => [
+                        'Seleccione una Motivo' => 0,
+                        'Alta médica' => 1,
+                        'Alta voluntaria' => 2,
+                        'Obito' => 3,
+                        'Traslado' => 4,
+                        'Tratamiento inconcluso (no renovado)' => 5,
+                        'Tratamiento inconcluso (abandonado)' => 6,
+                    ],
+                    'multiple'=>false,
+                    'expanded'=>false,
+                ]);
+
+
+        }
 
         $builder->get('motivoIng')->addEventListener(FormEvents::POST_SUBMIT, function(FormEvent $event) {
                 $form = $event->getForm();
@@ -157,6 +190,7 @@ class ClienteType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Cliente::class,
+            'is_new' => true
         ]);
     }
 }

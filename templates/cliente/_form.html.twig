@@ -13,6 +13,10 @@
         {{ form_label(form.dni, 'DNI') }}
         {{ form_widget(form.dni) }}
     </div>
+    <div class="col-sm">
+        {{ form_label(form.fNacimiento) }}
+        {{ form_widget(form.fNacimiento) }}
+    </div>
 </div>
 <br>
 <div class="form-row">
@@ -28,8 +32,14 @@
         {{ form_label(form.hClinica, 'Historia Clinica') }}
         {{ form_widget(form.hClinica) }}
     </div>
+    <div class="col-sm">
+        {{ form_label(form.obraSocial) }}
+        {{ form_widget(form.obraSocial) }}
+    </div>
 </div>
 <br>
+<hr>
+<h4>Información de Ingreso</h4>
 <div class="form-row">
     <div class="col-sm">
         {{ form_label(form.modalidad) }}
@@ -99,9 +109,27 @@
         {{ form_label(form.familiarResponsableMail) }}
         {{ form_widget(form.familiarResponsableMail) }}
     </div>
+    <div class="col-sm">
+        {{ form_label(form.vinculoResponsable) }}
+        {{ form_widget(form.vinculoResponsable) }}
+    </div>
 </div>
 <br>
-
+{%  if form.fEgreso is defined %}
+<hr>
+<h4>Información de Egreso</h4>
+<div class="form-row">
+    <div class="col-sm">
+        {{ form_label(form.fEgreso) }}
+        {{ form_widget(form.fEgreso) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.motivoEgr) }}
+        {{ form_widget(form.motivoEgr) }}
+    </div>
+</div>
+<br>
+{% endif %}
 <div class="form-group">
     {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary'}}) }}
     <a class="btn btn-default" href="{{ path('cliente_index') }}">volver</a>
