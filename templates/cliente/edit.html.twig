@@ -5,3 +5,7 @@
 {% block body %}
     {{ include('cliente/_form.html.twig') }}
 {% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('assets/js/cliente.js') }}"></script>
+{% endblock %}

@@ -14,8 +14,16 @@
         {{ form_widget(form.dni) }}
     </div>
     <div class="col-sm">
-        {{ form_label(form.fNacimiento) }}
-        {{ form_widget(form.fNacimiento) }}
+        <div class="form-row">
+            <div class="col-sm">
+                {{ form_label(form.fNacimiento) }}
+                {{ form_widget(form.fNacimiento) }}
+            </div>
+            <div class="col-sm">
+                {{ form_label(form.edad) }}
+                {{ form_widget(form.edad) }}
+            </div>
+        </div>
     </div>
 </div>
 <br>
@@ -95,23 +103,31 @@
 </div>
 <br><br>
 <hr>
-<h4>Familiar Responsable</h4>
+<h4>Familiar Responsable </h4>
+<div id="familiares">
+    <div class="form-row">
+        <div class="col-sm">
+            {{ form_label(form.familiarResponsableNombre) }}
+            {{ form_widget(form.familiarResponsableNombre) }}
+        </div>
+        <div class="col-sm">
+            {{ form_label(form.familiarResponsableTel) }}
+            {{ form_widget(form.familiarResponsableTel) }}
+        </div>
+        <div class="col-sm">
+            {{ form_label(form.familiarResponsableMail) }}
+            {{ form_widget(form.familiarResponsableMail) }}
+        </div>
+        <div class="col-sm">
+            {{ form_label(form.vinculoResponsable) }}
+            {{ form_widget(form.vinculoResponsable) }}
+        </div>
+    </div>
+</div>
+<br>
 <div class="form-row">
     <div class="col-sm">
-        {{ form_label(form.familiarResponsableNombre) }}
-        {{ form_widget(form.familiarResponsableNombre) }}
-    </div>
-    <div class="col-sm">
-        {{ form_label(form.familiarResponsableTel) }}
-        {{ form_widget(form.familiarResponsableTel) }}
-    </div>
-    <div class="col-sm">
-        {{ form_label(form.familiarResponsableMail) }}
-        {{ form_widget(form.familiarResponsableMail) }}
-    </div>
-    <div class="col-sm">
-        {{ form_label(form.vinculoResponsable) }}
-        {{ form_widget(form.vinculoResponsable) }}
+        <a href="" >agregar familiar + </a>
     </div>
 </div>
 <br>

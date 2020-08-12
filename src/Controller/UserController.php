@@ -47,10 +47,10 @@ class UserController extends AbstractController
                                                           'multiple'=>true,
                                                           'expanded'=>true,
                                                         ])
-            ->add('legajo', TextType::class)
+            ->add('legajo', TextType::class, ['required' => false])
             ->add('password', PasswordType::class)
             ->add('email', EmailType::class)
-            ->add('telefono', TelType::class)
+            ->add('telefono', TelType::class, ['required' => false])
             ->add('save', SubmitType::class, ['label' => 'Guardar'])
             ->getForm();
 
@@ -93,16 +93,18 @@ class UserController extends AbstractController
     public function edit(Request $request, User $user): Response
     {
         $form = $this->createFormBuilder($user)
-            ->add('username', TextType::class)
+            ->add('username', TextType::class, ['required' => false])
             ->add('roles', ChoiceType::class, ['choices'  => [
                 'Administrador' => "ROLE_ADMIN",
-                'Usuario' => "ROLE_USER",
-                'Otro' => "ROLE_OTRO",
+                'Operador' => "ROLE_USER",
             ],
                 'multiple'=>true,
+                'expanded'=>true,
             ])
-            ->add('email', EmailType::class)
-            ->add('telefono', TelType::class)
+            ->add('legajo', TextType::class, ['required' => false])
+            ->add('password', PasswordType::class)
+            ->add('email', EmailType::class, ['required' => false])
+            ->add('telefono', TelType::class, ['required' => false])
             ->add('save', SubmitType::class, ['label' => 'Guardar'])
             ->getForm();
 

@@ -88,8 +88,8 @@ class ClienteType extends AbstractType
             ->add('familiarResponsableMail', TextType::class, ['label' => 'EMail', 'required'=>false])
             ->add('vinculoResponsable', TextType::class, ['label' => 'Vinculo', 'required'=>false])
             ->add('vieneDe', TextType::class, ['label' => 'Nombre', 'required'=>false])
-            ->add('docDerivante', TextType::class, ['label' => 'Profecional Derivante', 'required'=>false])
-
+            ->add('docDerivante', TextType::class, ['label' => 'Profesional Derivante', 'required'=>false])
+            ->add('edad', TextType::class, ['label' => 'Edad', 'required'=>false])
             ->add('save', SubmitType::class, ['label' => 'Guardar', 'attr' => ['class' => 'btn-success']]);
 
 //motivoEgr

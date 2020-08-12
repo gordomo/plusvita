@@ -139,6 +139,11 @@ class Cliente
      */
     private $fNacimiento;
 
+    /**
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private $edad;
+
     public function __construct()
     {
         $this->docReferente = new ArrayCollection();
@@ -465,6 +470,17 @@ class Cliente
     {
         $this->fNacimiento = $fNacimiento;
 
+        return $this;
+    }
+
+    public function getEdad(): ?string
+    {
+        return $this->edad;
+    }
+
+    public function setEdad($edad): self
+    {
+        $this->edad = $edad;
         return $this;
     }
 

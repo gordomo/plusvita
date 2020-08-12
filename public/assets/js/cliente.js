@@ -20,3 +20,17 @@ $( document ).on('change', '.js-cliente-motivo', function () {
         }
     });
 })
+
+
+$( document ).on('change', '#cliente_fNacimiento', function () {
+
+
+   $('#cliente_edad').val(_calculateAge($(this).val()));
+})
+
+function _calculateAge(birthday) {
+    birthday = new Date(birthday);
+    var ageDifMs = Date.now() - birthday.getTime();
+    var ageDate = new Date(ageDifMs); // miliseconds from epoch
+    return Math.abs(ageDate.getUTCFullYear() - 1970);
+}
