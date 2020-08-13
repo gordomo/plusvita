@@ -10,6 +10,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -29,7 +30,7 @@ class ClienteType extends AbstractType
             ->add('dni', NumberType::class, ['html5' => true, 'label' => 'Número de Documento'])
             ->add('email', EmailType::class, ['required'=>false,])
             ->add('telefono', TextType::class, ['label' => 'Teléfono', 'required'=>false,])
-            ->add('fNacimiento', DateType::class, ['label' => 'Fecha de Nacimiento', 'required'=>false, 'widget' => 'single_text'])
+            ->add('fNacimiento', DateType::class, ['label' => 'Fecha de Nacimiento', 'required'=>false, 'widget' => 'single_text', 'html5' => true, 'attr' => ['class' => 'js-datepicker'],])
             ->add('hClinica', TextType::class, ['label' => 'Número de Historia Clínica', 'required'=>false,])
             ->add('obraSocial', ChoiceType::class, [
                 'label' => 'Obra Social',
@@ -40,7 +41,7 @@ class ClienteType extends AbstractType
                     'Otra' => "3",
                 ],
             ])
-            ->add('fIngreso', DateType::class, ['label' => 'Fecha de Ingreso', 'required'=>false, 'widget' => 'single_text'])
+            ->add('fIngreso', DateType::class, ['label' => 'Fecha de Ingreso', 'required'=>false, 'widget' => 'single_text', 'attr' => ['class' => 'js-datepicker']])
             ->add('modalidad', ChoiceType::class, [
                 'label' => 'Modalidad',
                 'placeholder' => 'Seleccione una modalidad',
@@ -90,12 +91,13 @@ class ClienteType extends AbstractType
             ->add('vieneDe', TextType::class, ['label' => 'Nombre', 'required'=>false])
             ->add('docDerivante', TextType::class, ['label' => 'Profesional Derivante', 'required'=>false])
             ->add('edad', TextType::class, ['label' => 'Edad', 'required'=>false])
+            ->add("familiarResponsableExtra", HiddenType::class, array("mapped"=>false, "label"=>false))
             ->add('save', SubmitType::class, ['label' => 'Guardar', 'attr' => ['class' => 'btn-success']]);
 
 //motivoEgr
         if(!$options['is_new']) {
             $builder
-                ->add('fEgreso', DateType::class, ['label' => 'Fecha de Egreso', 'required'=>false, 'widget' => 'single_text'])
+                ->add('fEgreso', DateType::class, ['label' => 'Fecha de Egreso', 'required'=>false, 'widget' => 'single_text', 'attr' => ['class' => 'js-datepicker']])
                 ->add('motivoEgr', ChoiceType::class, [
                     'label' => 'Motivo de Egreso',
                     'choices'  => [
@@ -113,6 +115,15 @@ class ClienteType extends AbstractType
 
 
         }
+
+        $builder->addEventListener(FormEvents::PRE_SUBMIT,function (FormEvent $event) {
+            $form = $event->getForm();
+
+            dd($form->get('familiarResponsableExtra')->getViewData());
+
+
+        });
+
 
         $builder->get('motivoIng')->addEventListener(FormEvents::POST_SUBMIT, function(FormEvent $event) {
                 $form = $event->getForm();

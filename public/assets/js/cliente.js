@@ -21,11 +21,28 @@ $( document ).on('change', '.js-cliente-motivo', function () {
     });
 })
 
+$( document ).on('click', '#agregarFamiliar', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var botonQuitarHtml = '<div class="col-sm" id="quitarFamiliarRow"><a href="" id="quitarFamiliar">quitar familiar - </a></div>';
+    var htmlNuevoFamiliar = '<div class="form-row"><div class="col-sm"><input type="text" name="familiarResponsableExtraNombre[]" class="form-control"></div><div class="col-sm"><input type="text" name="familiarResponsableExtraTel[]" class="form-control"></div><div class="col-sm"><input type="text" name="familiarResponsableExtraMail[]" class="form-control"></div><div class="col-sm"><input type="text" name="familiarResponsableExtraVinculo[]" class="form-control"></div></div>';
+    $('#familiares').append(htmlNuevoFamiliar);
+    if($('#familiares').find('.form-row').length === 2) {
+        $('#agregarQuitarFamiliar').append(botonQuitarHtml)
+    }
+});
+
+$( document ).on('click', '#quitarFamiliar', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    $('#familiares .form-row').last().remove();
+    if($('#familiares').find('.form-row').length === 1) {
+        $('#quitarFamiliarRow').remove();
+    }
+});
 
 $( document ).on('change', '#cliente_fNacimiento', function () {
-
-
-   $('#cliente_edad').val(_calculateAge($(this).val()));
+    $('#cliente_edad').val(_calculateAge($(this).val()));
 })
 
 function _calculateAge(birthday) {
@@ -34,3 +51,7 @@ function _calculateAge(birthday) {
     var ageDate = new Date(ageDifMs); // miliseconds from epoch
     return Math.abs(ageDate.getUTCFullYear() - 1970);
 }
+
+$('.js-datepicker').datepicker({
+    format: 'yyyy-mm-dd'
+});
