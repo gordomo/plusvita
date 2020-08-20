@@ -1,0 +1,31 @@
+{{ form_start(form) }}
+<br>
+<div class="form-row">
+    <div class="col-sm">
+        {{ form_label(form.nombre, 'Nombre') }}
+        {{ form_widget(form.nombre) }}
+    </div>
+</div>
+<br>
+<div class="form-row">
+    <div class="col-sm">
+        {{ form_label(form.tipo, 'Tipo de documento') }}
+        {{ form_widget(form.tipo) }}
+    </div>
+</div>
+<br><br>
+<div class="form-row">
+    <div class="col-sm">
+        {{ form_label(form.archivoAdjunto, 'Adjuntar') }}
+        {{ form_widget(form.archivoAdjunto) }}
+    </div>
+</div>
+<br>
+<br>
+<div class="form-group">
+    {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary'}}) }}
+    <a class="btn btn-default" href="{{ path('cliente_index') }}">volver</a>
+</div>
+<br>
+
+{{ form_end(form) }}

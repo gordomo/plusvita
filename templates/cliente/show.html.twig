@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}Cliente{% endblock %}
-{% block panelTitle %}Datos del Cliente{% endblock %}
+{% block panelTitle %}Datos del Paciente{% endblock %}
 {% block body %}
     <table class="table">
         <tbody>
@@ -58,9 +58,30 @@
                 <td>{{ cliente.vieneDe }}</td>
             </tr>
             <tr>
-                <th>Doctor Derivante</th>
+                <th>Profesional Derivante</th>
                 <td>{{ cliente.docDerivante }}</td>
             </tr>
+        </tbody>
+    </table>
+    <br><br>
+    <table class="table">
+        <thead>
+        <th>Adjuntos</th>
+        </thead>
+        <tbody>
+        {% for adjunto in adjuntos %}
+            <tr>
+                <td><a target="_blank" href="{{ asset('uploads/adjuntos/pacientes/') }}{{ cliente.id }}/{{  adjunto.tipo }}/{{  adjunto.url }}" >{{  adjunto.nombre }}</a></td>
+
+                        {#-id: 1
+                        -id_paciente: "1"
+                        -url: "test-5f3ece7c5fa73.pdf"
+                        -nombre: "test"
+                        -tipo: "2"#}
+
+
+            </tr>
+        {% endfor %}
         </tbody>
     </table>
 

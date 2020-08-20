@@ -5,6 +5,7 @@
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
 parameters:
     firmas_directory: '%kernel.project_dir%/public/uploads/firmas'
+    adjuntos_pacientes_directory: '%kernel.project_dir%/public/uploads/adjuntos/pacientes'
     session_max_idle_time: 6000
 
 services:

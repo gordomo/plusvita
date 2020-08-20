@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Cliente;
 use App\Entity\Doctor;
 use App\Form\ClienteType;
+use App\Repository\AdjuntosPacientesRepository;
 use App\Repository\ClienteRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -83,10 +84,13 @@ class ClienteController extends AbstractController
     /**
      * @Route("/{id}", name="cliente_show", methods={"GET"})
      */
-    public function show(Cliente $cliente): Response
+    public function show(Cliente $cliente, AdjuntosPacientesRepository $adjuntosPacientesRepository): Response
     {
+        $adjuntos = $adjuntosPacientesRepository->findBy(['id_paciente' => $cliente->getId()]);
+
         return $this->render('cliente/show.html.twig', [
             'cliente' => $cliente,
+            'adjuntos' => $adjuntos
 
         ]);
     }

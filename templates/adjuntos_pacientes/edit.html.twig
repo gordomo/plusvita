@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit AdjuntosPacientes{% endblock %}
+
+{% block body %}
+    <h1>Edit AdjuntosPacientes</h1>
+
+    {{ include('adjuntos_pacientes/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('adjuntos_pacientes_index') }}">back to list</a>
+
+    {{ include('adjuntos_pacientes/_delete_form.html.twig') }}
+{% endblock %}

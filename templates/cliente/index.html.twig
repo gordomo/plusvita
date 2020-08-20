@@ -53,6 +53,7 @@
                 <td>
                     <a href="{{ path('cliente_edit', {'id': cliente.id}) }}">Editar</a>
                     <a href="{{ path('cliente_show', {'id': cliente.id}) }}">Ver</a>
+                    <a href="{{ path('adjuntos_pacientes_new', {'id': cliente.id}) }}">Adjuntar</a>
                 </td>
             </tr>
         {% else %}

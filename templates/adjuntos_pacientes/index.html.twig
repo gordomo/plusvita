@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}AdjuntosPacientes index{% endblock %}
+
+{% block body %}
+    <h1>AdjuntosPacientes index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Id_paciente</th>
+                <th>Url</th>
+                <th>Nombre</th>
+                <th>Tipo</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for adjuntos_paciente in adjuntos_pacientes %}
+            <tr>
+                <td>{{ adjuntos_paciente.id }}</td>
+                <td>{{ adjuntos_paciente.idPaciente }}</td>
+                <td>{{ adjuntos_paciente.url }}</td>
+                <td>{{ adjuntos_paciente.nombre }}</td>
+                <td>{{ adjuntos_paciente.tipo }}</td>
+                <td>
+                    <a href="{{ path('adjuntos_pacientes_show', {'id': adjuntos_paciente.id}) }}">show</a>
+                    <a href="{{ path('adjuntos_pacientes_edit', {'id': adjuntos_paciente.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('adjuntos_pacientes_new') }}">Create new</a>
+{% endblock %}
