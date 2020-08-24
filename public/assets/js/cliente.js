@@ -45,6 +45,14 @@ $( document ).on('change', '#cliente_fNacimiento', function () {
     $('#cliente_edad').val(_calculateAge($(this).val()));
 })
 
+$( document ).on('change', '#cliente_modalidad', function () {
+    if($(this).val() == 2) {
+        $('.habitacion').removeClass('d-none');
+    } else {
+        $('.habitacion').addClass('d-none');
+    }
+})
+
 function _calculateAge(birthday) {
     birthday = new Date(birthday);
     var ageDifMs = Date.now() - birthday.getTime();

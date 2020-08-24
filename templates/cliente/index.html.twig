@@ -13,9 +13,8 @@
                 <th>Email</th>
                 <th>Teléfono</th>
                 <th>Fecha Ingreso</th>
-                <th>Fecha Egreso</th>
+                <th>Modalidad</th>
                 <th>Ingreso por</th>
-                <th>Motivo Egreso</th>
                 <th>Doc Referente</th>
                 <th></th>
             </tr>
@@ -30,24 +29,36 @@
                 <td>{{ cliente.email }}</td>
                 <td>{{ cliente.telefono }}</td>
                 <td>{{ cliente.fIngreso ? cliente.fIngreso|date('Y-m-d') : '' }}</td>
-                <td>{{ cliente.fEgreso ? cliente.fEgreso|date('Y-m-d') : '' }}</td>
+                <td>
+                    {% if(cliente.modalidad == 1) %}
+                        Ambulatorio
+                    {% elseif(cliente.modalidad == 2) %}
+                        Internacion
+                    {% elseif(cliente.modalidad == 3) %}
+                        Hospital de día
+                    {% elseif(cliente.modalidad == 4) %}
+                        ART
+                    {% endif %}
+                </td>
                 <td>
                     {% if(cliente.motivoIng == 1) %}
-                        Patologia 1
-                    {% endif %}
-                    {% if(cliente.motivoIng == 2) %}
-                        Patologia 2
-                    {% endif %}
-                    {% if(cliente.motivoIng == 3) %}
-                        Patologia 3
+                        Neurologicas
+                    {% elseif(cliente.motivoIng == 2) %}
+                        Traumatológicas
+                    {% elseif(cliente.motivoIng == 3) %}
+                        Respiratorias
+                    {% elseif(cliente.motivoIng == 4) %}
+                        Paliativos
+                    {% elseif(cliente.motivoIng == 5) %}
+                        Patologías laborales
                     {% endif %}
                 </td>
                 <td>
-                    {{ cliente.motivoEgr }}
-                </td>
-                <td>
+                    {% set i = 1 %}
                     {% for doc in cliente.docReferente %}
-                        {{ doc.nombre }}
+                        {{ doc.nombre }}{% if cliente.docReferente|length > 0 and i < cliente.docReferente|length %},{% endif %}
+
+                        {% set i = i+1 %}
                     {% endfor %}
                 </td>
                 <td>

@@ -41,6 +41,11 @@ class ClienteType extends AbstractType
                     'Otra' => "3",
                 ],
             ])
+            ->add('obraSocialTelefono', TextType::class, ['required'=>false, 'label' => 'Teléfono'])
+            ->add('obraSocialAfiliado', TextType::class, ['required'=>false, 'label' => 'N Afiliado'])
+            ->add('sistemaDeEmergenciaNombre', TextType::class, ['required'=>false, 'label' => 'Sistema de emergencias'])
+            ->add('sistemaDeEmergenciaTel', TextType::class, ['required'=>false, 'label' => 'Teléfono'])
+            ->add('sistemaDeEmergenciaAfiliado', TextType::class, ['required'=>false, 'label' => 'N Afiliado'])
             ->add('fIngreso', DateType::class, ['label' => 'Fecha de Ingreso', 'required'=>false, 'widget' => 'single_text', 'attr' => ['class' => 'js-datepicker']])
             ->add('modalidad', ChoiceType::class, [
                 'label' => 'Modalidad',
@@ -119,7 +124,7 @@ class ClienteType extends AbstractType
         $builder->addEventListener(FormEvents::PRE_SUBMIT,function (FormEvent $event) {
             $form = $event->getForm();
 
-            dd($form->get('familiarResponsableExtra')->getViewData());
+            //dd($form->get('familiarResponsableExtra')->getViewData());
 
 
         });

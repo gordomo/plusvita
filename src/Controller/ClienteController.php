@@ -66,8 +66,14 @@ class ClienteController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-
             $entityManager = $this->getDoctrine()->getManager();
+            $doctoresReferentes = $cliente->getDocReferente();
+
+            foreach ($doctoresReferentes as $doctor) {
+                $doctor->addCliente($cliente);
+                $entityManager->persist($doctor);
+            }
+
             $entityManager->persist($cliente);
             $entityManager->flush();
 
@@ -109,7 +115,16 @@ class ClienteController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->getDoctrine()->getManager()->flush();
+            $entityManager = $this->getDoctrine()->getManager();
+            $doctoresReferentes = $cliente->getDocReferente();
+
+            foreach ($doctoresReferentes as $doctor) {
+                $doctor->addCliente($cliente);
+                $entityManager->persist($doctor);
+            }
+
+            $entityManager->persist($cliente);
+            $entityManager->flush();
 
             return $this->redirectToRoute('cliente_index');
         }

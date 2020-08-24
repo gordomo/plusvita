@@ -294,7 +294,7 @@ class Doctor implements UserInterface
     {
         if (!$this->clientes->contains($cliente)) {
             $this->clientes[] = $cliente;
-            $cliente->setDocReferente($this);
+            //$cliente->setDocReferente($this);
         }
 
         return $this;

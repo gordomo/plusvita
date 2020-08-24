@@ -130,7 +130,7 @@ class Cliente
     private $obraSocial;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $vinculoResponsable;
 
@@ -140,9 +140,34 @@ class Cliente
     private $fNacimiento;
 
     /**
-     * @ORM\Column(type="date", nullable=true)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $edad;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $sistemaDeEmergenciaNombre;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $sistemaDeEmergenciaTel;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $sistemaDeEmergenciaAfiliado;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $obraSocialTelefono;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $obraSocialAfiliado;
 
     public function __construct()
     {
@@ -481,6 +506,66 @@ class Cliente
     public function setEdad($edad): self
     {
         $this->edad = $edad;
+        return $this;
+    }
+
+    public function getSistemaDeEmergenciaNombre(): ?string
+    {
+        return $this->sistemaDeEmergenciaNombre;
+    }
+
+    public function setSistemaDeEmergenciaNombre(?string $sistemaDeEmergenciaNombre): self
+    {
+        $this->sistemaDeEmergenciaNombre = $sistemaDeEmergenciaNombre;
+
+        return $this;
+    }
+
+    public function getSistemaDeEmergenciaTel(): ?string
+    {
+        return $this->sistemaDeEmergenciaTel;
+    }
+
+    public function setSistemaDeEmergenciaTel(?string $sistemaDeEmergenciaTel): self
+    {
+        $this->sistemaDeEmergenciaTel = $sistemaDeEmergenciaTel;
+
+        return $this;
+    }
+
+    public function getSistemaDeEmergenciaAfiliado(): ?string
+    {
+        return $this->sistemaDeEmergenciaAfiliado;
+    }
+
+    public function setSistemaDeEmergenciaAfiliado(?string $sistemaDeEmergenciaAfiliado): self
+    {
+        $this->sistemaDeEmergenciaAfiliado = $sistemaDeEmergenciaAfiliado;
+
+        return $this;
+    }
+
+    public function getObraSocialTelefono(): ?string
+    {
+        return $this->obraSocialTelefono;
+    }
+
+    public function setObraSocialTelefono(?string $obraSocialTelefono): self
+    {
+        $this->obraSocialTelefono = $obraSocialTelefono;
+
+        return $this;
+    }
+
+    public function getObraSocialAfiliado(): ?string
+    {
+        return $this->obraSocialAfiliado;
+    }
+
+    public function setObraSocialAfiliado(?string $obraSocialAfiliado): self
+    {
+        $this->obraSocialAfiliado = $obraSocialAfiliado;
+
         return $this;
     }
 

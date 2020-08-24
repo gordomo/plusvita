@@ -14,6 +14,21 @@
         {{ form_widget(form.dni) }}
     </div>
     <div class="col-sm">
+        {{ form_label(form.telefono, 'Teléfono') }}
+        {{ form_widget(form.telefono) }}
+    </div>
+</div>
+<br>
+<div class="form-row">
+    <div class="col-sm">
+        {{ form_label(form.email, 'Email') }}
+        {{ form_widget(form.email) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.hClinica, 'Historia Clinica') }}
+        {{ form_widget(form.hClinica) }}
+    </div>
+    <div class="col-sm">
         <div class="form-row">
             <div class="col-sm">
                 {{ form_label(form.fNacimiento) }}
@@ -29,20 +44,31 @@
 <br>
 <div class="form-row">
     <div class="col-sm">
-        {{ form_label(form.telefono, 'Teléfono') }}
-        {{ form_widget(form.telefono) }}
-    </div>
-    <div class="col-sm">
-        {{ form_label(form.email, 'Email') }}
-        {{ form_widget(form.email) }}
-    </div>
-    <div class="col-sm">
-        {{ form_label(form.hClinica, 'Historia Clinica') }}
-        {{ form_widget(form.hClinica) }}
-    </div>
-    <div class="col-sm">
         {{ form_label(form.obraSocial) }}
         {{ form_widget(form.obraSocial) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.obraSocialTelefono) }}
+        {{ form_widget(form.obraSocialTelefono) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.obraSocialAfiliado) }}
+        {{ form_widget(form.obraSocialAfiliado) }}
+    </div>
+</div>
+<br>
+<div class="form-row">
+    <div class="col-sm">
+        {{ form_label(form.sistemaDeEmergenciaNombre) }}
+        {{ form_widget(form.sistemaDeEmergenciaNombre) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.sistemaDeEmergenciaTel) }}
+        {{ form_widget(form.sistemaDeEmergenciaTel) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.sistemaDeEmergenciaAfiliado) }}
+        {{ form_widget(form.sistemaDeEmergenciaAfiliado) }}
     </div>
 </div>
 <br>
@@ -67,7 +93,7 @@
     </div>
 </div>
 <br>
-<div class="form-row">
+<div class="form-row d-none habitacion">
     <div class="col-sm">
         {{ form_label(form.habitacion) }}
         {{ form_widget(form.habitacion) }}
@@ -76,10 +102,15 @@
         {{ form_label(form.nCama) }}
         {{ form_widget(form.nCama) }}
     </div>
+    <div class="col-sm"></div>
+</div>
+<br>
+<div class="form-row">
     <div class="col-sm">
         {{ form_label(form.fIngreso) }}
         {{ form_widget(form.fIngreso) }}
     </div>
+    <div class="col-sm"></div>
 </div>
 <br>
 <div class="form-row">
