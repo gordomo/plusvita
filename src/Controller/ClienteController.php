@@ -86,11 +86,15 @@ class ClienteController extends AbstractController
      */
     public function show(Cliente $cliente, AdjuntosPacientesRepository $adjuntosPacientesRepository): Response
     {
-        $adjuntos = $adjuntosPacientesRepository->findBy(['id_paciente' => $cliente->getId()]);
+        $adjuntosActuales = $adjuntosPacientesRepository->findBy(array('id_paciente' => $cliente->getId()), array('tipo' => 'ASC'));
+        $adjuntosArray = [];
+        foreach ($adjuntosActuales as $adjunto) {
+            $adjuntosArray[$adjunto->getTipo()][] = $adjunto;
+        }
 
         return $this->render('cliente/show.html.twig', [
             'cliente' => $cliente,
-            'adjuntos' => $adjuntos
+            'adjuntosActuales' => $adjuntosArray
 
         ]);
     }

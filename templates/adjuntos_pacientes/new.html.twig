@@ -1,11 +1,9 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}New AdjuntosPacientes{% endblock %}
+{% block title %}Nuevo Adjunto{% endblock %}
 
 {% block body %}
-    <h1>Create new AdjuntosPacientes</h1>
+    <h1>Nuevo Adjunto Para: {{ nombreCliente }}</h1>
 
     {{ include('adjuntos_pacientes/_form.html.twig') }}
-
-    <a href="{{ path('adjuntos_pacientes_index') }}">back to list</a>
 {% endblock %}

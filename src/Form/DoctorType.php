@@ -53,6 +53,8 @@ class DoctorType extends AbstractType
                         'mimeTypes' => [
                             'application/pdf',
                             'application/x-pdf',
+                            'image/*',
+
                         ],
                         'mimeTypesMessage' => 'Solo archivos con formato PDF son permitidos',
                     ])

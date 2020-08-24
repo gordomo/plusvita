@@ -64,32 +64,39 @@
         </tbody>
     </table>
     <br><br>
-    <table class="table">
+    <table class="table table-responsive">
         <thead>
-        <th>Adjuntos</th>
+        <th style="width: 100%;">Adjuntos</th>
         </thead>
-        <tbody>
-        {% for adjunto in adjuntos %}
+        {% for adjunto in adjuntosActuales %}
             <tr>
-                <td><a target="_blank" href="{{ asset('uploads/adjuntos/pacientes/') }}{{ cliente.id }}/{{  adjunto.tipo }}/{{  adjunto.url }}" >{{  adjunto.nombre }}</a></td>
-
-                        {#-id: 1
-                        -id_paciente: "1"
-                        -url: "test-5f3ece7c5fa73.pdf"
-                        -nombre: "test"
-                        -tipo: "2"#}
-
-
+                <td>
+                    {% if (adjunto[0].tipo == 1) %}
+                        Documentación
+                    {% elseif (adjunto[0].tipo == 2) %}
+                        Fotos Médicas
+                    {% elseif (adjunto[0].tipo == 3) %}
+                        Administración
+                    {% elseif (adjunto[0].tipo == 4) %}
+                        Informes y Recetas
+                    {% elseif (adjunto[0].tipo == 5) %}
+                        Estudios
+                    {% elseif (adjunto[0].tipo == 6) %}
+                        Otros
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                {% for adjuntoInner in adjunto %}
+                    <td>
+                        <a target="_blank" href="{{ asset('uploads/adjuntos/pacientes/') }}{{ cliente.id }}/{{  adjuntoInner.tipo }}/{{  adjuntoInner.url }}" >{{  adjuntoInner.nombre }}</a>
+                    </td>
+                {% endfor %}
             </tr>
         {% endfor %}
-        </tbody>
     </table>
 
     <a class="btn btn-default" href="{{ path('cliente_index') }}">Volver</a>
-
     <a class="btn btn-success" href="{{ path('cliente_edit', {'id': cliente.id}) }}">Editar</a>
-
-    <div class="borrarForm">
-        {{ include('cliente/_delete_form.html.twig') }}
-    </div>
+    <br><br><br><br><br><br>
 {% endblock %}

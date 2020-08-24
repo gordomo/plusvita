@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit AdjuntosStaff{% endblock %}
+
+{% block body %}
+    <h1>Edit AdjuntosStaff</h1>
+
+    {{ include('adjuntos_staff/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('adjuntos_staff_index') }}">back to list</a>
+
+    {{ include('adjuntos_staff/_delete_form.html.twig') }}
+{% endblock %}

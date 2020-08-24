@@ -1,0 +1,10 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nuevo adjunto para staff{% endblock %}
+
+{% block body %}
+    <h1>Nuevo adjunto para staff {{ nombreStaff }}</h1>
+
+    {{ include('adjuntos_staff/_form.html.twig') }}
+
+{% endblock %}

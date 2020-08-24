@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}AdjuntosStaff{% endblock %}
+
+{% block body %}
+    <h1>AdjuntosStaff</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ adjuntos_staff.id }}</td>
+            </tr>
+            <tr>
+                <th>Id_staff</th>
+                <td>{{ adjuntos_staff.idStaff }}</td>
+            </tr>
+            <tr>
+                <th>Url</th>
+                <td>{{ adjuntos_staff.url }}</td>
+            </tr>
+            <tr>
+                <th>Tipo</th>
+                <td>{{ adjuntos_staff.tipo }}</td>
+            </tr>
+            <tr>
+                <th>Nombre</th>
+                <td>{{ adjuntos_staff.nombre }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('adjuntos_staff_index') }}">back to list</a>
+
+    <a href="{{ path('adjuntos_staff_edit', {'id': adjuntos_staff.id}) }}">edit</a>
+
+    {{ include('adjuntos_staff/_delete_form.html.twig') }}
+{% endblock %}

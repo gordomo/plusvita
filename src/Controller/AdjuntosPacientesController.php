@@ -7,6 +7,8 @@ use App\Entity\Cliente;
 use App\Form\AdjuntosPacientesType;
 use App\Repository\AdjuntosPacientesRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\ExtensionFileException;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -30,31 +32,41 @@ class AdjuntosPacientesController extends AbstractController
     /**
      * @Route("/new/{id}", name="adjuntos_pacientes_new", methods={"GET","POST"})
      */
-    public function new(Request $request, Cliente $cliente, SluggerInterface $slugger): Response
+    public function new(Request $request, Cliente $cliente, SluggerInterface $slugger, AdjuntosPacientesRepository $adjuntosPacientesRepository): Response
     {
         $adjuntosPaciente = new AdjuntosPacientes();
         $adjuntosPaciente->setIdPaciente($cliente->getId());
+
+        $adjuntosActuales = $adjuntosPacientesRepository->findBy(array('id_paciente' => $cliente->getId()), array('tipo' => 'ASC'));
+
+        $adjuntosArray = [];
+        foreach ($adjuntosActuales as $adjunto) {
+            $adjuntosArray[$adjunto->getTipo()][] = $adjunto;
+        }
+
+        //dd($adjuntosArray);
+
         $form = $this->createForm(AdjuntosPacientesType::class, $adjuntosPaciente);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager = $this->getDoctrine()->getManager();
 
-            $firmaPdfFile = $form->get('archivoAdjunto')->getData();
-            if ($firmaPdfFile) {
+            $archivoAdjunto = $form->get('archivoAdjunto')->getData();
+            if ($archivoAdjunto) {
                 $originalFilename = pathinfo($form->get('nombre')->getData(), PATHINFO_FILENAME);
                 $safeFilename = $slugger->slug($originalFilename);
-                $newFilename = $safeFilename.'-'.uniqid().'.'.$firmaPdfFile->guessExtension();
+                $newFilename = $safeFilename.'-'.uniqid().'.'.$archivoAdjunto->guessExtension();
                 $newPath = $this->getParameter('adjuntos_pacientes_directory') . '/' . $cliente->getId() . '/' . $form->get('tipo')->getData();
 
                 try {
-                    $firmaPdfFile->move(
+                    $archivoAdjunto->move(
                         $newPath,
                         $newFilename
                     );
                     $adjuntosPaciente->setUrl($newPath);
                 } catch (FileException $e) {
-                    // ... handle exception if something happens during file upload
+                    throw new ExtensionFileException('Adjunto seleccionado no permitido. Intente con una Imagen o un PDF');
                 }
 
                 // updates the 'brochureFilename' property to store the PDF file name
@@ -65,12 +77,18 @@ class AdjuntosPacientesController extends AbstractController
             $entityManager->persist($adjuntosPaciente);
             $entityManager->flush();
 
-            return $this->redirectToRoute('adjuntos_pacientes_new', ['id' => $cliente->getId()]);
+            return $this->redirectToRoute('adjuntos_pacientes_new',
+                [
+                    'id' => $cliente->getId(),
+                ]);
         }
 
         return $this->render('adjuntos_pacientes/new.html.twig', [
             'adjuntos_paciente' => $adjuntosPaciente,
+            'nombreCliente' => $cliente->getNombre(),
+            'adjuntosActuales' => $adjuntosArray,
             'form' => $form->createView(),
+            'cliente' => $cliente,
         ]);
     }
 

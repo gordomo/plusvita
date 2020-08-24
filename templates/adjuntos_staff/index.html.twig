@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}AdjuntosStaff index{% endblock %}
+
+{% block body %}
+    <h1>AdjuntosStaff index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Id_staff</th>
+                <th>Url</th>
+                <th>Tipo</th>
+                <th>Nombre</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for adjuntos_staff in adjuntos_staffs %}
+            <tr>
+                <td>{{ adjuntos_staff.id }}</td>
+                <td>{{ adjuntos_staff.idStaff }}</td>
+                <td>{{ adjuntos_staff.url }}</td>
+                <td>{{ adjuntos_staff.tipo }}</td>
+                <td>{{ adjuntos_staff.nombre }}</td>
+                <td>
+                    <a href="{{ path('adjuntos_staff_show', {'id': adjuntos_staff.id}) }}">show</a>
+                    <a href="{{ path('adjuntos_staff_edit', {'id': adjuntos_staff.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('adjuntos_staff_new') }}">Create new</a>
+{% endblock %}

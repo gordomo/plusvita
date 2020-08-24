@@ -2,7 +2,7 @@
 
 namespace App\Form;
 
-use App\Entity\AdjuntosPacientes;
+use App\Entity\AdjuntosStaff;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
@@ -13,23 +13,22 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\File;
 
-class AdjuntosPacientesType extends AbstractType
+class AdjuntosStaffType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('id_paciente', HiddenType::class)
+            ->add('id_staff', HiddenType::class)
             ->add('nombre', TextType::class, ['required'=>true])
             ->add('tipo', ChoiceType::class, [
                 'label' => 'Motivo de Egreso',
                 'choices'  => [
                     'Seleccione una Tipo de Documento Adjunto' => 0,
                     'Documentación' => 1,
-                    'Fotos Médicas' => 2,
-                    'Administración' => 3,
-                    'Informes y Recetas' => 4,
-                    'Estudios' => 5,
-                    'Otros' => 6,
+                    'Novedades' => 2,
+                    'Certificados Médicos' => 3,
+                    'Evaluaciones' => 4,
+                    'Otros' => 5,
                 ], 'required'=>true])
             ->add('archivoAdjunto', FileType::class, [
                 'label' => 'Adjuntar',
@@ -54,7 +53,7 @@ class AdjuntosPacientesType extends AbstractType
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
-            'data_class' => AdjuntosPacientes::class,
+            'data_class' => AdjuntosStaff::class,
         ]);
     }
 }

@@ -11,23 +11,23 @@
                             {% if (adjunto[0].tipo == 1) %}
                                 Documentación
                             {% elseif (adjunto[0].tipo == 2) %}
-                                Fotos Médicas
+                                Novedades
                             {% elseif (adjunto[0].tipo == 3) %}
-                                Administración
+                                Certificados Médicos
                             {% elseif (adjunto[0].tipo == 4) %}
-                                Informes y Recetas
+                                Evaluaciones
                             {% elseif (adjunto[0].tipo == 5) %}
-                                Estudios
-                            {% elseif (adjunto[0].tipo == 6) %}
                                 Otros
                             {% endif %}
                         </td>
                     </tr>
                     <tr>
                         <td>
-                    {% for adjuntoInner in adjunto %}
-                        <a target="_blank" href="{{ asset('uploads/adjuntos/pacientes/') }}{{ cliente.id }}/{{  adjuntoInner.tipo }}/{{  adjuntoInner.url }}" >{{  adjuntoInner.nombre }}</a> -
-                    {% endfor %}
+                        {% for adjuntoInner in adjunto %}
+
+                                <a target="_blank" href="{{ asset('uploads/adjuntos/staff/') }}{{ staff.id }}/{{  adjuntoInner.tipo }}/{{  adjuntoInner.url }}" >{{  adjuntoInner.nombre }}</a>
+
+                        {% endfor %}
                         </td>
                     </tr>
                 {% endfor %}
@@ -61,7 +61,7 @@
 <br>
 <div class="form-group">
     {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary'}}) }}
-    <a class="btn btn-default" href="{{ path('cliente_index') }}">volver</a>
+    <a class="btn btn-default" href="{{ path('doctor_index') }}">volver</a>
 </div>
 <br>
 

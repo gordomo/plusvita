@@ -3,7 +3,7 @@
 {% block title %}Staff index{% endblock %}
 {% block panelTitle %}Staff{% endblock %}
 {% block body %}
-    <table class="table">
+    <table class="table table-responsive">
         <thead>
             <tr>
                 <th scope="col">Nombre</th>
@@ -31,6 +31,7 @@
                 </td>
                 <td>
                     <a href="{{ path('doctor_edit', {'id': doctor.id}) }}">Editar/Ver</a>
+                    <a href="{{ path('adjuntos_staff_new', {'id': doctor.id}) }}">Adjuntos</a>
                 </td>
             </tr>
         {% else %}
