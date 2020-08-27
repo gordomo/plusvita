@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Reset Password{% endblock %}
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('assets/css/loginForm.css') }}">
+{% endblock %}
+{% block body %}
+
+
+    <div class="wrapper fadeInDown">
+        <div id="formContent">
+            <form method="post" action="{{ path('reset_password_code') }}">
+                <div class="fadeIn first">
+                    <img src="{{ asset('assets/images/plusVitaLogo.png') }}" id="icon" alt="Logo" class="img-responsive"/>
+                </div>
+                <div class="fadeIn second">
+                    <p class="mb-3 font-weight-normal">Su password ha sido modificado exitosamente </p>
+                    <p class="mb-3 font-weight-normal">Aguarde unos instantes, será redirigido a la pantalla de login</p>
+                    {% if (error) %}
+                        <h2 class="h3 mb-3 font-weight-normal">Hubo un error</h2>
+                    {% endif %}
+                    <label for="code">Codigo</label><br>
+                    <input type="text" name="code" id="code" required autofocus placeholder="codigo">
+                    <label for="clave">Nueva Password</label>
+                    <input type="password" name="clave" id="clave" required autofocus placeholder="clave">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+                    <input type="hidden" name="email" value="{{ userEmail }}">
+                </div>
+
+
+
+                <button class="btn btn-lg btn-primary mrl-15" type="submit" style="width: 85%;">
+                    Blanquar clave
+                </button>
+                <br>
+                <a href="{{ path('app_login') }}">volver</a>
+            </form>
+        </div>
+    </div>
+
+
+{% endblock %}

@@ -212,14 +212,14 @@ class Doctor implements UserInterface
     {
         $roles = $this->roles;
 
-        $roles[] = 'ROLE_STAFF';
-
+        //$roles[] = 'ROLE_STAFF';
         return array_unique($roles);
     }
 
     public function setRoles(array $roles): self
     {
-        $this->roles = '[ROLE_STAFF]';
+        $roles = ['ROLE_STAFF'];
+        $this->roles = $roles;
 
         return $this;
     }

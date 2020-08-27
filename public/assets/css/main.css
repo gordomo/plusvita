@@ -1,3 +1,6 @@
+#wrapper {
+    height: 100%;
+}
 .content {
     overflow: auto;
 }
@@ -11,7 +14,14 @@
     background-color: #dae0e5 !important;
     color: #495057 !important;
 }
-
+.btn-primary {
+    background-color: #b088be;
+    border-color: #b088be;
+}
+.btn-primary:hover {
+    background-color: #60b9b9;
+    border-color: #60b9b9;
+}
 .btn-action {
     display: inline-block;
     vertical-align: top;
