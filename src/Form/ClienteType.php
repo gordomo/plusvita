@@ -27,7 +27,7 @@ class ClienteType extends AbstractType
         $builder
             ->add('nombre', TextType::class)
             ->add('apellido', TextType::class)
-            ->add('dni', NumberType::class, ['html5' => true, 'label' => 'Número de Documento'])
+            ->add('dni', NumberType::class, ['html5' => true, 'label' => 'Número de Documento', 'attr' => ['max'=>99999999]])
             ->add('email', EmailType::class, ['required'=>false,])
             ->add('telefono', TextType::class, ['label' => 'Teléfono', 'required'=>false,])
             ->add('fNacimiento', DateType::class, ['label' => 'Fecha de Nacimiento', 'required'=>false, 'widget' => 'single_text', 'html5' => true, 'attr' => ['class' => 'js-datepicker'],])
@@ -36,13 +36,71 @@ class ClienteType extends AbstractType
                 'label' => 'Obra Social',
                 'placeholder' => 'Seleccione una Obra Social',
                 'choices'  => [
-                    'Swiss medical' => "1",
-                    'OSDE' => "2",
-                    'Otra' => "3",
+                    'Ospac' => 1,
+                    'Esencial' => 2,
+                    'Prevencion art' => 3,
+                    'Prevencion salud' => 4,
+                    'Pami' => 5,
+                    'Sancor seguros' => 6,
+                    'Sancor salud' => 7,
+                    'Sancor art' => 8,
+                    'Osde' => 9,
+                    'Iapos' => 10,
+                    'Ipam salud' => 11,
+                    'Amur' => 12,
+                    'Amr' => 13,
+                    'Ospat' => 14,
+                    'Osap' => 15,
+                    'Italmedic' => 16,
+                    'Plenit' => 17,
+                    'Ospif' => 18,
+                    'economicas' => 19,
+                    'Osecac' => 20,
+                    'Osseg' => 21,
+                    'Osprera' => 22,
+                    'Osprera/mutual abril' => 23,
+                    'Salud del nuevo rosario' => 24,
+                    'Salud rosario' => 25,
+                    'Medife' => 26,
+                    'Smai' => 27,
+                    'Dasuten' => 28,
+                    'Osdop' => 29,
+                    'Osfgpicyd (obra social de la carne)' => 30,
+                    'Delta salud' => 31,
+                    'Provincia art' => 32,
+                    'Osfatlyf (Sindicato Luz y Fuerza)' => 33,
+                    'Osammuc' => 34,
+                    'Britanica salud' => 35,
+                    'Andar' => 36,
+                    'Union personal art' => 37,
+                    'Union personal'  => 38,
+                    'Aca salud'  => 39,
+                    'Iosfa' => 40,
+                    'Simara' => 41,
+                    'Amparas' => 42,
+                    'Unr' => 43,
+                    'Ima' => 44,
+                    'Osmata' => 45,
+                    'Elevar' => 46,
+                    'Federación Médica' => 47,
+                    'Pasteleros' => 48,
+                    'Camioneros primera' => 49,
+                    'Mutual luz y fuerza' => 50
                 ],
             ])
             ->add('obraSocialTelefono', TextType::class, ['required'=>false, 'label' => 'Teléfono'])
             ->add('obraSocialAfiliado', TextType::class, ['required'=>false, 'label' => 'N Afiliado'])
+            ->add('tipoDePago', ChoiceType::class, [
+                'label' => 'Tipo de Pago',
+                'placeholder' => 'Seleccione un Tipo de Pago',
+                'choices'  => [
+                    'Particular'=> 1,
+                    'Reintegro' => 2,
+                    'Discapacidad' => 3,
+                    'ART' => 4
+                ],
+            ])
+            ->add('posicionEnArchivo', TextType::class, ['required'=>false, 'label' => 'Posición en Archivo'])
             ->add('sistemaDeEmergenciaNombre', TextType::class, ['required'=>false, 'label' => 'Sistema de emergencias'])
             ->add('sistemaDeEmergenciaTel', TextType::class, ['required'=>false, 'label' => 'Teléfono'])
             ->add('sistemaDeEmergenciaAfiliado', TextType::class, ['required'=>false, 'label' => 'N Afiliado'])
@@ -121,13 +179,13 @@ class ClienteType extends AbstractType
 
         }
 
-        $builder->addEventListener(FormEvents::PRE_SUBMIT,function (FormEvent $event) {
+        /*$builder->addEventListener(FormEvents::PRE_SUBMIT,function (FormEvent $event) {
             $form = $event->getForm();
 
             //dd($form->get('familiarResponsableExtra')->getViewData());
 
 
-        });
+        });*/
 
 
         $builder->get('motivoIng')->addEventListener(FormEvents::POST_SUBMIT, function(FormEvent $event) {

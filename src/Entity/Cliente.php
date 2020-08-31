@@ -40,7 +40,7 @@ class Cliente
     private $dni;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $email;
 
@@ -168,6 +168,16 @@ class Cliente
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $obraSocialAfiliado;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $tipoDePago;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $posicionEnArchivo;
 
     public function __construct()
     {
@@ -565,6 +575,30 @@ class Cliente
     public function setObraSocialAfiliado(?string $obraSocialAfiliado): self
     {
         $this->obraSocialAfiliado = $obraSocialAfiliado;
+
+        return $this;
+    }
+
+    public function getTipoDePago(): ?string
+    {
+        return $this->tipoDePago;
+    }
+
+    public function setTipoDePago(?string $tipoDePago): self
+    {
+        $this->tipoDePago = $tipoDePago;
+
+        return $this;
+    }
+
+    public function getPosicionEnArchivo(): ?string
+    {
+        return $this->posicionEnArchivo;
+    }
+
+    public function setPosicionEnArchivo(?string $posicionEnArchivo): self
+    {
+        $this->posicionEnArchivo = $posicionEnArchivo;
 
         return $this;
     }

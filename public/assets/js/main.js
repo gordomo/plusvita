@@ -19,6 +19,8 @@ $("#menu-toggle").click(function(e) {
 });
 
 var form = document.querySelector('form');
-form.addEventListener('submit', function() {
-    $('form button:submit').attr('disabled', 'disabled');
-}, false);
+if(typeof (form) != "undefined") {
+    form.addEventListener('submit', function() {
+        $('form button:submit').attr('disabled', 'disabled');
+    }, false);
+}

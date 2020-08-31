@@ -39,7 +39,7 @@ class UserController extends AbstractController
     {
         $user = new User();
         $form = $this->createFormBuilder($user)
-            ->add('username', TextType::class, ['required' => true])
+            //->add('username', TextType::class, ['required' => true])
             ->add('roles', ChoiceType::class, ['choices'  => [
                                                             'Administrador' => "ROLE_ADMIN",
                                                             'Operador' => "ROLE_USER",
@@ -50,7 +50,7 @@ class UserController extends AbstractController
             ->add('legajo', TextType::class, ['required' => false])
             ->add('password', PasswordType::class)
             ->add('email', EmailType::class)
-            ->add('telefono', TelType::class, ['required' => false])
+            //->add('telefono', TelType::class, ['required' => false])
             ->add('save', SubmitType::class, ['label' => 'Guardar'])
             ->getForm();
 
