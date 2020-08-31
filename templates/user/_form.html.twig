@@ -2,14 +2,18 @@
 <br>
 <div class="form-row">
     <div class="col-sm">
-        {{ form_label(form.username, 'Nombre de Usuario') }}
-        {{ form_widget(form.username) }}
+        {{ form_label(form.email, 'Email') }}
+        {{ form_widget(form.email) }}
     </div>
+    <div class="col-sm"></div>
+</div>
+<br>
+<div class="form-row">
     <div class="col-sm">
         {{ form_label(form.legajo, 'legajo') }}
         {{ form_widget(form.legajo) }}
     </div>
-
+    <div class="col-sm"></div>
 </div>
 <br>
 <div class="form-row">
@@ -17,23 +21,15 @@
         {{ form_label(form.password, 'password') }}
         {{ form_widget(form.password) }}
     </div>
-    <div class="col-sm">
-        {{ form_label(form.roles, 'Roles') }}
-        {{ form_widget(form.roles) }}
-    </div>
+    <div class="col-sm"></div>
 </div>
 <br>
 <div class="form-row">
     <div class="col-sm">
-        {{ form_label(form.email, 'Email') }}
-        {{ form_widget(form.email) }}
+        {{ form_label(form.roles, 'Roles') }}
+        {{ form_widget(form.roles) }}
     </div>
-    <div class="col-sm">
-        {{ form_label(form.telefono, 'Teléfono') }}
-        {{ form_widget(form.telefono) }}
-    </div>
-</div>
-<br><br>
+</div><br>
 <div class="form-row">
     <div class="col-sm">
         {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary'}}) }}
