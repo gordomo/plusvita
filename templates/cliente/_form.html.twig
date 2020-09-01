@@ -63,8 +63,7 @@
         {{ form_widget(form.tipoDePago) }}
     </div>
     <div class="col-sm">
-        {{ form_label(form.posicionEnArchivo) }}
-        {{ form_widget(form.posicionEnArchivo) }}
+
     </div>
     <div class="col-sm">
 
@@ -176,7 +175,7 @@
     </div>
 </div>
 <br>
-{%  if form.fEgreso is defined %}
+
 <hr>
 <h4>Información de Egreso</h4>
 <div class="form-row">
@@ -188,9 +187,13 @@
         {{ form_label(form.motivoEgr) }}
         {{ form_widget(form.motivoEgr) }}
     </div>
+    <div class="col-sm">
+        {{ form_label(form.posicionEnArchivo) }}
+        {{ form_widget(form.posicionEnArchivo) }}
+    </div>
 </div>
 <br>
-{% endif %}
+
 <div class="form-group">
     {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary'}}) }}
     <a class="btn btn-default" href="{{ path('cliente_index') }}">volver</a>

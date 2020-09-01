@@ -24,6 +24,63 @@ class ClienteType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
+        $obrasSociales = [
+            'Ospac' => 1,
+            'Esencial' => 2,
+            'Prevencion art' => 3,
+            'Prevencion salud' => 4,
+            'Pami' => 5,
+            'Sancor seguros' => 6,
+            'Sancor salud' => 7,
+            'Sancor art' => 8,
+            'Osde' => 9,
+            'Iapos' => 10,
+            'Ipam salud' => 11,
+            'Amur' => 12,
+            'Amr' => 13,
+            'Ospat' => 14,
+            'Osap' => 15,
+            'Italmedic' => 16,
+            'Plenit' => 17,
+            'Ospif' => 18,
+            'economicas' => 19,
+            'Osecac' => 20,
+            'Osseg' => 21,
+            'Osprera' => 22,
+            'Osprera/mutual abril' => 23,
+            'Salud del nuevo rosario' => 24,
+            'Salud rosario' => 25,
+            'Medife' => 26,
+            'Smai' => 27,
+            'Dasuten' => 28,
+            'Osdop' => 29,
+            'Osfgpicyd (obra social de la carne)' => 30,
+            'Delta salud' => 31,
+            'Provincia art' => 32,
+            'Osfatlyf (Sindicato Luz y Fuerza)' => 33,
+            'Osammuc' => 34,
+            'Britanica salud' => 35,
+            'Andar' => 36,
+            'Union personal art' => 37,
+            'Union personal'  => 38,
+            'Aca salud'  => 39,
+            'Iosfa' => 40,
+            'Simara' => 41,
+            'Amparas' => 42,
+            'Unr' => 43,
+            'Ima' => 44,
+            'Osmata' => 45,
+            'Elevar' => 46,
+            'Federación Médica' => 47,
+            'Pasteleros' => 48,
+            'Camioneros primera' => 49,
+            'Mutual luz y fuerza' => 50,
+            'Medicus' => 51,
+            'Particular' => 52
+        ];
+
+        ksort($obrasSociales);
+
         $builder
             ->add('nombre', TextType::class)
             ->add('apellido', TextType::class)
@@ -35,58 +92,7 @@ class ClienteType extends AbstractType
             ->add('obraSocial', ChoiceType::class, [
                 'label' => 'Obra Social',
                 'placeholder' => 'Seleccione una Obra Social',
-                'choices'  => [
-                    'Ospac' => 1,
-                    'Esencial' => 2,
-                    'Prevencion art' => 3,
-                    'Prevencion salud' => 4,
-                    'Pami' => 5,
-                    'Sancor seguros' => 6,
-                    'Sancor salud' => 7,
-                    'Sancor art' => 8,
-                    'Osde' => 9,
-                    'Iapos' => 10,
-                    'Ipam salud' => 11,
-                    'Amur' => 12,
-                    'Amr' => 13,
-                    'Ospat' => 14,
-                    'Osap' => 15,
-                    'Italmedic' => 16,
-                    'Plenit' => 17,
-                    'Ospif' => 18,
-                    'economicas' => 19,
-                    'Osecac' => 20,
-                    'Osseg' => 21,
-                    'Osprera' => 22,
-                    'Osprera/mutual abril' => 23,
-                    'Salud del nuevo rosario' => 24,
-                    'Salud rosario' => 25,
-                    'Medife' => 26,
-                    'Smai' => 27,
-                    'Dasuten' => 28,
-                    'Osdop' => 29,
-                    'Osfgpicyd (obra social de la carne)' => 30,
-                    'Delta salud' => 31,
-                    'Provincia art' => 32,
-                    'Osfatlyf (Sindicato Luz y Fuerza)' => 33,
-                    'Osammuc' => 34,
-                    'Britanica salud' => 35,
-                    'Andar' => 36,
-                    'Union personal art' => 37,
-                    'Union personal'  => 38,
-                    'Aca salud'  => 39,
-                    'Iosfa' => 40,
-                    'Simara' => 41,
-                    'Amparas' => 42,
-                    'Unr' => 43,
-                    'Ima' => 44,
-                    'Osmata' => 45,
-                    'Elevar' => 46,
-                    'Federación Médica' => 47,
-                    'Pasteleros' => 48,
-                    'Camioneros primera' => 49,
-                    'Mutual luz y fuerza' => 50
-                ],
+                'choices'  => $obrasSociales
             ])
             ->add('obraSocialTelefono', TextType::class, ['required'=>false, 'label' => 'Teléfono'])
             ->add('obraSocialAfiliado', TextType::class, ['required'=>false, 'label' => 'N Afiliado'])
@@ -113,6 +119,9 @@ class ClienteType extends AbstractType
                     'Internacion' => "2",
                     'Hospital de día' => "3",
                     'ART' => "4",
+                    'Convenio' => "5",
+                    'Amparo' => "6",
+                    'Presupuesto' => "7",
                 ],
                 'multiple'=>false,
                 'expanded'=>false,
@@ -155,11 +164,8 @@ class ClienteType extends AbstractType
             ->add('docDerivante', TextType::class, ['label' => 'Profesional Derivante', 'required'=>false])
             ->add('edad', TextType::class, ['label' => 'Edad', 'required'=>false])
             ->add("familiarResponsableExtra", HiddenType::class, array("mapped"=>false, "label"=>false))
-            ->add('save', SubmitType::class, ['label' => 'Guardar', 'attr' => ['class' => 'btn-success']]);
+            ->add('save', SubmitType::class, ['label' => 'Guardar', 'attr' => ['class' => 'btn-success']])
 
-//motivoEgr
-        if(!$options['is_new']) {
-            $builder
                 ->add('fEgreso', DateType::class, ['label' => 'Fecha de Egreso', 'required'=>false, 'widget' => 'single_text', 'attr' => ['class' => 'js-datepicker']])
                 ->add('motivoEgr', ChoiceType::class, [
                     'label' => 'Motivo de Egreso',
@@ -177,7 +183,7 @@ class ClienteType extends AbstractType
                 ]);
 
 
-        }
+
 
         /*$builder->addEventListener(FormEvents::PRE_SUBMIT,function (FormEvent $event) {
             $form = $event->getForm();
@@ -241,7 +247,7 @@ class ClienteType extends AbstractType
             'pop', 'politrauma', 'amputaciones', 'otras'
         ];
         $respiratorio = [
-            'rehabilitacion', 'respiratoria', 'pop'
+            'rehabilitacion respiratoria', 'pop'
         ];
         $paliativos = [
             'ca', 'otros'
