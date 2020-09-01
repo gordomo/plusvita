@@ -103,7 +103,10 @@ class ClienteType extends AbstractType
                     'Particular'=> 1,
                     'Reintegro' => 2,
                     'Discapacidad' => 3,
-                    'ART' => 4
+                    'ART' => 4,
+                    'Convenio' => 5,
+                    'Amparo' => 6,
+                    'Presupuesto' => 7,
                 ],
             ])
             ->add('posicionEnArchivo', TextType::class, ['required'=>false, 'label' => 'Posición en Archivo'])
@@ -119,9 +122,6 @@ class ClienteType extends AbstractType
                     'Internacion' => "2",
                     'Hospital de día' => "3",
                     'ART' => "4",
-                    'Convenio' => "5",
-                    'Amparo' => "6",
-                    'Presupuesto' => "7",
                 ],
                 'multiple'=>false,
                 'expanded'=>false,
