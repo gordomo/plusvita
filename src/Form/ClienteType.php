@@ -241,7 +241,7 @@ class ClienteType extends AbstractType
     private function getMotivoIngEsp(int $motivo)
     {
         $neurologicas = [
-            'pop', 'acv', 'izquemico', 'hemorragico', 'tec', 'em', 'ela', 'guillain', 'barre', 'trauma', 'medular', 'otras'
+            'pop', 'acv', 'izquemico', 'hemorragico', 'tec', 'em', 'ela', 'guillain barre', 'trauma', 'medular', 'otras'
         ];
         $traumatologicas = [
             'pop', 'politrauma', 'amputaciones', 'otras'
