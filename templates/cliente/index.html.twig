@@ -3,6 +3,34 @@
 {% block title %}Pacientes index{% endblock %}
 {% block panelTitle %}Pacientes{% endblock %}
 {% block body %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm">
+                <div>
+                    <ul class="nav nav-tabs justify-content-center">
+                        <li class="nav-item">
+                            <a class="nav-link {{  inactivos ? '' : 'active'  }}" href="{{ path('cliente_index') }}">Activos</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{  inactivos ? 'active' : ''  }}" href="{{ path('cliente_index') }}?inactivos=true">Inactivos</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-sm">
+                <div class="input-group mb-3">
+                    <input id='nombreInput' type="text" value="{{ nombreInput }}" class="form-control" placeholder="Buscar por Nombre" aria-label="Buscar por Nombre" aria-describedby="buscarPorNombre">
+                    <div class="input-group-append">
+                        <a class="btn btn-outline-secondary" data-inactivo="{{  inactivos ? 'true' : 'false'  }}" data-url="{{ path('cliente_index') }}{{  inactivos ? '?inactivos=true' : ''  }}" type="button" id="buscarPorNombre" style="padding: 10px;">
+                            <i class="fas fa-search"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <table class="table table-responsive">
         <thead>
             <tr>

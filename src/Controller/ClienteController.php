@@ -28,10 +28,23 @@ class ClienteController extends AbstractController
     /**
      * @Route("/", name="cliente_index", methods={"GET"})
      */
-    public function index(ClienteRepository $clienteRepository): Response
+    public function index(Request $request, ClienteRepository $clienteRepository): Response
     {
+        $inactivos = $request->query->get('inactivos');
+        $nombreInput = $request->query->get('nombreInput');
+
+
+        if ( $inactivos ) {
+            $clientes = $clienteRepository->findInActivos(new \DateTime(), $nombreInput);
+        } else {
+            $clientes = $clienteRepository->findActivos(new \DateTime(), $nombreInput);
+        }
+
+        //dd($clientes);
         return $this->render('cliente/index.html.twig', [
-            'clientes' => $clienteRepository->findAll(),
+            'clientes' => $clientes,
+            'inactivos' => $inactivos,
+            'nombreInput' => $nombreInput,
         ]);
     }
 
