@@ -138,6 +138,8 @@ class DoctorType extends AbstractType
             'Contador',
             'Abogado',
             'Estudio contable',
+            'Directivo',
+            'Programador',
         ];
         $prestacion = [
             'Profesional por prestacion',
