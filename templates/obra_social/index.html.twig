@@ -1,0 +1,32 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Obras Sociales{% endblock %}
+{% block panelTitle %}Obras Sociales{% endblock %}
+{% block body %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Tel</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for obra_social in obra_socials %}
+            <tr>
+                <td>{{ obra_social.nombre }}</td>
+                <td>{{ obra_social.tel }}</td>
+                <td>
+                    <a href="{{ path('obra_social_edit', {'id': obra_social.id}) }}"><i class="fas fa-pencil-alt"></i></a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="4">Aún no existen registros</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('obra_social_new') }}">Agregar</a>
+{% endblock %}

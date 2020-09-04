@@ -27,7 +27,7 @@
             </tr>
             <tr>
                 <th>Email</th>
-                <td>{{ cliente.email }}</td>
+                <td class="lowercase">{{ cliente.email }}</td>
             </tr>
             <tr>
                 <th>Teléfono</th>
@@ -62,6 +62,36 @@
                 <td>{{ cliente.docDerivante }}</td>
             </tr>
         </tbody>
+    </table>
+    <br><br>
+    <hr>
+    <h2>Familares Responsables</h2>
+    <table class="table table-responsive">
+        <thead>
+             <tr>
+                 <td>Nombre</td>
+                 <td>Teléfono</td>
+                 <td>Email</td>
+                 <td>Vinculo</td>
+             </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ cliente.familiarResponsableNombre }}</td>
+                <td>{{ cliente.familiarResponsableTel }}</td>
+                <td>{{ cliente.familiarResponsableMail }}</td>
+                <td>{{ cliente.vinculoResponsable }}</td>
+            </tr>
+            {% for familiarExtra in familiaresExtra%}
+                <tr>
+                    <td>{{ familiarExtra.nombre }}</td>
+                    <td>{{ familiarExtra.tel }}</td>
+                    <td>{{ familiarExtra.mail }}</td>
+                    <td>{{ familiarExtra.vinculo }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+
     </table>
     <br><br>
     <table class="table table-responsive">

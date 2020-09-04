@@ -57,6 +57,25 @@
 .table thead th {
     border-top: 0;
 }
+.table tr td {
+    text-transform: capitalize;
+}
+.lowercase {
+    text-transform: lowercase !important;
+}
+.editarPaciente {
+    cursor: pointer;
+}
+.editarPaciente:hover {
+    background-color: #889cbe !important;
+    color: #f0f8ff;
+}
+.editarPaciente a {
+    color: #5f5f65;
+}
+.editarPaciente a:hover {
+    color: #ffffff;
+}
 /*      #60b9b9     #b088be
 table {
     width: 716px; !* 140px * 5 column + 16px scrollbar width *!

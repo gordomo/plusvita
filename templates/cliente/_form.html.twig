@@ -1,4 +1,5 @@
 {{ form_start(form) }}
+{%  if form.nombre is defined %}
 <br>
 <div class="form-row">
     <div class="col-sm">
@@ -47,10 +48,10 @@
         {{ form_label(form.obraSocial) }}
         {{ form_widget(form.obraSocial) }}
     </div>
-    <div class="col-sm">
+{#    <div class="col-sm">
         {{ form_label(form.obraSocialTelefono) }}
         {{ form_widget(form.obraSocialTelefono) }}
-    </div>
+    </div>#}
     <div class="col-sm">
         {{ form_label(form.obraSocialAfiliado) }}
         {{ form_widget(form.obraSocialAfiliado) }}
@@ -174,9 +175,10 @@
         <a href="" id="agregarFamiliar">agregar familiar + </a>
     </div>
 </div>
-<br>
+<br><hr>
+{% endif %}
+{%  if form.fEgreso is defined %}
 
-<hr>
 <h4>Información de Egreso</h4>
 <div class="form-row">
     <div class="col-sm">
@@ -193,7 +195,7 @@
     </div>
 </div>
 <br>
-
+{% endif %}
 <div class="form-group">
     {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary'}}) }}
     <a class="btn btn-default" href="{{ path('cliente_index') }}">volver</a>

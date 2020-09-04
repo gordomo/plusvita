@@ -10,6 +10,7 @@
                 <th scope="col">Apellido</th>
                 <th scope="col">Tipo</th>
                 <th scope="col">Legajo</th>
+                <th scope="col">Email</th>
                 <th scope="col">Inicio Contrato</th>
                 <th scope="col">actions</th>
             </tr>
@@ -25,6 +26,9 @@
                 <td>
                     {{ doctor.legajo }}
                     {#<a href="{{ asset('uploads/firmas/' ~ doctor.firma) }}" target="_blank">Ver firma digital</a>#}
+                </td>
+                <td class="lowercase">
+                    {{ doctor.email }}
                 </td>
                 <td>
                     {{ doctor.inicioContrato | date('Y-m-d') }}

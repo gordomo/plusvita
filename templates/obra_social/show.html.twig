@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}ObraSocial{% endblock %}
+
+{% block body %}
+    <h1>ObraSocial</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ obra_social.id }}</td>
+            </tr>
+            <tr>
+                <th>Nombre</th>
+                <td>{{ obra_social.nombre }}</td>
+            </tr>
+            <tr>
+                <th>Tel</th>
+                <td>{{ obra_social.tel }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('obra_social_index') }}">back to list</a>
+
+    <a href="{{ path('obra_social_edit', {'id': obra_social.id}) }}">edit</a>
+
+    {{ include('obra_social/_delete_form.html.twig') }}
+{% endblock %}

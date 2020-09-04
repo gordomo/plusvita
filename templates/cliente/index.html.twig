@@ -31,7 +31,7 @@
     </div>
 
 
-    <table class="table table-responsive">
+    <table class="table table-responsive table-striped">
         <thead>
             <tr>
                 <th>H. Clínica</th>
@@ -44,17 +44,17 @@
                 <th>Modalidad</th>
                 <th>Ingreso por</th>
                 <th>Doc Referente</th>
-                <th></th>
+                <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
         {% for cliente in clientes %}
-            <tr class="{{ cliente.activo ? 'activo' : '' }}">
+            <tr class="editarPaciente" data-url="{{ path('cliente_show', {'id': cliente.id}) }}">
                 <td>{{ cliente.hClinica }}</td>
                 <td>{{ cliente.nombre }}</td>
                 <td>{{ cliente.apellido }}</td>
                 <td>{{ cliente.dni }}</td>
-                <td>{{ cliente.email }}</td>
+                <td class="lowercase">{{ cliente.email }}</td>
                 <td>{{ cliente.telefono }}</td>
                 <td>{{ cliente.fIngreso ? cliente.fIngreso|date('Y-m-d') : '' }}</td>
                 <td>
@@ -83,16 +83,17 @@
                 </td>
                 <td>
                     {% set i = 1 %}
-                    {% for doc in cliente.docReferente %}
-                        {{ doc.nombre }}{% if cliente.docReferente|length > 0 and i < cliente.docReferente|length %},{% endif %}
 
-                        {% set i = i+1 %}
+                    {% for doc in cliente.docReferente|slice(0,1) %}
+                        {{ doc.nombre }} {{ doc.apellido }}{% if cliente.docReferente|length > 0 and i < cliente.docReferente|length %},{% endif %}
+
+                        {#{% set i = i+1 %}#}
                     {% endfor %}
                 </td>
                 <td>
-                    <a href="{{ path('cliente_edit', {'id': cliente.id}) }}">Editar</a>
-                    <a href="{{ path('cliente_show', {'id': cliente.id}) }}">Ver</a>
-                    <a href="{{ path('adjuntos_pacientes_new', {'id': cliente.id}) }}">Adjuntar</a>
+                    <a href="{{ path('cliente_edit', {'id': cliente.id}) }}"><i class="fas fa-pencil-alt"></i></a>&nbsp;
+                    <a href="{{ path('adjuntos_pacientes_new', {'id': cliente.id}) }}"><i class="fas fa-paperclip"></i></a>&nbsp;
+                    <a href="{{ path('cliente_egreso', {'id': cliente.id}) }}"><i class="far fa-calendar-times"></i></a>
                 </td>
             </tr>
         {% else %}
@@ -104,4 +105,8 @@
     </table>
 
     <a href="{{ path('cliente_new') }}">Ingresar nuevo Paciente</a>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('assets/js/cliente.js') }}"></script>
 {% endblock %}

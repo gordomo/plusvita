@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}Edit Paciente{% endblock %}
-{% block panelTitle %}Editar Paciente{% endblock %}
+{% block panelTitle %}{{ title }}{% endblock %}
 {% block body %}
     {{ include('cliente/_form.html.twig') }}
 {% endblock %}

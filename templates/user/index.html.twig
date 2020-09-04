@@ -28,7 +28,7 @@
                         {% endif %}
                     {% endfor %}
                 </td>
-                <td>{{ user.email }}</td>
+                <td class="lowercase">{{ user.email }}</td>
                 <td>{{ user.telefono }}</td>
                 <td>
                     <a href="{{ path('user_edit', {'id': user.id}) }}">Editar</a>

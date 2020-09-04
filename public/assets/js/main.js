@@ -40,22 +40,24 @@ $('#buscarPorNombre').click( function () {
 
 // Get the input field
 var input = document.getElementById("nombreInput");
+if(input) {
+    // Execute a function when the user releases a key on the keyboard
+    input.addEventListener("keyup", function(event) {
+        // Number 13 is the "Enter" key on the keyboard
+        $code = 0;
+        if (event.key !== undefined) {
+            $code = event.key;
+        } else if (event.keyIdentifier !== undefined) {
+            $code = event.keyIdentifier;
+        } else if (event.keyCode !== undefined) {
+            $code = event.keyCode;
+        }
+        if ($code === 13 || $code == 'Enter') {
+            // Cancel the default action, if needed
+            event.preventDefault();
+            // Trigger the button element with a click
+            document.getElementById("buscarPorNombre").click();
+        }
+    });
+}
 
-// Execute a function when the user releases a key on the keyboard
-input.addEventListener("keyup", function(event) {
-    // Number 13 is the "Enter" key on the keyboard
-    $code = 0;
-    if (event.key !== undefined) {
-        $code = event.key;
-    } else if (event.keyIdentifier !== undefined) {
-        $code = event.keyIdentifier;
-    } else if (event.keyCode !== undefined) {
-        $code = event.keyCode;
-    }
-    if ($code === 13 || $code == 'Enter') {
-        // Cancel the default action, if needed
-        event.preventDefault();
-        // Trigger the button element with a click
-        document.getElementById("buscarPorNombre").click();
-    }
-});

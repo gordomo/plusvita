@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit ObraSocial{% endblock %}
+
+{% block body %}
+    <h1>Edit ObraSocial</h1>
+
+    {{ include('obra_social/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('obra_social_index') }}">back to list</a>
+
+    {{ include('obra_social/_delete_form.html.twig') }}
+{% endblock %}

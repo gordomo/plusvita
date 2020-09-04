@@ -51,5 +51,6 @@ security:
         - { path: ^/user, roles: [IS_AUTHENTICATED_FULLY, ROLE_ADMIN] }
         - { path: ^/doctor, roles: [IS_AUTHENTICATED_FULLY, ROLE_ADMIN] }
         - { path: ^/pacientes, roles: [IS_AUTHENTICATED_FULLY, ROLE_ADMIN] }
+        - { path: ^/obras-sociales, roles: [IS_AUTHENTICATED_FULLY, ROLE_ADMIN] }
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }

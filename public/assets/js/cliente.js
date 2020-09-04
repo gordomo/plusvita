@@ -63,3 +63,7 @@ function _calculateAge(birthday) {
 $('.js-datepicker').datepicker({
     format: 'yyyy-mm-dd'
 });
+
+$('.editarPaciente').click(function () {
+    window.location.href = $(this).data('url');
+});
