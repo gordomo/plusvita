@@ -103,7 +103,7 @@ class DoctorController extends AbstractController
         return $this->render('doctor/new.html.twig', [
             'doctor' => $doctor,
             'form' => $form->createView(),
-            
+
         ]);
     }
 
@@ -164,7 +164,31 @@ class DoctorController extends AbstractController
         return $this->render('doctor/edit.html.twig', [
             'doctor' => $doctor,
             'form' => $form->createView(),
-            
+            'title' => 'Editar:' . $doctor->getNombre() . ' ' . $doctor->getApellido(),
+        ]);
+    }
+
+    /**
+     * @Route("/{id}/egreso", name="staff_egreso", methods={"GET","POST"})
+     */
+    public function egreso(Request $request, Doctor $doctor): Response
+    {
+        $form = $this->createForm(DoctorType::class, $doctor, ['is_new' => false, 'egreso' => true]);
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($doctor);
+            $entityManager->flush();
+
+            return $this->redirectToRoute('cliente_index');
+        }
+
+        return $this->render('doctor/edit.html.twig', [
+            'doctor' => $doctor,
+            'form' => $form->createView(),
+            'title' => 'Egreso para:' . $doctor->getNombre() . ' ' . $doctor->getApellido(),
         ]);
     }
 

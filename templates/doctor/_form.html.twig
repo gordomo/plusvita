@@ -1,105 +1,107 @@
 {{ form_start(form) }}
-<br>
-<div class="form-row">
-    <div class="col-sm">
-            {{ form_label(form.nombre, 'Nombre') }}
-            {{ form_widget(form.nombre) }}
-    </div>
-    <div class="col-sm">
-            {{ form_label(form.apellido, 'Apellido') }}
-            {{ form_widget(form.apellido) }}
-    </div>
-    <div class="col-sm">
-        {{ form_label(form.dni, 'DNI') }}
-        {{ form_widget(form.dni) }}
-    </div>
-</div>
-<br>
-<div class="form-row">
-    <div class="col-sm">
-        {{ form_label(form.telefono, 'Teléfono') }}
-        {{ form_widget(form.telefono) }}
-    </div>
-    <div class="col-sm">
-        {{ form_label(form.email, 'Email') }}
-        {{ form_widget(form.email) }}
-    </div>
-    <div class="col-sm">
-        {{ form_label(form.legajo, 'Nro de Legajo') }}
-        {{ form_widget(form.legajo) }}
-    </div>
-</div>
-<br>
-
-<div class="form-row">
-    <div class="col-sm">
-        {{ form_label(form.tipo, 'Tipo de contrato') }}
-        {{ form_widget(form.tipo, {'attr': {'data-staff_tipo_select-url': path('staff_tipo_select'), 'class': 'js-staff-tipo'}}) }}
-    </div>
-</div>
-<br>
-<div class="js-staff-modalidad-target">
-    {%  if form.modalidad is defined %}
-        <div class="form-row">
-            <div class="col-sm">
-                {{ form_label(form.modalidad, 'Categoria') }}
-                {{ form_widget(form.modalidad) }}
-            </div>
+{%  if form.nombre is defined %}
+    <br>
+    <div class="form-row">
+        <div class="col-sm">
+                {{ form_label(form.nombre, 'Nombre') }}
+                {{ form_widget(form.nombre) }}
         </div>
-    {% endif %}
-</div>
-<br>
-<div class="form-row">
-    <div class="col-sm">
-        {{ form_label(form.inicioContrato, 'Inicio del Contrato') }}
-        {{ form_widget(form.inicioContrato) }}
+        <div class="col-sm">
+                {{ form_label(form.apellido, 'Apellido') }}
+                {{ form_widget(form.apellido) }}
+        </div>
+        <div class="col-sm">
+            {{ form_label(form.dni, 'DNI') }}
+            {{ form_widget(form.dni) }}
+        </div>
     </div>
-    <div class="col-sm">
-        {{ form_label(form.vtoContrato, 'Vencimiento del Contrato') }}
-        {{ form_widget(form.vtoContrato) }}
+    <br>
+    <div class="form-row">
+        <div class="col-sm">
+            {{ form_label(form.telefono, 'Teléfono') }}
+            {{ form_widget(form.telefono) }}
+        </div>
+        <div class="col-sm">
+            {{ form_label(form.email, 'Email') }}
+            {{ form_widget(form.email) }}
+        </div>
+        <div class="col-sm">
+            {{ form_label(form.legajo, 'Nro de Legajo') }}
+            {{ form_widget(form.legajo) }}
+        </div>
     </div>
-</div>
-<br>
-{#<div class="form-row ">
-    <div class="col-sm">
-    {{ form_label(form.especialidad, 'Especialidad') }}
-    {{ form_widget(form.especialidad) }}
-    </div>
-</div>
-<br>#}
+    <br>
 
-<div class="form-row">
-    <div class="col-sm">
-    {{ form_label(form.firmaPdf, 'Firma en Pdf') }}<br>
-    {{ form_widget(form.firmaPdf) }}
-        <a target="_blank" href="{{ asset('uploads/firmas/') }}{{ doctor.firma }}" >ver firma</a>
+    <div class="form-row">
+        <div class="col-sm">
+            {{ form_label(form.tipo, 'Tipo de contrato') }}
+            {{ form_widget(form.tipo, {'attr': {'data-staff_tipo_select-url': path('staff_tipo_select'), 'class': 'js-staff-tipo'}}) }}
+        </div>
     </div>
+    <br>
+    <div class="js-staff-modalidad-target">
+        {%  if form.modalidad is defined %}
+            <div class="form-row">
+                <div class="col-sm">
+                    {{ form_label(form.modalidad, 'Categoria') }}
+                    {{ form_widget(form.modalidad) }}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    <br>
+    <div class="form-row">
+        <div class="col-sm">
+            {{ form_label(form.inicioContrato, 'Inicio del Contrato') }}
+            {{ form_widget(form.inicioContrato) }}
+        </div>
+        <div class="col-sm">
+            {{ form_label(form.vtoContrato, 'Vencimiento del Contrato') }}
+            {{ form_widget(form.vtoContrato) }}
+        </div>
+    </div>
+    <br>
+    {#<div class="form-row ">
+        <div class="col-sm">
+        {{ form_label(form.especialidad, 'Especialidad') }}
+        {{ form_widget(form.especialidad) }}
+        </div>
+    </div>
+    <br>#}
 
-    <div class="col-sm d-none vtoMatricula">
-    {{ form_label(form.matricula, 'Matricula') }}
-    {{ form_widget(form.matricula) }}
+    <div class="form-row">
+        <div class="col-sm">
+        {{ form_label(form.firmaPdf, 'Firma en Pdf') }}<br>
+        {{ form_widget(form.firmaPdf) }}
+            <a target="_blank" href="{{ asset('uploads/firmas/') }}{{ doctor.firma }}" >ver firma</a>
+        </div>
+
+        <div class="col-sm d-none vtoMatricula">
+        {{ form_label(form.matricula, 'Matricula') }}
+        {{ form_widget(form.matricula) }}
+        </div>
+        <div class="col-sm d-none vtoMatricula">
+            {{ form_label(form.vtoMatricula, 'Vencimiento Matricula') }}
+            {{ form_widget(form.vtoMatricula) }}
+        </div>
     </div>
-    <div class="col-sm d-none vtoMatricula">
-        {{ form_label(form.vtoMatricula, 'Vencimiento Matricula') }}
-        {{ form_widget(form.vtoMatricula) }}
+    <br>
+    <div class="form-row d-none libretaSanitaria">
+        <div class="col-sm">
+            {{ form_label(form.libretaSanitaria, 'N de libreta Sanitaria') }}<br>
+            {{ form_widget(form.libretaSanitaria) }}
+        </div>
+        <div class="col-sm">
+            {{ form_label(form.emisionLibretaSanitaria, 'Emision Libreta Sanitaria') }}
+            {{ form_widget(form.emisionLibretaSanitaria) }}
+        </div>
+        <div class="col-sm">
+            {{ form_label(form.vtoLibretaSanitaria, 'Vto libreta Sanitaria') }}
+            {{ form_widget(form.vtoLibretaSanitaria) }}
+        </div>
     </div>
-</div>
-<br>
-<div class="form-row d-none libretaSanitaria">
-    <div class="col-sm">
-        {{ form_label(form.libretaSanitaria, 'N de libreta Sanitaria') }}<br>
-        {{ form_widget(form.libretaSanitaria) }}
-    </div>
-    <div class="col-sm">
-        {{ form_label(form.emisionLibretaSanitaria, 'Emision Libreta Sanitaria') }}
-        {{ form_widget(form.emisionLibretaSanitaria) }}
-    </div>
-    <div class="col-sm">
-        {{ form_label(form.vtoLibretaSanitaria, 'Vto libreta Sanitaria') }}
-        {{ form_widget(form.vtoLibretaSanitaria) }}
-    </div>
-</div>
-<br>
+    <br>
+{%  endif %}
 {%  if form.fechaBaja is defined %}
     <hr>
     <h4>Información para la baja</h4>

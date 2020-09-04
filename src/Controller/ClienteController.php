@@ -79,68 +79,12 @@ class ClienteController extends AbstractController
         $cliente->setActivo(true);
         $cliente->setFIngreso(new \DateTime());
 
-        //TODO
-        /*$obrasSociales = $obraSocialRepository->findAll();
+        $obrasSociales = $obraSocialRepository->findAll();
         $obArray = [];
         foreach ( $obrasSociales as $ob ) {
             $obArray[$ob->getId()] = $ob->getNombre();
         }
-        $obArray = array_flip($obArray);*/
-
-        $obArray = [
-            'Ospac' => 1,
-            'Esencial' => 2,
-            'Prevencion art' => 3,
-            'Prevencion salud' => 4,
-            'Pami' => 5,
-            'Sancor seguros' => 6,
-            'Sancor salud' => 7,
-            'Sancor art' => 8,
-            'Osde' => 9,
-            'Iapos' => 10,
-            'Ipam salud' => 11,
-            'Amur' => 12,
-            'Amr' => 13,
-            'Ospat' => 14,
-            'Osap' => 15,
-            'Italmedic' => 16,
-            'Plenit' => 17,
-            'Ospif' => 18,
-            'economicas' => 19,
-            'Osecac' => 20,
-            'Osseg' => 21,
-            'Osprera' => 22,
-            'Osprera/mutual abril' => 23,
-            'Salud del nuevo rosario' => 24,
-            'Salud rosario' => 25,
-            'Medife' => 26,
-            'Smai' => 27,
-            'Dasuten' => 28,
-            'Osdop' => 29,
-            'Osfgpicyd (obra social de la carne)' => 30,
-            'Delta salud' => 31,
-            'Provincia art' => 32,
-            'Osfatlyf (Sindicato Luz y Fuerza)' => 33,
-            'Osammuc' => 34,
-            'Britanica salud' => 35,
-            'Andar' => 36,
-            'Union personal art' => 37,
-            'Union personal'  => 38,
-            'Aca salud'  => 39,
-            'Iosfa' => 40,
-            'Simara' => 41,
-            'Amparas' => 42,
-            'Unr' => 43,
-            'Ima' => 44,
-            'Osmata' => 45,
-            'Elevar' => 46,
-            'Federación Médica' => 47,
-            'Pasteleros' => 48,
-            'Camioneros primera' => 49,
-            'Mutual luz y fuerza' => 50,
-            'Medicus' => 51,
-            'Particular' => 52
-        ];
+        $obArray = array_flip($obArray);
 
         $form = $this->createForm(ClienteType::class, $cliente, ['is_new' => true, 'obrasSociales' => $obArray]);
         $form->handleRequest($request);

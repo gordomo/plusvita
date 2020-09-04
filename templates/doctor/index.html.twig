@@ -3,7 +3,7 @@
 {% block title %}Staff index{% endblock %}
 {% block panelTitle %}Staff{% endblock %}
 {% block body %}
-    <table class="table table-responsive">
+    <table class="table table-responsive table-striped">
         <thead>
             <tr>
                 <th scope="col">Nombre</th>
@@ -17,7 +17,7 @@
         </thead>
         <tbody>
         {% for doctor in doctors %}
-            <tr>
+            <tr class="editarStaff" data-url="{{ path('doctor_edit', {'id': doctor.id}) }}">
                 <td>{{ doctor.nombre }}</td>
                 <td>{{ doctor.apellido }}</td>
                 <td>
@@ -34,8 +34,9 @@
                     {{ doctor.inicioContrato | date('Y-m-d') }}
                 </td>
                 <td>
-                    <a href="{{ path('doctor_edit', {'id': doctor.id}) }}">Editar/Ver</a>
-                    <a href="{{ path('adjuntos_staff_new', {'id': doctor.id}) }}">Adjuntos</a>
+                    <a href="{{ path('doctor_edit', {'id': doctor.id}) }}"><i class="fas fa-pencil-alt"></i></a>
+                    <a href="{{ path('adjuntos_staff_new', {'id': doctor.id}) }}"><i class="fas fa-paperclip"></i></a>
+                    <a href="{{ path('staff_egreso', {'id': doctor.id}) }}"><i class="far fa-calendar-times"></i></a>
                 </td>
             </tr>
         {% else %}

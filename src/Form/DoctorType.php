@@ -23,53 +23,72 @@ class DoctorType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $builder
-            ->add('nombre', TextType::class)
-            ->add('apellido', TextType::class)
-            ->add('dni', TextType::class)
-            ->add('telefono', NumberType::class, ['html5' => true])
-            ->add('email', EmailType::class)
-            ->add('legajo', NumberType::class)
-            ->add('tipo', ChoiceType::class,
-                [
-                    'label' => 'Tipo de Contrato',
-                    'choices' => ['Seleccione un Tipo de contrato' => 0, 'Empleado' => 1, 'Contrato Directo' => 2, 'Contrato por Prestación' => 3, 'Prestación Directa' => 4],
-                ])
-            ->add('inicioContrato', DateType::class, [ 'widget' => 'single_text'])
-            ->add('vtoContrato', DateType::class, [ 'widget' => 'single_text', 'required' => false] )
-            ->add('vtoMatricula', DateType::class, [ 'widget' => 'single_text', 'required' => false] )
-
-            ->add('libretaSanitaria', NumberType::class, [ 'html5' => true, 'required' => false])
-            ->add('vtoLibretaSanitaria', DateType::class, [ 'widget' => 'single_text', 'required' => false] )
-            ->add('emisionLibretaSanitaria', DateType::class, [ 'widget' => 'single_text', 'required' => false] )
-
-            ->add('firmaPdf', FileType::class, [
-                'label' => 'Firma Digital (PDF file)',
-                'mapped' => false,
-                'required' => false,
-                'constraints' => [
-                    new File([
-                        'maxSize' => '1024k',
-                        'mimeTypes' => [
-                            'application/pdf',
-                            'application/x-pdf',
-                            'image/*',
-
-                        ],
-                        'mimeTypesMessage' => 'Solo archivos con formato PDF son permitidos',
+        if (!$options['egreso']) {
+            $builder
+                ->add('nombre', TextType::class)
+                ->add('apellido', TextType::class)
+                ->add('dni', TextType::class)
+                ->add('telefono', NumberType::class, ['html5' => true])
+                ->add('email', EmailType::class)
+                ->add('legajo', NumberType::class)
+                ->add('tipo', ChoiceType::class,
+                    [
+                        'label' => 'Tipo de Contrato',
+                        'choices' => ['Seleccione un Tipo de contrato' => 0, 'Empleado' => 1, 'Contrato Directo' => 2, 'Contrato por Prestación' => 3, 'Prestación Directa' => 4],
                     ])
-                ],
-            ])
-            ->add('matricula', TextType::class, ['required' => false])
-            ->add('save', SubmitType::class, ['label' => 'Guardar']);
+                ->add('inicioContrato', DateType::class, ['widget' => 'single_text'])
+                ->add('vtoContrato', DateType::class, ['widget' => 'single_text', 'required' => false])
+                ->add('vtoMatricula', DateType::class, ['widget' => 'single_text', 'required' => false])
+                ->add('libretaSanitaria', NumberType::class, ['html5' => true, 'required' => false])
+                ->add('vtoLibretaSanitaria', DateType::class, ['widget' => 'single_text', 'required' => false])
+                ->add('emisionLibretaSanitaria', DateType::class, ['widget' => 'single_text', 'required' => false])
+                ->add('firmaPdf', FileType::class, [
+                    'label' => 'Firma Digital (PDF file)',
+                    'mapped' => false,
+                    'required' => false,
+                    'constraints' => [
+                        new File([
+                            'maxSize' => '1024k',
+                            'mimeTypes' => [
+                                'application/pdf',
+                                'application/x-pdf',
+                                'image/*',
 
+                            ],
+                            'mimeTypesMessage' => 'Solo archivos con formato PDF son permitidos',
+                        ])
+                    ],
+                ])
+                ->add('matricula', TextType::class, ['required' => false]);
+
+
+            $builder->get('tipo')->addEventListener(FormEvents::POST_SUBMIT, function(FormEvent $event) {
+                $form = $event->getForm();
+                $tipo = empty($form->getData()) ? null : $form->getData();
+                $this->setupModalidad($form->getParent(), $tipo);
+            }
+            );
+
+            $builder->addEventListener(FormEvents::PRE_SET_DATA,function (FormEvent $event) {
+                $data = $event->getData();
+                if (!$data) {
+                    return;
+                }
+                $tipo = empty($data->getTipo()) ? null : $data->getTipo();
+                $this->setupModalidad(
+                    $event->getForm(),
+                    $tipo
+                );
+            }
+            );
+        }
         //campos a mostrar para nuevo staff
         if($options['is_new']) {
             $builder
                 ->add('password', PasswordType::class);
         }
         //campos a mostrar para staff existente
-        else {
+        elseif ($options['egreso']) {
             $builder
                 ->add('fechaBaja', DateType::class, [ 'widget' => 'single_text', 'required' => false])
                 ->add('motivoBaja', ChoiceType::class,
@@ -83,32 +102,16 @@ class DoctorType extends AbstractType
                 ->add('posicionEnArchivo', NumberType::class, ['required' => false]);
         }
 
-        $builder->get('tipo')->addEventListener(FormEvents::POST_SUBMIT, function(FormEvent $event) {
-                $form = $event->getForm();
-                $tipo = empty($form->getData()) ? null : $form->getData();
-                $this->setupModalidad($form->getParent(), $tipo);
-            }
-        );
+        $builder->add('save', SubmitType::class, ['label' => 'Guardar']);
 
-        $builder->addEventListener(FormEvents::PRE_SET_DATA,function (FormEvent $event) {
-                $data = $event->getData();
-                if (!$data) {
-                    return;
-                }
-                $tipo = empty($data->getTipo()) ? null : $data->getTipo();
-                $this->setupModalidad(
-                    $event->getForm(),
-                    $tipo
-                );
-            }
-        );
     }
 
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
             'data_class' => Doctor::class,
-            'is_new' => true
+            'is_new' => true,
+            'egreso' => false,
         ]);
     }
 
