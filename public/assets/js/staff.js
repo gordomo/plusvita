@@ -77,3 +77,7 @@ if($('#doctor_modalidad').is(':visible')) {
         $(this).css('margin-right', '15px');
     });
 }
+
+$('.js-datepicker').datepicker({
+    format: 'yyyy-mm-dd'
+});

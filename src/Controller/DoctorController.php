@@ -174,15 +174,13 @@ class DoctorController extends AbstractController
     public function egreso(Request $request, Doctor $doctor): Response
     {
         $form = $this->createForm(DoctorType::class, $doctor, ['is_new' => false, 'egreso' => true]);
-
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($doctor);
             $entityManager->flush();
-
-            return $this->redirectToRoute('cliente_index');
+            return $this->redirectToRoute('doctor_index');
         }
 
         return $this->render('doctor/edit.html.twig', [

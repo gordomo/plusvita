@@ -23,7 +23,7 @@ class DoctorType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        if (!$options['egreso']) {
+        if(!$options['egreso']) {
             $builder
                 ->add('nombre', TextType::class)
                 ->add('apellido', TextType::class)
@@ -62,14 +62,13 @@ class DoctorType extends AbstractType
                 ->add('matricula', TextType::class, ['required' => false]);
 
 
-            $builder->get('tipo')->addEventListener(FormEvents::POST_SUBMIT, function(FormEvent $event) {
+            $builder->get('tipo')->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event) {
                 $form = $event->getForm();
                 $tipo = empty($form->getData()) ? null : $form->getData();
                 $this->setupModalidad($form->getParent(), $tipo);
-            }
-            );
+            });
 
-            $builder->addEventListener(FormEvents::PRE_SET_DATA,function (FormEvent $event) {
+            $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) {
                 $data = $event->getData();
                 if (!$data) {
                     return;
@@ -79,18 +78,18 @@ class DoctorType extends AbstractType
                     $event->getForm(),
                     $tipo
                 );
-            }
-            );
+            });
         }
+
         //campos a mostrar para nuevo staff
         if($options['is_new']) {
             $builder
                 ->add('password', PasswordType::class);
         }
         //campos a mostrar para staff existente
-        elseif ($options['egreso']) {
+        elseif($options['egreso']) {
             $builder
-                ->add('fechaBaja', DateType::class, [ 'widget' => 'single_text', 'required' => false])
+                ->add('fechaBaja', DateType::class, [ 'widget' => 'single_text', 'required' => false, 'attr' => ['class' => 'js-datepicker']])
                 ->add('motivoBaja', ChoiceType::class,
                     [
                         'label' => 'Motivo de la Baja',
@@ -102,7 +101,9 @@ class DoctorType extends AbstractType
                 ->add('posicionEnArchivo', NumberType::class, ['required' => false]);
         }
 
+
         $builder->add('save', SubmitType::class, ['label' => 'Guardar']);
+
 
     }
 

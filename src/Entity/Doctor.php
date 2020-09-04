@@ -106,7 +106,7 @@ class Doctor implements UserInterface
     private $legajo;
 
     /**
-     * @ORM\Column(type="date", length=255, nullable=true)
+     * @ORM\Column(type="date", nullable=true)
      */
     private $fechaBaja;
 
@@ -409,12 +409,12 @@ class Doctor implements UserInterface
         return $this;
     }
 
-    public function getFechaBaja(): ?string
+    public function getFechaBaja(): ?\DateTimeInterface
     {
         return $this->fechaBaja;
     }
 
-    public function setFechaBaja(?string $fechaBaja): self
+    public function setFechaBaja(?\DateTimeInterface $fechaBaja): self
     {
         $this->fechaBaja = $fechaBaja;
 
