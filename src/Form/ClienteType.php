@@ -41,7 +41,7 @@ class ClienteType extends AbstractType
                     'placeholder' => 'Seleccione una Obra Social',
                     'choices' => $obrasSociales
                 ])
-                //->add('obraSocialTelefono', TextType::class, ['required' => false, 'label' => 'Teléfono'])
+                ->add('obraSocialTelefono', TextType::class, ['required' => false, 'label' => 'Teléfono'])
                 ->add('obraSocialAfiliado', TextType::class, ['required' => false, 'label' => 'N Afiliado'])
                 ->add('tipoDePago', ChoiceType::class, [
                     'label' => 'Tipo de Pago',
