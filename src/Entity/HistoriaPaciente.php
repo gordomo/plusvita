@@ -52,6 +52,21 @@ class HistoriaPaciente
      */
     private $cama;
 
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $id_paciente;
+
+    /**
+     * @ORM\Column(type="date")
+     */
+    private $fecha;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $usuario;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -86,6 +101,11 @@ class HistoriaPaciente
         return $this->patologia_especifica;
     }
 
+    public function getpatologia_especifica(): ?string
+    {
+        return $this->patologia_especifica;
+    }
+
     public function setPatologiaEspecifica(?string $patologia_especifica): self
     {
         $this->patologia_especifica = $patologia_especifica;
@@ -94,6 +114,10 @@ class HistoriaPaciente
     }
 
     public function getObraSocial(): ?string
+    {
+        return $this->obra_social;
+    }
+    public function getobra_social(): ?string
     {
         return $this->obra_social;
     }
@@ -137,6 +161,42 @@ class HistoriaPaciente
     public function setCama(?string $cama): self
     {
         $this->cama = $cama;
+
+        return $this;
+    }
+
+    public function getIdPaciente(): ?int
+    {
+        return $this->id_paciente;
+    }
+
+    public function setIdPaciente(int $id_paciente): self
+    {
+        $this->id_paciente = $id_paciente;
+
+        return $this;
+    }
+
+    public function getFecha(): ?\DateTimeInterface
+    {
+        return $this->fecha;
+    }
+
+    public function setFecha(\DateTimeInterface $fecha): self
+    {
+        $this->fecha = $fecha;
+
+        return $this;
+    }
+
+    public function getUsuario(): ?string
+    {
+        return $this->usuario;
+    }
+
+    public function setUsuario(string $usuario): self
+    {
+        $this->usuario = $usuario;
 
         return $this;
     }

@@ -5,10 +5,12 @@ namespace App\Controller;
 use App\Entity\Cliente;
 use App\Entity\Doctor;
 use App\Entity\FamiliarExtra;
+use App\Entity\HistoriaPaciente;
 use App\Form\ClienteType;
 use App\Repository\AdjuntosPacientesRepository;
 use App\Repository\ClienteRepository;
 use App\Repository\FamiliarExtraRepository;
+use App\Repository\HistoriaPacienteRepository;
 use App\Repository\ObraSocialRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,12 +24,22 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Security;
 
 /**
  * @Route("/pacientes")
  */
 class ClienteController extends AbstractController
 {
+    /**
+     * @var Security
+     */
+    private $security;
+    public function __construct(Security $security)
+    {
+        $this->security = $security;
+    }
+
     /**
      * @Route("/", name="cliente_index", methods={"GET"})
      */
@@ -75,7 +87,11 @@ class ClienteController extends AbstractController
      */
     public function new(Request $request, ObraSocialRepository $obraSocialRepository): Response
     {
+        $user = $this->security->getUser();
+
         $cliente = new Cliente();
+        $historial = new HistoriaPaciente();
+
         $cliente->setActivo(true);
         $cliente->setFIngreso(new \DateTime());
 
@@ -106,6 +122,7 @@ class ClienteController extends AbstractController
             $entityManager->persist($cliente);
             $entityManager->flush();
 
+            $familiarResponsableExtraNombres = $familiarResponsableExtraNombres ?? [];
             foreach ($familiarResponsableExtraNombres as $key => $item) {
                 $tel = $familiarResponsableExtraTel[$key] ?? '';
                 $mail = $familiarResponsableExtraMail[$key] ?? '';
@@ -120,6 +137,22 @@ class ClienteController extends AbstractController
 
                 $entityManager->persist($familarRespExtra);
             };
+
+            $historial = new HistoriaPaciente();
+            $historial->setIdPaciente($cliente->getId());
+            $historial->setCama($cliente->getNCama());
+            $historial->setCama($cliente->getNCama());
+            $historial->setHabitacion($cliente->getHabitacion());
+            $historial->setNAfiliadoObraSocial($cliente->getObraSocialAfiliado());
+            $historial->setObraSocial($cliente->getObraSocial());
+            $historial->setModalidad($cliente->getModalidad());
+            $historial->setPatologia($cliente->getMotivoIng());
+            $historial->setPatologiaEspecifica($cliente->getMotivoIngEspecifico());
+            $historial->setFecha(new \DateTime());
+            $usuario = $user->getEmail() ?? $user->getUsername() ?? 'no user';
+            $historial->setUsuario($usuario);
+
+            $entityManager->persist($historial);
 
             $entityManager->flush();
 
@@ -149,6 +182,24 @@ class ClienteController extends AbstractController
             'cliente' => $cliente,
             'adjuntosActuales' => $adjuntosArray,
             'familiaresExtra' => $familiaresExtra
+        ]);
+    }
+
+    /**
+     * @Route("/{id}/historia", name="cliente_historial", methods={"GET"})
+     */
+    public function historia(Cliente $cliente, HistoriaPacienteRepository $historiaPacienteRepository, ObraSocialRepository $obraSocialRepository): Response
+    {
+        $historiaPaciente = $historiaPacienteRepository->findBy(['id_paciente' => $cliente->getId()]);
+        $obrasSociales = $obraSocialRepository->findAll();
+        $obraSocialesArray = [];
+        foreach ($obrasSociales as $obraSocial) {
+            $obraSocialesArray[$obraSocial->getId()] = $obraSocial->getNombre();
+        }
+        return $this->render('cliente/historia.html.twig', [
+                'cliente' => $cliente,
+                'historiaPaciente' => $historiaPaciente,
+                'obraSociales' => $obraSocialesArray
         ]);
     }
 
@@ -184,6 +235,7 @@ class ClienteController extends AbstractController
                 $entityManager->remove($familiarExtraActual);
             }
 
+            $familiarResponsableExtraNombres = $familiarResponsableExtraNombres ?? [];
             foreach ($familiarResponsableExtraNombres as $key => $item) {
                 $tel = $familiarResponsableExtraTel[$key] ?? '';
                 $mail = $familiarResponsableExtraMail[$key] ?? '';
@@ -205,6 +257,24 @@ class ClienteController extends AbstractController
             }
 
             $entityManager->persist($cliente);
+
+            $historial = new HistoriaPaciente();
+            $historial->setIdPaciente($cliente->getId());
+            $historial->setCama($cliente->getNCama());
+            $historial->setCama($cliente->getNCama());
+            $historial->setHabitacion($cliente->getHabitacion());
+            $historial->setNAfiliadoObraSocial($cliente->getObraSocialAfiliado());
+            $historial->setObraSocial($cliente->getObraSocial());
+            $historial->setModalidad($cliente->getModalidad());
+            $historial->setPatologia($cliente->getMotivoIng());
+            $historial->setPatologiaEspecifica($cliente->getMotivoIngEspecifico());
+            $historial->setFecha(new \DateTime());
+            $user = $this->security->getUser();
+            $usuario = $user->getEmail() ?? $user->getUsername() ?? 'no user';
+            $historial->setUsuario($usuario);
+
+            $entityManager->persist($historial);
+
             $entityManager->flush();
 
             return $this->redirectToRoute('cliente_index');

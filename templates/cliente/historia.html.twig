@@ -1,0 +1,65 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Pacientes{% endblock %}
+{% block panelTitle %}Historia de {{ cliente.nombre }}{% endblock %}
+{% block body %}
+    <table class="table table-responsive table-striped">
+        <thead>
+        <tr>
+            <th>Modalidad</th>
+            <th>Patologia</th>
+            <th>Patologia Especifica</th>
+            <th>Obra Social</th>
+            <th>N Afiliado</th>
+            <th>Habitación</th>
+            <th>Cama</th>
+            <th>Usuario</th>
+            <th>Fecha</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for historia in historiaPaciente %}
+            <tr>
+                <td>
+                    {% if(historia.modalidad == 1) %}
+                        Ambulatorio
+                    {% elseif(historia.modalidad == 2) %}
+                        Internacion
+                    {% elseif(historia.modalidad == 3) %}
+                        Hospital de día
+                    {% elseif(historia.modalidad == 4) %}
+                        ART
+                    {% endif %}
+                </td>
+                <td>
+                    {% if(historia.patologia == 1) %}
+                        Neurologicas
+                    {% elseif(historia.patologia == 2) %}
+                        Traumatológicas
+                    {% elseif(historia.patologia == 3) %}
+                        Respiratorias
+                    {% elseif(historia.patologia == 4) %}
+                        Paliativos
+                    {% elseif(historia.patologia == 5) %}
+                        Patologías laborales
+                    {% endif %}
+                </td>
+                <td>{{ historia.patologia_especifica }}</td>
+                <td>{{ obraSociales[historia.obra_social] }}</td>
+                <td>{{ historia.nAfiliadoObraSocial }}</td>
+                <td>{{ historia.habitacion }}</td>
+                <td>{{ historia.cama }}</td>
+                <td class="lowercase">{{ historia.usuario }}</td>
+                <td>{{ historia.fecha ? historia.fecha|date('Y-m-d') : '' }}</td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="15">No existen registros</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a class="btn btn-default" href="{{ path('cliente_index') }}">volver</a>
+{% endblock %}
+
