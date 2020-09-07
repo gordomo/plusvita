@@ -67,3 +67,11 @@ $('.js-datepicker').datepicker({
 $('.editarPaciente').click(function () {
     window.location.href = $(this).data('url');
 });
+
+$( document ).ready(function () {
+    if($('#familiares').find('.form-row').length > 1) {
+        var botonQuitarHtml = '<div class="col-sm" id="quitarFamiliarRow"><a href="" id="quitarFamiliar">quitar familiar - </a></div>';
+        $('#agregarQuitarFamiliar').append(botonQuitarHtml);
+    }
+});
+

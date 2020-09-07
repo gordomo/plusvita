@@ -155,15 +155,49 @@ class ClienteController extends AbstractController
     /**
      * @Route("/{id}/edit", name="cliente_edit", methods={"GET","POST"})
      */
-    public function edit(Request $request, Cliente $cliente): Response
+    public function edit(Request $request, Cliente $cliente, ObraSocialRepository $obraSocialRepository, FamiliarExtraRepository $familiarExtraRepository): Response
     {
-        $form = $this->createForm(ClienteType::class, $cliente, ['is_new' => false]);
+        $obrasSociales = $obraSocialRepository->findAll();
+        $familiarExtraActuales = $familiarExtraRepository->findBy(['cliente_id' => $cliente->getId()]);
+
+        $obArray = [];
+        foreach ( $obrasSociales as $ob ) {
+            $obArray[$ob->getId()] = $ob->getNombre();
+        }
+        $obArray = array_flip($obArray);
+
+        $form = $this->createForm(ClienteType::class, $cliente, ['is_new' => false, 'obrasSociales' => $obArray]);
+
 
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager = $this->getDoctrine()->getManager();
             $doctoresReferentes = $cliente->getDocReferente();
+
+            $familiarResponsableExtraNombres = $request->request->get('familiarResponsableExtraNombre');
+            $familiarResponsableExtraTel = $request->request->get('familiarResponsableExtraTel');
+            $familiarResponsableExtraMail = $request->request->get('familiarResponsableExtraMail');
+            $familiarResponsableExtraVinculo = $request->request->get('familiarResponsableExtraVinculo');
+
+            foreach ($familiarExtraActuales as $familiarExtraActual) {
+                $entityManager->remove($familiarExtraActual);
+            }
+
+            foreach ($familiarResponsableExtraNombres as $key => $item) {
+                $tel = $familiarResponsableExtraTel[$key] ?? '';
+                $mail = $familiarResponsableExtraMail[$key] ?? '';
+                $vinculo = $familiarResponsableExtraVinculo[$key] ?? '';
+
+                $familarRespExtra = new FamiliarExtra();
+                $familarRespExtra->setNombre($item);
+                $familarRespExtra->setTel($tel);
+                $familarRespExtra->setMail($mail);
+                $familarRespExtra->setVinculo($vinculo);
+                $familarRespExtra->setClienteId($cliente->getId());
+
+                $entityManager->persist($familarRespExtra);
+            };
 
             foreach ($doctoresReferentes as $doctor) {
                 $doctor->addCliente($cliente);
@@ -175,11 +209,12 @@ class ClienteController extends AbstractController
 
             return $this->redirectToRoute('cliente_index');
         }
-
+        //dd($familiarExtraActuales);
         return $this->render('cliente/edit.html.twig', [
             'cliente' => $cliente,
             'form' => $form->createView(),
             'title' => 'Editar Paciente: ' . $cliente->getNombre() . ' ' . $cliente->getApellido(),
+            'familiarExtraActuales' => $familiarExtraActuales,
         ]);
     }
 

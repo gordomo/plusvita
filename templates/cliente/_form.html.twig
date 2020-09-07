@@ -168,6 +168,24 @@
             {{ form_widget(form.vinculoResponsable) }}
         </div>
     </div>
+    {%  if familiarExtraActuales is defined %}
+        {% for familiarExtraActual in familiarExtraActuales %}
+            <div class="form-row">
+                <div class="col-sm">
+                    <input type="text" name="familiarResponsableExtraNombre[]" class="form-control" value="{{ familiarExtraActual.nombre }}">
+                </div>
+                <div class="col-sm">
+                    <input type="text" name="familiarResponsableExtraTel[]" class="form-control" value="{{ familiarExtraActual.tel }}">
+                </div>
+                <div class="col-sm">
+                    <input type="text" name="familiarResponsableExtraMail[]" class="form-control" value="{{ familiarExtraActual.mail }}">
+                </div>
+                <div class="col-sm">
+                    <input type="text" name="familiarResponsableExtraVinculo[]" class="form-control" value="{{ familiarExtraActual.vinculo }}">
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
 </div>
 <br>
 <div class="form-row" id="agregarQuitarFamiliar">
