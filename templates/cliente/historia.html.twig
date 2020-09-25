@@ -6,6 +6,8 @@
     <table class="table table-responsive table-striped">
         <thead>
         <tr>
+            <th>F. Ingreso</th>
+            <th>F. Egreso</th>
             <th>Modalidad</th>
             <th>Patologia</th>
             <th>Patologia Especifica</th>
@@ -22,6 +24,12 @@
         <tbody>
         {% for historia in historiaPaciente %}
             <tr>
+                <td>
+                    {{ historia.fechaIngreso ? historia.fechaIngreso|date('Y-m-d') : ''}}
+                </td>
+                <td>
+                    {{ historia.fechaEngreso ? historia.fechaEngreso|date('Y-m-d') : '' }}
+                </td>
                 <td>
                     {% if(historia.modalidad == 1) %}
                         Ambulatorio

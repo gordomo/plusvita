@@ -157,10 +157,19 @@ class ClienteController extends AbstractController
 
 
             $habitacion = $habitacionRepository->find($cliente->getHabitacion());
+
             $cliente->setNCama($form->getExtraData()['nCama']);
 
             $camasOcupadas = $habitacion->getCamasOcupadas();
-            $camasOcupadas[$cliente->getNCama()] = $cliente->getNCama();
+
+            if ($form->getExtraData()['habPrivada']) {
+                $cliente->setHabPrivada(1);
+                for ($i=1; $i <= $habitacion->getCamasDisponibles(); $i++) {
+                   $camasOcupadas[$i] = $i;
+                }
+            } else {
+                $camasOcupadas[$cliente->getNCama()] = $cliente->getNCama();
+            }
 
             $habitacion->setCamasOcupadas($camasOcupadas);
 
@@ -176,10 +185,13 @@ class ClienteController extends AbstractController
             $historial->setFecha(new \DateTime());
             $usuario = $user->getEmail() ?? $user->getUsername() ?? 'no user';
             $historial->setUsuario($usuario);
+            $historial->setFechaIngreso($cliente->getFIngreso());
+            $historial->setFechaEngreso($cliente->getFEgreso());
+
 
             $entityManager->persist($historial);
             $entityManager->persist($habitacion);
-
+            $entityManager->persist($cliente);
 
             $entityManager->flush();
 
@@ -275,7 +287,15 @@ class ClienteController extends AbstractController
         $haArray = array_flip($haArray);
         ksort($camasDispArray);
 
-        $form = $this->createForm(ClienteType::class, $cliente, ['is_new' => false, 'obrasSociales' => $obArray, 'habitaciones' => $haArray, 'camasDisp' => $camasDispArray]);
+        $habPrivada = $cliente->getHabPrivada() ?? false;
+
+        if(!empty($habitacionActual)) {
+            if(count($habitacionActual->getCamasOcupadas()) == 1) {
+                $habPrivada = true;
+            }
+        }
+
+        $form = $this->createForm(ClienteType::class, $cliente, ['is_new' => false, 'obrasSociales' => $obArray, 'habitaciones' => $haArray, 'camasDisp' => $camasDispArray, 'bloquearHab' => $habPrivada]);
 
 
         $form->handleRequest($request);
@@ -320,18 +340,37 @@ class ClienteController extends AbstractController
                 $nuevaHabId = $cliente->getHabitacion();
                 $nuevaCamaId = $cliente->getNCama();
 
+                if($cliente->getHabPrivada()) {
+                    $habitacion = $habitacionRepository->find($nuevaHabId);
+                    for ($i=1; $i <= $habitacion->getCamasDisponibles(); $i++) {
+                        $camasOcupadas[$i] = $i;
+                    }
+                    $habitacion->setCamasOcupadas($camasOcupadas);
+                    $entityManager->persist($habitacion);
+                } elseif (!$cliente->getHabPrivada() && $cliente->getHabPrivada() != $habPrivada) {
+                    $habitacion = $habitacionRepository->find($nuevaHabId);
+                    for ($i=1; $i <= $habitacion->getCamasDisponibles(); $i++) {
+                        if ($cliente->getNCama() != $i) {
+                            unset($camasOcupadas[$i]);
+                        }
+                    }
+                    $habitacion->setCamasOcupadas($camasOcupadas);
+                    $entityManager->persist($habitacion);
+                }
+
                 $habVieja = $habitacionRepository->find($habitacionActualId);
                 $habViejaCamasOcupadas = $habVieja->getCamasOcupadas();
                 unset($habViejaCamasOcupadas[$camaActualId]);
                 $habVieja->setCamasOcupadas($habViejaCamasOcupadas);
+                $entityManager->persist($habVieja);
+                $entityManager->flush();
 
                 $habNueva = $habitacionRepository->find($nuevaHabId);
                 $habNuevaCamasOcupadas = $habNueva->getCamasOcupadas();
                 $habNuevaCamasOcupadas[$nuevaCamaId] = $nuevaCamaId;
                 $habNueva->setCamasOcupadas($habNuevaCamasOcupadas);
-
-                $entityManager->persist($habVieja);
                 $entityManager->persist($habNueva);
+                $entityManager->flush();
 
 
                 $historial = new HistoriaPaciente();
@@ -350,6 +389,9 @@ class ClienteController extends AbstractController
                 $user = $this->security->getUser();
                 $usuario = $user->getEmail() ?? $user->getUsername() ?? 'no user';
                 $historial->setUsuario($usuario);
+
+                $historial->setCliente($cliente);
+                //$cliente->setHistoria($historial);
 
                 $entityManager->persist($historial);
 
@@ -373,7 +415,7 @@ class ClienteController extends AbstractController
     /**
      * @Route("/{id}/egreso", name="cliente_egreso", methods={"GET","POST"})
      */
-    public function egreso(Request $request, Cliente $cliente): Response
+    public function egreso(Request $request, Cliente $cliente, HistoriaPacienteRepository $historiaPacienteRepository, HabitacionRepository $habitacionRepository): Response
     {
         $form = $this->createForm(ClienteType::class, $cliente, ['egreso' => true]);
 
@@ -389,6 +431,23 @@ class ClienteController extends AbstractController
             }
 
             $entityManager->persist($cliente);
+            $historial = $historiaPacienteRepository->findOneBy(['id_paciente' => $cliente->getId()]);
+            $historial->setFechaEngreso($cliente->getFEgreso());
+
+            if($cliente->getFEgreso() <= new \DateTime()) {
+                $habitacionActual = $habitacionRepository->find($cliente->getHabitacion());
+
+                $habViejaCamasOcupadas = $habitacionActual->getCamasOcupadas();
+                unset($habViejaCamasOcupadas[$cliente->getNCama()]);
+                $habitacionActual->setCamasOcupadas($habViejaCamasOcupadas);
+
+                $cliente->setHabitacion(null);
+                $cliente->setNCama(null);
+
+                $entityManager->persist($habitacionActual);
+                $entityManager->persist($cliente);
+            }
+
             $entityManager->flush();
 
             return $this->redirectToRoute('cliente_index');

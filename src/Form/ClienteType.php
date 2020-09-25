@@ -105,6 +105,10 @@ class ClienteType extends AbstractType
                 ->add('habitacion', ChoiceType::class, [
                     'label' => "Habitación",
                     'placeholder' => "Seleccione una Habitación",
+                    'choice_attr' => function($choice, $key, $value) {
+                        // adds a class like attending_yes, attending_no, etc
+                        return ['class' => 'attending_'.strtolower($key)];
+                    },
                     'choices' => $habitaciones
                 ])
 
@@ -164,6 +168,12 @@ class ClienteType extends AbstractType
                 $builder->add('nCama', ChoiceType::class, [
                     'label' => 'Cama',
                     'choices'  => $options['camasDisp']
+                ]);
+            }
+            if ($options['bloquearHab']) {
+                $builder->add('habPrivada', ChoiceType::class, [
+                    'label' => 'Habitacion Individual',
+                    'choices'  => ['no'=>0, 'si'=>1],
                 ]);
             }
 
@@ -232,6 +242,7 @@ class ClienteType extends AbstractType
             'obrasSociales' => [],
             'habitaciones' => [],
             'camasDisp' => 0,
+            'bloquearHab' => false,
         ]);
     }
 }

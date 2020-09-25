@@ -37,12 +37,17 @@ $( document ).on('change', '.js-camas-disp', function () {
             url: url,
             success: function (html) {
                 if (!html) {
-                    return;
+                    $('.dinamicHabitaciones').remove();
                 }
                 // Replace the current field and show
-                $camas.html(html).removeClass('d-none')
+                $('.habitacion').find('.placeHolder').addClass('d-none');
+                $('.dinamicHabitaciones').remove();
+                $('.habDiv').after(html);
             }
         });
+    } else {
+        $('.dinamicHabitaciones').remove();
+        $('.habitacion').find('.placeHolder').removeClass('d-none');
     }
 })
 
@@ -107,5 +112,8 @@ $( document ).ready(function () {
             $camas.removeClass('d-none')
         }
     }
+
+    $('[data-toggle="tooltip"]').tooltip()
+
 });
 

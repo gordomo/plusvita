@@ -84,7 +84,9 @@
                     {% endif %}
                 </td>
                 <td>
-                    {{ habitacionesArray[cliente.habitacion] }}
+                    {% if habitacionesArray[cliente.habitacion] is defined %}
+                        {{ habitacionesArray[cliente.habitacion] }}
+                    {% endif %}
                 </td>
                 <td>
                     {{ cliente.nCama }}
@@ -99,10 +101,18 @@
                     {% endfor %}
                 </td>
                 <td>
-                    <a href="{{ path('cliente_edit', {'id': cliente.id}) }}"><i class="fas fa-pencil-alt"></i></a>&nbsp;
-                    <a href="{{ path('adjuntos_pacientes_new', {'id': cliente.id}) }}"><i class="fas fa-paperclip"></i></a>&nbsp;
-                    <a href="{{ path('cliente_egreso', {'id': cliente.id}) }}"><i class="far fa-calendar-times"></i></a>
-                    <a href="{{ path('cliente_historial', {'id': cliente.id}) }}"><i class="far fa-calendar-alt"></i></a>
+                    <a href="{{ path('cliente_edit', {'id': cliente.id}) }}">
+                        <i class="fas fa-pencil-alt" data-toggle="tooltip" data-placement="top" title="editar"></i>
+                    </a>&nbsp;
+                    <a href="{{ path('adjuntos_pacientes_new', {'id': cliente.id}) }}">
+                        <i class="fas fa-paperclip" data-toggle="tooltip" data-placement="top" title="adjuntar"></i>
+                    </a>&nbsp;
+                    <a href="{{ path('cliente_egreso', {'id': cliente.id}) }}">
+                        <i class="far fa-calendar-times" data-toggle="tooltip" data-placement="top" title="egreso"></i>
+                    </a>&nbsp;
+                    <a href="{{ path('cliente_historial', {'id': cliente.id}) }}">
+                        <i class="far fa-calendar-alt" data-toggle="tooltip" data-placement="top" title="historia"></i>
+                    </a>
                 </td>
             </tr>
         {% else %}

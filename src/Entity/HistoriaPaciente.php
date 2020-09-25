@@ -73,9 +73,56 @@ class HistoriaPaciente
     private $fecha;
 
     /**
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private $fechaIngreso;
+
+    /**
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private $fechaEngreso;
+
+    /**
      * @ORM\Column(type="string", length=255)
      */
     private $usuario;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Cliente", inversedBy="historia")
+     */
+    private $cliente;
+
+    /**
+     * @return mixed
+     */
+    public function getFechaEngreso()
+    {
+        return $this->fechaEngreso;
+    }
+
+    /**
+     * @param mixed $fechaEngreso
+     */
+    public function setFechaEngreso($fechaEngreso): void
+    {
+        $this->fechaEngreso = $fechaEngreso;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getFechaIngreso()
+    {
+        return $this->fechaIngreso;
+    }
+
+    /**
+     * @param mixed $fechaIngreso
+     */
+    public function setFechaIngreso($fechaIngreso): void
+    {
+        $this->fechaIngreso = $fechaIngreso;
+    }
 
     public function getId(): ?int
     {
@@ -233,5 +280,21 @@ class HistoriaPaciente
         $this->usuario = $usuario;
 
         return $this;
+    }
+
+    /**
+     * @return Cliente
+     */
+    public function getCliente()
+    {
+        return $this->cliente;
+    }
+
+    /**
+     * @param Cliente $cliente
+     */
+    public function setCliente(Cliente $cliente): void
+    {
+        $this->cliente = $cliente;
     }
 }

@@ -179,6 +179,16 @@ class Cliente
      */
     private $posicionEnArchivo;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\HistoriaPaciente", mappedBy="cliente")
+     */
+    private $historia;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $habPrivada;
+
     public function __construct()
     {
         $this->docReferente = new ArrayCollection();
@@ -601,6 +611,38 @@ class Cliente
         $this->posicionEnArchivo = $posicionEnArchivo;
 
         return $this;
+    }
+
+    /**
+     * @return HistoriaPaciente
+     */
+    public function getHistoria()
+    {
+        return $this->historia;
+    }
+
+    /**
+     * @param HistoriaPaciente $historia
+     */
+    public function setHistoria(HistoriaPaciente $historia): void
+    {
+        $this->historia = $historia;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getHabPrivada()
+    {
+        return $this->habPrivada;
+    }
+
+    /**
+     * @param mixed $habPrivada
+     */
+    public function setHabPrivada($habPrivada): void
+    {
+        $this->habPrivada = $habPrivada;
     }
 
 

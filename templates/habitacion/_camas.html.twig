@@ -1,2 +1,13 @@
-{{ form_label(form.nCama) }}
-{{ form_widget(form.nCama) }}
+<div class="col-sm dinamicHabitaciones">
+    {%  if form.nCama is defined %}
+        {{ form_label(form.nCama) }}
+        {{ form_widget(form.nCama) }}
+    {% endif %}
+</div>
+<div class="col-sm dinamicHabitaciones">
+    {%  if form.habPrivada is defined %}
+
+        {{ form_label(form.habPrivada) }}
+        {{ form_widget(form.habPrivada) }}
+    {% endif %}
+</div>

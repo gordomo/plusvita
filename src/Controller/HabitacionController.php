@@ -35,6 +35,7 @@ class HabitacionController extends AbstractController
     {
         $habitacion = new Habitacion();
         $habitacion->setCamasDisponibles(2);
+        $habitacion->setCamasOcupadas([]);
         $form = $this->createForm(HabitacionType::class, $habitacion);
         $form->handleRequest($request);
 
@@ -125,7 +126,7 @@ class HabitacionController extends AbstractController
 
         ksort($camasDispArray);
 
-        $form = $this->createForm(ClienteType::class, $cliente, ['camasDisp' => $camasDispArray]);
+        $form = $this->createForm(ClienteType::class, $cliente, ['camasDisp' => $camasDispArray, 'bloquearHab' => empty($camasOcupadas)]);
         return $this->render('habitacion/_camas.html.twig', [
             'form' => $form->createView(),
         ]);
