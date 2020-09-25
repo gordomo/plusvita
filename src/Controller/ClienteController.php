@@ -269,7 +269,7 @@ class ClienteController extends AbstractController
         if(!empty($habitacionActualId)) {
             if(empty($haArray[$habitacionActualId])) {
                 $habitacionActual = $habitacionRepository->find($habitacionActualId);
-                $haArray[$habitacionActualId] = $habitacionActual->getNombre() ?? 'Habitación sin nombre';
+                $haArray[$habitacionActualId] = !empty($habitacionActual) ? $habitacionActual->getNombre() : 'Habitación sin nombre';
             }
 
             $habitacionActual = $habitacionRepository->find($habitacionActualId);
