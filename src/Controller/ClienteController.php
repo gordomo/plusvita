@@ -267,21 +267,22 @@ class ClienteController extends AbstractController
         $camaActualId = $cliente->getNCama();
 
         if(!empty($habitacionActualId)) {
-            if(empty($haArray[$habitacionActualId])) {
-                $habitacionActual = $habitacionRepository->find($habitacionActualId);
-                $haArray[$habitacionActualId] = !empty($habitacionActual) ? $habitacionActual->getNombre() : 'Habitación sin nombre';
-            }
-
             $habitacionActual = $habitacionRepository->find($habitacionActualId);
-            $camasOcupadas = !empty($habitacionActual) ? $habitacionActual->getCamasOcupadas() : [];
-            $cantCamas = !empty($habitacionActual) ? $habitacionActual->getCamasDisponibles() : [];
-            $camasDispArray = [];
-            for ($i = 1; $i <= $cantCamas; $i++) {
-                if(!in_array($i, $camasOcupadas)) {
-                    $camasDispArray[$i] = $i;
+            if(!empty($habitacionActual)) {
+                if(empty($haArray[$habitacionActualId])) {
+                    $haArray[$habitacionActualId] = !empty($habitacionActual) ? $habitacionActual->getNombre() : 'Habitación sin nombre';
                 }
+
+                $camasOcupadas = $habitacionActual->getCamasOcupadas();
+                $cantCamas = $habitacionActual->getCamasDisponibles();
+                $camasDispArray = [];
+                for ($i = 1; $i <= $cantCamas; $i++) {
+                    if(!in_array($i, $camasOcupadas)) {
+                        $camasDispArray[$i] = $i;
+                    }
+                }
+                $camasDispArray[$camaActualId] = $camaActualId;
             }
-            $camasDispArray[$camaActualId] = $camaActualId;
         }
 
         $haArray = array_flip($haArray);
