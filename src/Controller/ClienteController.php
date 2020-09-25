@@ -273,8 +273,8 @@ class ClienteController extends AbstractController
             }
 
             $habitacionActual = $habitacionRepository->find($habitacionActualId);
-            $camasOcupadas = $habitacionActual->getCamasOcupadas();
-            $cantCamas = $habitacionActual->getCamasDisponibles();
+            $camasOcupadas = !empty($habitacionActual) ? $habitacionActual->getCamasOcupadas() : [];
+            $cantCamas = !empty($habitacionActual) ? $habitacionActual->getCamasDisponibles() : [];
             $camasDispArray = [];
             for ($i = 1; $i <= $cantCamas; $i++) {
                 if(!in_array($i, $camasOcupadas)) {
