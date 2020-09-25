@@ -10,7 +10,9 @@
             <th>Patologia</th>
             <th>Patologia Especifica</th>
             <th>Obra Social</th>
-            <th>N Afiliado</th>
+            <th>N. Afiliado</th>
+            <th>S. Emergencias</th>
+            <th>N. Afiliado</th>
             <th>Habitación</th>
             <th>Cama</th>
             <th>Usuario</th>
@@ -47,6 +49,8 @@
                 <td>{{ historia.patologia_especifica }}</td>
                 <td>{{ obraSociales[historia.obra_social] }}</td>
                 <td>{{ historia.nAfiliadoObraSocial }}</td>
+                <td>{{ historia.sistemaDeEmergencia }}</td>
+                <td>{{ historia.nAfiliadoSistemaDeEmergencia }}</td>
                 <td>{{ historia.habitacion }}</td>
                 <td>{{ historia.cama }}</td>
                 <td class="lowercase">{{ historia.usuario }}</td>

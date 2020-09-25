@@ -45,6 +45,16 @@ class HistoriaPaciente
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
+    private $sistemaDeEmergencia;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $nAfiliadoSistemaDeEmergencia;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
     private $habitacion;
 
     /**
@@ -137,6 +147,30 @@ class HistoriaPaciente
     public function setNAfiliadoObraSocial(?string $nAfiliadoObraSocial): self
     {
         $this->nAfiliadoObraSocial = $nAfiliadoObraSocial;
+
+        return $this;
+    }
+
+    public function getSistemaDeEmergencia(): ?string
+    {
+        return $this->sistemaDeEmergencia;
+    }
+
+    public function setSistemaDeEmergencia(?string $sistemaDeEmergencia): self
+    {
+        $this->sistemaDeEmergencia = $sistemaDeEmergencia;
+
+        return $this;
+    }
+
+    public function getNAfiliadoSistemaDeEmergencia(): ?string
+    {
+        return $this->nAfiliadoSistemaDeEmergencia;
+    }
+
+    public function setNAfiliadoSistemaDeEmergencia(?string $nAfiliadoSistemaDeEmergencia): self
+    {
+        $this->nAfiliadoSistemaDeEmergencia = $nAfiliadoSistemaDeEmergencia;
 
         return $this;
     }

@@ -25,6 +25,7 @@ class ClienteType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $obrasSociales = $options['obrasSociales'] ?? '';
+        $habitaciones = $options['habitaciones'] ?? '';
 
         ksort($obrasSociales);
         if (!$options['egreso']) {
@@ -100,8 +101,14 @@ class ClienteType extends AbstractType
                     'expanded' => true,
                     'label' => 'Profesionales Referentes',
                 ])
-                ->add('habitacion', TextType::class, ['label' => 'Habitación', 'required' => false])
-                ->add('nCama', TextType::class, ['label' => 'Numero de Cama', 'required' => false])
+
+                ->add('habitacion', ChoiceType::class, [
+                    'label' => "Habitación",
+                    'placeholder' => "Seleccione una Habitación",
+                    'choices' => $habitaciones
+                ])
+
+                //->add('nCama', TextType::class, ['label' => 'Numero de Cama', 'required' => false])
                 ->add('familiarResponsableNombre', TextType::class, ['label' => 'Nombre', 'required' => false])
                 ->add('familiarResponsableTel', TextType::class, ['label' => 'Teléfono', 'required' => false])
                 ->add('familiarResponsableMail', TextType::class, ['label' => 'EMail', 'required' => false])
@@ -115,8 +122,7 @@ class ClienteType extends AbstractType
                     $form = $event->getForm();
                     $motivoIng = empty($form->getData()) ? null : $form->getData();
                     $this->setupMotivoIngEsp($form->getParent(), $motivoIng);
-                }
-                );
+                });
 
                 $builder->addEventListener(FormEvents::PRE_SET_DATA,function (FormEvent $event) {
                     $data = $event->getData();
@@ -130,6 +136,9 @@ class ClienteType extends AbstractType
                     );
                 }
                 );
+            }
+            if(!$options['is_new']) {
+                $builder->add("no_nuevo", HiddenType::class, array("mapped" => false, "label" => false));
             }
             if($options['egreso'] || $options['is_new']) {
                 $builder
@@ -149,6 +158,13 @@ class ClienteType extends AbstractType
                         'expanded'=>false,
                     ])
                     ->add('posicionEnArchivo', TextType::class, ['required'=>false, 'label' => 'Posición en Archivo']);
+            }
+
+            if ($options['camasDisp']) {
+                $builder->add('nCama', ChoiceType::class, [
+                    'label' => 'Cama',
+                    'choices'  => $options['camasDisp']
+                ]);
             }
 
             $builder->add('save', SubmitType::class, ['label' => 'Guardar', 'attr' => ['class' => 'btn-success']]);
@@ -214,6 +230,8 @@ class ClienteType extends AbstractType
             'is_new' => true,
             'egreso' => false,
             'obrasSociales' => [],
+            'habitaciones' => [],
+            'camasDisp' => 0,
         ]);
     }
 }

@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20200827114619 extends AbstractMigration
+final class Version20200922185656 extends AbstractMigration
 {
     public function getDescription() : string
     {
@@ -22,7 +22,7 @@ final class Version20200827114619 extends AbstractMigration
         // this up() migration is auto-generated, please modify it to your needs
         $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'mysql', 'Migration can only be executed safely on \'mysql\'.');
 
-        $this->addSql('ALTER TABLE mail_code ADD type INT NOT NULL');
+        $this->addSql('ALTER TABLE habitacion CHANGE camas_ocupadas camas_ocupadas JSON NOT NULL COMMENT \'(DC2Type:json_array)\'');
     }
 
     public function down(Schema $schema) : void
@@ -30,6 +30,6 @@ final class Version20200827114619 extends AbstractMigration
         // this down() migration is auto-generated, please modify it to your needs
         $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'mysql', 'Migration can only be executed safely on \'mysql\'.');
 
-        $this->addSql('ALTER TABLE mail_code DROP type');
+        $this->addSql('ALTER TABLE habitacion CHANGE camas_ocupadas camas_ocupadas INT NOT NULL');
     }
 }

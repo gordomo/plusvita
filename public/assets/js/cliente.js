@@ -21,6 +21,31 @@ $( document ).on('change', '.js-cliente-motivo', function () {
     });
 })
 
+$( document ).on('change', '.js-camas-disp', function () {
+    var numeroHabitacion = $(this).val();
+    var $camas = $('.camas');
+    var url = '/habitacion/cama/disp/' + numeroHabitacion;
+
+    var actualUrl = window.location.href.split('/');
+
+    if (!isNaN(actualUrl[4])) {
+        url += '/'+actualUrl[4];
+    }
+
+    if (numeroHabitacion) {
+        $.ajax({
+            url: url,
+            success: function (html) {
+                if (!html) {
+                    return;
+                }
+                // Replace the current field and show
+                $camas.html(html).removeClass('d-none')
+            }
+        });
+    }
+})
+
 $( document ).on('click', '#agregarFamiliar', function (e) {
     e.preventDefault();
     e.stopPropagation();
@@ -72,6 +97,15 @@ $( document ).ready(function () {
     if($('#familiares').find('.form-row').length > 1) {
         var botonQuitarHtml = '<div class="col-sm" id="quitarFamiliarRow"><a href="" id="quitarFamiliar">quitar familiar - </a></div>';
         $('#agregarQuitarFamiliar').append(botonQuitarHtml);
+    }
+
+    if ($('#cliente_modalidad').val() == '2') {
+        $('.habitacion').removeClass('d-none');
+        var numeroHabitacion = $('.habitacion').find('select').val();
+        var $camas = $('.camas');
+        if(numeroHabitacion != 0) {
+            $camas.removeClass('d-none')
+        }
     }
 });
 

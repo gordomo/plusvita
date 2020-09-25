@@ -20,7 +20,7 @@ class Cliente
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $hClinica;
 
@@ -35,7 +35,7 @@ class Cliente
     private $apellido;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="integer", nullable=true)
      */
     private $dni;
 
@@ -45,7 +45,7 @@ class Cliente
     private $email;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $telefono;
 

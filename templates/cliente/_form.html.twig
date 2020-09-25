@@ -110,11 +110,13 @@
 <div class="form-row d-none habitacion">
     <div class="col-sm">
         {{ form_label(form.habitacion) }}
-        {{ form_widget(form.habitacion) }}
+        {{ form_widget(form.habitacion, {'attr': {'class': 'js-camas-disp'}}) }}
     </div>
-    <div class="col-sm">
-        {{ form_label(form.nCama) }}
-        {{ form_widget(form.nCama) }}
+    <div class="col-sm d-none camas">
+        {%  if form.nCama is defined %}
+            {{ form_label(form.nCama) }}
+            {{ form_widget(form.nCama) }}
+        {% endif %}
     </div>
     <div class="col-sm"></div>
 </div>

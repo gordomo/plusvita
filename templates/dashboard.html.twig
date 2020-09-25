@@ -43,6 +43,29 @@
                     </a>
                 </div>
             </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <a href="{{ path('habitacion_index') }}">
+                        <div class="card text-white clientesOnDash mb-3" style="max-width: 18rem;">
+                            <div class="card-header ">Habitaciones</div>
+                            <div class="card-body">
+                                <p class="card-text">Desde este gestor se pueden crear nuevas habitaciones con sus respectivas camas</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="col-md-4">
+                    <a href="{{ path('obra_social_index') }}">
+                        <div class="card text-white mb-3 usuariosOnDash" style="max-width: 18rem;">
+                            <div class="card-header">Obras Sociales</div>
+                            <div class="card-body">
+                                <p class="card-text">Gestor para Obras sociales</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
 
         </div>
     {% endif %}

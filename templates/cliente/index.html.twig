@@ -43,6 +43,8 @@
                 <th>Fecha Ingreso</th>
                 <th>Modalidad</th>
                 <th>Ingreso por</th>
+                <th>Habitación</th>
+                <th>Cama</th>
                 <th>Doc Referente</th>
                 <th>Acciones</th>
             </tr>
@@ -80,6 +82,12 @@
                     {% elseif(cliente.motivoIng == 5) %}
                         Patologías laborales
                     {% endif %}
+                </td>
+                <td>
+                    {{ habitacionesArray[cliente.habitacion] }}
+                </td>
+                <td>
+                    {{ cliente.nCama }}
                 </td>
                 <td>
                     {% set i = 1 %}
