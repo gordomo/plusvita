@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Cliente;
 use App\Entity\Doctor;
 use App\Entity\FamiliarExtra;
+use App\Entity\Habitacion;
 use App\Entity\HistoriaPaciente;
 use App\Form\ClienteType;
 use App\Repository\AdjuntosPacientesRepository;
@@ -14,6 +15,7 @@ use App\Repository\FamiliarExtraRepository;
 use App\Repository\HabitacionRepository;
 use App\Repository\HistoriaPacienteRepository;
 use App\Repository\ObraSocialRepository;
+use Doctrine\ORM\EntityManager;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -289,19 +291,19 @@ class ClienteController extends AbstractController
         ksort($camasDispArray);
 
         $habPrivada = $cliente->getHabPrivada() ?? false;
-
+        $puedePasarHabPrivada = $habPrivada;
         if(!empty($habitacionActual)) {
             if(count($habitacionActual->getCamasOcupadas()) == 1) {
-                $habPrivada = true;
+                $puedePasarHabPrivada = true;
             }
         }
 
-        $form = $this->createForm(ClienteType::class, $cliente, ['is_new' => false, 'obrasSociales' => $obArray, 'habitaciones' => $haArray, 'camasDisp' => $camasDispArray, 'bloquearHab' => $habPrivada]);
+        $form = $this->createForm(ClienteType::class, $cliente, ['allow_extra_fields'=>true, 'is_new' => false, 'obrasSociales' => $obArray, 'habitaciones' => $haArray, 'camasDisp' => $camasDispArray, 'bloquearHab' => $puedePasarHabPrivada]);
 
 
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted()) {
             try {
                 $entityManager = $this->getDoctrine()->getManager();
                 $doctoresReferentes = $cliente->getDocReferente();
@@ -336,42 +338,20 @@ class ClienteController extends AbstractController
                     $entityManager->persist($doctor);
                 }
 
+                $habPrivadaNueva = $form->getExtraData()['habPrivada'] ?? $cliente->getHabPrivada() ?? 0;
+
+                $cliente->setHabPrivada($habPrivadaNueva);
+
                 $entityManager->persist($cliente);
 
                 $nuevaHabId = $cliente->getHabitacion();
                 $nuevaCamaId = $cliente->getNCama();
 
-                if($cliente->getHabPrivada()) {
-                    $habitacion = $habitacionRepository->find($nuevaHabId);
-                    for ($i=1; $i <= $habitacion->getCamasDisponibles(); $i++) {
-                        $camasOcupadas[$i] = $i;
-                    }
-                    $habitacion->setCamasOcupadas($camasOcupadas);
-                    $entityManager->persist($habitacion);
-                } elseif (!$cliente->getHabPrivada() && $cliente->getHabPrivada() != $habPrivada) {
-                    $habitacion = $habitacionRepository->find($nuevaHabId);
-                    for ($i=1; $i <= $habitacion->getCamasDisponibles(); $i++) {
-                        if ($cliente->getNCama() != $i) {
-                            unset($camasOcupadas[$i]);
-                        }
-                    }
-                    $habitacion->setCamasOcupadas($camasOcupadas);
-                    $entityManager->persist($habitacion);
-                }
-
+                $habitacionNueva = $habitacionRepository->find($nuevaHabId);
                 $habVieja = $habitacionRepository->find($habitacionActualId);
-                $habViejaCamasOcupadas = $habVieja->getCamasOcupadas();
-                unset($habViejaCamasOcupadas[$camaActualId]);
-                $habVieja->setCamasOcupadas($habViejaCamasOcupadas);
-                $entityManager->persist($habVieja);
-                $entityManager->flush();
 
-                $habNueva = $habitacionRepository->find($nuevaHabId);
-                $habNuevaCamasOcupadas = $habNueva->getCamasOcupadas();
-                $habNuevaCamasOcupadas[$nuevaCamaId] = $nuevaCamaId;
-                $habNueva->setCamasOcupadas($habNuevaCamasOcupadas);
-                $entityManager->persist($habNueva);
-                $entityManager->flush();
+
+                $this->acomodarHabitacion($habitacionNueva, $nuevaCamaId, $habVieja, $camaActualId, $habPrivada, $habPrivadaNueva, $entityManager);
 
 
                 $historial = new HistoriaPaciente();
@@ -473,5 +453,29 @@ class ClienteController extends AbstractController
         }
 
         return $this->redirectToRoute('cliente_index');
+    }
+
+    public function acomodarHabitacion(Habitacion $habitacionNueva, int $nuevaCamaId, Habitacion $habVieja, int $camaActualId, int $habPrivada, int $habPrivadaNueva, EntityManager $entityManager)
+    {
+        $camasOcupadasViejaHab = $habVieja->getCamasOcupadas();
+        for ($i=1; $i <= $habVieja->getCamasDisponibles(); $i++) {
+            if ($habPrivada || $camaActualId == $i) {
+                unset($camasOcupadasViejaHab[$i]);
+            }
+        }
+        $habVieja->setCamasOcupadas($camasOcupadasViejaHab);
+
+        $camasOcupadasNuevaHab = $habitacionNueva->getCamasOcupadas();
+        for ($i=1; $i <= $habitacionNueva->getCamasDisponibles(); $i++) {
+            if ($habPrivadaNueva || $nuevaCamaId == $i) {
+                $camasOcupadasNuevaHab[$i] = $i;
+            }
+        }
+        $habitacionNueva->setCamasOcupadas($camasOcupadasNuevaHab);
+
+        $entityManager->persist($habVieja);
+        $entityManager->flush();
+        $entityManager->persist($habitacionNueva);
+        $entityManager->flush();
     }
 }

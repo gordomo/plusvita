@@ -40,7 +40,7 @@ $( document ).on('change', '.js-camas-disp', function () {
                     $('.dinamicHabitaciones').remove();
                 }
                 // Replace the current field and show
-                $('.habitacion').find('.placeHolder').addClass('d-none');
+                $('.habitacion').find('.placeHolder').remove();
                 $('.dinamicHabitaciones').remove();
                 $('.habDiv').after(html);
             }
