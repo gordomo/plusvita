@@ -164,7 +164,9 @@ class ClienteController extends AbstractController
 
             $camasOcupadas = $habitacion->getCamasOcupadas();
 
-            if ($form->getExtraData()['habPrivada']) {
+            $habPrivada = $form->getExtraData()['habPrivada'] ?? 0;
+
+            if ($habPrivada) {
                 $cliente->setHabPrivada(1);
                 for ($i=1; $i <= $habitacion->getCamasDisponibles(); $i++) {
                    $camasOcupadas[$i] = $i;
@@ -303,7 +305,7 @@ class ClienteController extends AbstractController
 
         $form->handleRequest($request);
 
-        if ($form->isSubmitted()) {
+        if ($form->isSubmitted() && $form->isValid()) {
             try {
                 $entityManager = $this->getDoctrine()->getManager();
                 $doctoresReferentes = $cliente->getDocReferente();
