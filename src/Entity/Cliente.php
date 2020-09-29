@@ -80,6 +80,11 @@ class Cliente
     private $docReferente;
 
     /**
+     * @ORM\OneToMany(targetEntity=Booking::class, mappedBy="cliente")
+     */
+    private $bookings;
+
+    /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $vieneDe;
@@ -192,6 +197,7 @@ class Cliente
     public function __construct()
     {
         $this->docReferente = new ArrayCollection();
+        $this->bookings = new ArrayCollection();
     }
 
     public function getNombreApellido(): ?string
@@ -643,6 +649,30 @@ class Cliente
     public function setHabPrivada($habPrivada): void
     {
         $this->habPrivada = $habPrivada;
+    }
+
+
+    public function addBooking(Booking $booking): self
+    {
+        if (!$this->bookings->contains($booking)) {
+            $this->bookings[] = $booking;
+            $booking->setCliente($this);
+        }
+
+        return $this;
+    }
+
+    public function removeBooking(Booking $booking): self
+    {
+        if ($this->bookings->contains($booking)) {
+            $this->bookings->removeElement($booking);
+            // set the owning side to null (unless already changed)
+            if ($booking->getCliente() === $this) {
+                $booking->setCliente(null);
+            }
+        }
+
+        return $this;
     }
 
 

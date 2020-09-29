@@ -145,9 +145,15 @@ class Doctor implements UserInterface
      */
     private $posicionEnArchivo;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Booking::class, mappedBy="doctor")
+     */
+    private $bookings;
+
     public function __construct()
     {
         $this->clientes = new ArrayCollection();
+        $this->bookings = new ArrayCollection();
     }
 
     public function getNombreApellido(): ?string
@@ -501,6 +507,37 @@ class Doctor implements UserInterface
     public function setPosicionEnArchivo(?string $posicionEnArchivo): self
     {
         $this->posicionEnArchivo = $posicionEnArchivo;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Booking[]
+     */
+    public function getBookings(): Collection
+    {
+        return $this->bookings;
+    }
+
+    public function addBooking(Booking $booking): self
+    {
+        if (!$this->bookings->contains($booking)) {
+            $this->bookings[] = $booking;
+            $booking->setDoctor($this);
+        }
+
+        return $this;
+    }
+
+    public function removeBooking(Booking $booking): self
+    {
+        if ($this->bookings->contains($booking)) {
+            $this->bookings->removeElement($booking);
+            // set the owning side to null (unless already changed)
+            if ($booking->getDoctor() === $this) {
+                $booking->setDoctor(null);
+            }
+        }
 
         return $this;
     }

@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Editar{% endblock %}
+
+{% block body %}
+    <h1>Editar</h1>
+
+    {{ include('booking/_form.html.twig', {'button_label': 'Update'}) }}
+
+    {{ include('booking/_delete_form.html.twig') }}
+{% endblock %}

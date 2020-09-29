@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Turno{% endblock %}
+
+{% block body %}
+    <h1>Turno</h1>
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Comienza</th>
+                <td>{{ booking.beginAt ? booking.beginAt|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+            <tr>
+                <th>Finaliza</th>
+                <td>{{ booking.endAt ? booking.endAt|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+            <tr>
+                <th>Titulo</th>
+                <td>{{ booking.title }}</td>
+            </tr>
+            <tr>
+                <th>Profesional</th>
+                <td>{{ booking.doctor.getNombreApellido() }}</td>
+            </tr>
+            <tr>
+                <th>Paciente</th>
+                <td>{{ booking.cliente.getNombreApellido() }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a class="btn btn-default" href="{{ path('booking_calendar') }}">Volver</a>
+    <a class="btn btn-success" href="{{ path('booking_edit', {'id': booking.id}) }}">Editar</a>
+    <br><br>
+{% endblock %}

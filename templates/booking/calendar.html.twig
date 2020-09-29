@@ -1,0 +1,108 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Turnos{% endblock %}
+{% block panelTitle %}Turnos{% endblock %}
+{% block body %}
+    <div id="calendar-holder"></div>
+
+
+    <!-- Modal -->
+    <div class="modal fade" id="newEvent" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fullcalendar/core@4.1.0/main.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@4.1.0/main.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fullcalendar/timegrid@4.1.0/main.min.css">
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@4.1.0/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@4.1.0/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@4.1.0/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/timegrid@4.1.0/main.min.js"></script>
+
+
+    <script type="text/javascript">
+        var calendar = '';
+        var es = {
+            code: "es",
+            week: {
+                dow: 1, // Monday is the first day of the week.
+                doy: 4  // The week that contains Jan 4th is the first week of the year.
+            },
+            buttonText: {
+                prev: "Ant",
+                next: "Sig",
+                today: "Hoy",
+                month: "Mes",
+                week: "Semana",
+                day: "Día",
+                list: "Agenda"
+            },
+            weekText: "Sm",
+            allDayText: "Todo el día",
+            moreLinkText: "más",
+            noEventsText: "No hay eventos para mostrar"
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            var calendarEl = document.getElementById('calendar-holder');
+
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                locale: es,
+                navLinks: true,
+                defaultView: 'dayGridMonth',
+                editable: true,
+                dateClick: function(info) {
+                    info.date.setDate(info.date.getDate() + 1);
+                    console.log(info.date);
+                    var hoy = new Date();
+                    if( info.date <= hoy ) {
+
+                    } else {
+                        if (info.view.type === 'dayGridMonth') {
+                            calendar.changeView('timeGridDay');
+                            calendar.gotoDate(info.dateStr);
+                        } else {
+                            var url = "{{ path('booking_new', {'date': 'info.dateStr'}) }}";
+                            url = url.replace("info.dateStr", info.dateStr);
+                            window.location.href = url;
+                        }
+                    }
+
+                },
+                eventSources: [
+                    {
+                        url: "{{ path('fc_load_events') }}",
+                        method: "POST",
+                        extraParams: {
+                            filters: JSON.stringify({})
+                        },
+                        failure: () => {
+                            // alert("There was an error while fetching FullCalendar!");
+                        },
+                    },
+                ],
+                header: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay',
+                },
+                plugins: [ 'interaction', 'dayGrid', 'timeGrid' ], // https://fullcalendar.io/docs/plugin-index
+                timeZone: 'UTC',
+            });
+            calendar.render();
+        });
+    </script>
+{% endblock %}

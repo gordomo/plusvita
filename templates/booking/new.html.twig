@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nuevo Turno{% endblock %}
+{% block panelTitle %}Nuevo Turno{% endblock %}
+
+{% block body %}
+
+    {{ include('booking/_form.html.twig') }}
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script type="text/javascript">
+        $('#booking_cliente').chosen();
+    </script>
+{% endblock %}

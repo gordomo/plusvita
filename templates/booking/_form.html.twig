@@ -1,0 +1,42 @@
+{{ form_start(form) }}
+<br>
+<div class="form-row">
+    <div class="col-sm">
+        {{ form_label(form.cliente, 'Paciente') }}
+        {{ form_widget(form.cliente) }}
+    </div>
+    <div class="col-sm"></div>
+    <div class="col-sm"></div>
+</div>
+<br>
+<div class="form-row">
+    <div class="col-sm">
+        {{ form_label(form.title, 'Titulo') }}
+        {{ form_widget(form.title) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.doctor, 'Profesional') }}
+        {{ form_widget(form.doctor) }}
+    </div>
+    <div class="col-sm"></div>
+</div>
+<br>
+<div class="form-row">
+    <div class="col-sm">
+        {{ form_label(form.beginAt, 'Comienza') }}
+        {{ form_widget(form.beginAt) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.endAt, 'Finaliza') }}
+        {{ form_widget(form.endAt) }}
+    </div>
+    <div class="col-sm"></div>
+</div>
+<br>
+<br>
+<div class="form-group">
+    {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary'}}) }}
+    <a class="btn btn-default" href="javascript:history.back();">volver</a>
+</div>
+<br>
+{{ form_end(form) }}

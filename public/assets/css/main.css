@@ -79,6 +79,10 @@
 .completa {
     background-color: #f1f1f1;
 }
+
+.fc-day {
+    cursor: pointer;
+}
 /*      #60b9b9     #b088be
 table {
     width: 716px; !* 140px * 5 column + 16px scrollbar width *!
