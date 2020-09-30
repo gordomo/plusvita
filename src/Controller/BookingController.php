@@ -109,7 +109,7 @@ class BookingController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $this->getDoctrine()->getManager()->flush();
 
-            return $this->redirectToRoute('booking_index');
+            return $this->redirectToRoute('booking_calendar');
         }
 
         return $this->render('booking/edit.html.twig', [
@@ -129,6 +129,6 @@ class BookingController extends AbstractController
             $entityManager->flush();
         }
 
-        return $this->redirectToRoute('booking_index');
+        return $this->redirectToRoute('booking_calendar');
     }
 }

@@ -26,11 +26,13 @@ class BookingType extends AbstractType
                 'class' => Doctor::class,
                 'choice_label' => 'NombreApellido',
                 'label' => 'Profesional',
+                'attr' => ['class' => 'predictivo']
             ])
             ->add('cliente', EntityType::class, [
                 'class' => Cliente::class,
                 'choice_label' => 'NombreApellido',
                 'label' => 'Paciente',
+                'attr' => ['class' => 'predictivo']
             ])
             ->add('save', SubmitType::class, ['label' => 'Guardar', 'attr' => ['class' => 'btn-success']])
         ;

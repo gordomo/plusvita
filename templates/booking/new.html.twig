@@ -11,7 +11,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script type="text/javascript">
-        $('#booking_cliente').chosen();
-    </script>
+    <script src="{{ asset('assets/js/booking.js') }}"></script>
 {% endblock %}

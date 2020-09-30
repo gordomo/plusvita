@@ -103,6 +103,18 @@
                 timeZone: 'UTC',
             });
             calendar.render();
+
+            var hoy = new Date();
+            $('.fc-day').each(function() {
+                var fecha = new Date($( this ).data('date'));
+                fecha.setDate(fecha.getDate() + 1)
+                if(fecha < hoy) {
+                    $(this).addClass('disable');
+                }
+
+            });
         });
+
+
     </script>
 {% endblock %}

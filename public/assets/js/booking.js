@@ -1,0 +1,4 @@
+$('.predictivo').chosen();
+
+
+
