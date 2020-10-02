@@ -359,7 +359,6 @@ class ClienteController extends AbstractController
                 $historial = new HistoriaPaciente();
                 $historial->setIdPaciente($cliente->getId());
                 $historial->setCama($cliente->getNCama());
-                $historial->setCama($cliente->getNCama());
                 $historial->setHabitacion($cliente->getHabitacion());
                 $historial->setNAfiliadoObraSocial($cliente->getObraSocialAfiliado());
                 $historial->setObraSocial($cliente->getObraSocial());
@@ -426,6 +425,7 @@ class ClienteController extends AbstractController
 
                 $cliente->setHabitacion(null);
                 $cliente->setNCama(null);
+                $cliente->setHabPrivada(0);
 
                 $entityManager->persist($habitacionActual);
                 $entityManager->persist($cliente);
