@@ -457,7 +457,7 @@ class ClienteController extends AbstractController
         return $this->redirectToRoute('cliente_index');
     }
 
-    public function acomodarHabitacion(Habitacion $habitacionNueva, int $nuevaCamaId, Habitacion $habVieja, int $camaActualId, int $habPrivada, int $habPrivadaNueva, EntityManager $entityManager)
+    public function acomodarHabitacion($habitacionNueva, int $nuevaCamaId, $habVieja, int $camaActualId, int $habPrivada, int $habPrivadaNueva, EntityManager $entityManager)
     {
         if (!empty($habVieja)) {
             $camasOcupadasViejaHab = $habVieja->getCamasOcupadas();
