@@ -459,25 +459,28 @@ class ClienteController extends AbstractController
 
     public function acomodarHabitacion(Habitacion $habitacionNueva, int $nuevaCamaId, Habitacion $habVieja, int $camaActualId, int $habPrivada, int $habPrivadaNueva, EntityManager $entityManager)
     {
-        $camasOcupadasViejaHab = $habVieja->getCamasOcupadas();
-        for ($i=1; $i <= $habVieja->getCamasDisponibles(); $i++) {
-            if ($habPrivada || $camaActualId == $i) {
-                unset($camasOcupadasViejaHab[$i]);
+        if (!empty($habVieja)) {
+            $camasOcupadasViejaHab = $habVieja->getCamasOcupadas();
+            for ($i=1; $i <= $habVieja->getCamasDisponibles(); $i++) {
+                if ($habPrivada || $camaActualId == $i) {
+                    unset($camasOcupadasViejaHab[$i]);
+                }
             }
+            $habVieja->setCamasOcupadas($camasOcupadasViejaHab);
+            $entityManager->persist($habVieja);
+            $entityManager->flush();
         }
-        $habVieja->setCamasOcupadas($camasOcupadasViejaHab);
 
-        $camasOcupadasNuevaHab = $habitacionNueva->getCamasOcupadas();
-        for ($i=1; $i <= $habitacionNueva->getCamasDisponibles(); $i++) {
-            if ($habPrivadaNueva || $nuevaCamaId == $i) {
-                $camasOcupadasNuevaHab[$i] = $i;
+        if (!empty($habitacionNueva)) {
+            $camasOcupadasNuevaHab = $habitacionNueva->getCamasOcupadas();
+            for ($i=1; $i <= $habitacionNueva->getCamasDisponibles(); $i++) {
+                if ($habPrivadaNueva || $nuevaCamaId == $i) {
+                    $camasOcupadasNuevaHab[$i] = $i;
+                }
             }
+            $habitacionNueva->setCamasOcupadas($camasOcupadasNuevaHab);
+            $entityManager->persist($habitacionNueva);
+            $entityManager->flush();
         }
-        $habitacionNueva->setCamasOcupadas($camasOcupadasNuevaHab);
-
-        $entityManager->persist($habVieja);
-        $entityManager->flush();
-        $entityManager->persist($habitacionNueva);
-        $entityManager->flush();
     }
 }
