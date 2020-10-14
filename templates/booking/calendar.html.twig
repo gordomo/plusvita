@@ -6,11 +6,47 @@
     <div id="calendar-holder"></div>
 
 
-    <!-- Modal -->
-    <div class="modal fade" id="newEvent" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
+    <!-- Large modal -->
+    <div class="modal fade bd-example-modal-lg filtros" tabindex="-1" role="dialog" aria-labelledby="filtros" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Filtrar</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
 
+                    <div class="modal-body">
+                        <form class="filtrosModal">
+                            <div class="form-group">
+                                <label for="exampleFormControlInput1">Doctores</label><br>
+                                {% for doctor in doctores %}
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input doctores" type="checkbox" id="doctor-{{ doctor.id }}" name="doctores" value="{{ doctor.id }}">
+                                    <label class="form-check-label" for="doctores">{{ doctor.nombre }} {{ doctor.apellido }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <hr>
+                            <div class="form-group">
+                                <label for="exampleFormControlInput1">Pacientes</label><br>
+                                {% for cliente in clientes %}
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="cliente-{{ cliente.id }}" name="clientes" value="{{ cliente.id }}">
+                                        <label class="form-check-label" for="clientes">{{ cliente.nombre }} {{ cliente.apellido }}</label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" id="limpiar">Limpiar</button>
+                        <button type="button" class="btn btn-primary" id="filtrar">Filtrar</button>
+                    </div>
+
+            </div>
             </div>
         </div>
     </div>
@@ -31,90 +67,11 @@
     <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@4.1.0/main.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@4.1.0/main.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/timegrid@4.1.0/main.min.js"></script>
+    <script src="{{ asset('assets/js/booking.js') }}"></script>
 
 
     <script type="text/javascript">
-        var calendar = '';
-        var es = {
-            code: "es",
-            week: {
-                dow: 1, // Monday is the first day of the week.
-                doy: 4  // The week that contains Jan 4th is the first week of the year.
-            },
-            buttonText: {
-                prev: "Ant",
-                next: "Sig",
-                today: "Hoy",
-                month: "Mes",
-                week: "Semana",
-                day: "Día",
-                list: "Agenda"
-            },
-            weekText: "Sm",
-            allDayText: "Todo el día",
-            moreLinkText: "más",
-            noEventsText: "No hay eventos para mostrar"
-        };
-
-        document.addEventListener('DOMContentLoaded', () => {
-            var calendarEl = document.getElementById('calendar-holder');
-
-            calendar = new FullCalendar.Calendar(calendarEl, {
-                locale: es,
-                navLinks: true,
-                defaultView: 'dayGridMonth',
-                editable: true,
-                dateClick: function(info) {
-                    info.date.setDate(info.date.getDate() + 1);
-                    console.log(info.date);
-                    var hoy = new Date();
-                    if( info.date <= hoy ) {
-
-                    } else {
-                        if (info.view.type === 'dayGridMonth') {
-                            calendar.changeView('timeGridDay');
-                            calendar.gotoDate(info.dateStr);
-                        } else {
-                            var url = "{{ path('booking_new', {'date': 'info.dateStr'}) }}";
-                            url = url.replace("info.dateStr", info.dateStr);
-                            window.location.href = url;
-                        }
-                    }
-
-                },
-                eventSources: [
-                    {
-                        url: "{{ path('fc_load_events') }}",
-                        method: "POST",
-                        extraParams: {
-                            filters: JSON.stringify({})
-                        },
-                        failure: () => {
-                            // alert("There was an error while fetching FullCalendar!");
-                        },
-                    },
-                ],
-                header: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay',
-                },
-                plugins: [ 'interaction', 'dayGrid', 'timeGrid' ], // https://fullcalendar.io/docs/plugin-index
-                timeZone: 'UTC',
-            });
-            calendar.render();
-
-            var hoy = new Date();
-            $('.fc-day').each(function() {
-                var fecha = new Date($( this ).data('date'));
-                fecha.setDate(fecha.getDate() + 1)
-                if(fecha < hoy) {
-                    $(this).addClass('disable');
-                }
-
-            });
-        });
-
-
+        var url = "{{ path('booking_new', {'date': 'info.dateStr'}) }}";
+        var eventSourceUrl = "{{ path('fc_load_events') }}";
     </script>
 {% endblock %}

@@ -5,8 +5,11 @@ namespace App\Controller;
 use App\Entity\Booking;
 use App\Form\BookingType;
 use App\Repository\BookingRepository;
+use App\Repository\ClienteRepository;
+use App\Repository\DoctorRepository;
 use DateInterval;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -37,18 +40,72 @@ class BookingController extends AbstractController
     }
 
     /**
+     * @Route("/getEvents", name="get_events", methods={"GET"})
+     * @param BookingRepository $bookingRepository
+     * @return Response
+     */
+    public function getEvents(BookingRepository $bookingRepository): Response
+    {
+        $eventos = $bookingRepository->findAll();
+        $arrEventos = [];
+
+        foreach ($eventos as $evento) {
+            $arrEventos[] = [
+                'id' => $evento->getId(),
+                'start' => $evento->getBeginAtForEvent(),
+                'end' => $evento->getEndAtForEvent(),
+                'title' => $evento->getTitle()
+            ];
+        }
+
+        return new JsonResponse($arrEventos);
+        //return $arrEventos;
+        /*return $this->render('booking/events.html.twig', [
+            'events' => json_encode($arrEventos),
+        ]);*/
+    }
+
+    /**
      * @Route("/calendar", name="booking_calendar", methods={"GET"})
      */
-    public function calendar(): Response
+    public function calendar(DoctorRepository $doctorRepository, ClienteRepository $clienteRepository): Response
     {
         $booking = new Booking();
 
+        $doctores = $doctorRepository->findAll();
+        $clientes = $clienteRepository->findAll();
         $user = $this->security->getUser();
         $booking->setUser($user);
 
         //$form = $this->createForm(BookingType::class, $booking);
 
-        return $this->render('booking/calendar.html.twig');
+        return $this->render('booking/calendar.html.twig', [
+            'clientes' => $clientes,
+            'doctores' => $doctores,
+        ]);
+    }
+
+    /**
+     * @Route("/calendar/filter", name="booking_calendar_filter", methods={"GET"})
+     */
+    public function calendarFilter(Request $request, DoctorRepository $doctorRepository, ClienteRepository $clienteRepository): Response
+    {
+        $doctores = $request->query->get('doctores');
+        $clientes = $request->query->get('clientes');
+
+
+        $doctores = $doctorRepository->findBy(array('id' => array_values($doctores)));
+        dd($doctores);
+        $clientes = $clienteRepository->findAll();
+        $user = $this->security->getUser();
+
+
+        //$form = $this->createForm(BookingType::class, $booking);
+
+        return $this->render('booking/calendar.html.twig', [
+            'clientes' => $clientes,
+            'doctores' => $doctores,
+        ]);
     }
 
     /**
@@ -131,4 +188,7 @@ class BookingController extends AbstractController
 
         return $this->redirectToRoute('booking_calendar');
     }
+
+
+
 }

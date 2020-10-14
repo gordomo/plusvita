@@ -3,6 +3,8 @@
 namespace App\EventSubscriber;
 
 use App\Repository\BookingRepository;
+use App\Repository\ClienteRepository;
+use App\Repository\DoctorRepository;
 use CalendarBundle\CalendarEvents;
 use CalendarBundle\Entity\Event;
 use CalendarBundle\Event\CalendarEvent;
@@ -12,13 +14,14 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 class CalendarSubscriber implements EventSubscriberInterface
 {
     private $bookingRepository;
+    private $doctorRepository;
+    private $clienteRepository;
     private $router;
 
-    public function __construct(
-        BookingRepository $bookingRepository,
-        UrlGeneratorInterface $router
-    ) {
+    public function __construct( BookingRepository $bookingRepository, DoctorRepository $doctorRepository, ClienteRepository $clienteRepository, UrlGeneratorInterface $router) {
         $this->bookingRepository = $bookingRepository;
+        $this->doctorRepository = $doctorRepository;
+        $this->clienteRepository = $clienteRepository;
         $this->router = $router;
     }
 
@@ -41,10 +44,23 @@ class CalendarSubscriber implements EventSubscriberInterface
             ->createQueryBuilder('booking')
             ->where('booking.beginAt BETWEEN :start and :end OR booking.endAt BETWEEN :start and :end')
             ->setParameter('start', $start->format('Y-m-d H:i:s'))
-            ->setParameter('end', $end->format('Y-m-d H:i:s'))
-            ->getQuery()
-            ->getResult()
-        ;
+            ->setParameter('end', $end->format('Y-m-d H:i:s'));
+
+        if (!empty($filters['doctor_id'])) {
+            $docIds = json_decode($filters['doctor_id']);
+            $doctor = $this->doctorRepository->findBy(array('id' => array_values($docIds)));
+            $bookings->andWhere('booking.doctor IN (:doctor)')
+                     ->setParameter('doctor', $doctor);
+        }
+        if (!empty($filters['cliente_id'])) {
+            $cliIds = json_decode($filters['cliente_id']);
+            $cliente = $this->clienteRepository->findBy(array('id' => array_values($cliIds)));
+            $bookings->andWhere('booking.cliente IN (:cliente)')
+                ->setParameter('cliente', $cliente);
+        }
+
+        $bookings = $bookings->getQuery()->getResult();
+
 
         foreach ($bookings as $booking) {
             // this create the events with your data (here booking data) to fill calendar

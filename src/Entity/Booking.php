@@ -60,6 +60,11 @@ class Booking
     {
         return $this->beginAt;
     }
+    public function getBeginAtForEvent(): ?String
+    {
+        $beginAt = $this->beginAt;
+        return $beginAt->format('Y-m-dTH:m:s');
+    }
 
     public function setBeginAt(\DateTimeInterface $beginAt): self
     {
@@ -71,6 +76,12 @@ class Booking
     public function getEndAt(): ?\DateTimeInterface
     {
         return $this->endAt;
+    }
+
+    public function getEndAtForEvent(): ?String
+    {
+        $endAt = $this->endAt;
+        return $endAt->format('Y-m-dTH:m:s');
     }
 
     public function setEndAt(?\DateTimeInterface $endAt): self
