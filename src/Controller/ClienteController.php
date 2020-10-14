@@ -157,25 +157,25 @@ class ClienteController extends AbstractController
                 $entityManager->persist($familarRespExtra);
             };
 
-
-            $habitacion = $habitacionRepository->find($cliente->getHabitacion());
-
-            $cliente->setNCama($form->getExtraData()['nCama']);
-
-            $camasOcupadas = $habitacion->getCamasOcupadas();
-
-            $habPrivada = $form->getExtraData()['habPrivada'] ?? 0;
-
-            if ($habPrivada) {
-                $cliente->setHabPrivada(1);
-                for ($i=1; $i <= $habitacion->getCamasDisponibles(); $i++) {
-                   $camasOcupadas[$i] = $i;
+            $now = new \DateTime();
+            if (!empty($cliente->getHabitacion()) && (empty($cliente->getFEgreso()) || $cliente->getFEgreso() > $now)) {
+                $habitacion = $habitacionRepository->find($cliente->getHabitacion());
+                $cliente->setNCama($form->getExtraData()['nCama']);
+                $camasOcupadas = $habitacion->getCamasOcupadas();
+                $habPrivada = $form->getExtraData()['habPrivada'] ?? 0;
+                if ($habPrivada) {
+                    $cliente->setHabPrivada(1);
+                    for ($i=1; $i <= $habitacion->getCamasDisponibles(); $i++) {
+                        $camasOcupadas[$i] = $i;
+                    }
+                } else {
+                    $camasOcupadas[$cliente->getNCama()] = $cliente->getNCama();
                 }
-            } else {
-                $camasOcupadas[$cliente->getNCama()] = $cliente->getNCama();
+                $habitacion->setCamasOcupadas($camasOcupadas);
+                $entityManager->persist($habitacion);
             }
 
-            $habitacion->setCamasOcupadas($camasOcupadas);
+
 
             $historial = new HistoriaPaciente();
             $historial->setIdPaciente($cliente->getId());
@@ -194,7 +194,6 @@ class ClienteController extends AbstractController
 
 
             $entityManager->persist($historial);
-            $entityManager->persist($habitacion);
             $entityManager->persist($cliente);
 
             $entityManager->flush();

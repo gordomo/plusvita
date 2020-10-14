@@ -103,6 +103,7 @@ class ClienteType extends AbstractType
                 ])
 
                 ->add('habitacion', ChoiceType::class, [
+                    'required' => false,
                     'label' => "Habitación",
                     'placeholder' => "Seleccione una Habitación",
                     'choice_attr' => function($choice, $key, $value) {
