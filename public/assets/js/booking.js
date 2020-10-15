@@ -126,6 +126,12 @@ document.addEventListener('DOMContentLoaded', () => {
             $('#cliente-' + k).prop('checked', true);
         })
     }
+
+    if(typeof($params.ctr) != "undefined") {
+        var id = '#' + $params.ctr.replaceAll(' ', '');
+        $(id).prop('selected', true);
+        $('.filtros').modal('show');
+    }
 });
 
 $('#limpiar').click(function () {
@@ -134,15 +140,8 @@ $('#limpiar').click(function () {
 });
 
 $('#filtrar').click(function () {
-    var doctoresId = [];
-    $('.filtrosModal').find("input:checkbox[name=doctores]:checked").each(function(){
-        doctoresId.push($(this).val());
-    });
-
-    var clientesId = [];
-    $('.filtrosModal').find("input:checkbox[name=clientes]:checked").each(function(){
-        clientesId.push($(this).val());
-    });
+    var doctoresId = $('#doctores').val();
+    var clientesId = $('#cliente').val();
 
     var url = 'calendar?'
     if (doctoresId.length > 0) {
@@ -157,5 +156,15 @@ $('#filtrar').click(function () {
     if(url.includes('doc_id') || url.includes('cli_id')) {
         location.href = url;
     }
+});
+
+$( ".filtros" ).on('shown.bs.modal', function(){
+    $('.filtrosModal').show();
+    $('.filtros .form-control').chosen();
+    $('.loading').hide();
+});
+
+$( "#contrato" ).on('change', function(){
+    location.href = 'calendar?ctr=' + $(this).val();
 });
 

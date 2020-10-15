@@ -19,6 +19,16 @@ class DoctorRepository extends ServiceEntityRepository
         parent::__construct($registry, Doctor::class);
     }
 
+    public function findByContrato($value)
+    {
+        return $this->createQueryBuilder('d')
+            ->where("JSON_CONTAINS (d.modalidad, '\"$value\"', '$') = 1")
+            //->setParameter('val', $value)
+            ->getQuery()
+            ->getResult()
+            ;
+
+    }
     // /**
     //  * @return Doctor[] Returns an array of Doctor objects
     //  */

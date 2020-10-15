@@ -18,25 +18,48 @@
                 </div>
 
                     <div class="modal-body">
-                        <form class="filtrosModal">
+                        <div class="loading" style=" text-align: center;">
+                            <img src="{{ asset('assets/images/loading.gif') }}">
+                        </div>
+                        <form class="filtrosModal" style="display: none">
                             <div class="form-group">
-                                <label for="exampleFormControlInput1">Doctores</label><br>
-                                {% for doctor in doctores %}
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input doctores" type="checkbox" id="doctor-{{ doctor.id }}" name="doctores" value="{{ doctor.id }}">
-                                    <label class="form-check-label" for="doctores">{{ doctor.nombre }} {{ doctor.apellido }}</label>
-                                </div>
-                                {% endfor %}
+                                <label for="contrato">Tipo De Contrato</label>
+                                <select class="form-control" id="contrato">
+                                    <option value="0">Todos</option>
+                                    <optgroup label="Directo">
+                                    {% for contratoDirecto in contratos['directo'] %}
+                                        <option id='{{ contratoDirecto|replace({' ': ''}) }}' value="{{ contratoDirecto }}">{{ contratoDirecto }}</option>
+                                    {% endfor %}
+                                    </optgroup>
+                                    <optgroup label="Prestacion">
+                                        {% for contratoPrestacion in contratos['prestacion'] %}
+                                            <option id='{{ contratoPrestacion|replace({' ': ''}) }}' value="{{ contratoPrestacion }}">{{ contratoPrestacion }}</option>
+                                        {% endfor %}
+                                    </optgroup>
+                                    <optgroup label="Sin Contrato">
+                                        {% for contratoSinContrato in contratos['directo'] %}
+                                            <option id='{{ contratoSinContrato|replace({' ': ''}) }}' value="{{ contratoSinContrato }}">{{ contratoSinContrato }}</option>
+                                        {% endfor %}
+                                    </optgroup>
+                                </select>
                             </div>
                             <hr>
                             <div class="form-group">
-                                <label for="exampleFormControlInput1">Pacientes</label><br>
-                                {% for cliente in clientes %}
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="checkbox" id="cliente-{{ cliente.id }}" name="clientes" value="{{ cliente.id }}">
-                                        <label class="form-check-label" for="clientes">{{ cliente.nombre }} {{ cliente.apellido }}</label>
-                                    </div>
-                                {% endfor %}
+                                <label for="doctores">Profesionales</label>
+                                <select class="form-control" multiple=true id="doctores">
+                                    {% for doctor in doctores %}
+                                        <option value="{{ doctor.id }}">{{ doctor.nombre }} {{ doctor.apellido }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <hr>
+                            <div class="form-group">
+                                <label for="cliente">Pacientes</label>
+                                <select class="form-control" multiple=true id="cliente">
+                                    {% for cliente in clientes %}
+                                        <option value="{{ cliente.id }}">{{ cliente.nombre }} {{ cliente.apellido }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                         </form>
                     </div>

@@ -68,12 +68,53 @@ class BookingController extends AbstractController
     /**
      * @Route("/calendar", name="booking_calendar", methods={"GET"})
      */
-    public function calendar(DoctorRepository $doctorRepository, ClienteRepository $clienteRepository): Response
+    public function calendar(Request $request, DoctorRepository $doctorRepository, ClienteRepository $clienteRepository): Response
     {
         $booking = new Booking();
 
-        $doctores = $doctorRepository->findAll();
-        $clientes = $clienteRepository->findAll();
+        $contrato = $request->query->get('ctr');
+
+        if(!empty($contrato)) {
+            $doctores = $doctorRepository->findByContrato($contrato);
+        } else {
+            $doctores = $doctorRepository->findAll();
+        }
+
+        $clientes = $clienteRepository->findAllActivos(new \DateTime());
+        $directo = [
+            'Nutricionista',
+            'Director medico',
+            'Sub director medico',
+            'Trabajadora social',
+            'Psiquiatra',
+            'Infectologo',
+            'Contador',
+            'Abogado',
+            'Estudio contable',
+            'Directivo',
+            'Programador',
+        ];
+        $prestacion = [
+            'Profesional por prestacion',
+            'Medico de guardia',
+            'Kinesiologo',
+            'Kinesiologo respiratorio',
+            'Terapista ocupacional',
+            'Fonoaudiologo',
+            'Psicologo',
+            'Fisiatra',
+            'Neurologo',
+            'Cardiologo',
+            'Urologo',
+            'Hematologo',
+            'Neumonologo',
+        ];
+        $sinContrato = [
+            'Cirujano',
+            'Traumatologo',
+            'Neumonologo',
+        ];
+        $contratos = ['directo' => $directo, 'prestacion' => $prestacion, 'sinContrato' => $sinContrato];
         $user = $this->security->getUser();
         $booking->setUser($user);
 
@@ -82,6 +123,7 @@ class BookingController extends AbstractController
         return $this->render('booking/calendar.html.twig', [
             'clientes' => $clientes,
             'doctores' => $doctores,
+            'contratos' => $contratos,
         ]);
     }
 
