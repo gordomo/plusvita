@@ -3,6 +3,40 @@
 {% block title %}Staff index{% endblock %}
 {% block panelTitle %}Staff{% endblock %}
 {% block body %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm">
+                <select class="form-control predictivo" id="contrato" multiple data-placeholder="Filtrar por Tipo de contrato">
+                    <option value="0">Todos</option>
+                    <optgroup label="Empleado">
+                        {% for contratoEmpleado in contratos['empleado'] %}
+                            <option id='{{ contratoEmpleado|replace({' ': ''}) }}' value="{{ contratoEmpleado }}" {% if contratoEmpleado in ctrsArray %} selected {% endif %}>{{ contratoEmpleado }}</option>
+                        {% endfor %}
+                    </optgroup>
+                    <optgroup label="Directo">
+                        {% for contratoDirecto in contratos['directo'] %}
+                            <option id='{{ contratoDirecto|replace({' ': ''}) }}' value="{{ contratoDirecto }}" {% if contratoDirecto in ctrsArray %} selected {% endif %}>{{ contratoDirecto }}</option>
+                        {% endfor %}
+                    </optgroup>
+                    <optgroup label="Prestacion">
+                        {% for contratoPrestacion in contratos['prestacion'] %}
+                            <option id='{{ contratoPrestacion|replace({' ': ''}) }}' value="{{ contratoPrestacion }}" {% if contratoPrestacion in ctrsArray %} selected {% endif %}>{{ contratoPrestacion }}</option>
+                        {% endfor %}
+                    </optgroup>
+                    <optgroup label="Sin Contrato">
+                        {% for contratoSinContrato in contratos['sinContrato'] %}
+                            <option id='{{ contratoSinContrato|replace({' ': ''}) }}' value="{{ contratoSinContrato }}" {% if contratoSinContrato in ctrsArray %} selected {% endif %}>{{ contratoSinContrato }}</option>
+                        {% endfor %}
+                    </optgroup>
+                </select>
+            </div>
+            <div class="col-sm">
+                <button class="btn btn-default" id="buscarContrato"><i class="fas fa-search" aria-hidden="true"></i></button>
+                <button class="btn btn-default" id="limpiarContratos" style="padding: 2px 16px;">Limpiar</button>
+            </div>
+        </div>
+    </div>
+    <br><br>
     <table class="table table-responsive table-striped">
         <thead>
             <tr>
@@ -12,6 +46,8 @@
                 <th scope="col">Legajo</th>
                 <th scope="col">Email</th>
                 <th scope="col">Inicio Contrato</th>
+                <th scope="col">Vto Contrato</th>
+                <th scope="col">Horarios</th>
                 <th scope="col">actions</th>
             </tr>
         </thead>
@@ -34,6 +70,37 @@
                     {{ doctor.inicioContrato | date('Y-m-d') }}
                 </td>
                 <td>
+                    {{ doctor.vtoContrato | date('Y-m-d') }}
+                </td>
+                <td class="lowercase">
+                    {% for horario in doctor.businessHours %}
+                        {% if (loop.index == 1) %}
+                            Lunes
+                        {% endif %}
+                        {% if (loop.index == 2) %}
+                            Martes
+                        {% endif %}
+                        {% if (loop.index == 3) %}
+                            Miercoles
+                        {% endif %}
+                        {% if (loop.index == 4) %}
+                            Jueves
+                        {% endif %}
+                        {% if (loop.index == 5) %}
+                            Viernes
+                        {% endif %}
+                        {% if (loop.index == 6) %}
+                            Sábado
+                        {% endif %}
+                        {{ horario.desde }} a
+                        {{ horario.hasta }}
+                        {% if (horario.desde != horario.ydesde) %}
+                        y {{ horario.ydesde }} a {{ horario.yhasta }}
+                        {% endif %}
+                        <br>
+                    {% endfor %}
+                </td>
+                <td>
                     <a href="{{ path('doctor_edit', {'id': doctor.id}) }}"><i class="fas fa-pencil-alt"></i></a>
                     <a href="{{ path('adjuntos_staff_new', {'id': doctor.id}) }}"><i class="fas fa-paperclip"></i></a>
                     <a href="{{ path('staff_egreso', {'id': doctor.id}) }}"><i class="far fa-calendar-times"></i></a>
@@ -49,3 +116,8 @@
 
     <a href="{{ path('doctor_new') }}">Ingresar nuevo Miembro del Staff</a>
 {% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('assets/js/staff.js') }}"></script>
+{% endblock %}
+

@@ -46,6 +46,13 @@ class CalendarSubscriber implements EventSubscriberInterface
             ->setParameter('start', $start->format('Y-m-d H:i:s'))
             ->setParameter('end', $end->format('Y-m-d H:i:s'));
 
+        if (!empty($filters['ctr'])) {
+            $ctr = $filters['ctr'];
+            $doctor = $this->doctorRepository->findByContrato($ctr);
+            $bookings->andWhere('booking.doctor IN (:doctor)')
+                ->setParameter('doctor', $doctor);
+        }
+
         if (!empty($filters['doctor_id'])) {
             $docIds = json_decode($filters['doctor_id']);
             $doctor = $this->doctorRepository->findBy(array('id' => array_values($docIds)));

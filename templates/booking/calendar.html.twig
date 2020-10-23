@@ -28,17 +28,17 @@
                                     <option value="0">Todos</option>
                                     <optgroup label="Directo">
                                     {% for contratoDirecto in contratos['directo'] %}
-                                        <option id='{{ contratoDirecto|replace({' ': ''}) }}' value="{{ contratoDirecto }}">{{ contratoDirecto }}</option>
+                                        <option id='{{ contratoDirecto|replace({' ': ''}) }}' value="{{ contratoDirecto }}" {% if contratoDirecto in ctrsArray %} selected {% endif %}>{{ contratoDirecto }}</option>
                                     {% endfor %}
                                     </optgroup>
                                     <optgroup label="Prestacion">
                                         {% for contratoPrestacion in contratos['prestacion'] %}
-                                            <option id='{{ contratoPrestacion|replace({' ': ''}) }}' value="{{ contratoPrestacion }}">{{ contratoPrestacion }}</option>
+                                            <option id='{{ contratoPrestacion|replace({' ': ''}) }}' value="{{ contratoPrestacion }}" {% if contratoPrestacion in ctrsArray %} selected {% endif %}>{{ contratoPrestacion }}</option>
                                         {% endfor %}
                                     </optgroup>
                                     <optgroup label="Sin Contrato">
-                                        {% for contratoSinContrato in contratos['directo'] %}
-                                            <option id='{{ contratoSinContrato|replace({' ': ''}) }}' value="{{ contratoSinContrato }}">{{ contratoSinContrato }}</option>
+                                        {% for contratoSinContrato in contratos['sinContrato'] %}
+                                            <option id='{{ contratoSinContrato|replace({' ': ''}) }}' value="{{ contratoSinContrato }}" {% if contratoSinContrato in ctrsArray %} selected {% endif %}>{{ contratoSinContrato }}</option>
                                         {% endfor %}
                                     </optgroup>
                                 </select>
@@ -96,5 +96,7 @@
     <script type="text/javascript">
         var url = "{{ path('booking_new', {'date': 'info.dateStr'}) }}";
         var eventSourceUrl = "{{ path('fc_load_events') }}";
+        var businessHours = '{{ businessHours | json_encode | raw }}';
+        var businessHoursJson = JSON.parse(businessHours);
     </script>
 {% endblock %}

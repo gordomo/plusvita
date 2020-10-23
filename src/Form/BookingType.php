@@ -16,8 +16,11 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class BookingType extends AbstractType
 {
+    public $pctr = '';
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
+        $this->pctr = $options['ctr'];
+
         $builder
             ->add('beginAt', DateTimeType::class, ['label' => 'Hora de Inicio', 'required' => true, 'widget' => 'single_text', 'html5' => true, 'attr' => ['class' => 'js-datepicker'],])
             ->add('endAt', DateTimeType::class, ['label' => 'Hora de Inicio', 'required' => true, 'widget' => 'single_text', 'html5' => true, 'attr' => ['class' => 'js-datepicker'],])
@@ -26,7 +29,15 @@ class BookingType extends AbstractType
                 'class' => Doctor::class,
                 'choice_label' => 'NombreApellido',
                 'label' => 'Profesional',
-                'attr' => ['class' => 'predictivo']
+                'attr' => ['class' => 'predictivo'],
+                'query_builder' => function (EntityRepository $er) {
+                    $qb = $er->createQueryBuilder('d')->where("JSON_CONTAINS (d.modalidad, '\"$this->pctr\"', '$') = 1");
+                    if ( $this->pctr != '' ) {
+                        return $qb;
+                    } else {
+                        return $er->createQueryBuilder('d')->where("1 = 1");
+                    }
+                },
             ])
             ->add('cliente', EntityType::class, [
                 'class' => Cliente::class,
@@ -42,6 +53,7 @@ class BookingType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Booking::class,
+            'ctr' => ''
         ]);
     }
 }

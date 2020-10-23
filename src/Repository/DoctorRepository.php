@@ -27,7 +27,15 @@ class DoctorRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult()
             ;
+    }
 
+    public function findByContratos($valueArray)
+    {
+        $qb = $this->createQueryBuilder('d');
+            foreach($valueArray as $value) {
+                $qb = $qb->orWhere("JSON_CONTAINS (d.modalidad, '\"$value\"', '$') = 1");
+            }
+        return $qb->getQuery()->getResult();
     }
     // /**
     //  * @return Doctor[] Returns an array of Doctor objects

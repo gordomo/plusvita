@@ -150,6 +150,11 @@ class Doctor implements UserInterface
      */
     private $bookings;
 
+    /**
+     * @ORM\Column(type="json", nullable=true)
+     */
+    private $businessHours = [];
+
     public function __construct()
     {
         $this->clientes = new ArrayCollection();
@@ -538,6 +543,18 @@ class Doctor implements UserInterface
                 $booking->setDoctor(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getBusinessHours(): ?array
+    {
+        return $this->businessHours;
+    }
+
+    public function setBusinessHours(?array $businessHours): self
+    {
+        $this->businessHours = $businessHours;
 
         return $this;
     }

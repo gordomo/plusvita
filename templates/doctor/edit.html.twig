@@ -10,4 +10,8 @@
 {% block javascripts %}
     {{ parent() }}
     <script src="{{ asset('assets/js/staff.js') }}"></script>
+    <script type="text/javascript">
+        var businessHours = '{{ businessHours | json_encode | raw }}';
+        var businessHoursJson = JSON.parse(businessHours);
+    </script>
 {% endblock %}

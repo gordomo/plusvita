@@ -45,65 +45,167 @@ if (typeof($params.doc_id) !== "undefined") {
     doc_id = $params.doc_id;
 }
 
+var ctr = 0;
+if (typeof($params.ctr) !== "undefined") {
+    ctr = $params.ctr;
+}
+
+function getBussinesHours() {
+    var businessHoursA = [];
+    if (typeof (businessHoursJson) != 'undefined' && businessHours.length > 2) {
+        if(typeof (businessHoursJson.lunes) != 'undefined') {
+            businessHoursA.push(    {
+                    daysOfWeek: [1], // Lunes
+                    startTime: businessHoursJson.lunes.desde, // 8am
+                    endTime: businessHoursJson.lunes.hasta // 6pm
+                },
+                {
+                    daysOfWeek: [1], // Lunes
+                    startTime: businessHoursJson.lunes.ydesde, // 8am
+                    endTime: businessHoursJson.lunes.yhasta // 6pm
+                });
+        }
+        if(typeof (businessHoursJson.martes) != 'undefined') {
+            businessHoursA.push({
+                    daysOfWeek: [2], // Martes
+                    startTime: businessHoursJson.martes.desde, // 10am
+                    endTime: businessHoursJson.martes.hasta,// 4pm
+                },
+                {
+                    daysOfWeek: [2], // Martes
+                    startTime: businessHoursJson.martes.ydesde, // 10am
+                    endTime: businessHoursJson.martes.yhasta,// 4pm
+                },);
+        }
+        if(typeof (businessHoursJson.miercoles) != 'undefined') {
+            businessHoursA.push({
+                    daysOfWeek: [3], // Miercoles
+                    startTime: businessHoursJson.miercoles.desde, // 10am
+                    endTime: businessHoursJson.miercoles.hasta,// 4pm
+                },
+                {
+                    daysOfWeek: [3], // Miercoles
+                    startTime: businessHoursJson.miercoles.ydesde, // 10am
+                    endTime: businessHoursJson.miercoles.yhasta,// 4pm
+                },)
+        }
+        if(typeof (businessHoursJson.jueves) != 'undefined') {
+            businessHoursA.push({
+                    daysOfWeek: [4], // Jueves
+                    startTime: businessHoursJson.jueves.desde, // 10am
+                    endTime: businessHoursJson.jueves.hasta,// 4pm
+                },
+                {
+                    daysOfWeek: [4], // Jueves
+                    startTime: businessHoursJson.jueves.ydesde, // 10am
+                    endTime: businessHoursJson.jueves.yhasta,// 4pm
+                },);
+        }
+        if(typeof (businessHoursJson.jueves) != 'undefined') {
+            businessHoursA.push({
+                    daysOfWeek: [5], // Viernes
+                    startTime: businessHoursJson.viernes.desde, // 10am
+                    endTime: businessHoursJson.viernes.hasta,// 4pm
+                },
+                {
+                    daysOfWeek: [5], // Viernes
+                    startTime: businessHoursJson.viernes.ydesde, // 10am
+                    endTime: businessHoursJson.viernes.yhasta,// 4pm
+                },);
+        }
+        if(typeof (businessHoursJson.sabado) != 'undefined') {
+            businessHoursA.push({
+                    daysOfWeek: [6], // Sábado
+                    startTime: businessHoursJson.sabado.desde, // 10am
+                    endTime: businessHoursJson.sabado.hasta,// 4pm
+                },
+                {
+                    daysOfWeek: [6], // Sábado
+                    startTime: businessHoursJson.sabado.ydesde, // 10am
+                    endTime: businessHoursJson.sabado.yhasta,// 4pm
+                })
+        }
+    } else {
+        alert('No hay horarios disponibles para este grupo de profesionales');
+    }
+
+    return businessHoursA;
+}
+
+
 
 document.addEventListener('DOMContentLoaded', () => {
     var calendarEl = document.getElementById('calendar-holder');
 
-    calendar = new FullCalendar.Calendar(calendarEl, {
-        locale: es,
-        navLinks: true,
-        defaultView: 'dayGridMonth',
-        editable: true,
-        dateClick: function(info) {
-            info.date.setDate(info.date.getDate() + 1);
-            console.log(info.date);
-            var hoy = new Date();
-            if( info.date <= hoy ) {
+    var businessHoursA = getBussinesHours();
 
-            } else {
-                if (info.view.type === 'dayGridMonth') {
-                    calendar.changeView('timeGridDay');
-                    calendar.gotoDate(info.dateStr);
+    if (typeof (FullCalendar) != 'undefined') {
+        calendar = new FullCalendar.Calendar(calendarEl, {
+            locale: es,
+            navLinks: true,
+            defaultView: 'dayGridMonth',
+            editable: true,
+            businessHours: businessHoursA,
+            dateClick: function(info) {
+                info.date.setDate(info.date.getDate() + 1);
+
+                var hoy = new Date();
+                if( info.date <= hoy ) {
+
                 } else {
-                    url = url.replace("info.dateStr", info.dateStr);
-                    window.location.href = url;
+                    if (info.view.type === 'dayGridMonth') {
+                        calendar.changeView('timeGridDay');
+                        calendar.gotoDate(info.dateStr);
+                    } else {
+                        url = url.replace("info.dateStr", info.dateStr);
+                        hoy = new Date();
+                        click = new Date(info.dateStr);
+                        click.setHours(click.getHours() + 3)
+                        if(Date.parse(click) > Date.parse(hoy)) {
+                            console.log($(this));
+                            console.log(info);
+                            //window.location.href = url+'&ctr='+ctr;
+                        }
+                    }
                 }
-            }
 
-        },
-        eventSources: [
-            {
-                url: eventSourceUrl,
-                method: "POST",
-                extraParams: {
-                    filters: JSON.stringify({
-                        doctor_id: doc_id,
-                        cliente_id: cli_id
-                    })
-                },
-                failure: () => {
-                    // alert("There was an error while fetching FullCalendar!");
-                },
             },
-        ],
-        customButtons: {
-            myCustomButton: {
-                text: 'Filtros',
-                //icon: 'fc-icon-filter',
-                click: function() {
-                    $('.filtros').modal('show');
+            eventSources: [
+                {
+                    url: eventSourceUrl,
+                    method: "POST",
+                    extraParams: {
+                        filters: JSON.stringify({
+                            doctor_id: doc_id,
+                            cliente_id: cli_id,
+                            ctr: ctr,
+                        })
+                    },
+                    failure: () => {
+                        // alert("There was an error while fetching FullCalendar!");
+                    },
+                },
+            ],
+            customButtons: {
+                myCustomButton: {
+                    text: 'Filtros',
+                    //icon: 'fc-icon-filter',
+                    click: function() {
+                        $('.filtros').modal('show');
+                    }
                 }
-            }
-        },
-        header: {
-            left: 'prev,next today, myCustomButton',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay',
-        },
-        plugins: [ 'interaction', 'dayGrid', 'timeGrid' ], // https://fullcalendar.io/docs/plugin-index
-        timeZone: 'UTC',
-    });
-    calendar.render();
+            },
+            header: {
+                left: 'prev,next today, myCustomButton',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay',
+            },
+            plugins: [ 'interaction', 'dayGrid', 'timeGrid' ], // https://fullcalendar.io/docs/plugin-index
+            timeZone: 'UTC',
+        });
+        calendar.render();
+    }
+
 
     var hoy = new Date();
     $('.fc-day').each(function() {

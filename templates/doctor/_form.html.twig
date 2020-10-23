@@ -31,7 +31,7 @@
         </div>
     </div>
     <br>
-
+<hr>
     <div class="form-row">
         <div class="col-sm">
             {{ form_label(form.tipo, 'Tipo de contrato') }}
@@ -61,6 +61,144 @@
         </div>
     </div>
     <br>
+    <hr>
+    <h5>Horarios disponibles</h5>
+    <br>
+    <div class="form-row">
+        <div class="col-sm">
+            <span>Día de la semana</span>
+        </div>
+        <div class="col-sm">
+            <span>Desde</span>
+        </div>
+        <div class="col-sm">
+            <span>Hasta</span>
+        </div>
+        <div class="col-sm" style="text-align: center;">
+            <span>y</span>
+        </div>
+        <div class="col-sm">
+            <span>Desde</span>
+        </div>
+        <div class="col-sm">
+            <span>Hasta</span>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="col-sm">
+            <span>Lunes</span>
+        </div>
+        <div class="col-sm">
+            {{ form_widget(form.lunesdesde) }}
+        </div>
+        <div class="col-sm">
+            {{ form_widget(form.luneshasta) }}
+        </div>
+        <div class="col-sm" style="text-align: center;">
+        </div>
+        <div class="col-sm">
+            {{ form_widget(form.ylunesdesde) }}
+        </div>
+        <div class="col-sm">
+            {{ form_widget(form.yluneshasta) }}
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="col-sm">
+            <span>Martes</span>
+        </div>
+        <div class="col-sm">
+            {{ form_widget(form.martesdesde) }}
+        </div>
+        <div class="col-sm">
+            {{ form_widget(form.marteshasta) }}
+        </div>
+        <div class="col-sm" style="text-align: center;">
+        </div>
+        <div class="col-sm">
+            {{ form_widget(form.ymartesdesde) }}
+        </div>
+        <div class="col-sm">
+            {{ form_widget(form.ymarteshasta) }}
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="col-sm">
+            <span>Miercoles</span>
+        </div>
+        <div class="col-sm">
+            {{ form_widget(form.miercolesdesde) }}
+        </div>
+        <div class="col-sm">
+            {{ form_widget(form.miercoleshasta) }}
+        </div>
+        <div class="col-sm" style="text-align: center;">
+        </div>
+        <div class="col-sm">
+            {{ form_widget(form.ymiercolesdesde) }}
+        </div>
+        <div class="col-sm">
+            {{ form_widget(form.ymiercoleshasta) }}
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="col-sm">
+            <span>Jueves</span>
+        </div>
+        <div class="col-sm">
+            {{ form_widget(form.juevesdesde) }}
+        </div>
+        <div class="col-sm">
+            {{ form_widget(form.jueveshasta) }}
+        </div>
+        <div class="col-sm" style="text-align: center;">
+        </div>
+        <div class="col-sm">
+            {{ form_widget(form.yjuevesdesde) }}
+        </div>
+        <div class="col-sm">
+            {{ form_widget(form.yjueveshasta) }}
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="col-sm">
+            <span>Viernes</span>
+        </div>
+        <div class="col-sm">
+            {{ form_widget(form.viernesdesde) }}
+        </div>
+        <div class="col-sm">
+            {{ form_widget(form.vierneshasta) }}
+        </div>
+        <div class="col-sm" style="text-align: center;">
+        </div>
+        <div class="col-sm">
+            {{ form_widget(form.yviernesdesde) }}
+        </div>
+        <div class="col-sm">
+            {{ form_widget(form.yvierneshasta) }}
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="col-sm">
+            <span>Sábado</span>
+        </div>
+        <div class="col-sm">
+            {{ form_widget(form.sabadodesde) }}
+        </div>
+        <div class="col-sm">
+            {{ form_widget(form.sabadohasta) }}
+        </div>
+        <div class="col-sm" style="text-align: center;">
+        </div>
+        <div class="col-sm">
+            {{ form_widget(form.ysabadodesde) }}
+        </div>
+        <div class="col-sm">
+            {{ form_widget(form.ysabadohasta) }}
+        </div>
+    </div>
+
     {#<div class="form-row ">
         <div class="col-sm">
         {{ form_label(form.especialidad, 'Especialidad') }}
@@ -68,7 +206,9 @@
         </div>
     </div>
     <br>#}
-
+    <br>
+    <hr>
+    <br>
     <div class="form-row">
         <div class="col-sm">
         {{ form_label(form.firmaPdf, 'Firma en Pdf') }}<br>

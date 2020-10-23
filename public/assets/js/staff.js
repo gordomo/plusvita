@@ -62,6 +62,85 @@ $(document).ready(function() {
         $('.vtoMatricula').removeClass('d-none');
         $('.libretaSanitaria').addClass('d-none');
     }
+
+    if (typeof (businessHoursJson) != 'undefined') {
+        if (typeof (businessHoursJson.lunes) != 'undefined') {
+            var lunesDesde = (typeof (businessHoursJson.lunes.desde) != 'undefined') ? businessHoursJson.lunes.desde : '';
+            var lunesHasta = (typeof (businessHoursJson.lunes.hasta) != 'undefined') ? businessHoursJson.lunes.hasta : '';
+            var lunesyDesde = (typeof (businessHoursJson.lunes.ydesde) != 'undefined' && businessHoursJson.lunes.ydesde != businessHoursJson.lunes.desde) ? businessHoursJson.lunes.ydesde : '';
+            var lunesyHasta = (typeof (businessHoursJson.lunes.yhasta) != 'undefined' && businessHoursJson.lunes.yhasta != businessHoursJson.lunes.hasta) ? businessHoursJson.lunes.yhasta : '';
+        }
+
+        if (typeof (businessHoursJson.martes) != 'undefined') {
+            var martesDesde = (typeof (businessHoursJson.martes.desde) != 'undefined') ? businessHoursJson.martes.desde : '';
+            var martesHasta = (typeof (businessHoursJson.martes.hasta) != 'undefined') ? businessHoursJson.martes.hasta : '';
+            var martesyDesde = (typeof (businessHoursJson.martes.ydesde) != 'undefined' && businessHoursJson.martes.ydesde != businessHoursJson.martes.desde) ? businessHoursJson.martes.ydesde : '';
+            var martesyHasta = (typeof (businessHoursJson.martes.yhasta) != 'undefined' && businessHoursJson.martes.yhasta != businessHoursJson.martes.hasta) ? businessHoursJson.martes.yhasta : '';
+        }
+
+        if (typeof (businessHoursJson.miercoles) != 'undefined') {
+            var miercolesDesde = (typeof (businessHoursJson.miercoles.desde) != 'undefined') ? businessHoursJson.miercoles.desde : '';
+            var miercolesHasta = (typeof (businessHoursJson.miercoles.hasta) != 'undefined') ? businessHoursJson.miercoles.hasta : '';
+            var miercolesyDesde = (typeof (businessHoursJson.miercoles.ydesde) != 'undefined' && businessHoursJson.miercoles.ydesde != businessHoursJson.miercoles.desde) ? businessHoursJson.miercoles.ydesde : '';
+            var miercolesyHasta = (typeof (businessHoursJson.miercoles.yhasta) != 'undefined' && businessHoursJson.miercoles.yhasta != businessHoursJson.miercoles.hasta) ? businessHoursJson.miercoles.yhasta : '';
+        }
+
+        if (typeof (businessHoursJson.jueves.desde) != 'undefined') {
+            var juevesDesde = (typeof (businessHoursJson.jueves.desde) != 'undefined') ? businessHoursJson.jueves.desde : '';
+            var juevesHasta = (typeof (businessHoursJson.jueves.hasta) != 'undefined') ? businessHoursJson.jueves.hasta : '';
+            var juevesyDesde = (typeof (businessHoursJson.jueves.ydesde) != 'undefined' && businessHoursJson.jueves.ydesde != businessHoursJson.jueves.desde) ? businessHoursJson.jueves.ydesde : '';
+            var juevesyHasta = (typeof (businessHoursJson.jueves.yhasta) != 'undefined' && businessHoursJson.jueves.yhasta != businessHoursJson.jueves.hasta) ? businessHoursJson.jueves.yhasta : '';
+        }
+
+        if (typeof (businessHoursJson.viernes.desde) != 'undefined') {
+            var viernesDesde = (typeof (businessHoursJson.viernes.desde) != 'undefined') ? businessHoursJson.viernes.desde : '';
+            var viernesHasta = (typeof (businessHoursJson.viernes.hasta) != 'undefined') ? businessHoursJson.viernes.hasta : '';
+            var viernesyDesde = (typeof (businessHoursJson.viernes.ydesde) != 'undefined' && businessHoursJson.viernes.ydesde != businessHoursJson.viernes.desde) ? businessHoursJson.viernes.ydesde : '';
+            var viernesyHasta = (typeof (businessHoursJson.viernes.yhasta) != 'undefined' && businessHoursJson.viernes.yhasta != businessHoursJson.viernes.hasta) ? businessHoursJson.viernes.hasta : '';
+        }
+
+        if (typeof (businessHoursJson.sabado) != 'undefined') {
+            var sabadoDesde = (typeof (businessHoursJson.sabado.desde) != 'undefined') ? businessHoursJson.sabado.desde : '';
+            var sabadoHasta = (typeof (businessHoursJson.sabado.hasta) != 'undefined') ? businessHoursJson.sabado.hasta : '';
+            var sabadoyDesde = (typeof (businessHoursJson.sabado.ydesde) != 'undefined' && businessHoursJson.sabado.ydesde != businessHoursJson.sabado.desde) ? businessHoursJson.sabado.ydesde : '';
+            var sabadoyHasta = (typeof (businessHoursJson.sabado.yhasta) != 'undefined' && businessHoursJson.sabado.yhasta != businessHoursJson.sabado.hasta) ? businessHoursJson.sabado.yhasta : '';
+        }
+
+
+        $('#doctor_lunesdesde').val(lunesDesde);
+        $('#doctor_luneshasta').val(lunesHasta);
+        $('#doctor_yluneshasta').val(lunesyHasta);
+        $('#doctor_ylunesdesde').val(lunesyDesde);
+
+        $('#doctor_martesdesde').val(martesDesde);
+        $('#doctor_marteshasta').val(martesHasta);
+        $('#doctor_ymarteshasta').val(martesyHasta);
+        $('#doctor_ymartesdesde').val(martesyDesde);
+
+        $('#doctor_miercolesdesde').val(miercolesDesde);
+        $('#doctor_miercoleshasta').val(miercolesHasta);
+        $('#doctor_ymiercoleshasta').val(miercolesyHasta);
+        $('#doctor_ymiercolesdesde').val(miercolesyDesde);
+
+        $('#doctor_juevesdesde').val(juevesDesde);
+        $('#doctor_jueveshasta').val(juevesHasta);
+        $('#doctor_yjueveshasta').val(juevesyHasta);
+        $('#doctor_yjuevesdesde').val(juevesyDesde);
+
+        $('#doctor_viernesdesde').val(viernesDesde);
+        $('#doctor_vierneshasta').val(viernesHasta);
+        $('#doctor_yvierneshasta').val(viernesyHasta);
+        $('#doctor_yviernesdesde').val(viernesyDesde);
+
+
+        $('#doctor_sabadodesde').val(sabadoDesde);
+        $('#doctor_sabadohasta').val(sabadoHasta);
+        $('#doctor_ysabadohasta').val(sabadoyHasta);
+        $('#doctor_ysabadodesde').val(sabadoyDesde);
+    }
+
+
+
 });
 
 
@@ -80,4 +159,13 @@ if($('#doctor_modalidad').is(':visible')) {
 
 $('.js-datepicker').datepicker({
     format: 'yyyy-mm-dd'
+});
+
+$('.predictivo').chosen();
+$( "#buscarContrato" ).on('click', function(){
+    location.href = '?ctr=' + $('#contrato').val();
+});
+
+$( "#limpiarContratos" ).on('click', function(){
+    location.href = '?ctr=';
 });

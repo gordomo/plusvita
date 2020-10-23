@@ -31,10 +31,71 @@ class DoctorController extends AbstractController
     /**
      * @Route("/", name="doctor_index", methods={"GET"})
      */
-    public function index(DoctorRepository $doctorRepository): Response
+    public function index(Request $request, DoctorRepository $doctorRepository): Response
     {
+        $empleado = [
+            'Mucamo/a',
+            'Enfermero/a',
+            'Auxiliar de enfermeria',
+            'Asistente de enfermeria',
+            'Mantenimiento',
+            'Cocinero',
+            'Ayudante de cocina',
+            'Administrativo',
+            'Recepcionista',
+            'Coordinador de pisos',
+            'Coordinador general',
+            'Coordinador de enfermeria'
+        ];
+        $directo = [
+            'Nutricionista',
+            'Director medico',
+            'Sub director medico',
+            'Trabajadora social',
+            'Psiquiatra',
+            'Infectologo',
+            'Contador',
+            'Abogado',
+            'Estudio contable',
+            'Directivo',
+            'Programador',
+        ];
+        $prestacion = [
+            'Profesional por prestacion',
+            'Medico de guardia',
+            'Kinesiologo',
+            'Kinesiologo respiratorio',
+            'Terapista ocupacional',
+            'Fonoaudiologo',
+            'Psicologo',
+            'Fisiatra',
+            'Neurologo',
+            'Cardiologo',
+            'Urologo',
+            'Hematologo',
+            'Neumonologo',
+        ];
+        $sinContrato = [
+            'Cirujano',
+            'Traumatologo',
+            'Neumonologo',
+        ];
+        $contratos = ['empleado'=> $empleado, 'directo' => $directo, 'prestacion' => $prestacion, 'sinContrato' => $sinContrato];
+
+        $ctrs = $request->query->get('ctr');
+        $ctrsArray = explode(',', $ctrs);
+
+
+        if(!empty($ctrs)) {
+            $doctores = $doctorRepository->findByContratos($ctrsArray);
+        } else {
+            $doctores = $doctorRepository->findAll();
+        }
+
         return $this->render('doctor/index.html.twig', [
-            'doctors' => $doctorRepository->findAll(),
+            'doctors' => $doctores,
+            'contratos' => $contratos,
+            'ctrsArray' => $ctrsArray,
             
         ]);
     }
@@ -66,11 +127,11 @@ class DoctorController extends AbstractController
         $doctor->setRoles([]);
         $doctor->setInicioContrato(new \DateTime());
 
-        $form = $this->createForm(DoctorType::class, $doctor, ['is_new' => true]);
+        $form = $this->createForm(DoctorType::class, $doctor, ['is_new' => true, 'allow_extra_fields' =>true]);
 
         $form->handleRequest($request);
 
-        if ($form->isSubmitted()) {
+        if ($form->isSubmitted() && $form->isValid()) {
 
             $firmaPdfFile = $form->get('firmaPdf')->getData();
             if ($firmaPdfFile) {
@@ -92,6 +153,23 @@ class DoctorController extends AbstractController
                 // instead of its contents
                 $doctor->setFirma($newFilename);
             }
+
+            $dias =  [1 => 'lunes', 2 => 'martes', 3 => 'miercoles', 4 => 'jueves', 5 => 'viernes', 6 => 'sabado'];
+
+            $horarios = [];
+
+            foreach ($dias as $key => $dia) {
+                $desde = $form->get($dia.'desde')->getData() ?? '08:00';
+                $ydesde = $form->get('y'.$dia.'desde')->getData() ?? $desde;
+
+                $hasta = $form->get($dia.'hasta')->getData() ?? '18:00';
+                $yhasta = $form->get('y'.$dia.'hasta')->getData() ?? $hasta;
+
+                $horarios[$key] = ['desde' => $desde, 'hasta' => $hasta, 'ydesde' => $ydesde, 'yhasta' => $yhasta];
+            }
+
+            $doctor->setBusinessHours($horarios);
+
 
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($doctor);
@@ -123,11 +201,11 @@ class DoctorController extends AbstractController
      */
     public function edit(Request $request, Doctor $doctor, SluggerInterface $slugger): Response
     {
-        $form = $this->createForm(DoctorType::class, $doctor, ['is_new' => false]);
-
+        $form = $this->createForm(DoctorType::class, $doctor, ['is_new' => false, 'allow_extra_fields' =>true]);
+        $dias =  [1 => 'lunes', 2 => 'martes', 3 => 'miercoles', 4 => 'jueves', 5 => 'viernes', 6 => 'sabado'];
         $form->handleRequest($request);
 
-        if ($form->isSubmitted()) {
+        if ($form->isSubmitted() && $form->isValid()) {
             $firmaPdfFile = $form->get('firmaPdf')->getData();
             if ($firmaPdfFile) {
                 $originalFilename = pathinfo($firmaPdfFile->getClientOriginalName(), PATHINFO_FILENAME);
@@ -156,15 +234,43 @@ class DoctorController extends AbstractController
                 $doctor->setFirma($newFilename);
             }
 
+
+
+            $horarios = [];
+
+
+            foreach ($dias as $key => $dia) {
+                $desde = $form->get($dia.'desde')->getData() ?? 0;
+                $ydesde = $form->get('y'.$dia.'desde')->getData() ?? $desde;
+
+                $hasta = $form->get($dia.'hasta')->getData() ?? 0;
+                $yhasta = $form->get('y'.$dia.'hasta')->getData() ?? $hasta;
+
+                if($desde != 0 && $hasta != 0) {
+                    $horarios[$key] = ['desde' => $desde, 'hasta' => $hasta, 'ydesde' => $ydesde, 'yhasta' => $yhasta];
+                }
+
+            }
+
+            $doctor->setBusinessHours($horarios);
+
             $this->getDoctrine()->getManager()->flush();
 
             return $this->redirectToRoute('doctor_index');
         }
-
+        $businessHours = [];
+        $doctorActualBusinessHours = $doctor->getBusinessHours();
+        foreach ($dias as $key => $dia) {
+            if (isset($doctorActualBusinessHours[$key])) {
+                $businessHours[$dia] = $doctorActualBusinessHours[$key];
+            }
+        }
+//dd($businessHours);
         return $this->render('doctor/edit.html.twig', [
             'doctor' => $doctor,
             'form' => $form->createView(),
             'title' => 'Editar:' . $doctor->getNombre() . ' ' . $doctor->getApellido(),
+            'businessHours' => $businessHours,
         ]);
     }
 

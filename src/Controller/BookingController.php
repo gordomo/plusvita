@@ -73,6 +73,7 @@ class BookingController extends AbstractController
         $booking = new Booking();
 
         $contrato = $request->query->get('ctr');
+        $ctrsArray = [0 => $contrato];
 
         if(!empty($contrato)) {
             $doctores = $doctorRepository->findByContrato($contrato);
@@ -119,11 +120,15 @@ class BookingController extends AbstractController
         $booking->setUser($user);
 
         //$form = $this->createForm(BookingType::class, $booking);
+        //TODO calcular businessHours de acuerdo a los doctores disponibles
+        $businessHours = $this->getBusinessHours($doctores);
 
         return $this->render('booking/calendar.html.twig', [
             'clientes' => $clientes,
             'doctores' => $doctores,
             'contratos' => $contratos,
+            'ctrsArray' => $ctrsArray,
+            'businessHours' => $businessHours
         ]);
     }
 
@@ -170,7 +175,9 @@ class BookingController extends AbstractController
         $booking->setBeginAt($beginAt);
         $booking->setEndAt($endAt);
 
-        $form = $this->createForm(BookingType::class, $booking);
+        $ctr = !empty($request->get('ctr')) ? $request->get('ctr') : '';
+
+        $form = $this->createForm(BookingType::class, $booking, ['ctr' => $ctr]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -231,6 +238,117 @@ class BookingController extends AbstractController
         return $this->redirectToRoute('booking_calendar');
     }
 
+    private function getBusinessHours(array $doctores)
+    {
+        foreach ($doctores as $doctor) {
+            $doctorsBusinessHours = $doctor->getBusinessHours();
+
+            if (!empty($doctorsBusinessHours)) {
+                if (!isset($businessHours)) {
+                    if (isset($doctorsBusinessHours[1])) {
+                        $businessHours['lunes'] = $doctorsBusinessHours[1];
+                    }
+                    if (isset($doctorsBusinessHours[2])) {
+                        $businessHours['martes'] = $doctorsBusinessHours[2];
+                    }
+                    if (isset($doctorsBusinessHours[3])) {
+                        $businessHours['miercoles'] = $doctorsBusinessHours[3];
+                    }
+                    if (isset($doctorsBusinessHours[4])) {
+                        $businessHours['jueves'] = $doctorsBusinessHours[4];
+                    }
+                    if (isset($doctorsBusinessHours[5])) {
+                        $businessHours['viernes'] = $doctorsBusinessHours[5];
+                    }
+                    if (isset($doctorsBusinessHours[6])) {
+                        $businessHours['sabado'] = $doctorsBusinessHours[6];
+                    }
+                } else {
+                    //lunes
+                    if (isset($doctorsBusinessHours[1]) && $businessHours['lunes']['desde'] > $doctorsBusinessHours[1]['desde']) {
+                        $businessHours['lunes']['desde'] = $doctorsBusinessHours[1]['desde'];
+                    }
+                    if (isset($doctorsBusinessHours[1]) && $businessHours['lunes']['hasta'] < $doctorsBusinessHours[1]['hasta']) {
+                        $businessHours['lunes']['hasta'] = $doctorsBusinessHours[1]['hasta'];
+                    }
+                    if (isset($doctorsBusinessHours[1]) && $businessHours['lunes']['ydesde'] > $doctorsBusinessHours[1]['ydesde']) {
+                        $businessHours['lunes']['ydesde'] = $doctorsBusinessHours[1]['ydesde'];
+                    }
+                    if (isset($doctorsBusinessHours[1]) && $businessHours['lunes']['yhasta'] < $doctorsBusinessHours[1]['yhasta']) {
+                        $businessHours['lunes']['yhasta'] = $doctorsBusinessHours[1]['yhasta'];
+                    }
+                    //martes
+                    if (isset($doctorsBusinessHours[2]) && $businessHours['martes']['desde'] > $doctorsBusinessHours[2]['desde']) {
+                        $businessHours['martes']['desde'] = $doctorsBusinessHours[2]['desde'];
+                    }
+                    if (isset($doctorsBusinessHours[2]) && $businessHours['martes']['hasta'] < $doctorsBusinessHours[2]['hasta']) {
+                        $businessHours['martes']['hasta'] = $doctorsBusinessHours[2]['hasta'];
+                    }
+                    if (isset($doctorsBusinessHours[2]) && $businessHours['martes']['ydesde'] > $doctorsBusinessHours[2]['ydesde']) {
+                        $businessHours['martes']['ydesde'] = $doctorsBusinessHours[2]['ydesde'];
+                    }
+                    if (isset($doctorsBusinessHours[2]) && $businessHours['martes']['yhasta'] < $doctorsBusinessHours[2]['yhasta']) {
+                        $businessHours['martes']['yhasta'] = $doctorsBusinessHours[2]['yhasta'];
+                    }
+                    //miercoles
+                    if (isset($doctorsBusinessHours[3]) && $businessHours['miercoles']['desde'] > $doctorsBusinessHours[3]['desde']) {
+                        $businessHours['miercoles']['desde'] = $doctorsBusinessHours[3]['desde'];
+                    }
+                    if (isset($doctorsBusinessHours[3]) && $businessHours['miercoles']['hasta'] < $doctorsBusinessHours[3]['hasta']) {
+                        $businessHours['miercoles']['hasta'] = $doctorsBusinessHours[3]['hasta'];
+                    }
+                    if (isset($doctorsBusinessHours[3]) && $businessHours['miercoles']['ydesde'] > $doctorsBusinessHours[3]['ydesde']) {
+                        $businessHours['miercoles']['ydesde'] = $doctorsBusinessHours[3]['ydesde'];
+                    }
+                    if (isset($doctorsBusinessHours[3]) && $businessHours['miercoles']['yhasta'] < $doctorsBusinessHours[3]['yhasta']) {
+                        $businessHours['miercoles']['yhasta'] = $doctorsBusinessHours[3]['yhasta'];
+                    }
+                    //jueves
+                    if (isset($doctorsBusinessHours[4]) && $businessHours['jueves']['desde'] > $doctorsBusinessHours[4]['desde']) {
+                        $businessHours['jueves']['desde'] = $doctorsBusinessHours[4]['desde'];
+                    }
+                    if (isset($doctorsBusinessHours[4]) && $businessHours['jueves']['hasta'] < $doctorsBusinessHours[4]['hasta']) {
+                        $businessHours['jueves']['hasta'] = $doctorsBusinessHours[4]['hasta'];
+                    }
+                    if (isset($doctorsBusinessHours[4]) && $businessHours['jueves']['ydesde'] > $doctorsBusinessHours[4]['ydesde']) {
+                        $businessHours['jueves']['ydesde'] = $doctorsBusinessHours[4]['ydesde'];
+                    }
+                    if (isset($doctorsBusinessHours[4]) && $businessHours['jueves']['yhasta'] < $doctorsBusinessHours[4]['yhasta']) {
+                        $businessHours['jueves']['yhasta'] = $doctorsBusinessHours[4]['yhasta'];
+                    }
+                    //viernes
+                    if (isset($doctorsBusinessHours[5]) && $businessHours['viernes']['desde'] > $doctorsBusinessHours[5]['desde']) {
+                        $businessHours['viernes']['desde'] = $doctorsBusinessHours[5]['desde'];
+                    }
+                    if (isset($doctorsBusinessHours[5]) && $businessHours['viernes']['hasta'] < $doctorsBusinessHours[5]['hasta']) {
+                        $businessHours['viernes']['hasta'] = $doctorsBusinessHours[5]['hasta'];
+                    }
+                    if (isset($doctorsBusinessHours[5]) && $businessHours['viernes']['ydesde'] > $doctorsBusinessHours[5]['ydesde']) {
+                        $businessHours['viernes']['ydesde'] = $doctorsBusinessHours[5]['ydesde'];
+                    }
+                    if (isset($doctorsBusinessHours[5]) && $businessHours['viernes']['yhasta'] < $doctorsBusinessHours[5]['yhasta']) {
+                        $businessHours['viernes']['yhasta'] = $doctorsBusinessHours[5]['yhasta'];
+                    }
+                    //sabado
+                    if (isset($doctorsBusinessHours[6]) && $businessHours['sabado']['desde'] > $doctorsBusinessHours[6]['desde']) {
+                        $businessHours['sabado']['desde'] = $doctorsBusinessHours[6]['desde'];
+                    }
+                    if (isset($doctorsBusinessHours[6]) && $businessHours['sabado']['hasta'] < $doctorsBusinessHours[6]['hasta']) {
+                        $businessHours['sabado']['hasta'] = $doctorsBusinessHours[6]['hasta'];
+                    }
+                    if (isset($doctorsBusinessHours[6]) && $businessHours['sabado']['ydesde'] > $doctorsBusinessHours[6]['ydesde']) {
+                        $businessHours['sabado']['ydesde'] = $doctorsBusinessHours[6]['ydesde'];
+                    }
+                    if (isset($doctorsBusinessHours[6]) && $businessHours['sabado']['yhasta'] < $doctorsBusinessHours[6]['yhasta']) {
+                        $businessHours['sabado']['yhasta'] = $doctorsBusinessHours[6]['yhasta'];
+                    }
+                }
+            }
+
+        }
+
+        return $businessHours ?? [];
+    }
 
 
 }
