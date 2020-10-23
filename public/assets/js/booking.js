@@ -126,7 +126,10 @@ function getBussinesHours() {
                 })
         }
     } else {
-        alert('No hay horarios disponibles para este grupo de profesionales');
+        if(!window.location.href.includes('booking/new')) {
+            alert('No hay horarios disponibles para este grupo de profesionales');
+        }
+
     }
 
     return businessHoursA;
@@ -162,9 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         click = new Date(info.dateStr);
                         click.setHours(click.getHours() + 3)
                         if(Date.parse(click) > Date.parse(hoy)) {
-                            console.log($(this));
-                            console.log(info);
-                            //window.location.href = url+'&ctr='+ctr;
+                            window.location.href = url+'&ctr='+ctr;
                         }
                     }
                 }
