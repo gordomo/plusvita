@@ -47,6 +47,7 @@
                 <th scope="col">Email</th>
                 <th scope="col">Inicio Contrato</th>
                 <th scope="col">Vto Contrato</th>
+                <th scope="col">CBU</th>
                 <th scope="col">Horarios</th>
                 <th scope="col">actions</th>
             </tr>
@@ -71,6 +72,9 @@
                 </td>
                 <td>
                     {{ doctor.vtoContrato | date('Y-m-d') }}
+                </td>
+                <td class="">
+                    {{ doctor.cbu }}
                 </td>
                 <td class="lowercase">
                     {% for horario in doctor.businessHours %}

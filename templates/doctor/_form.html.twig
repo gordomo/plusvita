@@ -37,6 +37,10 @@
             {{ form_label(form.tipo, 'Tipo de contrato') }}
             {{ form_widget(form.tipo, {'attr': {'data-staff_tipo_select-url': path('staff_tipo_select'), 'class': 'js-staff-tipo'}}) }}
         </div>
+        <div class="col-sm">
+            {{ form_label(form.cbu, 'CBU') }}
+            {{ form_widget(form.cbu) }}
+        </div>
     </div>
     <br>
     <div class="js-staff-modalidad-target">

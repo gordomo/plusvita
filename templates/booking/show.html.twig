@@ -29,7 +29,7 @@
         </tbody>
     </table>
 
-    <a class="btn btn-default" href="{{ path('booking_calendar') }}">Volver</a>
+    <a class="btn btn-default" href="javascript:history.back();">Volver</a>
     <a class="btn btn-success" href="{{ path('booking_edit', {'id': booking.id}) }}">Editar</a>
     <br><br>
 {% endblock %}

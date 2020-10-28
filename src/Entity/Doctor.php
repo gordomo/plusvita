@@ -155,6 +155,11 @@ class Doctor implements UserInterface
      */
     private $businessHours = [];
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $cbu;
+
     public function __construct()
     {
         $this->clientes = new ArrayCollection();
@@ -555,6 +560,18 @@ class Doctor implements UserInterface
     public function setBusinessHours(?array $businessHours): self
     {
         $this->businessHours = $businessHours;
+
+        return $this;
+    }
+
+    public function getCbu(): ?string
+    {
+        return $this->cbu;
+    }
+
+    public function setCbu(?string $cbu): self
+    {
+        $this->cbu = $cbu;
 
         return $this;
     }

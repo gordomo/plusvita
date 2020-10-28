@@ -93,7 +93,7 @@ class Booking
 
     public function getTitle(): ?string
     {
-        return $this->title;
+        return $this->getClienteName() . " - " . $this->getDoctorName();
     }
 
     public function setTitle(string $title): self
@@ -137,6 +137,16 @@ class Booking
     public function getCliente()
     {
         return $this->cliente;
+    }
+
+    public function getClienteName(): ?string
+    {
+        return $this->cliente->getNombre() . ' ' . $this->cliente->getApellido();
+    }
+
+    public function getDoctorName(): ?string
+    {
+        return $this->doctor->getApellido();
     }
 
     /**

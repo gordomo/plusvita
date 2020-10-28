@@ -84,9 +84,63 @@ class CalendarSubscriber implements EventSubscriberInterface
              * and: https://github.com/fullcalendar/fullcalendar/blob/master/src/core/options.ts
              */
 
+            $doctor = $booking->getDoctor();
+            $color = '#2196f3';
+
+            switch ($doctor->getModalidad()[0]) {
+                case 'Mucamo/a':
+                case 'Enfermero/a':
+                case 'Auxiliar de enfermeria':
+                case 'Asistente de enfermeria':
+                case 'Mantenimiento':
+                case 'Cocinero':
+                case 'Ayudante de cocina':
+                case 'Administrativo':
+                case 'Recepcionista':
+                case 'Coordinador de pisos':
+                case 'Coordinador general':
+                case 'Coordinador de enfermeria':
+                    $color = '#b088be';
+                    break;
+
+                case 'Nutricionista':
+                case 'Director medico':
+                case 'Sub director medico':
+                case 'Trabajadora social':
+                case 'Psiquiatra':
+                case 'Infectologo':
+                case 'Contador':
+                case 'Abogado':
+                case 'Estudio contable':
+                case 'Directivo':
+                case 'Programador':
+                    $color = '#60b9b9';
+                    break;
+
+                case 'Profesional por prestacion':
+                case 'Medico de guardia':
+                case 'Kinesiologo':
+                case 'Kinesiologo respiratorio':
+                case 'Terapista ocupacional':
+                case 'Fonoaudiologo':
+                case 'Psicologo':
+                case 'Fisiatra':
+                case 'Neurologo':
+                case 'Cardiologo':
+                case 'Urologo':
+                case 'Hematologo':
+                case 'Neumonologo':
+                    $color = '#889cbe';
+                    break;
+                case 'Cirujano':
+                case 'Traumatologo':
+                    $color = '#e64891';
+                    break;
+            }
+
             $bookingEvent->setOptions([
-                'backgroundColor' => 'red',
-                'borderColor' => 'red',
+                'backgroundColor' => $color,
+                'borderColor' => $color,
             ]);
             $bookingEvent->addOption(
                 'url',
