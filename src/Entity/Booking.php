@@ -141,12 +141,15 @@ class Booking
 
     public function getClienteName(): ?string
     {
-        return $this->cliente->getNombre() . ' ' . $this->cliente->getApellido();
+        $clienteName = !empty($this->cliente) ? $this->cliente->getNombre() : '';
+        $doctoreName = !empty($this->cliente) ? $this->cliente->getApellido() : '';
+        return $clienteName . ' ' . $doctoreName;
     }
 
     public function getDoctorName(): ?string
     {
-        return $this->doctor->getApellido();
+        $doctorName = !empty($this->doctor) ? $this->doctor->getApellido() : '';
+        return $doctorName;
     }
 
     /**
