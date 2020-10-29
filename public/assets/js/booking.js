@@ -101,7 +101,7 @@ function getBussinesHours() {
                     endTime: businessHoursJson.jueves.yhasta,// 4pm
                 },);
         }
-        if(typeof (businessHoursJson.jueves) != 'undefined') {
+        if(typeof (businessHoursJson.viernes) != 'undefined') {
             businessHoursA.push({
                     daysOfWeek: [5], // Viernes
                     startTime: businessHoursJson.viernes.desde, // 10am

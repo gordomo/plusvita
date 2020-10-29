@@ -7,8 +7,9 @@
         <thead>
             <tr>
                 <th>Nombre</th>
-                <th>Camas Disponibles</th>
+                <th>Camas Totales</th>
                 <th>Camas Ocupadas</th>
+                <th>Camas Disponibles</th>
                 <th>Acciones</th>
             </tr>
         </thead>
@@ -17,7 +18,10 @@
             <tr>
                 <td>{{ habitacion.nombre }}</td>
                 <td>{{ habitacion.camasDisponibles }}</td>
-                <td>{{ habitacion.camasOcupadas ? habitacion.camasOcupadas|json_encode : '' }}</td>
+                {% set camasOcupadas = habitacion.camasOcupadas|length%}
+                <td>{{ camasOcupadas ? camasOcupadas : 0 }}</td>
+                {% set camasDisp = habitacion.camasDisponibles - camasOcupadas%}
+                <td>{{ camasDisp }}</td>
                 <td>
                     <a href="{{ path('habitacion_edit', {'id': habitacion.id}) }}"><i class="fas fa-pencil-alt"></i></a>
                 </td>

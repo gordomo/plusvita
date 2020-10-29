@@ -266,8 +266,8 @@ class ClienteController extends AbstractController
         }
 
         $camasDispArray = [];
-        $habitacionActualId = $cliente->getHabitacion();
-        $camaActualId = $cliente->getNCama();
+        $habitacionActualId = $cliente->getHabitacion() ?? 0;
+        $camaActualId = $cliente->getNCama() ?? 0;
 
         if(!empty($habitacionActualId)) {
             $habitacionActual = $habitacionRepository->find($habitacionActualId);
@@ -278,7 +278,7 @@ class ClienteController extends AbstractController
 
                 $camasOcupadas = $habitacionActual->getCamasOcupadas();
                 $cantCamas = $habitacionActual->getCamasDisponibles();
-                $camasDispArray = [];
+                $camasDispArray['sin cama'] = 0;
                 for ($i = 1; $i <= $cantCamas; $i++) {
                     if(!in_array($i, $camasOcupadas)) {
                         $camasDispArray[$i] = $i;
@@ -345,8 +345,16 @@ class ClienteController extends AbstractController
 
                 $entityManager->persist($cliente);
 
-                $nuevaHabId = $cliente->getHabitacion();
-                $nuevaCamaId = $cliente->getNCama();
+                $nuevaHabId = $cliente->getHabitacion() ?? 0;
+
+                if($cliente->getNCama()) {
+                    $nuevaCamaId = $cliente->getNCama();
+                } else {
+                    $nuevaCamaId = $form->getExtraData()['nCama'] ?? 0;
+                    $cliente->setNCama($nuevaCamaId);
+                    $entityManager->persist($cliente);
+                }
+
 
                 $habitacionNueva = $habitacionRepository->find($nuevaHabId);
                 $habVieja = $habitacionRepository->find($habitacionActualId);
