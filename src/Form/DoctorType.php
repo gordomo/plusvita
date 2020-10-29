@@ -31,7 +31,7 @@ class DoctorType extends AbstractType
                 ->add('telefono', NumberType::class, ['html5' => true])
                 ->add('email', EmailType::class)
                 ->add('legajo', NumberType::class)
-                ->add('cbu', TextType::class)
+                ->add('cbu', TextType::class, ['required' => false])
                 ->add('tipo', ChoiceType::class,
                     [
                         'label' => 'Tipo de Contrato',
