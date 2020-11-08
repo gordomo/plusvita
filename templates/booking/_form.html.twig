@@ -33,6 +33,22 @@
     <div class="col-sm"></div>
 </div>
 <br>
+<hr>
+<div class="form-row">
+    <div class="col-sm">
+        {{ form_label(form.dias, 'Se repite') }}
+        <div class="columnas-de-dos">
+            {{ form_widget(form.dias) }}
+        </div>
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.desde) }}
+        {{ form_widget(form.desde) }}
+<br>
+        {{ form_label(form.hasta) }}
+        {{ form_widget(form.hasta) }}
+    </div>
+</div>
 <br>
 <div class="form-group">
     {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary'}}) }}

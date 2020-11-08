@@ -135,107 +135,128 @@ function getBussinesHours() {
     return businessHoursA;
 }
 
+if(!window.location.href.includes('edit')) {
+    document.addEventListener('DOMContentLoaded', () => {
+        var calendarEl = document.getElementById('calendar-holder');
 
+        var businessHoursA = getBussinesHours();
 
-document.addEventListener('DOMContentLoaded', () => {
-    var calendarEl = document.getElementById('calendar-holder');
+        if (typeof (FullCalendar) != 'undefined') {
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                locale: es,
+                navLinks: true,
+                defaultView: 'dayGridMonth',
+                editable: true,
+                businessHours: businessHoursA,
+                dateClick: function(info) {
+                    info.date.setDate(info.date.getDate() + 1);
 
-    var businessHoursA = getBussinesHours();
+                    var hoy = new Date();
+                    if( info.date <= hoy ) {
 
-    if (typeof (FullCalendar) != 'undefined') {
-        calendar = new FullCalendar.Calendar(calendarEl, {
-            locale: es,
-            navLinks: true,
-            defaultView: 'dayGridMonth',
-            editable: true,
-            businessHours: businessHoursA,
-            dateClick: function(info) {
-                info.date.setDate(info.date.getDate() + 1);
-
-                var hoy = new Date();
-                if( info.date <= hoy ) {
-
-                } else {
-                    if (info.view.type === 'dayGridMonth') {
-                        calendar.changeView('timeGridDay');
-                        calendar.gotoDate(info.dateStr);
                     } else {
-                        url = url.replace("info.dateStr", info.dateStr);
-                        hoy = new Date();
-                        click = new Date(info.dateStr);
-                        click.setHours(click.getHours() + 3)
-                        if(Date.parse(click) > Date.parse(hoy)) {
-                            window.location.href = url+'&ctr='+ctr;
+                        if (info.view.type === 'dayGridMonth') {
+                            calendar.changeView('timeGridDay');
+                            calendar.gotoDate(info.dateStr);
+                        } else {
+                            url = url.replace("info.dateStr", info.dateStr);
+                            hoy = new Date();
+                            click = new Date(info.dateStr);
+                            click.setHours(click.getHours() + 3)
+                            if(Date.parse(click) > Date.parse(hoy)) {
+                                window.location.href = url+'&ctr='+ctr;
+                            }
                         }
                     }
-                }
 
-            },
-            eventSources: [
-                {
-                    url: eventSourceUrl,
-                    method: "POST",
-                    extraParams: {
-                        filters: JSON.stringify({
-                            doctor_id: doc_id,
-                            cliente_id: cli_id,
-                            ctr: ctr,
-                        })
-                    },
-                    failure: () => {
-                        // alert("There was an error while fetching FullCalendar!");
-                    },
                 },
-            ],
-            customButtons: {
-                myCustomButton: {
-                    text: 'Filtros',
-                    //icon: 'fc-icon-filter',
-                    click: function() {
-                        $('.filtros').modal('show');
+                eventDrop: function( data) {
+                    var url = data.event.url + '/' + data.event.start + '/' + data.event.end;
+
+                    $.ajax({
+                        url: url,
+                        success: function (data) {
+                            if (data != 'ok') {
+                                alert('error: ' + data);
+                            }
+                        }
+                    });
+                },
+                eventSources: [
+                    {
+                        url: eventSourceUrl,
+                        method: "POST",
+                        extraParams: {
+                            filters: JSON.stringify({
+                                doctor_id: doc_id,
+                                cliente_id: cli_id,
+                                ctr: ctr,
+                            })
+                        },
+                        failure: () => {
+                            // alert("There was an error while fetching FullCalendar!");
+                        },
+                    },
+                ],
+                customButtons: {
+                    myCustomButton: {
+                        text: 'Filtros',
+                        //icon: 'fc-icon-filter',
+                        click: function() {
+                            $('.filtros').modal('show');
+                        }
                     }
+                },
+                header: {
+                    left: 'prev,next today, myCustomButton',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay',
+                },
+                plugins: [ 'interaction', 'dayGrid', 'timeGrid' ], // https://fullcalendar.io/docs/plugin-index
+                timeZone: 'UTC',
+                rrule: {
+                    freq: 'weekly',
+                    interval: 5,
+                    byweekday: [ 'mo', 'fr' ],
+                    dtstart: '2020-11-01T10:30:00', // will also accept '20120201T103000'
+                    until: '2020-11-15' // will also accept '20120201'
                 }
-            },
-            header: {
-                left: 'prev,next today, myCustomButton',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay',
-            },
-            plugins: [ 'interaction', 'dayGrid', 'timeGrid' ], // https://fullcalendar.io/docs/plugin-index
-            timeZone: 'UTC',
-        });
-        calendar.render();
-    }
-
-
-    var hoy = new Date();
-    $('.fc-day').each(function() {
-        var fecha = new Date($( this ).data('date'));
-        fecha.setDate(fecha.getDate() + 1)
-        if(fecha < hoy) {
-            $(this).addClass('disable');
+            });
+            calendar.render();
         }
 
+
+        var hoy = new Date();
+        $('.fc-day').each(function() {
+            var fecha = new Date($( this ).data('date'));
+            fecha.setDate(fecha.getDate() + 1)
+            if(fecha < hoy) {
+                $(this).addClass('disable');
+            }
+
+        });
+
+        if(typeof($params.doc_id) != "undefined") {
+            $.each(JSON.parse($params.doc_id), function(e, k) {
+                $('#doctor-'+k).prop('checked', true);
+            })
+        }
+
+        if(typeof($params.cli_id) != "undefined") {
+            $.each(JSON.parse($params.cli_id), function (e, k) {
+                $('#cliente-' + k).prop('checked', true);
+            })
+        }
+
+        if(typeof($params.ctr) != "undefined") {
+            var id = '#' + $params.ctr.replaceAll(' ', '');
+            $(id).prop('selected', true);
+            $('.filtros').modal('show');
+        }
     });
+}
 
-    if(typeof($params.doc_id) != "undefined") {
-        $.each(JSON.parse($params.doc_id), function(e, k) {
-            $('#doctor-'+k).prop('checked', true);
-        })
-    }
 
-    if(typeof($params.cli_id) != "undefined") {
-        $.each(JSON.parse($params.cli_id), function (e, k) {
-            $('#cliente-' + k).prop('checked', true);
-        })
-    }
-
-    if(typeof($params.ctr) != "undefined") {
-        var id = '#' + $params.ctr.replaceAll(' ', '');
-        $(id).prop('selected', true);
-        $('.filtros').modal('show');
-    }
-});
 
 $('#limpiar').click(function () {
     $('.filtrosModal').find('input[type=checkbox]').prop('checked', false);

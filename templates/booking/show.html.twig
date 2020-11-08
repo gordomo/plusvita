@@ -26,6 +26,35 @@
                 <th>Paciente</th>
                 <td>{{ booking.cliente.getNombreApellido() }}</td>
             </tr>
+            <tr>
+                <th>Se repite</th>
+                <td>
+                    {% for dia in booking.dias%}
+                        {% if(dia == 1) %}
+                            Lunes
+                        {% endif %}
+                        {% if(dia == 2) %}
+                            Martes
+                        {% endif %}
+                        {% if(dia == 3) %}
+                            Miercoles
+                        {% endif %}
+                        {% if(dia == 4) %}
+                            Jueves
+                        {% endif %}
+                        {% if(dia == 5) %}
+                            Viernes
+                        {% endif %}
+                        {% if(dia == 6) %}
+                            Sábado
+                        {% endif %}
+                    {% endfor %}
+                </td>
+            </tr>
+            <tr>
+                <th>Hasta</th>
+                <td>{{ booking.hasta ? booking.hasta|date('Y-m-d') : '' }}</td>
+            </tr>
         </tbody>
     </table>
 

@@ -149,6 +149,21 @@ class CalendarSubscriber implements EventSubscriberInterface
                 ])
             );
 
+            if($booking->getDias()) {
+                $bookingEvent->addOption(
+                    'daysOfWeek',
+                    $booking->getDias()
+                );
+                $bookingEvent->addOption(
+                    'startRecur',
+                    $booking->getDesdeEvent()
+                );
+                $bookingEvent->addOption(
+                    'endRecur',
+                    $booking->getHastaEvent()
+                );
+            }
+
             // finally, add the event to the CalendarEvent to fill the calendar
             $calendar->addEvent($bookingEvent);
         }

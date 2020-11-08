@@ -96,7 +96,7 @@ class ClienteController extends AbstractController
     /**
      * @Route("/new", name="cliente_new", methods={"GET","POST"})
      */
-    public function new(Request $request, ObraSocialRepository $obraSocialRepository, HabitacionRepository $habitacionRepository): Response
+    public function new(Request $request, ObraSocialRepository $obraSocialRepository, HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository): Response
     {
         $user = $this->security->getUser();
 
@@ -119,6 +119,8 @@ class ClienteController extends AbstractController
             $haArray[$ha->getId()] = $ha->getNombre();
         }
         $haArray = array_flip($haArray);
+
+        $cliente ->setHClinica($clienteRepository->findLastHClinica() + 1);
 
         $form = $this->createForm(ClienteType::class, $cliente, ['allow_extra_fields' =>true, 'is_new' => true, 'obrasSociales' => $obArray, 'habitaciones' => $haArray]);
 

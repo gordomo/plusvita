@@ -33,6 +33,24 @@ class Booking
     private $title;
 
     /**
+     * @ORM\Column(type="json", length=255, nullable=true)
+     */
+    private $dias = [];
+
+
+    /**
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private $desde;
+
+    /**
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private $hasta;
+
+
+
+    /**
      * @ORM\ManyToOne(targetEntity=User::class, inversedBy="bookings")
      * @ORM\JoinColumn(nullable=false)
      */
@@ -158,5 +176,63 @@ class Booking
     public function setCliente($cliente): void
     {
         $this->cliente = $cliente;
+    }
+
+    /**
+     * @return array
+     */
+    public function getDias(): ?array
+    {
+        return $this->dias;
+    }
+
+    /**
+     * @param array $dias
+     */
+    public function setDias(array $dias): void
+    {
+        $this->dias = $dias;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDesde()
+    {
+        return $this->desde;
+    }
+
+    /**
+     * @param mixed $desde
+     */
+    public function setDesde($desde): void
+    {
+        $this->desde = $desde;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getHasta()
+    {
+        return $this->hasta;
+    }
+
+
+    public function getDesdeEvent()
+    {
+        return $this->desde->format('Y-m-d');
+    }
+
+    public function getHastaEvent()
+    {
+        return $this->hasta->modify('+1 day')->format('Y-m-d');
+    }
+    /**
+     * @param mixed $hasta
+     */
+    public function setHasta($hasta): void
+    {
+        $this->hasta = $hasta;
     }
 }

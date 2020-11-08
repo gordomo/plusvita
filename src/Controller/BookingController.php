@@ -225,6 +225,30 @@ class BookingController extends AbstractController
     }
 
     /**
+     * @Route("/{id}/{start}/{end}", name="booking_edit_ajax", methods={"GET","POST"})
+     */
+    public function ajaxEdit($id, $start, $end, BookingRepository $bookingRepository): Response
+    {
+        try {
+            $beginAt = new \DateTime(substr($start, 0, 33));
+            $endAt = new \DateTime(substr($end, 0, 33));
+            $booking = $bookingRepository->find($id);
+
+            $booking->setBeginAt($beginAt);
+            $booking->setEndAt($endAt);
+
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($booking);
+            $entityManager->flush();
+
+            return new JsonResponse('ok');
+
+        } catch (\Exception $e) {
+            return new JsonResponse($e->getCode());
+        }
+    }
+
+    /**
      * @Route("/{id}", name="booking_delete", methods={"DELETE"})
      */
     public function delete(Request $request, Booking $booking): Response

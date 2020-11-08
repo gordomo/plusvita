@@ -25,7 +25,7 @@ class ClienteRepository extends ServiceEntityRepository
             ->andWhere('c.fEgreso > :val')->setParameter('val', $value)
             ->orWhere('c.fEgreso IS NULL')
             ->andWhere('c.nombre like  :nombre OR c.apellido like :nombre')->setParameter('nombre','%'. $nombre .'%')
-            ->orderBy('c.id', 'ASC')
+            ->orderBy('c.hClinica', 'ASC')
             //->setMaxResults(10)
             ->getQuery()
             ->getResult()
@@ -37,7 +37,7 @@ class ClienteRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('c')
             ->andWhere('c.fEgreso <= :val')->setParameter('val', $value)
             ->andWhere('c.nombre like  :nombre OR c.apellido like  :nombre')->setParameter('nombre','%'. $nombre .'%')
-            ->orderBy('c.id', 'ASC')
+            ->orderBy('c.hClinica', 'ASC')
             //->setMaxResults(10)
             ->getQuery()
             ->getResult()
@@ -48,7 +48,7 @@ class ClienteRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('c')
             ->andWhere('c.fEgreso <= :val')->setParameter('val', $value)
-            ->orderBy('c.id', 'ASC')
+            ->orderBy('c.hClinica', 'ASC')
             //->setMaxResults(10)
             ->getQuery()
             ->getResult()
@@ -66,32 +66,19 @@ class ClienteRepository extends ServiceEntityRepository
             ;
     }
 
-    // /**
-    //  * @return Cliente[] Returns an array of Cliente objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    public function findLastHClinica()
     {
-        return $this->createQueryBuilder('c')
-            ->andWhere('c.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('c.id', 'ASC')
-            ->setMaxResults(10)
+        $cliente = $this
+            ->createQueryBuilder("c")
+            ->orderBy("c.hClinica", "DESC")
+            ->setMaxResults(1)
             ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+            ->getOneOrNullResult();
 
-    /*
-    public function findOneBySomeField($value): ?Cliente
-    {
-        return $this->createQueryBuilder('c')
-            ->andWhere('c.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        if(!empty($cliente)) {
+            return $cliente->getHClinica();
+        } else {
+            return null;
+        }
     }
-    */
 }

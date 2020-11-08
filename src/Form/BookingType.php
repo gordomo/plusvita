@@ -8,11 +8,14 @@ use App\Entity\Doctor;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\Choice;
 
 class BookingType extends AbstractType
 {
@@ -45,6 +48,19 @@ class BookingType extends AbstractType
                 'label' => 'Paciente',
                 'attr' => ['class' => 'predictivo']
             ])
+            ->add('dias', ChoiceType::class, ['required' => false, 'choices'  => [
+                'Lunes' => 1,
+                'Martes' => 2,
+                'Miercoles' => 3,
+                'Jueves' => 4,
+                'Viernes' => 5,
+                'Sábado' => 6,
+            ],
+                'multiple'=>true,
+                'expanded'=>true,
+            ])
+            ->add('desde', DateType::class, ['label' => 'Desde', 'required' => false, 'widget' => 'single_text', 'html5' => true, 'attr' => ['class' => 'js-datepicker'],])
+            ->add('hasta', DateType::class, ['label' => 'Hasta', 'required' => false, 'widget' => 'single_text', 'html5' => true, 'attr' => ['class' => 'js-datepicker'],])
             ->add('save', SubmitType::class, ['label' => 'Guardar', 'attr' => ['class' => 'btn-success']])
         ;
     }
