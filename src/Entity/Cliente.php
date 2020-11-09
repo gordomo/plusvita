@@ -20,7 +20,7 @@ class Cliente
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true, unique=true)
+     * @ORM\Column(type="integer", nullable=true, unique=true)
      */
     private $hClinica;
 
@@ -210,12 +210,12 @@ class Cliente
         return $this->id;
     }
 
-    public function getHClinica(): ?string
+    public function getHClinica(): ?int
     {
         return $this->hClinica;
     }
 
-    public function setHClinica(string $hClinica): self
+    public function setHClinica(int $hClinica): self
     {
         $this->hClinica = $hClinica;
 
