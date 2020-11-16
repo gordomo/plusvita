@@ -73,6 +73,7 @@
                  <td>Teléfono</td>
                  <td>Email</td>
                  <td>Vinculo</td>
+                 <td>Acompañante</td>
              </tr>
         </thead>
         <tbody>
@@ -81,6 +82,7 @@
                 <td>{{ cliente.familiarResponsableTel }}</td>
                 <td>{{ cliente.familiarResponsableMail }}</td>
                 <td>{{ cliente.vinculoResponsable }}</td>
+                <td>{% if (cliente.familiarResponsableAcompanante) %} Si {% else %} No {% endif %}</td>
             </tr>
             {% for familiarExtra in familiaresExtra%}
                 <tr>
@@ -88,6 +90,7 @@
                     <td>{{ familiarExtra.tel }}</td>
                     <td>{{ familiarExtra.mail }}</td>
                     <td>{{ familiarExtra.vinculo }}</td>
+                    <td>{% if (familiarExtra.acompanante) %} Si {% else %} No {% endif %}</td>
                 </tr>
             {% endfor %}
         </tbody>

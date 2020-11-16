@@ -102,6 +102,11 @@
     -moz-column-count: 2; /* Firefox */
     column-count: 2;
 }
+.columnas-de-uno {
+    -webkit-column-count: 1; /* Chrome, Safari, Opera */
+    -moz-column-count: 1; /* Firefox */
+    column-count: 1;
+}
 
 /*      #60b9b9     #b088be
 table {

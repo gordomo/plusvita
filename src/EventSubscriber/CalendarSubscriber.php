@@ -87,7 +87,9 @@ class CalendarSubscriber implements EventSubscriberInterface
             $doctor = $booking->getDoctor();
             $color = '#2196f3';
 
-            switch ($doctor->getModalidad()[0]) {
+            $modalidad = $doctor->getModalidad()[0] ?? 'SinModalidad';
+
+            switch ($modalidad) {
                 case 'Mucamo/a':
                 case 'Enfermero/a':
                 case 'Auxiliar de enfermeria':

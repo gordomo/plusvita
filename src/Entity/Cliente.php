@@ -130,6 +130,11 @@ class Cliente
     private $familiarResponsableMail;
 
     /**
+     * @ORM\Column(type="boolean", options={"default":false})
+     */
+    private $familiarResponsableAcompanante = false;
+
+    /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $obraSocial;
@@ -673,6 +678,22 @@ class Cliente
         }
 
         return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getFamiliarResponsableAcompanante(): bool
+    {
+        return $this->familiarResponsableAcompanante;
+    }
+
+    /**
+     * @param bool $familiarResponsableAcompanante
+     */
+    public function setFamiliarResponsableAcompanante(bool $familiarResponsableAcompanante): void
+    {
+        $this->familiarResponsableAcompanante = $familiarResponsableAcompanante;
     }
 
 

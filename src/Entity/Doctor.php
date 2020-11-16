@@ -160,6 +160,27 @@ class Doctor implements UserInterface
      */
     private $cbu;
 
+    /**
+     * @ORM\Column(type="integer", length=2, nullable=true)
+     */
+    private $max_cli_turno;
+
+    /**
+     * @return mixed
+     */
+    public function getMaxCliTurno()
+    {
+        return $this->max_cli_turno;
+    }
+
+    /**
+     * @param mixed $max_cli_turno
+     */
+    public function setMaxCliTurno($max_cli_turno): void
+    {
+        $this->max_cli_turno = $max_cli_turno;
+    }
+
     public function __construct()
     {
         $this->clientes = new ArrayCollection();

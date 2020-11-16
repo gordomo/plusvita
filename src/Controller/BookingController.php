@@ -158,7 +158,7 @@ class BookingController extends AbstractController
     /**
      * @Route("/new", name="booking_new", methods={"GET","POST"})
      */
-    public function new(Request $request): Response
+    public function new(Request $request, DoctorRepository $doctorRepository, BookingRepository $bookingRepository): Response
     {
         $booking = new Booking();
 
@@ -181,16 +181,26 @@ class BookingController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->persist($booking);
-            $entityManager->flush();
+            $doctor = $doctorRepository->find($request->request->get('booking')['doctor']);
+            $newBeginAt = !empty($request->request->get('booking')['beginAt']) ? new \DateTime($request->request->get('booking')['beginAt']) : new \DateTime();
+            $bookings = $bookingRepository->findBy(['doctor' => $doctor, 'beginAt' => $newBeginAt]);
 
-            return $this->redirectToRoute('booking_calendar');
+            if ( count($bookings) <= $doctor->getMaxCliTurno() || $doctor->getMaxCliTurno() == null ) {
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($booking);
+                $entityManager->flush();
+                return $this->redirectToRoute('booking_calendar');
+            } else {
+                $error = 1;
+            }
+
+
         }
 
         return $this->render('booking/new.html.twig', [
             'booking' => $booking,
             'form' => $form->createView(),
+            'error' => $error ?? 0,
         ]);
     }
 
@@ -207,20 +217,28 @@ class BookingController extends AbstractController
     /**
      * @Route("/{id}/edit", name="booking_edit", methods={"GET","POST"})
      */
-    public function edit(Request $request, Booking $booking): Response
+    public function edit(Request $request, Booking $booking, DoctorRepository $doctorRepository, BookingRepository $bookingRepository): Response
     {
         $form = $this->createForm(BookingType::class, $booking);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->getDoctrine()->getManager()->flush();
+            $doctor = $doctorRepository->find($request->request->get('booking')['doctor']);
+            $newBeginAt = !empty($request->request->get('booking')['beginAt']) ? new \DateTime($request->request->get('booking')['beginAt']) : new \DateTime();
+            $bookings = $bookingRepository->findBy(['doctor' => $doctor, 'beginAt' => $newBeginAt]);
 
-            return $this->redirectToRoute('booking_calendar');
+            if ( count($bookings) <= $doctor->getMaxCliTurno() || $doctor->getMaxCliTurno() == null ) {
+                $this->getDoctrine()->getManager()->flush();
+                return $this->redirectToRoute('booking_calendar');
+            } else {
+                $error = 1;
+            }
         }
 
         return $this->render('booking/edit.html.twig', [
             'booking' => $booking,
             'form' => $form->createView(),
+            'error' => $error ?? 0
         ]);
     }
 

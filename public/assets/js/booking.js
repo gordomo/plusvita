@@ -257,7 +257,6 @@ if(!window.location.href.includes('edit')) {
 }
 
 
-
 $('#limpiar').click(function () {
     $('.filtrosModal').find('input[type=checkbox]').prop('checked', false);
     location.href = 'calendar';
@@ -292,3 +291,25 @@ $( "#contrato" ).on('change', function(){
     location.href = 'calendar?ctr=' + $(this).val();
 });
 
+
+var form = document.querySelector('form');
+
+if(typeof (form) != "undefined" && form != null) {
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        var rta = false;
+        $.each($('#booking_dias').find('input'), function(e, a) {
+            if(a.checked) {
+                rta = true;
+            }
+        })
+        if(rta && ($('#booking_desde').val() === '' || $('#booking_hasta').val() === '')) {
+            alert('Debe completar los campos Desde y Hasta cuando selecciona un día en el que se repite el evento');
+            setTimeout(function () {
+                $('form button:submit').attr('disabled', 'false');
+            }, 3000);
+        } else {
+            $(this).submit();
+        }
+    }, false);
+}

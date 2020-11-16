@@ -19,7 +19,7 @@ $("#menu-toggle").click(function(e) {
 });
 
 var form = document.querySelector('form');
-if(typeof (form) != "undefined" && form != null) {
+if(typeof (form) != "undefined" && form != null && form.name != 'booking') {
     form.addEventListener('submit', function() {
         $('form button:submit').attr('disabled', 'disabled');
     }, false);

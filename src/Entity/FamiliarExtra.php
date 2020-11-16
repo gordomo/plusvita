@@ -42,6 +42,27 @@ class FamiliarExtra
      */
     private $vinculo;
 
+    /**
+     * @ORM\Column(type="boolean", options={"default":false})
+     */
+    private $acompanante = false;
+
+    /**
+     * @return bool
+     */
+    public function getAcompanante(): bool
+    {
+        return $this->acompanante;
+    }
+
+    /**
+     * @param bool $acompanante
+     */
+    public function setAcompanante(bool $acompanante): void
+    {
+        $this->acompanante = $acompanante;
+    }
+
     public function getId(): ?int
     {
         return $this->id;

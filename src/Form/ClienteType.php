@@ -118,6 +118,15 @@ class ClienteType extends AbstractType
                 ->add('familiarResponsableTel', TextType::class, ['label' => 'Teléfono', 'required' => false])
                 ->add('familiarResponsableMail', TextType::class, ['label' => 'EMail', 'required' => false])
                 ->add('vinculoResponsable', TextType::class, ['label' => 'Vinculo', 'required' => false])
+                ->add('familiarResponsableAcompanante', ChoiceType::class, [
+                    'choices' => [
+                        'Si' => true,
+                        'No' => false,
+                    ],
+                    'multiple' => false,
+                    'expanded' => false,
+                    'label' => 'Es acompañante?',
+                ])
                 ->add('vieneDe', TextType::class, ['label' => 'Nombre', 'required' => false])
                 ->add('docDerivante', TextType::class, ['label' => 'Profesional Derivante', 'required' => false])
                 ->add('edad', TextType::class, ['label' => 'Edad', 'required' => false])

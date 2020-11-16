@@ -55,7 +55,7 @@ $( document ).on('click', '#agregarFamiliar', function (e) {
     e.preventDefault();
     e.stopPropagation();
     var botonQuitarHtml = '<div class="col-sm" id="quitarFamiliarRow"><a href="" id="quitarFamiliar">quitar familiar - </a></div>';
-    var htmlNuevoFamiliar = '<div class="form-row"><div class="col-sm"><input type="text" name="familiarResponsableExtraNombre[]" class="form-control"></div><div class="col-sm"><input type="text" name="familiarResponsableExtraTel[]" class="form-control"></div><div class="col-sm"><input type="text" name="familiarResponsableExtraMail[]" class="form-control"></div><div class="col-sm"><input type="text" name="familiarResponsableExtraVinculo[]" class="form-control"></div></div>';
+    var htmlNuevoFamiliar = '<br><div class="form-row"><div class="col-sm"><input type="text" name="familiarResponsableExtraNombre[]" class="form-control"></div><div class="col-sm"><input type="text" name="familiarResponsableExtraTel[]" class="form-control"></div><div class="col-sm"><input type="text" name="familiarResponsableExtraMail[]" class="form-control"></div><div class="col-sm"><input type="text" name="familiarResponsableExtraVinculo[]" class="form-control"></div><div class="col-sm"><div class="columnas-de-uno"><select name="familiarResponsableExtraAcompanante[]" class="form-control"><option value="1">Si</option><option value="0" selected="selected">No</option></select></div></div></div>';
     $('#familiares').append(htmlNuevoFamiliar);
     if($('#familiares').find('.form-row').length === 2) {
         $('#agregarQuitarFamiliar').append(botonQuitarHtml)
@@ -113,7 +113,9 @@ $( document ).ready(function () {
         }
     }
 
-    $('[data-toggle="tooltip"]').tooltip()
+    $('[data-toggle="tooltip"]').tooltip();
+
+    $('#cliente_familiarResponsableAcompanante').find('.radio').addClass('form-check form-check-inline');
 
 });
 

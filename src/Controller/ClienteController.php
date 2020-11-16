@@ -131,6 +131,7 @@ class ClienteController extends AbstractController
             $familiarResponsableExtraTel = $request->request->get('familiarResponsableExtraTel');
             $familiarResponsableExtraMail = $request->request->get('familiarResponsableExtraMail');
             $familiarResponsableExtraVinculo = $request->request->get('familiarResponsableExtraVinculo');
+            $familiarResponsableExtraAcompanante = $request->request->get('familiarResponsableExtraAcompanante');
 
             $entityManager = $this->getDoctrine()->getManager();
             $doctoresReferentes = $cliente->getDocReferente();
@@ -148,12 +149,14 @@ class ClienteController extends AbstractController
                 $tel = $familiarResponsableExtraTel[$key] ?? '';
                 $mail = $familiarResponsableExtraMail[$key] ?? '';
                 $vinculo = $familiarResponsableExtraVinculo[$key] ?? '';
+                $acompanante = $familiarResponsableExtraAcompanante[$key] ?? '';
 
                 $familarRespExtra = new FamiliarExtra();
                 $familarRespExtra->setNombre($item);
                 $familarRespExtra->setTel($tel);
                 $familarRespExtra->setMail($mail);
                 $familarRespExtra->setVinculo($vinculo);
+                $familarRespExtra->setAcompanante($acompanante);
                 $familarRespExtra->setClienteId($cliente->getId());
 
                 $entityManager->persist($familarRespExtra);
@@ -315,6 +318,7 @@ class ClienteController extends AbstractController
                 $familiarResponsableExtraTel = $request->request->get('familiarResponsableExtraTel');
                 $familiarResponsableExtraMail = $request->request->get('familiarResponsableExtraMail');
                 $familiarResponsableExtraVinculo = $request->request->get('familiarResponsableExtraVinculo');
+                $familiarResponsableExtraAcompanante = $request->request->get('familiarResponsableExtraAcompanante');
 
                 foreach ($familiarExtraActuales as $familiarExtraActual) {
                     $entityManager->remove($familiarExtraActual);
@@ -325,12 +329,14 @@ class ClienteController extends AbstractController
                     $tel = $familiarResponsableExtraTel[$key] ?? '';
                     $mail = $familiarResponsableExtraMail[$key] ?? '';
                     $vinculo = $familiarResponsableExtraVinculo[$key] ?? '';
+                    $acompanante = $familiarResponsableExtraAcompanante[$key] ?? false;
 
                     $familarRespExtra = new FamiliarExtra();
                     $familarRespExtra->setNombre($item);
                     $familarRespExtra->setTel($tel);
                     $familarRespExtra->setMail($mail);
                     $familarRespExtra->setVinculo($vinculo);
+                    $familarRespExtra->setAcompanante($acompanante);
                     $familarRespExtra->setClienteId($cliente->getId());
 
                     $entityManager->persist($familarRespExtra);

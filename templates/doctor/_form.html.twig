@@ -219,7 +219,15 @@
         {{ form_widget(form.firmaPdf) }}
             <a target="_blank" href="{{ asset('uploads/firmas/') }}{{ doctor.firma }}" >ver firma</a>
         </div>
-
+    </div>
+    <br>
+    <hr>
+    <br>
+    <div class="form-row">
+        <div class="col-sm vtoMatricula">
+            {{ form_label(form.max_cli_turno, 'Maximo de Pacientes por turno') }}
+            {{ form_widget(form.max_cli_turno) }}
+        </div>
         <div class="col-sm d-none vtoMatricula">
         {{ form_label(form.matricula, 'Matricula') }}
         {{ form_widget(form.matricula) }}

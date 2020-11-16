@@ -13,4 +13,13 @@
 {% block javascripts %}
     {{ parent() }}
     <script src="{{ asset('assets/js/booking.js') }}"></script>
+    <script>
+        function errorLoad() {
+            alert("El profesional no puede atender más pacientes en este horario. Seleccione uno diferente o cambie la configuración en el perfil del profesional");
+        }
+    </script>
+
+    {% if error %}
+        <script>errorLoad()</script>
+    {% endif %}
 {% endblock %}
