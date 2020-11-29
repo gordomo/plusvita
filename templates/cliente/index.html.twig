@@ -96,12 +96,8 @@
                     {% endif %}
                 </td>
                 <td>
-                    {% set i = 1 %}
-
-                    {% for doc in cliente.docReferente|slice(0,1) %}
-                        {{ doc.nombre }} {{ doc.apellido }}{% if cliente.docReferente|length > 0 and i < cliente.docReferente|length %},{% endif %}
-
-                        {#{% set i = i+1 %}#}
+                    {% for responsable in cliente.docReferente %}
+                        {{ responsable.nombre }}, {{ responsable.apellido }} <br>
                     {% endfor %}
                 </td>
                 <td>

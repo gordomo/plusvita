@@ -150,8 +150,8 @@ class CalendarSubscriber implements EventSubscriberInterface
                     'id' => $booking->getId(),
                 ])
             );
-
-            if($booking->getDias()) {
+            /*if($booking->getDias()) {
+                //dd($booking->getDesdeEvent());
                 $bookingEvent->addOption(
                     'daysOfWeek',
                     $booking->getDias()
@@ -164,7 +164,7 @@ class CalendarSubscriber implements EventSubscriberInterface
                     'endRecur',
                     $booking->getHastaEvent()
                 );
-            }
+            }*/
 
             // finally, add the event to the CalendarEvent to fill the calendar
             $calendar->addEvent($bookingEvent);

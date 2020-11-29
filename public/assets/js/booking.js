@@ -135,7 +135,7 @@ function getBussinesHours() {
     return businessHoursA;
 }
 
-if(!window.location.href.includes('edit')) {
+if(!window.location.href.includes('edit') && !window.location.href.includes('new')) {
     document.addEventListener('DOMContentLoaded', () => {
         var calendarEl = document.getElementById('calendar-holder');
 
@@ -153,7 +153,7 @@ if(!window.location.href.includes('edit')) {
 
                     var hoy = new Date();
                     if( info.date <= hoy ) {
-
+                        console.log(info.date);
                     } else {
                         if (info.view.type === 'dayGridMonth') {
                             calendar.changeView('timeGridDay');
@@ -171,13 +171,17 @@ if(!window.location.href.includes('edit')) {
 
                 },
                 eventDrop: function( data) {
+                    //booking_edit_ajax
                     var url = data.event.url + '/' + data.event.start + '/' + data.event.end;
 
                     $.ajax({
                         url: url,
-                        success: function (data) {
-                            if (data != 'ok') {
-                                alert('error: ' + data);
+                        success: function (response) {
+                            if (response.error) {
+                                alert('error: ' + response.message);
+                                data.revert();
+                            } else {
+                                alert('Turno guardado correctamente');
                             }
                         }
                     });
@@ -291,25 +295,77 @@ $( "#contrato" ).on('change', function(){
     location.href = 'calendar?ctr=' + $(this).val();
 });
 
+$('#booking_dias input').on('change', function() {
+    let comienso = $('#booking_beginAt').val();
+    let desde = $('#booking_desde').val();
+    let comiensoDia = new Date(comienso).getDay();
+    let clickOn = this.value;
+
+    $.each($('#booking_dias').find('input'), function(e, a) {
+        if((clickOn != comiensoDia || $('#booking_dias input[type="checkbox"]:checked').length >= 1) && a.value == comiensoDia && !a.checked) {
+            alert('Recuerda que la repetición debe comenzar en el mismo día del primer turno');
+            a.checked = true;
+        }
+    })
+
+    if($('#booking_dias input[type="checkbox"]:checked').length > 0 && desde == '') {
+        $('#booking_desde').val(comienso.substring(0, 10));
+        $('#booking_desde').attr("min", comienso.substring(0, 10));
+        $('#booking_hasta').attr("min", comienso.substring(0, 10));
+
+    } else if ($('#booking_dias input[type="checkbox"]:checked').length == 0) {
+        $('#booking_desde').val('');
+    }
+
+})
+
+$('#booking_desde').on('change', function () {
+    $('#booking_hasta').attr("min", $(this).val());
+});
+
+$('#booking_beginAt').on('change', function () {
+    $.each($('#booking_dias').find('input'), function(e, a) {
+        a.checked = false;
+    })
+});
 
 var form = document.querySelector('form');
 
 if(typeof (form) != "undefined" && form != null) {
     form.addEventListener('submit', function(e) {
         e.preventDefault();
-        var rta = false;
+        let desde = $('#booking_desde').val();
+        let hasta = $('#booking_hasta').val();
+        let comienso = $('#booking_beginAt').val().substring(0, 10);
+        let hayDiasChequeados = false;
+        let todoOk = true;
+
         $.each($('#booking_dias').find('input'), function(e, a) {
             if(a.checked) {
-                rta = true;
+                hayDiasChequeados = true;
             }
         })
-        if(rta && ($('#booking_desde').val() === '' || $('#booking_hasta').val() === '')) {
-            alert('Debe completar los campos Desde y Hasta cuando selecciona un día en el que se repite el evento');
+
+        if(hayDiasChequeados) {
+            if (desde === '' || hasta === '') {
+                todoOk = false;
+                alert('Debe completar los campos Desde y Hasta cuando selecciona un día en el que se repite el evento');
+            } else if (Date.parse(comienso) > Date.parse(desde)) {
+                todoOk = false;
+                alert('El comienzo del turno no puede ser posterior al campo Desde');
+            } else if (Date.parse(desde) > Date.parse(hasta)) {
+                todoOk = false;
+                alert('El campo Desde debe ser anterior al campo Hasta');
+            }
             setTimeout(function () {
-                $('form button:submit').attr('disabled', 'false');
-            }, 3000);
-        } else {
+                $('form button:submit').prop('disabled', false);
+            }, 300);
+        }
+
+        if(todoOk) {
             $(this).submit();
         }
+
+
     }, false);
 }

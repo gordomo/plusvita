@@ -228,6 +228,29 @@ class Booking
     {
         return $this->hasta->modify('+1 day')->format('Y-m-d');
     }
+    public function getDesdeEventWithHour()
+    {
+        $desde = $this->desde;
+        $beginAt = $this->getBeginAt();
+        $horaTurno = $beginAt->format('H');
+        $minutosTurno = $beginAt->format('i');
+        $segundosTurno = $beginAt->format('s');
+
+        $desde->setTime($horaTurno, $minutosTurno, $segundosTurno);
+        return $desde->format('Y-m-dTH:m:s');
+    }
+
+    public function getHastaEventWithHour()
+    {
+        $hasta = $this->hasta;
+        $endAt = $this->getEndAt();
+        $horaTurno = $endAt->format('H');
+        $minutosTurno = $endAt->format('i');
+        $segundosTurno = $endAt->format('s');
+
+        $hasta->setTime($horaTurno, $minutosTurno, $segundosTurno);
+        return $this->hasta->modify('+1 day')->format('Y-m-dTH:m:s');
+    }
     /**
      * @param mixed $hasta
      */

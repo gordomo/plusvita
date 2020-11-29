@@ -161,6 +161,8 @@ class BookingController extends AbstractController
     public function new(Request $request, DoctorRepository $doctorRepository, BookingRepository $bookingRepository): Response
     {
         $booking = new Booking();
+        $error = false;
+        $yaTieneTurno = false;
 
         $user = $this->security->getUser();
         $booking->setUser($user);
@@ -177,24 +179,117 @@ class BookingController extends AbstractController
 
         $ctr = !empty($request->get('ctr')) ? $request->get('ctr') : '';
 
-        $form = $this->createForm(BookingType::class, $booking, ['ctr' => $ctr]);
+        $form = $this->createForm(BookingType::class, $booking, ['ctr' => $ctr, 'isNew' => true]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $doctor = $doctorRepository->find($request->request->get('booking')['doctor']);
-            $newBeginAt = !empty($request->request->get('booking')['beginAt']) ? new \DateTime($request->request->get('booking')['beginAt']) : new \DateTime();
-            $bookings = $bookingRepository->findBy(['doctor' => $doctor, 'beginAt' => $newBeginAt]);
 
-            if ( count($bookings) <= $doctor->getMaxCliTurno() || $doctor->getMaxCliTurno() == null ) {
-                $entityManager = $this->getDoctrine()->getManager();
-                $entityManager->persist($booking);
-                $entityManager->flush();
-                return $this->redirectToRoute('booking_calendar');
+            $doctor = $booking->getDoctor();
+            $cliente = $booking->getCliente();
+            $newBeginAt = !empty($booking->getBeginAt()) ? $booking->getBeginAt() : new \DateTime();
+            $newEndAt = !empty($booking->getEndAt()) ? $booking->getEndAt() : new \DateTime();
+
+            $horaTurno = $newBeginAt->format('H');
+            $minutosTurno = $newBeginAt->format('i');
+            $segundosTurno = $newBeginAt->format('s');
+
+            $dias = !empty($booking->getDias()) ? $booking->getDias() : [1,2,3,4,5,6,7];
+            $desde = !empty($booking->getDesde()) ? $booking->getDesde() : $newBeginAt;
+            $hasta = !empty($booking->getHasta()) ? $booking->getHasta()->modify('+1 day') : $newEndAt;
+
+            $arrayDeEventos = [];
+            $arrayDeErrores = [];
+
+            if ($desde->format('Y-m-d') == $hasta->format('Y-m-d')) {
+                //Primero me fijo si ya existe un turno para este cliente con este doctor
+                $bookings = $bookingRepository->findBy(['doctor' => $doctor, 'beginAt' => $desde, 'cliente' => $cliente]);
+                if (count($bookings) > 0) {
+                    $error = true;
+                    $yaTieneTurno = true;
+                    $arrayDeErrores[] = $desde->format(DATE_ATOM);
+                } else {
+                    $bookings = $bookingRepository->findBy(['doctor' => $doctor, 'beginAt' => $desde]);
+                    if ( count($bookings) >= $doctor->getMaxCliTurno() && $doctor->getMaxCliTurno() != null || ($doctor->getMaxCliTurno() == null ) ) {
+                        $error = true;
+                        $arrayDeErrores[] = $desde->format(DATE_ATOM);
+                    } else {
+                        $arrayDeEventos[] = $booking;
+                    }
+                }
+
             } else {
-                $error = 1;
+                for($date = $desde; $date <= $hasta; $date->modify('+1 day')) {
+
+                    $date->setTime($horaTurno, $minutosTurno, $segundosTurno);
+                    $end = $newEndAt->format(DATE_ATOM);
+                    $start = $date->format(DATE_ATOM);
+
+                    if(in_array($date->format('N'), $dias)) {
+                        $bookings = $bookingRepository->findBy(['doctor' => $doctor, 'beginAt' => $desde, 'cliente' => $cliente]);
+                        if(count($bookings) > 0) {
+                            $error = true;
+                            $yaTieneTurno = true;
+                            $arrayDeErrores[] = $desde->format(DATE_ATOM);
+                        } else {
+                            $bookings = $bookingRepository->findBy(['doctor' => $doctor, 'beginAt' => $date]);
+                            if ( count($bookings) >= $doctor->getMaxCliTurno() && $doctor->getMaxCliTurno() != null || ($doctor->getMaxCliTurno() == null ) ) {
+                                $error = true;
+                                $arrayDeErrores[] = $start;
+                            } else {
+                                $book = new Booking();
+                                $book->setBeginAt(new \DateTime($start));
+                                $book->setEndAt(new \DateTime($end));
+                                $newEndAt->modify('+1 day');
+
+                                $book->setDoctor($doctor);
+                                $book->setCliente($booking->getCliente());
+
+                                $book->setTitle($booking->getTitle());
+                                $book->setUser($booking->getUser());
+                                $arrayDeEventos[] = $book;
+                            }
+                        }
+                    }
+                }
             }
 
+            $guardarIgual = false;
+            if(!$error || (!empty($request->get('guardarIgual')))) {
+                if(count($arrayDeEventos) == 0) {
+                    $arrayDeEventos[] = $booking;
+                }
+                foreach($arrayDeEventos as $book) {
+                    $entityManager = $this->getDoctrine()->getManager();
+                    $entityManager->persist($book);
+                    $entityManager->flush();
+                }
+                return $this->redirectToRoute('booking_calendar');
+            } else {
+                    if($yaTieneTurno) {
+                        $stringError = "Los siguientes turnos no pueden ser agendados, porque el paciente ya tiene un turno asignado en ese día y horario con ese profesional <br>" ;
+                    } else {
+                        $stringError = "Los siguientes turnos no pueden ser agendados, porque superan el total de turnos para el profesional en el mismo horario: <br>" ;
+                    }
 
+                    foreach ($arrayDeErrores as $diaConError) {
+                        $diaConError = new \DateTime($diaConError);
+                        $stringError .= $diaConError->format('Y-m-d H:i:s') . '<br>';
+                    }
+                    if(count($arrayDeEventos) > 0) {
+                        $guardarIgual = true;
+                        $stringError .= '<br>Los siguientes turnos si pueden ser guardados: <br>';
+                        foreach ($arrayDeEventos as $eventosOk) {
+                            $stringError .= $eventosOk->getBeginAt()->format('Y-m-d H:i:s') . '<br>';
+                        }
+                        $stringError .= 'Para agendar los turnos disponibles presione el boton GUARDAR. <br>O precione CANCELAR para seleccionar diferentes horarios';
+                    }
+                return $this->render('booking/new.html.twig', [
+                    'booking' => $booking,
+                    'form' => $form->createView(),
+                    'error' => $stringError,
+                    'guardarIgual' => $guardarIgual,
+                ]);
+            }
         }
 
         return $this->render('booking/new.html.twig', [
@@ -223,15 +318,15 @@ class BookingController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $doctor = $doctorRepository->find($request->request->get('booking')['doctor']);
-            $newBeginAt = !empty($request->request->get('booking')['beginAt']) ? new \DateTime($request->request->get('booking')['beginAt']) : new \DateTime();
+            $doctor = $booking->getDoctor();
+            $newBeginAt = $booking->getBeginAt();
             $bookings = $bookingRepository->findBy(['doctor' => $doctor, 'beginAt' => $newBeginAt]);
 
-            if ( count($bookings) <= $doctor->getMaxCliTurno() || $doctor->getMaxCliTurno() == null ) {
+            if ( count($bookings) >= $doctor->getMaxCliTurno() && $doctor->getMaxCliTurno() != null || ($doctor->getMaxCliTurno() == null ) ) {
+                $error = 'El turno no puede ser movido a esa fecha/horario porque supera el número máximo de pacientes por turno que puede atender el profesional';
+            } else {
                 $this->getDoctrine()->getManager()->flush();
                 return $this->redirectToRoute('booking_calendar');
-            } else {
-                $error = 1;
             }
         }
 
@@ -245,24 +340,34 @@ class BookingController extends AbstractController
     /**
      * @Route("/{id}/{start}/{end}", name="booking_edit_ajax", methods={"GET","POST"})
      */
-    public function ajaxEdit($id, $start, $end, BookingRepository $bookingRepository): Response
+    public function ajaxEdit($id, $start, $end, BookingRepository $bookingRepository, DoctorRepository $doctorRepository): Response
     {
+        $error = false;
+        $message = 'ok';
         try {
             $beginAt = new \DateTime(substr($start, 0, 33));
+            $beginAt->modify('+3 hours');
             $endAt = new \DateTime(substr($end, 0, 33));
+            $endAt->modify('+3 hours');
             $booking = $bookingRepository->find($id);
+            $doctor = $doctorRepository->find($booking->getDoctor()->getId());
+            $bookings = $bookingRepository->findBy(['doctor' => $doctor, 'beginAt' => $beginAt]);
 
-            $booking->setBeginAt($beginAt);
-            $booking->setEndAt($endAt);
+            if ( count($bookings) >= $doctor->getMaxCliTurno() && $doctor->getMaxCliTurno() != null || ($doctor->getMaxCliTurno() == null ) ) {
+                $error = true;
+                $message = 'El turno no puede ser movido a esa fecha/horario porque supera el número máximo de pacientes por turno que puede atender el profesional';
+            } else {
+                $booking->setBeginAt($beginAt);
+                $booking->setEndAt($endAt);
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($booking);
+                $entityManager->flush();
+            }
 
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->persist($booking);
-            $entityManager->flush();
-
-            return new JsonResponse('ok');
+            return new JsonResponse(['error' => $error, 'message' => $message]);
 
         } catch (\Exception $e) {
-            return new JsonResponse($e->getCode());
+            return new JsonResponse(['error' => true, 'code' => $e->getCode(), 'message' => $e->getMessage()]);
         }
     }
 

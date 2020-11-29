@@ -23,6 +23,7 @@ class BookingType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $this->pctr = $options['ctr'];
+        $this->isNew = $options['isNew'];
 
         $builder
             ->add('beginAt', DateTimeType::class, ['label' => 'Hora de Inicio', 'required' => true, 'widget' => 'single_text', 'html5' => true, 'attr' => ['class' => 'js-datepicker'],])
@@ -47,20 +48,23 @@ class BookingType extends AbstractType
                 'choice_label' => 'NombreApellido',
                 'label' => 'Paciente',
                 'attr' => ['class' => 'predictivo']
-            ])
-            ->add('dias', ChoiceType::class, ['required' => false, 'choices'  => [
-                'Lunes' => 1,
-                'Martes' => 2,
-                'Miercoles' => 3,
-                'Jueves' => 4,
-                'Viernes' => 5,
-                'Sábado' => 6,
-            ],
-                'multiple'=>true,
-                'expanded'=>true,
-            ])
-            ->add('desde', DateType::class, ['label' => 'Desde', 'required' => false, 'widget' => 'single_text', 'html5' => true, 'attr' => ['class' => 'js-datepicker'],])
-            ->add('hasta', DateType::class, ['label' => 'Hasta', 'required' => false, 'widget' => 'single_text', 'html5' => true, 'attr' => ['class' => 'js-datepicker'],])
+            ]);
+            if($this->isNew) {
+                $builder->add('dias', ChoiceType::class, ['required' => false, 'choices'  => [
+                    'Lunes' => 1,
+                    'Martes' => 2,
+                    'Miercoles' => 3,
+                    'Jueves' => 4,
+                    'Viernes' => 5,
+                    'Sábado' => 6,
+                ],
+                    'multiple'=>true,
+                    'expanded'=>true,
+                ])
+                    ->add('desde', DateType::class, ['label' => 'Desde', 'required' => false, 'widget' => 'single_text', 'html5' => true, 'attr' => ['class' => 'js-datepicker'],])
+                    ->add('hasta', DateType::class, ['label' => 'Hasta', 'required' => false, 'widget' => 'single_text', 'html5' => true, 'attr' => ['class' => 'js-datepicker'],]);
+            };
+            $builder
             ->add('save', SubmitType::class, ['label' => 'Guardar', 'attr' => ['class' => 'btn-success']])
         ;
     }
@@ -69,7 +73,8 @@ class BookingType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Booking::class,
-            'ctr' => ''
+            'ctr' => '',
+            'isNew' => false
         ]);
     }
 }

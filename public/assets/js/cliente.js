@@ -20,6 +20,7 @@ $( document ).on('change', '.js-cliente-motivo', function () {
         }
     });
 })
+$('.predictivo').chosen();
 
 $( document ).on('change', '.js-camas-disp', function () {
     var numeroHabitacion = $(this).val();

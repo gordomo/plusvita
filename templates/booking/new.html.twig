@@ -7,18 +7,42 @@
 
     {{ include('booking/_form.html.twig') }}
 
+    <div class="modal" id='errorMessageModal' tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Modal title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>{{ error|raw }}</p>
+                </div>
+                <div class="modal-footer">
+                    {% if guardarIgual is defined and guardarIgual %}
+                        <button type="button" class="btn btn-primary" id="guardar">Guardar</button>
+                    {% endif %}
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
     <script src="{{ asset('assets/js/booking.js') }}"></script>
-    <script>
-        function errorLoad() {
-            alert("El profesional no puede atender más pacientes en este horario. Seleccione uno diferente o cambie la configuración en el perfil del profesional");
-        }
-    </script>
 
     {% if error %}
-        <script>errorLoad()</script>
+        <script>
+            $('#errorMessageModal').modal('show');
+            $('#guardar').click(function () {
+                let form = document.querySelector('form');
+                $(form).append('<input type="hidden" name="guardarIgual" value="true"/>');
+                form.submit();
+            });
+        </script>
     {% endif %}
 {% endblock %}
