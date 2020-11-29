@@ -65,7 +65,7 @@
                 <th>Profesional Referente</th>
                 <td>
                     {% for responsable in cliente.docReferente %}
-                        {{ responsable.nombre }} {{ responsable.apellido }} -
+                        {{ responsable.nombre | lower | capitalize }} {{ responsable.apellido | lower | capitalize }} <br>
                     {% endfor %}
                 </td>
             </tr>

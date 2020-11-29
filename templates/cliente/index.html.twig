@@ -97,7 +97,7 @@
                 </td>
                 <td>
                     {% for responsable in cliente.docReferente %}
-                        {{ responsable.nombre }} {{ responsable.apellido }} <br>
+                        {{ responsable.nombre | lower | capitalize }} {{ responsable.apellido | lower | capitalize }} <br>
                     {% endfor %}
                 </td>
                 <td>
