@@ -1,0 +1,57 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Profesional Agenda{% endblock %}
+{% block panelTitle %}Agenda{% endblock %}
+{% block body %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm">
+                <div>
+                    <ul class="nav nav-tabs justify-content-center">
+                        <li class="nav-item">
+                            <a class="nav-link {{  periodo == 'dia' ? 'active' : ''  }}" href="{{ path('doctor_agenda', {'periodo': 'dia'}) }}">Hoy</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{  periodo == 'semana' ? 'active' : ''  }}" href="{{ path('doctor_agenda', {'periodo': 'semana'}) }}">Semana</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{  periodo == 'mes' ? 'active' : ''  }}" href="{{ path('doctor_agenda', {'periodo': 'mes'}) }}">Mes</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-sm">
+                <div class="input-group mb-3">
+                    <input id='nombreInput' type="text" value="{{ nombreInput }}" class="form-control" placeholder="Buscar por Nombre del Paciente" aria-label="Buscar por Nombre del Paciente" aria-describedby="buscarPorNombre">
+                    <div class="input-group-append">
+                        <a class="btn btn-outline-secondary" data-inactivo="false" data-url="{{ path('doctor_agenda', {'periodo': }) }}" type="button" id="buscarPorNombre" style="padding: 10px;">
+                            <i class="fas fa-search"></i>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Comienza</th>
+            <th scope="col">Finaliza</th>
+            <th scope="col">Paciente</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for key,turno in today %}
+            <tr>
+                <td>{{ key + 1 }}</td>
+                <td>{{ turno.beginAt ?  turno.beginAt | date('Y-m-d H:i:s') : '' }}</th>
+                <td>{{ turno.endAt ?  turno.endAt | date('Y-m-d H:i:s') : '' }}</th>
+                <td>{{ turno.cliente.nombre }} {{ turno.cliente.apellido }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

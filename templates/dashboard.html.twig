@@ -79,5 +79,22 @@
             </div>
 
         </div>
+    {% elseif  is_granted('ROLE_STAFF')%}
+        <div class="container">
+            <div class="row">
+                {% if isDoctor %}
+                    <div class="col-md-4">
+                        <a href="{{ path('doctor_agenda', {'periodo': 'dia'}) }}">
+                            <div class="card text-white mb-3 usuariosOnDash" style="max-width: 18rem;">
+                                <div class="card-header">Agenda</div>
+                                <div class="card-body">
+                                    <p class="card-text">Turnos y eventos</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
     {% endif %}
 {% endblock %}

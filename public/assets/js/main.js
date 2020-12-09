@@ -20,8 +20,13 @@ $("#menu-toggle").click(function(e) {
 
 var form = document.querySelector('form');
 if(typeof (form) != "undefined" && form != null && form.name != 'booking') {
-    form.addEventListener('submit', function() {
-        $('form button:submit').attr('disabled', 'disabled');
+    form.addEventListener('submit', function(event) {
+        if($(form).find('.is-invalid').length) {
+            $(form).find('.is-invalid').focus();
+            event.preventDefault();
+        } else {
+            $('form button:submit').attr('disabled', 'disabled');
+        }
     }, false);
 }
 
@@ -61,3 +66,7 @@ if(input) {
     });
 }
 
+function validateEmail(email) {
+    const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(email);
+}

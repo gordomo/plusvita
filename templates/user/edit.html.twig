@@ -6,3 +6,7 @@
     {{ include('user/_form-edit.html.twig', {'button_label': 'Update'}) }}
     {{ include('user/_delete_form.html.twig') }}
 {% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('assets/js/user.js') }}"></script>
+{% endblock %}

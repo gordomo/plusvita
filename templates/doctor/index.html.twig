@@ -33,6 +33,7 @@
             <div class="col-sm">
                 <button class="btn btn-default" id="buscarContrato"><i class="fas fa-search" aria-hidden="true"></i></button>
                 <button class="btn btn-default" id="limpiarContratos" style="padding: 2px 16px;">Limpiar</button>
+                <a class="btn btn-success" style="padding: 2px 16px;" href="{{ path('doctor_new') }}">Nuevo Staff</a>
             </div>
         </div>
     </div>
@@ -118,7 +119,7 @@
         </tbody>
     </table>
 
-    <a href="{{ path('doctor_new') }}">Ingresar nuevo Miembro del Staff</a>
+
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}

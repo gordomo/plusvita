@@ -5,3 +5,7 @@
 {% block body %}
     {{ include('user/_form.html.twig') }}
 {% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('assets/js/user.js') }}"></script>
+{% endblock %}

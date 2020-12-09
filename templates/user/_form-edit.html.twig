@@ -14,7 +14,7 @@
 <div class="form-row">
     <div class="col-sm">
         {{ form_label(form.email, 'Email') }}
-        {{ form_widget(form.email) }}
+        {{ form_widget(form.email, {'attr': { 'data-staff_check_email-url' : path('staff_check_email'), 'data-user-id' : user.id }}) }}
     </div>
     <div class="col-sm">
         {{ form_label(form.telefono, 'Teléfono') }}

@@ -49,7 +49,7 @@ class UserController extends AbstractController
                                                         ])
             ->add('legajo', TextType::class, ['required' => false])
             ->add('password', PasswordType::class)
-            ->add('email', EmailType::class)
+            ->add('email', EmailType::class, ['attr' => ['autocomplete' => 'off', 'value'=>""]])
             //->add('telefono', TelType::class, ['required' => false])
             ->add('save', SubmitType::class, ['label' => 'Guardar'])
             ->getForm();

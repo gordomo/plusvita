@@ -6,7 +6,10 @@ use App\Entity\Cliente;
 use App\Entity\Doctor;
 use App\Form\ClienteType;
 use App\Form\DoctorType;
+use App\Repository\BookingRepository;
+use App\Repository\ClienteRepository;
 use App\Repository\DoctorRepository;
+use App\Repository\UserRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Filesystem\Filesystem;
@@ -17,6 +20,7 @@ use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -115,6 +119,31 @@ class DoctorController extends AbstractController
         return $this->render('doctor/_modalidad.html.twig', [
             'form' => $form->createView(),
         ]);
+
+    }
+
+    /**
+     * @Route("/check-email/", name="staff_check_email")
+     */
+    public function checkEmail(Request $request, DoctorRepository $doctorRepository, ClienteRepository $clienteRepository, UserRepository $userRepository)
+    {
+        $libre = true;
+        $message = '';
+        $email = $request->query->get('email');
+        $id = $request->query->get('id');
+
+        $doctor = $doctorRepository->findBy(['email' => $email], ['id'=>'DESC'], 1);
+        $cliente = $clienteRepository->findBy(['email' => $email], ['id'=>'DESC'], 1);
+        $user = $userRepository->findBy(['email' => $email], ['id'=>'DESC'], 1);
+
+        if( (count($doctor) > 0 && $doctor[0]->getId() != $id) ||
+            (count($cliente) && $cliente[0]->getId() != $id) ||
+            (count($user) && $user[0]->getId() != $id)) {
+            $libre = false;
+            $message = 'el email ingresado se encuentra en uso';
+        }
+
+        return new JsonResponse(['libre' => $libre, 'message' => $message]);
 
     }
 
@@ -308,5 +337,29 @@ class DoctorController extends AbstractController
         }
 
         return $this->redirectToRoute('doctor_index');
+    }
+
+    /**
+     * @Route("/doctor/agenda/{periodo}/", name="doctor_agenda", methods={"GET"})
+     */
+    public function agenda(Request $request, BookingRepository $bookingRepository, ClienteRepository $clienteRepository, $periodo) {
+        $user = $this->getUser();
+        $nombreInput = $request->query->get('nombreInput') ?? '';
+
+        $clientes = [];
+        if(!empty($nombreInput)) {
+            $clientes = $clienteRepository->findActivos(new \DateTime(), $nombreInput);
+        }
+
+        $dia = new \DateTime();
+        $turnos = $bookingRepository->turnosParaAgenda($user, $dia, $periodo, $clientes);
+
+
+        return $this->render('doctor/agenda.html.twig', [
+            'today' => $turnos,
+            'nombreInput' => $nombreInput,
+            'periodo' => $periodo
+        ]);
+
     }
 }
