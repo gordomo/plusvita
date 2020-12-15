@@ -1,0 +1,5 @@
+{{ form_start(form) }}
+    {{ form_widget(form) }}
+    <a class="btn btn-default" href="{{ path('doctor_agenda', {'periodo': 'dia'}) }}">volver</a>
+    <button class="btn btn btn-primary" >{{ button_label|default('Guardar Nota') }}</button>
+{{ form_end(form) }}

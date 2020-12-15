@@ -345,6 +345,17 @@ class DoctorController extends AbstractController
     public function agenda(Request $request, BookingRepository $bookingRepository, ClienteRepository $clienteRepository, $periodo) {
         $user = $this->getUser();
         $nombreInput = $request->query->get('nombreInput') ?? '';
+        $desde = $request->query->get('desde') ?? '';
+        $hasta = $request->query->get('hasta') ?? '';
+        $from = '';
+        $to = '';
+
+        if($desde != '') {
+            $from = (new \DateTime($desde));
+        }
+        if($hasta != '') {
+            $to = (new \DateTime($hasta));
+        }
 
         $clientes = [];
         if(!empty($nombreInput)) {
@@ -352,13 +363,61 @@ class DoctorController extends AbstractController
         }
 
         $dia = new \DateTime();
-        $turnos = $bookingRepository->turnosParaAgenda($user, $dia, $periodo, $clientes);
+        $turnos = $bookingRepository->turnosParaAgenda($user, $dia, $periodo, $clientes, $from, $to);
 
 
         return $this->render('doctor/agenda.html.twig', [
             'today' => $turnos,
             'nombreInput' => $nombreInput,
-            'periodo' => $periodo
+            'periodo' => $periodo,
+            'desde' => $desde,
+            'hasta' => $hasta,
+        ]);
+
+    }
+
+    /**
+     * @Route("/doctor/agenda/{periodo}/{turnoId}/{completado}", name="doctor_agenda_update_turno", methods={"GET"})
+     */
+    public function updateTurno(Request $request, BookingRepository $bookingRepository, ClienteRepository $clienteRepository, $periodo, $turnoId, $completado) {
+        $user = $this->getUser();
+
+        if($completado || in_array('ROLE_ADMIN', $user->getRoles())) {
+            $book = $bookingRepository->find($turnoId);
+            $book->setCompletado($completado);
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($book);
+            $entityManager->flush();
+        }
+
+        $nombreInput = $request->query->get('nombreInput') ?? '';
+        $desde = $request->query->get('desde') ?? '';
+        $hasta = $request->query->get('hasta') ?? '';
+        $from = '';
+        $to = '';
+
+        if($desde != '') {
+            $from = (new \DateTime($desde));
+        }
+        if($hasta != '') {
+            $to = (new \DateTime($hasta));
+        }
+
+        $clientes = [];
+        if(!empty($nombreInput)) {
+            $clientes = $clienteRepository->findActivos(new \DateTime(), $nombreInput);
+        }
+
+        $dia = new \DateTime();
+        $turnos = $bookingRepository->turnosParaAgenda($user, $dia, $periodo, $clientes, $from, $to);
+
+
+        return $this->render('doctor/agenda.html.twig', [
+            'today' => $turnos,
+            'nombreInput' => $nombreInput,
+            'periodo' => $periodo,
+            'desde' => $desde,
+            'hasta' => $hasta,
         ]);
 
     }

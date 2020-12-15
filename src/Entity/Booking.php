@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\BookingRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -67,6 +69,21 @@ class Booking
      * @ORM\JoinColumn(nullable=false)
      */
     private $cliente;
+
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $completado;
+
+    /**
+     * @ORM\OneToMany(targetEntity=NotasTurno::class, mappedBy="turno", orphanRemoval=true)
+     */
+    private $notas;
+
+    public function __construct()
+    {
+        $this->notas = new ArrayCollection();
+    }
 
 
     public function getId(): ?int
@@ -257,5 +274,48 @@ class Booking
     public function setHasta($hasta): void
     {
         $this->hasta = $hasta;
+    }
+
+    public function getCompletado(): ?bool
+    {
+        return $this->completado;
+    }
+
+    public function setCompletado(?bool $completado): self
+    {
+        $this->completado = $completado;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|NotasTurno[]
+     */
+    public function getNotas(): Collection
+    {
+        return $this->notas;
+    }
+
+    public function addNota(NotasTurno $nota): self
+    {
+        if (!$this->notas->contains($nota)) {
+            $this->notas[] = $nota;
+            $nota->setTurno($this);
+        }
+
+        return $this;
+    }
+
+    public function removeNota(NotasTurno $nota): self
+    {
+        if ($this->notas->contains($nota)) {
+            $this->notas->removeElement($nota);
+            // set the owning side to null (unless already changed)
+            if ($nota->getTurno() === $this) {
+                $nota->setTurno(null);
+            }
+        }
+
+        return $this;
     }
 }

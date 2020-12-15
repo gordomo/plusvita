@@ -5,8 +5,8 @@
 {% block body %}
     <div class="container-fluid">
         <div class="row">
-            <div class="col-sm">
-                <div>
+            <div class="col-md-8">
+                <div class="col-md-4" style="float: left;">
                     <ul class="nav nav-tabs justify-content-center">
                         <li class="nav-item">
                             <a class="nav-link {{  periodo == 'dia' ? 'active' : ''  }}" href="{{ path('doctor_agenda', {'periodo': 'dia'}) }}">Hoy</a>
@@ -17,14 +17,35 @@
                         <li class="nav-item">
                             <a class="nav-link {{  periodo == 'mes' ? 'active' : ''  }}" href="{{ path('doctor_agenda', {'periodo': 'mes'}) }}">Mes</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{  periodo == 'anteriores' ? 'active' : ''  }}" href="{{ path('doctor_agenda', {'periodo': 'anteriores'}) }}">Anteriores</a>
+                        </li>
                     </ul>
                 </div>
+                <div class="col-md-8" style="display: {{  periodo == 'anteriores' ? 'block' : 'none'  }}; float: left;">
+                    <div class="col-md-6" style="float: left;">
+                        <div class="col-md-2" style="float: left;line-height: 35px;">
+                            Desde:
+                        </div>
+                        <div class="col-md-10" style="float: left;">
+                            <input id='from' type="date" class="js-datepicker form-control" value="{{ desde }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6" style="float: left;">
+                        <div class="col-md-2" style="float: left;line-height: 35px;">
+                            Hasta:
+                        </div>
+                        <div class="col-md-10" style="float: left;">
+                            <input id='to' type="date" class="js-datepicker form-control" value="{{ hasta }}" data-url="{{ path('doctor_agenda', {'periodo': 'anteriores'}) }}">
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="col-sm">
+            <div class="col-md-4">
                 <div class="input-group mb-3">
                     <input id='nombreInput' type="text" value="{{ nombreInput }}" class="form-control" placeholder="Buscar por Nombre del Paciente" aria-label="Buscar por Nombre del Paciente" aria-describedby="buscarPorNombre">
                     <div class="input-group-append">
-                        <a class="btn btn-outline-secondary" data-inactivo="false" data-url="{{ path('doctor_agenda', {'periodo': 'dia'}) }}" type="button" id="buscarPorNombre" style="padding: 10px;">
+                        <a class="btn btn-outline-secondary" data-inactivo="false" data-url="{{ path('doctor_agenda', {'periodo': periodo}) }}" type="button" id="buscarPorNombreYfechas" style="padding: 10px;">
                             <i class="fas fa-search"></i>
                         </a>
                     </div>
@@ -41,6 +62,8 @@
             <th scope="col">Comienza</th>
             <th scope="col">Finaliza</th>
             <th scope="col">Paciente</th>
+            <th scope="col">Completo</th>
+            <th scope="col">Acciones</th>
         </tr>
         </thead>
         <tbody>
@@ -50,8 +73,23 @@
                 <td>{{ turno.beginAt ?  turno.beginAt | date('Y-m-d H:i:s') : '' }}</th>
                 <td>{{ turno.endAt ?  turno.endAt | date('Y-m-d H:i:s') : '' }}</th>
                 <td>{{ turno.cliente.nombre }} {{ turno.cliente.apellido }}</td>
+                <td>
+                    <input {{ turno.completado ? 'disabled' : '' }} class="completado" data-url="{{ path('doctor_agenda', {'periodo': periodo}) }}" data-turno-id="{{ turno.id }}" type="checkbox" {{ turno.completado ? 'checked' : '' }}>
+                </td>
+                <td>
+                    <a href="{{ path('nota_para_turno', {'turnoId': turno.id}) }}">
+                        <i class="far fa-clipboard"></i>
+                        {% if turno.notas.count %}
+                            *
+                        {% endif %}
+                    </a>
+                </td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('assets/js/doctorAgenda.js') }}"></script>
 {% endblock %}

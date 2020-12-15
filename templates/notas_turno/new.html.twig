@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Notas para el turno{% endblock %}
+{% block panelTitle %}Notas para el Turno{% endblock %}
+{% block body %}
+
+    {{ include('notas_turno/_form.html.twig') }}
+
+
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Texto</th>
+            <th>actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for notas_turno in notas_turnos %}
+            <tr>
+                <td>{{ notas_turno.text }}</td>
+                <td>
+                    <a href="{{ path('notas_turno_show', {'id': notas_turno.id}) }}">Ver</a>
+                    <a href="{{ path('notas_turno_edit', {'id': notas_turno.id}) }}">Editar</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="3">Aún no se ingresan notas en este turno</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

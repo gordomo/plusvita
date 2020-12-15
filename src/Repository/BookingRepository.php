@@ -22,32 +22,36 @@ class BookingRepository extends ServiceEntityRepository
     /**
      * @return Booking[] Returns an array of Booking objects
      */
-    public function turnosParaAgenda($doctor, $dia, $periodo, $user = [])
+    public function turnosParaAgenda($doctor, $dia, $periodo, $user = [], $desde = '', $hasta = '')
     {
+        if($desde != '') $dia = $desde;
         $midnightyesterday2 = clone $dia;
-        $midnightyesterday2->modify('+12 hour');
         $midnightyesterday2->setTime(0, 0);
-        $midnightyesterday2->modify('-24 hour');
         $start= $midnightyesterday2->format("Y-m-d H:i:s");
 
+        if($hasta != '') $dia = $hasta;
         $endofdayyesterday2 = clone $dia;
         if($periodo == 'semana') {
             $endofdayyesterday2->modify('+7days');
         } else if ($periodo == 'mes') {
             $endofdayyesterday2->modify('+1month');
         }
-
-        $endofdayyesterday2->modify('+12 hour');
         $endofdayyesterday2->setTime(23, 59, 59);
-        $endofdayyesterday2->modify('-24 hour');
         $end = $endofdayyesterday2->format("Y-m-d H:i:s");
 
-        $query = $this->createQueryBuilder('b')
-            ->andWhere('b.beginAt > :start')
-            ->andWhere('b.beginAt < :end')
+
+        $query = $this->createQueryBuilder('b');
+
+        if($periodo !== 'anteriores' || ($desde != '' && $hasta != '')) {
+            $query = $query
+                ->andWhere('b.beginAt >= :start')
+                ->andWhere('b.beginAt <= :end')
+                ->setParameter('end', $end)
+                ->setParameter('start', $start);
+        }
+
+        $query = $query
             ->andWhere('b.doctor = :doctor')
-            ->setParameter('start', $start)
-            ->setParameter('end', $end)
             ->setParameter('doctor', $doctor);
 
         if(!empty($user)) {
