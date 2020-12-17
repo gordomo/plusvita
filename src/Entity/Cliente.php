@@ -199,6 +199,41 @@ class Cliente
      */
     private $habPrivada;
 
+    /**
+     * @ORM\Column(type="boolean", options={"default":true})
+     */
+    private $disponibleParaTerapia = true;
+
+    /**
+     * @ORM\Column(type="boolean", options={"default":false})
+     */
+    private $derivado = false;
+
+    /**
+     * @ORM\Column(type="boolean", options={"default":false})
+     */
+    private $dePermiso = false;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $derivadoEn;
+
+    /**
+     * @ORM\Column(type="date", length=255, nullable=true)
+     */
+    private $fechaDerivacion;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $motivoDerivacion;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $empTrasladoDerivacion;
+
     public function __construct()
     {
         $this->docReferente = new ArrayCollection();
@@ -694,6 +729,90 @@ class Cliente
     public function setFamiliarResponsableAcompanante(bool $familiarResponsableAcompanante): void
     {
         $this->familiarResponsableAcompanante = $familiarResponsableAcompanante;
+    }
+
+    public function getDisponibleParaTerapia(): ?bool
+    {
+        return $this->disponibleParaTerapia;
+    }
+
+    public function setDisponibleParaTerapia(bool $disponibleParaTerapia): self
+    {
+        $this->disponibleParaTerapia = $disponibleParaTerapia;
+
+        return $this;
+    }
+
+    public function getDerivado(): ?bool
+    {
+        return $this->derivado;
+    }
+
+    public function setDerivado(bool $derivado): self
+    {
+        $this->derivado = $derivado;
+
+        return $this;
+    }
+
+    public function getDePermiso(): ?bool
+    {
+        return $this->dePermiso;
+    }
+
+    public function setDePermiso(bool $dePermiso): self
+    {
+        $this->dePermiso = $dePermiso;
+
+        return $this;
+    }
+
+    public function getDerivadoEn(): ?string
+    {
+        return $this->derivadoEn;
+    }
+
+    public function setDerivadoEn(?string $derivadoEn): self
+    {
+        $this->derivadoEn = $derivadoEn;
+
+        return $this;
+    }
+
+    public function getFechaDerivacion(): ?\DateTimeInterface
+    {
+        return $this->fechaDerivacion;
+    }
+
+    public function setFechaDerivacion(?\DateTimeInterface $fechaDerivacion): self
+    {
+        $this->fechaDerivacion = $fechaDerivacion;
+
+        return $this;
+    }
+
+    public function getMotivoDerivacion(): ?string
+    {
+        return $this->motivoDerivacion;
+    }
+
+    public function setMotivoDerivacion(?string $motivoDerivacion): self
+    {
+        $this->motivoDerivacion = $motivoDerivacion;
+
+        return $this;
+    }
+
+    public function getEmpTrasladoDerivacion(): ?string
+    {
+        return $this->empTrasladoDerivacion;
+    }
+
+    public function setEmpTrasladoDerivacion(?string $empTrasladoDerivacion): self
+    {
+        $this->empTrasladoDerivacion = $empTrasladoDerivacion;
+
+        return $this;
     }
 
 

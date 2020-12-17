@@ -101,7 +101,16 @@ class ClienteType extends AbstractType
                     'expanded' => true,
                     'label' => 'Profesionales Referentes',
                 ])
-
+                ->add('disponibleParaTerapia', ChoiceType::class, [
+                    'required' => true,
+                    'label' => 'Disponible Para Terapia',
+                    'multiple' => false,
+                    'expanded' => true,
+                    'choices' => [
+                        'Si' => true,
+                        'No' => false,
+                        ],
+                    ])
                 ->add('habitacion', ChoiceType::class, [
                     'required' => false,
                     'label' => "Habitación",

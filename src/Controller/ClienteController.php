@@ -49,12 +49,13 @@ class ClienteController extends AbstractController
      */
     public function index(Request $request, ClienteRepository $clienteRepository, HabitacionRepository $habitacionRepository): Response
     {
-        $inactivos = $request->query->get('inactivos');
+        $pestana = $request->query->get('pestana') ?? 'activos';
         $nombreInput = $request->query->get('nombreInput');
 
-
-        if ( $inactivos ) {
-            $clientes = $clienteRepository->findInActivos(new \DateTime(), $nombreInput);
+        if ($pestana == 'inactivos') {
+            $clientes = $clienteRepository->findActivos(new \DateTime(), $nombreInput);
+        } else if ( $pestana == 'derivados') {
+            $clientes = $clienteRepository->findDerivados(new \DateTime(), $nombreInput);
         } else {
             $clientes = $clienteRepository->findActivos(new \DateTime(), $nombreInput);
         }
@@ -68,11 +69,67 @@ class ClienteController extends AbstractController
 
         return $this->render('cliente/index.html.twig', [
             'clientes' => $clientes,
-            'inactivos' => $inactivos,
+            'pestana' => $pestana,
             'nombreInput' => $nombreInput,
             'habitacionesArray'=>$habitacionesArray,
         ]);
     }
+
+    /**
+     * @Route("/derivar/{id}", name="cliente_derivar", methods={"GET"})
+     */
+    public function derivar(Cliente $cliente): Response
+    {
+        return $this->render('cliente/derivar.html.twig', [
+            'cliente' => $cliente,
+        ]);
+    }
+
+    /**
+     * @Route("/derivar/guardar/{id}", name="cliente_guardar_derivacion", methods={"POST"})
+     */
+    public function guardarDerivacion(Cliente $cliente, Request $request): Response
+    {
+        $derivadoEn = ($request->get('derivadoEn')) ?? '';
+        $fechaDerivacion = ($request->get('fechaDerivacion')) ? new \DateTime($request->get('fechaDerivacion')) : new \DateTime();
+        $motivo = ($request->get('motivo')) ?? '';
+        $empDeTraslado = ($request->get('empDeTraslado')) ?? '';
+
+        $cliente->setDerivado(true);
+        $cliente->setDerivadoEn($derivadoEn);
+        $cliente->setFechaDerivacion($fechaDerivacion);
+        $cliente->setMotivoDerivacion($motivo);
+        $cliente->setEmpTrasladoDerivacion($empDeTraslado);
+
+        $historial = new HistoriaPaciente();
+
+        //TODO guardar cambios en el historial
+
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->persist($cliente);
+        $entityManager->flush();
+
+        return $this->redirectToRoute('cliente_index');
+    }
+
+    /**
+     * @Route("/reingresar/guardar/{id}", name="cliente_reingresar", methods={"GET"})
+     */
+    public function guardarReingresoPorDerivacion(Cliente $cliente, Request $request): Response
+    {
+        //TODO guardar cambios en el historial
+
+        $cliente->setDerivado(false);
+
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->persist($cliente);
+        $entityManager->flush();
+
+        return $this->redirectToRoute('cliente_index');
+    }
+
+
+
 
     /**
      * @Route("/patologia-select", name="paciente_patologia_select")

@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Derivaciones de Pacientes{% endblock %}
+{% block panelTitle %}Derivaciones de Pacientes{% endblock %}
+{% block body %}
+    <form action="{{ path('cliente_guardar_derivacion', {'id': cliente.id}) }}" method="POST">
+        <div class="form-group">
+            <div class="form-row">
+                <div class="col-sm">
+                    <label class="control-label required">Derivado a:</label>
+                    <input required class="form-control" type="text" name="derivadoEn">
+                </div>
+                <div class="col-sm">
+                    <label class="control-label required">Fecha de derivación:</label>
+                    <input required class="form-control" type="datetime-local" name="fechaDerivacion">
+                </div>
+                <div class="col-sm">
+
+                </div>
+            </div>
+            <br>
+            <div class="form-row">
+                <div class="col-sm">
+                    <label class="control-label required">Motivo:</label>
+                    <input required class="form-control" type="text" name="motivo">
+                </div>
+                <div class="col-sm">
+                    <label class="control-label required">Empresa de traslado:</label>
+                    <input class="form-control" type="text" name="empDeTraslado">
+                </div>
+                <div class="col-sm">
+                </div>
+            </div>
+            <br>
+            <br>
+            <br>
+            <div class="form-row">
+                <div class="col-sm">
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">guardar</button>
+                        <a class="btn btn-default" href="javascript:history.back();">volver</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+{% endblock %}

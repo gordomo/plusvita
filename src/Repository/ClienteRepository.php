@@ -32,6 +32,20 @@ class ClienteRepository extends ServiceEntityRepository
             ;
     }
 
+    public function findDerivados($value, $nombre)
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.fEgreso > :val')->setParameter('val', $value)
+            ->orWhere('c.fEgreso IS NULL')
+            ->andWhere('c.nombre like  :nombre OR c.apellido like :nombre')->setParameter('nombre','%'. $nombre .'%')
+            ->andWhere('c.derivado = 1')
+            ->orderBy('c.hClinica', 'ASC')
+            //->setMaxResults(10)
+            ->getQuery()
+            ->getResult()
+            ;
+    }
+
     public function findInActivos($value, $nombre)
     {
         return $this->createQueryBuilder('c')
