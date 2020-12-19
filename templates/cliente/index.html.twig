@@ -63,79 +63,91 @@
         </thead>
         <tbody>
         {% for cliente in clientes %}
-            <tr class="editarPaciente {{ cliente.disponibleParaTerapia ? '' : 'noDisp' }}" data-url="{{ path('cliente_show', {'id': cliente.id}) }}">
-                <td>{{ cliente.hClinica }}</td>
-                <td>{{ cliente.nombre }}</td>
-                <td>{{ cliente.apellido }}</td>
-                <td>{{ cliente.dni }}</td>
-                <td class="lowercase">{{ cliente.email }}</td>
-                <td>{{ cliente.telefono }}</td>
-                <td>{{ cliente.fIngreso ? cliente.fIngreso|date('Y-m-d') : '' }}</td>
-                <td>
-                    {% if(cliente.modalidad == 1) %}
-                        Ambulatorio
-                    {% elseif(cliente.modalidad == 2) %}
-                        Internacion
-                    {% elseif(cliente.modalidad == 3) %}
-                        Hospital de día
-                    {% elseif(cliente.modalidad == 4) %}
-                        ART
-                    {% endif %}
-                </td>
-                <td>
-                    {% if(cliente.motivoIng == 1) %}
-                        Neurologicas
-                    {% elseif(cliente.motivoIng == 2) %}
-                        Traumatológicas
-                    {% elseif(cliente.motivoIng == 3) %}
-                        Respiratorias
-                    {% elseif(cliente.motivoIng == 4) %}
-                        Paliativos
-                    {% elseif(cliente.motivoIng == 5) %}
-                        Patologías laborales
-                    {% endif %}
-                </td>
-                <td>
-                    {% if habitacionesArray[cliente.habitacion] is defined %}
-                        {{ habitacionesArray[cliente.habitacion] }}
-                    {% endif %}
-                </td>
-                <td>
-                    {% if cliente.habPrivada %}
-                        privada
-                    {% else %}
-                        {{ cliente.nCama }}
-                    {% endif %}
-                </td>
-                <td>
-                    {% for responsable in cliente.docReferente %}
-                        {{ responsable.nombre | lower | capitalize }} {{ responsable.apellido | lower | capitalize }} <br>
-                    {% endfor %}
-                </td>
-                <td>
-                    <a href="{{ path('cliente_edit', {'id': cliente.id}) }}">
-                        <i class="fas fa-pencil-alt" data-toggle="tooltip" data-placement="top" title="editar"></i>
-                    </a>&nbsp;
-                    <a href="{{ path('adjuntos_pacientes_new', {'id': cliente.id}) }}">
-                        <i class="fas fa-paperclip" data-toggle="tooltip" data-placement="top" title="adjuntar"></i>
-                    </a>&nbsp;
-                    <a href="{{ path('cliente_egreso', {'id': cliente.id}) }}">
-                        <i class="far fa-calendar-times" data-toggle="tooltip" data-placement="top" title="egreso"></i>
-                    </a>&nbsp;
-                    <a href="{{ path('cliente_historial', {'id': cliente.id}) }}">
-                        <i class="far fa-calendar-alt" data-toggle="tooltip" data-placement="top" title="historia"></i>
-                    </a>&nbsp;
-                    {% if cliente.derivado %}
-                        <a href="{{ path('cliente_reingresar', {'id': cliente.id}) }}">
-                            <i class="fas fa-arrow-left" data-toggle="tooltip" data-placement="top" title="reingresar derivado"></i>
-                        </a>
-                    {% else %}
-                        <a href="{{ path('cliente_derivar', {'id': cliente.id}) }}">
-                            <i class="fas fa-arrow-right" data-toggle="tooltip" data-placement="top" title="derivar"></i>
-                        </a>
-                    {% endif %}
+            <tr class="editarPaciente" {{ cliente.disponibleParaTerapia ? '' : 'noDisp' }}">
+                <div class="editarPacienteInner">
+                    <td>{{ cliente.hClinica }}</td>
+                    <td>{{ cliente.nombre }}</td>
+                    <td>{{ cliente.apellido }}</td>
+                    <td>{{ cliente.dni }}</td>
+                    <td class="lowercase">{{ cliente.email }}</td>
+                    <td>{{ cliente.telefono }}</td>
+                    <td>{{ cliente.fIngreso ? cliente.fIngreso|date('Y-m-d') : '' }}</td>
+                    <td>
+                        {% if(cliente.modalidad == 1) %}
+                            Ambulatorio
+                        {% elseif(cliente.modalidad == 2) %}
+                            Internacion
+                        {% elseif(cliente.modalidad == 3) %}
+                            Hospital de día
+                        {% elseif(cliente.modalidad == 4) %}
+                            ART
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if(cliente.motivoIng == 1) %}
+                            Neurologicas
+                        {% elseif(cliente.motivoIng == 2) %}
+                            Traumatológicas
+                        {% elseif(cliente.motivoIng == 3) %}
+                            Respiratorias
+                        {% elseif(cliente.motivoIng == 4) %}
+                            Paliativos
+                        {% elseif(cliente.motivoIng == 5) %}
+                            Patologías laborales
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if habitacionesArray[cliente.habitacion] is defined %}
+                            {{ habitacionesArray[cliente.habitacion] }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if cliente.habPrivada %}
+                            privada
+                        {% else %}
+                            {{ cliente.nCama }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% for responsable in cliente.docReferente %}
+                            {{ responsable.nombre | lower | capitalize }} {{ responsable.apellido | lower | capitalize }} <br>
+                        {% endfor %}
+                    </td>
+                    <td>
+                        <div class="dropdown show dropleft">
+                            <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Acciones
+                            </a>
 
-                </td>
+                            <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                                <a class="dropdown-item" href="{{ path('cliente_show', {'id': cliente.id}) }}">
+                                    <i class="fas fa-eye" data-toggle="tooltip" data-placement="top" title="Ver"></i> Ver
+                                </a>
+                                <a class="dropdown-item" href="{{ path('cliente_edit', {'id': cliente.id}) }}">
+                                    <i class="fas fa-pencil-alt" data-toggle="tooltip" data-placement="top" title="editar"></i> Editar
+                                </a>
+                                <a class="dropdown-item" href="{{ path('adjuntos_pacientes_new', {'id': cliente.id}) }}">
+                                    <i class="fas fa-paperclip" data-toggle="tooltip" data-placement="top" title="adjuntar"></i> Adjuntar
+                                </a>
+                                <a class="dropdown-item" href="{{ path('cliente_egreso', {'id': cliente.id}) }}">
+                                    <i class="far fa-calendar-times" data-toggle="tooltip" data-placement="top" title="egreso"></i> Egresar
+                                </a>
+                                <a class="dropdown-item" href="{{ path('cliente_historial', {'id': cliente.id}) }}">
+                                    <i class="far fa-calendar-alt" data-toggle="tooltip" data-placement="top" title="historia"></i> Ver Historia
+                                </a>
+                                {% if cliente.derivado %}
+                                    <a class="dropdown-item" href="{{ path('cliente_reingresar', {'id': cliente.id}) }}">
+                                        <i class="fas fa-arrow-left" data-toggle="tooltip" data-placement="top" title="reingresar derivado"></i> Reingresar
+                                    </a>
+                                {% else %}
+                                    <a class="dropdown-item" href="{{ path('cliente_derivar', {'id': cliente.id}) }}">
+                                        <i class="fas fa-arrow-right" data-toggle="tooltip" data-placement="top" title="derivar"></i> Derivar
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                </div>
             </tr>
         {% else %}
             <tr>

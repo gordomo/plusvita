@@ -25,6 +25,8 @@ class ClienteRepository extends ServiceEntityRepository
             ->andWhere('c.fEgreso > :val')->setParameter('val', $value)
             ->orWhere('c.fEgreso IS NULL')
             ->andWhere('c.nombre like  :nombre OR c.apellido like :nombre')->setParameter('nombre','%'. $nombre .'%')
+            ->andWhere('c.derivado = 0')
+            ->orWhere('c.derivado is null')
             ->orderBy('c.hClinica', 'ASC')
             //->setMaxResults(10)
             ->getQuery()

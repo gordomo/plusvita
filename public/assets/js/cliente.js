@@ -95,7 +95,7 @@ $('.js-datepicker').datepicker({
     format: 'yyyy-mm-dd'
 });
 
-$('.editarPaciente').click(function () {
+$('.editarPacienteInner').click(function () {
     window.location.href = $(this).data('url');
 });
 

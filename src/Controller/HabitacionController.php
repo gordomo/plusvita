@@ -21,10 +21,25 @@ class HabitacionController extends AbstractController
     /**
      * @Route("/", name="habitacion_index", methods={"GET"})
      */
-    public function index(HabitacionRepository $habitacionRepository): Response
+    public function index(HabitacionRepository $habitacionRepository, Request $request): Response
     {
+        $pestana = $request->query->get('pestana') ?? 'todas';
+
+        switch ($pestana) {
+            case 'completas':
+                $habitaciones = $habitacionRepository->findHabitacionSinCamasDisponibles();
+                break;
+            case 'camas-vacias':
+                $habitaciones = $habitacionRepository->findHabitacionConCamasDisponibles();
+                break;
+            default:
+                $habitaciones = $habitacionRepository->findAll();
+                break;
+        }
+
         return $this->render('habitacion/index.html.twig', [
-            'habitacions' => $habitacionRepository->findAll(),
+            'habitacions' => $habitaciones,
+            'pestana' => $pestana,
         ]);
     }
 

@@ -8,6 +8,7 @@ use App\Entity\FamiliarExtra;
 use App\Entity\Habitacion;
 use App\Entity\HistoriaPaciente;
 use App\Form\ClienteType;
+use App\Form\ReingresoType;
 use App\Repository\AdjuntosPacientesRepository;
 use App\Repository\CamaRepository;
 use App\Repository\ClienteRepository;
@@ -53,7 +54,7 @@ class ClienteController extends AbstractController
         $nombreInput = $request->query->get('nombreInput');
 
         if ($pestana == 'inactivos') {
-            $clientes = $clienteRepository->findActivos(new \DateTime(), $nombreInput);
+            $clientes = $clienteRepository->findInActivos(new \DateTime(), $nombreInput);
         } else if ( $pestana == 'derivados') {
             $clientes = $clienteRepository->findDerivados(new \DateTime(), $nombreInput);
         } else {
@@ -88,8 +89,9 @@ class ClienteController extends AbstractController
     /**
      * @Route("/derivar/guardar/{id}", name="cliente_guardar_derivacion", methods={"POST"})
      */
-    public function guardarDerivacion(Cliente $cliente, Request $request): Response
+    public function guardarDerivacion(Cliente $cliente, Request $request, HabitacionRepository $habitacionRepository): Response
     {
+        $user = $this->security->getUser();
         $derivadoEn = ($request->get('derivadoEn')) ?? '';
         $fechaDerivacion = ($request->get('fechaDerivacion')) ? new \DateTime($request->get('fechaDerivacion')) : new \DateTime();
         $motivo = ($request->get('motivo')) ?? '';
@@ -101,21 +103,88 @@ class ClienteController extends AbstractController
         $cliente->setMotivoDerivacion($motivo);
         $cliente->setEmpTrasladoDerivacion($empDeTraslado);
 
-        $historial = new HistoriaPaciente();
+        $this->liberarCamaCliente($cliente);
 
-        //TODO guardar cambios en el historial
+        $historial = new HistoriaPaciente();
+        $historial->setCama(null);
+        $historial->setCliente($cliente);
+        $historial->setIdPaciente($cliente->getId());
+        $historial->setFecha(new \DateTime());
+        $historial->setHabitacion(null);
+        $historial->setFechaDerivacion($fechaDerivacion);
+        $historial->setDerivadoEn($derivadoEn);
+        $historial->setMotivoDerivacion($motivo);
+        $historial->setEmpresaTransporteDerivacion($empDeTraslado);
+        $historial->setUsuario($user->getUsername());
 
         $entityManager = $this->getDoctrine()->getManager();
+
+        $entityManager->persist($historial);
         $entityManager->persist($cliente);
         $entityManager->flush();
 
         return $this->redirectToRoute('cliente_index');
     }
 
+
     /**
-     * @Route("/reingresar/guardar/{id}", name="cliente_reingresar", methods={"GET"})
+     * @Route("/reingresar/{id}", name="cliente_reingresar", methods={"GET", "POST"})
      */
-    public function guardarReingresoPorDerivacion(Cliente $cliente, Request $request): Response
+    public function reingresar(Cliente $cliente, Request $request, HabitacionRepository $habitacionRepository): Response
+    {
+        $habitaciones = $habitacionRepository->findHabitacionConCamasDisponibles();
+
+        $cliente->setActivo(true);
+        $cliente->setFIngreso(new \DateTime());
+
+        $haArray = [];
+        foreach ( $habitaciones as $ha ) {
+            $haArray[$ha->getId()] = $ha->getNombre();
+        }
+        $haArray = array_flip($haArray);
+
+
+        $form = $this->createForm(ReingresoType::class, $cliente, ['allow_extra_fields' =>true, 'habitaciones' => $haArray]);
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $cliente->setNCama($request->request->get('cliente')['nCama'] ?? null);
+            $habitacion = $habitacionRepository->find($cliente->getHabitacion());
+
+            $camasOcupadas = $habitacion->getCamasOcupadas();
+            $habPrivada = $request->request->get('cliente')['habPrivada'] ?? null;
+            if ($habPrivada) {
+                $cliente->setHabPrivada(1);
+                for ($i=1; $i <= $habitacion->getCamasDisponibles(); $i++) {
+                    $camasOcupadas[$i] = $i;
+                }
+            } else {
+                $camasOcupadas[$cliente->getNCama()] = $cliente->getNCama();
+            }
+            $habitacion->setCamasOcupadas($camasOcupadas);
+            $cliente->setDerivado(false);
+//TODO guardar en historial
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($cliente);
+            $entityManager->persist($habitacion);
+            $entityManager->flush();
+
+            return $this->redirectToRoute('cliente_index');
+
+        }
+
+        return $this->render('cliente/reingresar.html.twig', [
+            'cliente' => $cliente,
+            'form' => $form->createView(),
+
+        ]);
+    }
+
+    /**
+     * @Route("/reingresar/guardar/{id}", name="cliente_guardar_reingreso", methods={"GET"})
+     */
+    /*public function guardarReingresoPorDerivacion(Cliente $cliente, Request $request): Response
     {
         //TODO guardar cambios en el historial
 
@@ -126,10 +195,7 @@ class ClienteController extends AbstractController
         $entityManager->flush();
 
         return $this->redirectToRoute('cliente_index');
-    }
-
-
-
+    }*/
 
     /**
      * @Route("/patologia-select", name="paciente_patologia_select")
@@ -489,18 +555,7 @@ class ClienteController extends AbstractController
             $historial->setFechaEngreso($cliente->getFEgreso());
 
             if($cliente->getFEgreso() <= new \DateTime()) {
-                $habitacionActual = $habitacionRepository->find($cliente->getHabitacion());
-
-                $habViejaCamasOcupadas = $habitacionActual->getCamasOcupadas();
-                unset($habViejaCamasOcupadas[$cliente->getNCama()]);
-                $habitacionActual->setCamasOcupadas($habViejaCamasOcupadas);
-
-                $cliente->setHabitacion(null);
-                $cliente->setNCama(null);
-                $cliente->setHabPrivada(0);
-
-                $entityManager->persist($habitacionActual);
-                $entityManager->persist($cliente);
+                $this->liberarCamaCliente($cliente);
             }
 
             $entityManager->flush();
@@ -524,6 +579,8 @@ class ClienteController extends AbstractController
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($cliente);
             $entityManager->flush();
+            //TODO guardar en historial
+            $this->liberarCamaCliente($cliente);
         }
 
         return $this->redirectToRoute('cliente_index');
@@ -552,6 +609,35 @@ class ClienteController extends AbstractController
             }
             $habitacionNueva->setCamasOcupadas($camasOcupadasNuevaHab);
             $entityManager->persist($habitacionNueva);
+            $entityManager->flush();
+        }
+    }
+
+    private function liberarCamaCliente($cliente) {
+        $habitacionRepository = $this->getDoctrine()->getRepository(Habitacion::class);
+
+        if($cliente->getHabitacion()) {
+            $habitacionActual = $habitacionRepository->find($cliente->getHabitacion());
+
+            $habPrivada = $cliente->getHabPrivada();
+            $camasOcupadasPorCliente = $habitacionActual->getCamasOcupadas();
+
+            if($habPrivada != null && $habPrivada) {
+                $camasOcupadasPorCliente = [];
+            } else {
+                unset($camasOcupadasPorCliente[$cliente->getNCama()]);
+            }
+
+            $habitacionActual->setCamasOcupadas($camasOcupadasPorCliente);
+
+            $cliente->setHabitacion(null);
+            $cliente->setNCama(null);
+            $cliente->setHabPrivada(0);
+
+            $entityManager = $this->getDoctrine()->getManager();
+
+            $entityManager->persist($habitacionActual);
+            $entityManager->persist($cliente);
             $entityManager->flush();
         }
     }

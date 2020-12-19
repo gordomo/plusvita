@@ -234,6 +234,16 @@ class Cliente
      */
     private $empTrasladoDerivacion;
 
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $fechaReingresoDerivacion;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $motivoReingresoDerivacion;
+
     public function __construct()
     {
         $this->docReferente = new ArrayCollection();
@@ -811,6 +821,30 @@ class Cliente
     public function setEmpTrasladoDerivacion(?string $empTrasladoDerivacion): self
     {
         $this->empTrasladoDerivacion = $empTrasladoDerivacion;
+
+        return $this;
+    }
+
+    public function getFechaReingresoDerivacion(): ?\DateTimeInterface
+    {
+        return $this->fechaReingresoDerivacion;
+    }
+
+    public function setFechaReingresoDerivacion(?\DateTimeInterface $fechaReingresoDerivacion): self
+    {
+        $this->fechaReingresoDerivacion = $fechaReingresoDerivacion;
+
+        return $this;
+    }
+
+    public function getMotivoReingresoDerivacion(): ?string
+    {
+        return $this->motivoReingresoDerivacion;
+    }
+
+    public function setMotivoReingresoDerivacion(?string $motivoReingresoDerivacion): self
+    {
+        $this->motivoReingresoDerivacion = $motivoReingresoDerivacion;
 
         return $this;
     }

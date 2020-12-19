@@ -1,0 +1,65 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Reingresar Pacientes{% endblock %}
+{% block panelTitle %}Reingresar de Pacientes{% endblock %}
+{% block body %}
+    {{ form_start(form) }}
+
+        <div class="form-group">
+            <div class="form-row">
+                <div class="col-sm">
+                    {{ form_label(form.motivoReingresoDerivacion) }}
+                    {{ form_widget(form.motivoReingresoDerivacion) }}
+                </div>
+                <div class="col-sm">
+                    {{ form_label(form.fechaReingresoDerivacion) }}
+                    {{ form_widget(form.fechaReingresoDerivacion) }}
+                </div>
+                <div class="col-sm"></div>
+            </div>
+            <br>
+            <div class="form-row">
+                <div class="col-sm">
+                    {{ form_label(form.disponibleParaTerapia) }}
+                    {{ form_widget(form.disponibleParaTerapia) }}
+                </div>
+            </div>
+            <br>
+            <div class="form-row habitacion">
+                <div class="col-sm habDiv">
+                    {{ form_label(form.habitacion) }}
+                    {{ form_widget(form.habitacion, {'attr': {'class': 'js-camas-disp'}}) }}
+                </div>
+                <div class="col-sm placeHolder">
+                    {%  if form.nCama is defined %}
+                        {{ form_label(form.nCama) }}
+                        {{ form_widget(form.nCama) }}
+                    {% endif %}
+                </div>
+                <div class="col-sm placeHolder">
+                    {%  if form.habPrivada is defined %}
+                        {{ form_label(form.habPrivada) }}
+                        {{ form_widget(form.habPrivada) }}
+                    {% endif %}
+                </div>
+            </div>
+            <br>
+            <br>
+            <br>
+            <div class="form-row">
+                <div class="col-sm">
+                    <div class="form-group">
+                        <div class="form-group">
+                            {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary'}}) }}
+                            <a class="btn btn-default" href="javascript:history.back();">volver</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+{{ form_end(form) }}
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('assets/js/cliente.js') }}"></script>
+{% endblock %}

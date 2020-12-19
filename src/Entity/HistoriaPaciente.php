@@ -93,6 +93,31 @@ class HistoriaPaciente
     private $cliente;
 
     /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $fechaDerivacion;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $fechaReingresoDerivacion;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $motivoDerivacion;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $derivadoEn;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $empresaTransporteDerivacion;
+
+    /**
      * @return mixed
      */
     public function getFechaEngreso()
@@ -296,5 +321,65 @@ class HistoriaPaciente
     public function setCliente(Cliente $cliente): void
     {
         $this->cliente = $cliente;
+    }
+
+    public function getFechaDerivacion(): ?\DateTimeInterface
+    {
+        return $this->fechaDerivacion;
+    }
+
+    public function setFechaDerivacion(?\DateTimeInterface $fechaDerivacion): self
+    {
+        $this->fechaDerivacion = $fechaDerivacion;
+
+        return $this;
+    }
+
+    public function getFechaReingresoDerivacion(): ?\DateTimeInterface
+    {
+        return $this->fechaReingresoDerivacion;
+    }
+
+    public function setFechaReingresoDerivacion(?\DateTimeInterface $fechaReingresoDerivacion): self
+    {
+        $this->fechaReingresoDerivacion = $fechaReingresoDerivacion;
+
+        return $this;
+    }
+
+    public function getMotivoDerivacion(): ?string
+    {
+        return $this->motivoDerivacion;
+    }
+
+    public function setMotivoDerivacion(?string $motivoDerivacion): self
+    {
+        $this->motivoDerivacion = $motivoDerivacion;
+
+        return $this;
+    }
+
+    public function getDerivadoEn(): ?string
+    {
+        return $this->derivadoEn;
+    }
+
+    public function setDerivadoEn(?string $derivadoEn): self
+    {
+        $this->derivadoEn = $derivadoEn;
+
+        return $this;
+    }
+
+    public function getEmpresaTransporteDerivacion(): ?string
+    {
+        return $this->empresaTransporteDerivacion;
+    }
+
+    public function setEmpresaTransporteDerivacion(?string $empresaTransporteDerivacion): self
+    {
+        $this->empresaTransporteDerivacion = $empresaTransporteDerivacion;
+
+        return $this;
     }
 }

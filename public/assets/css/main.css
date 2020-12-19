@@ -66,15 +66,27 @@
 .editarPaciente {
     cursor: pointer;
 }
+.dropdown-menu.show {
+    background-color: #5a6268;
+}
+.dropdown-toggle a {
+    color:white !important;
+}
+.dropdown-toggle a:visited {
+    color:white !important;
+}
 .editarPaciente:hover {
     background-color: #889cbe !important;
     color: #f0f8ff;
 }
 .editarPaciente a {
-    color: #5f5f65;
+    color: white;
 }
 .editarPaciente a:hover {
-    color: #ffffff;
+    color: white;
+}
+a.dropdown-item:hover {
+    background-color: #889cbe;
 }
 .completa {
     background-color: #f1f1f1;

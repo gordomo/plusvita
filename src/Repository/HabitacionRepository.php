@@ -35,6 +35,22 @@ class HabitacionRepository extends ServiceEntityRepository
 
     }
 
+    public function findHabitacionSinCamasDisponibles()
+    {
+        $resp = [];
+        $todas = $this->findAll();
+        foreach ($todas as $habitacion) {
+            $arrayCamas = $habitacion->getCamasOcupadas();
+
+            if ($habitacion->getCamasDisponibles() == count($arrayCamas)) {
+                $resp[]  = $habitacion;
+
+            }
+        }
+        return $resp;
+
+    }
+
     public function getCamasDisp(int $id)
     {
         return $this->createQueryBuilder('h')

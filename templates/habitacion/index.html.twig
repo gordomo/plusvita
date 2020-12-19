@@ -3,6 +3,36 @@
 {% block title %}Habitaciones{% endblock %}
 {% block panelTitle %}Habitaciones{% endblock %}
 {% block body %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm">
+                <div>
+                    <ul class="nav nav-tabs justify-content-center">
+                        <li class="nav-item">
+                            <a class="nav-link {{  pestana == 'todas' ? 'active' : ''  }}" href="{{ path('habitacion_index') }}">Todas</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{  pestana == 'camas-vacias' ? 'active' : ''  }}" href="{{ path('habitacion_index') }}?pestana=camas-vacias">Camas Disponibles</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{  pestana == 'completas' ? 'active' : ''  }}"  href="{{ path('habitacion_index') }}?pestana=completas">Completas</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-sm">
+                <div class="input-group mb-3">
+                    <div>
+                        <a href="{{ path('habitacion_new') }}" class="btn-success btn" style="border-radius: 0">Nueva Habitación</a>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+
     <table class="table">
         <thead>
             <tr>
@@ -33,6 +63,4 @@
         {% endfor %}
         </tbody>
     </table>
-
-    <a href="{{ path('habitacion_new') }}">Create new</a>
 {% endblock %}
