@@ -20,6 +20,21 @@
                     </ul>
                 </div>
             </div>
+            {% if (pestana == 'activos') %}
+            <div>
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Filtrar por Habitación
+                    </button>
+                    <div class="dropdown-menu " aria-labelledby="dropdownMenuButton">
+                        <a class="dropdown-item text-white" href="{{ path('cliente_index') }}{{  pestana != 'activos' ? '?pestana=' ~ pestana : '' }}">Todas</a>
+                        {% for idHab, hab in habitacionesArray %}
+                            <a class="dropdown-item text-white" href="{{ path('cliente_index') }}{{  pestana != 'activos' ? '?pestana=' ~ pestana ~ '&hab=' ~ idHab : '?hab=' ~ idHab }}">{{ hab }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
             <div class="col-sm">
                 <div class="input-group mb-3">
                     <input id='nombreInput' type="text" value="{{ nombreInput }}" class="form-control" placeholder="Buscar por Nombre" aria-label="Buscar por Nombre" aria-describedby="buscarPorNombre">
@@ -63,7 +78,7 @@
         </thead>
         <tbody>
         {% for cliente in clientes %}
-            <tr class="editarPaciente" {{ cliente.disponibleParaTerapia ? '' : 'noDisp' }}">
+            <tr class="editarPaciente {{ cliente.disponibleParaTerapia ? '' : 'noDisp' }}">
                 <div class="editarPacienteInner">
                     <td>{{ cliente.hClinica }}</td>
                     <td>{{ cliente.nombre }}</td>

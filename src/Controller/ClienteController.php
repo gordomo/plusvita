@@ -52,16 +52,17 @@ class ClienteController extends AbstractController
     {
         $pestana = $request->query->get('pestana') ?? 'activos';
         $nombreInput = $request->query->get('nombreInput');
+        $hab = $request->query->get('hab') ?? null;
 
         if ($pestana == 'inactivos') {
             $clientes = $clienteRepository->findInActivos(new \DateTime(), $nombreInput);
         } else if ( $pestana == 'derivados') {
             $clientes = $clienteRepository->findDerivados(new \DateTime(), $nombreInput);
         } else {
-            $clientes = $clienteRepository->findActivos(new \DateTime(), $nombreInput);
+            $clientes = $clienteRepository->findActivos(new \DateTime(), $nombreInput, $hab);
         }
 
-        $habitaciones = $habitacionRepository->findAll();
+        $habitaciones = $habitacionRepository->getHabitacionesConPacientes();
 
         $habitacionesArray = [];
         foreach ($habitaciones as $habitacion) {
@@ -132,6 +133,7 @@ class ClienteController extends AbstractController
      */
     public function reingresar(Cliente $cliente, Request $request, HabitacionRepository $habitacionRepository): Response
     {
+        $user = $this->security->getUser();
         $habitaciones = $habitacionRepository->findHabitacionConCamasDisponibles();
 
         $cliente->setActivo(true);
@@ -149,22 +151,37 @@ class ClienteController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $cliente->setNCama($request->request->get('cliente')['nCama'] ?? null);
-            $habitacion = $habitacionRepository->find($cliente->getHabitacion());
+            $ncama = $request->request->get('cliente')['nCama'] ?? null;
 
+            $habitacion = $habitacionRepository->find($form->get('habitacion')->getData() ?? null);
             $camasOcupadas = $habitacion->getCamasOcupadas();
             $habPrivada = $request->request->get('cliente')['habPrivada'] ?? null;
+
             if ($habPrivada) {
                 $cliente->setHabPrivada(1);
                 for ($i=1; $i <= $habitacion->getCamasDisponibles(); $i++) {
                     $camasOcupadas[$i] = $i;
                 }
             } else {
-                $camasOcupadas[$cliente->getNCama()] = $cliente->getNCama();
+                $camasOcupadas[$ncama] = $ncama;
             }
             $habitacion->setCamasOcupadas($camasOcupadas);
             $cliente->setDerivado(false);
-//TODO guardar en historial
+            $cliente->setNCama($ncama);
+
+            $historial = new HistoriaPaciente();
+            $historial->setCama($ncama);
+            $historial->setCliente($cliente);
+            $historial->setIdPaciente($cliente->getId());
+            $historial->setFecha(new \DateTime());
+            $historial->setHabitacion($habitacion->getId());
+            $historial->setFechaReingresoDerivacion($form->get('fechaReingresoDerivacion')->getData() ?? null);
+            $historial->setDerivadoEn(null);
+            $historial->setMotivoDerivacion($form->get('motivoReingresoDerivacion')->getData() ?? null);
+            $historial->setEmpresaTransporteDerivacion(null);
+            $historial->setUsuario($user->getUsername());
+
+
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($cliente);
             $entityManager->persist($habitacion);

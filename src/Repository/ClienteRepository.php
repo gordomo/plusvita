@@ -19,14 +19,18 @@ class ClienteRepository extends ServiceEntityRepository
         parent::__construct($registry, Cliente::class);
     }
 
-    public function findActivos($value, $nombre)
+    public function findActivos($value, $nombre, $hab)
     {
-        return $this->createQueryBuilder('c')
+        $query = $this->createQueryBuilder('c')
             ->andWhere('c.fEgreso > :val')->setParameter('val', $value)
             ->orWhere('c.fEgreso IS NULL')
             ->andWhere('c.nombre like  :nombre OR c.apellido like :nombre')->setParameter('nombre','%'. $nombre .'%')
             ->andWhere('c.derivado = 0')
-            ->orWhere('c.derivado is null')
+            ->orWhere('c.derivado is null');
+            if($hab != null) {
+                $query->andWhere('c.habitacion = :hab')->setParameter('hab',$hab);
+            }
+        return $query
             ->orderBy('c.hClinica', 'ASC')
             //->setMaxResults(10)
             ->getQuery()

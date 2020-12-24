@@ -61,6 +61,20 @@ class HabitacionRepository extends ServiceEntityRepository
             ;
     }
 
+    public function getHabitacionesConPacientes()
+    {
+        $resp = [];
+        $todas = $this->findAll();
+        foreach ($todas as $habitacion) {
+            $arrayCamas = $habitacion->getCamasOcupadas();
+
+            if ($arrayCamas) {
+                $resp[]  = $habitacion;
+            }
+        }
+        return $resp;
+    }
+
     // /**
     //  * @return Habitacion[] Returns an array of Habitacion objects
     //  */

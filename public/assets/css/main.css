@@ -119,11 +119,20 @@ a.dropdown-item:hover {
     -moz-column-count: 1; /* Firefox */
     column-count: 1;
 }
-
+.columnas-de-tres {
+    -webkit-column-count: 3; /* Chrome, Safari, Opera */
+    -moz-column-count: 3; /* Firefox */
+    column-count: 3;
+}
 .noDisp {
     background-color: #ff7f5073 !important;
 }
-
+.checkbox .dropdown-item:hover {
+    background-color: transparent !important;
+}
+.checkbox .dropdown-item {
+    color: white !important;
+}
 /*      #60b9b9     #b088be
 table {
     width: 716px; !* 140px * 5 column + 16px scrollbar width *!
