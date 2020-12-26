@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Permisos para Pacientes{% endblock %}
+{% block panelTitle %}Dar permiso a <span style="text-transform: capitalize">{{ cliente.nombre }} {{ cliente.apellido }}</span>{% endblock %}
+{% block body %}
+    <form action="{{ path('cliente_dar_permiso', {'id': cliente.id}) }}" method="POST">
+        <div class="form-group">
+            <div class="form-row">
+                <div class="col-sm">
+                    <label class="control-label required">Fecha del Permiso desde:</label>
+                    <input required class="form-control" type="datetime-local" name="fechaPermisoDesde">
+                </div>
+                <div class="col-sm">
+                    <label class="control-label required">Fecha del Permiso hasta:</label>
+                    <input required class="form-control" type="datetime-local" name="fechaPermisoHasta">
+                </div>
+                <div class="col-sm">
+
+                </div>
+            </div>
+            <br>
+            {% if tieneTurnos %}
+                <div class="form-row">
+                    <div class="col-sm ">
+                        <div class="form-group alert-danger text-center">
+                            <span style="line-height: 50px">El paciente tiene turnos asignados que serán borrados si se deriva.</span>
+                        </div>
+                    </div>
+                    <div class="col-sm"></div>
+                    <div class="col-sm"></div>
+                </div>
+            {% endif %}
+            <br>
+            <br>
+            <div class="form-row">
+                <div class="col-sm">
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                        <a class="btn btn-default" href="javascript:history.back();">volver</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+{% endblock %}

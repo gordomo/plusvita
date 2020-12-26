@@ -17,12 +17,10 @@ class ReingresoType extends AbstractType
     {
 
         $habitaciones = $options['habitaciones'] ?? '';
-
+        $tipo = $options['tipo'] ?? '';
 
 
             $builder
-                ->add('motivoReingresoDerivacion', TextType::class)
-                ->add('fechaReingresoDerivacion', DateType::class, ['label' => 'Fecha de Reingreso', 'required' => false, 'widget' => 'single_text', 'html5' => true, 'attr' => ['class' => 'js-datepicker'],])
                 ->add('disponibleParaTerapia', ChoiceType::class, [
                     'required' => true,
                     'label' => 'Disponible Para Terapia',
@@ -32,7 +30,18 @@ class ReingresoType extends AbstractType
                         'Si' => true,
                         'No' => false,
                     ],
-                ])
+                ]);
+                if($tipo === 'derivado') {
+                    $builder
+                        ->add('motivoReingresoDerivacion', TextType::class)
+                        ->add('fechaReingresoDerivacion', DateType::class, ['label' => 'Fecha de Reingreso', 'required' => false, 'widget' => 'single_text', 'html5' => true, 'attr' => ['class' => 'js-datepicker'],]);
+                } elseif ($tipo === 'permiso') {
+                    $builder
+                        ->add('fechaBajaPorPermiso', DateType::class, ['label' => 'De permiso Desde', 'required' => false, 'widget' => 'single_text', 'html5' => true, 'attr' => ['class' => 'js-datepicker'],])
+                        ->add('fechaAltaPorPermiso', DateType::class, ['label' => 'De permiso Hasta', 'required' => false, 'widget' => 'single_text', 'html5' => true, 'attr' => ['class' => 'js-datepicker'],]);
+                }
+
+            $builder
                 ->add('habitacion', ChoiceType::class, [
                     'required' => false,
                     'label' => "Habitación",
@@ -60,6 +69,7 @@ class ReingresoType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Cliente::class,
+            'tipo' => 'derivado',
             'habitaciones' => [],
             'camasDisp' => 0,
         ]);

@@ -6,6 +6,7 @@
     {{ form_start(form) }}
 
         <div class="form-group">
+            {% if form.motivoReingresoDerivacio is defined %}
             <div class="form-row">
                 <div class="col-sm">
                     {{ form_label(form.motivoReingresoDerivacion) }}
@@ -17,6 +18,19 @@
                 </div>
                 <div class="col-sm"></div>
             </div>
+            {% elseif form.fechaBajaPorPermiso is defined %}
+            <div class="form-row">
+                <div class="col-sm">
+                    {{ form_label(form.fechaBajaPorPermiso) }}
+                    {{ form_widget(form.fechaBajaPorPermiso) }}
+                </div>
+                <div class="col-sm">
+                    {{ form_label(form.fechaAltaPorPermiso) }}
+                    {{ form_widget(form.fechaAltaPorPermiso) }}
+                </div>
+                <div class="col-sm"></div>
+            </div>
+            {% endif %}
             <br>
             <div class="form-row">
                 <div class="col-sm">

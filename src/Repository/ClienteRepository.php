@@ -26,7 +26,9 @@ class ClienteRepository extends ServiceEntityRepository
             ->orWhere('c.fEgreso IS NULL')
             ->andWhere('c.nombre like  :nombre OR c.apellido like :nombre')->setParameter('nombre','%'. $nombre .'%')
             ->andWhere('c.derivado = 0')
-            ->orWhere('c.derivado is null');
+            ->orWhere('c.derivado is null')
+            ->andWhere('c.dePermiso = 0')
+            ->orWhere('c.dePermiso is null');
             if($hab != null) {
                 $query->andWhere('c.habitacion = :hab')->setParameter('hab',$hab);
             }
@@ -45,6 +47,20 @@ class ClienteRepository extends ServiceEntityRepository
             ->orWhere('c.fEgreso IS NULL')
             ->andWhere('c.nombre like  :nombre OR c.apellido like :nombre')->setParameter('nombre','%'. $nombre .'%')
             ->andWhere('c.derivado = 1')
+            ->orderBy('c.hClinica', 'ASC')
+            //->setMaxResults(10)
+            ->getQuery()
+            ->getResult()
+            ;
+    }
+
+    public function findDePermiso($value, $nombre)
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.fEgreso > :val')->setParameter('val', $value)
+            ->orWhere('c.fEgreso IS NULL')
+            ->andWhere('c.nombre like  :nombre OR c.apellido like :nombre')->setParameter('nombre','%'. $nombre .'%')
+            ->andWhere('c.dePermiso = 1')
             ->orderBy('c.hClinica', 'ASC')
             //->setMaxResults(10)
             ->getQuery()

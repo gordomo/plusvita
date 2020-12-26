@@ -17,6 +17,9 @@
                         <li class="nav-item">
                             <a class="nav-link {{  pestana == 'derivados' ? 'active' : ''  }}"  href="{{ path('cliente_index') }}?pestana=derivados">Derivados</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{  pestana == 'permiso' ? 'active' : ''  }}"  href="{{ path('cliente_index') }}?pestana=permiso">De Permiso</a>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -157,6 +160,15 @@
                                 {% else %}
                                     <a class="dropdown-item" href="{{ path('cliente_derivar', {'id': cliente.id}) }}">
                                         <i class="fas fa-arrow-right" data-toggle="tooltip" data-placement="top" title="derivar"></i> Derivar
+                                    </a>
+                                {% endif %}
+                                {% if cliente.dePermiso %}
+                                    <a class="dropdown-item" href="{{ path('cliente_reingreso_permiso', {'id': cliente.id}) }}">
+                                        <i class="fas fa-arrow-left" data-toggle="tooltip" data-placement="top" title="reingresar de permiso"></i> Reingresar
+                                    </a>
+                                {% else %}
+                                    <a class="dropdown-item" href="{{ path('cliente_permiso', {'id': cliente.id}) }}">
+                                        <i class="fas fa-arrow-right" data-toggle="tooltip" data-placement="top" title="derivar"></i> Dar Permiso
                                     </a>
                                 {% endif %}
                             </div>

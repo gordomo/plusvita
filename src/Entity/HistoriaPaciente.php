@@ -118,6 +118,21 @@ class HistoriaPaciente
     private $empresaTransporteDerivacion;
 
     /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $fechaAltaPorPermiso;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $fechaBajaPorPermiso;
+
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $dePermiso;
+
+    /**
      * @return mixed
      */
     public function getFechaEngreso()
@@ -379,6 +394,42 @@ class HistoriaPaciente
     public function setEmpresaTransporteDerivacion(?string $empresaTransporteDerivacion): self
     {
         $this->empresaTransporteDerivacion = $empresaTransporteDerivacion;
+
+        return $this;
+    }
+
+    public function getFechaAltaPorPermiso(): ?\DateTimeInterface
+    {
+        return $this->fechaAltaPorPermiso;
+    }
+
+    public function setFechaAltaPorPermiso(?\DateTimeInterface $fechaAltaPorPermiso): self
+    {
+        $this->fechaAltaPorPermiso = $fechaAltaPorPermiso;
+
+        return $this;
+    }
+
+    public function getFechaBajaPorPermiso(): ?\DateTimeInterface
+    {
+        return $this->fechaBajaPorPermiso;
+    }
+
+    public function setFechaBajaPorPermiso(?\DateTimeInterface $fechaBajaPorPermiso): self
+    {
+        $this->fechaBajaPorPermiso = $fechaBajaPorPermiso;
+
+        return $this;
+    }
+
+    public function getDePermiso(): ?bool
+    {
+        return $this->dePermiso;
+    }
+
+    public function setDePermiso(?bool $dePermiso): self
+    {
+        $this->dePermiso = $dePermiso;
 
         return $this;
     }

@@ -244,6 +244,16 @@ class Cliente
      */
     private $motivoReingresoDerivacion;
 
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $fechaBajaPorPermiso;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $fechaAltaPorPermiso;
+
     public function __construct()
     {
         $this->docReferente = new ArrayCollection();
@@ -845,6 +855,30 @@ class Cliente
     public function setMotivoReingresoDerivacion(?string $motivoReingresoDerivacion): self
     {
         $this->motivoReingresoDerivacion = $motivoReingresoDerivacion;
+
+        return $this;
+    }
+
+    public function getFechaBajaPorPermiso(): ?\DateTimeInterface
+    {
+        return $this->fechaBajaPorPermiso;
+    }
+
+    public function setFechaBajaPorPermiso(?\DateTimeInterface $fechaBajaPorPermiso): self
+    {
+        $this->fechaBajaPorPermiso = $fechaBajaPorPermiso;
+
+        return $this;
+    }
+
+    public function getFechaAltaPorPermiso(): ?\DateTimeInterface
+    {
+        return $this->fechaAltaPorPermiso;
+    }
+
+    public function setFechaAltaPorPermiso(?\DateTimeInterface $fechaAltaPorPermiso): self
+    {
+        $this->fechaAltaPorPermiso = $fechaAltaPorPermiso;
 
         return $this;
     }
