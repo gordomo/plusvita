@@ -171,16 +171,16 @@ class ClienteController extends AbstractController
         $cliente->setFechaAltaPorPermiso($fechaPermisoHasta);
         $cliente->setDisponibleParaTerapia(false);
 
-        $this->liberarCamaCliente($cliente);
+        //$this->liberarCamaCliente($cliente);
 
         $turnos = $bookingRepository->findBy(['cliente' => $cliente]);
 
         $historial = new HistoriaPaciente();
-        $historial->setCama(null);
+        //$historial->setCama(null);
         $historial->setCliente($cliente);
         $historial->setIdPaciente($cliente->getId());
         $historial->setFecha(new \DateTime());
-        $historial->setHabitacion(null);
+        //$historial->setHabitacion(null);
         $historial->setFechaBajaPorPermiso($fechaPermisoDesde);
         $historial->setUsuario($user->getUsername());
 
@@ -203,28 +203,28 @@ class ClienteController extends AbstractController
     public function reingresarPermiso(Cliente $cliente, Request $request, HabitacionRepository $habitacionRepository, BookingRepository $bookingRepository): Response
     {
         $user = $this->security->getUser();
-        $habitaciones = $habitacionRepository->findHabitacionConCamasDisponibles();
+        /*$habitaciones = $habitacionRepository->findHabitacionConCamasDisponibles();
 
 
         $haArray = [];
         foreach ( $habitaciones as $ha ) {
             $haArray[$ha->getId()] = $ha->getNombre();
         }
-        $haArray = array_flip($haArray);
+        $haArray = array_flip($haArray);*/
 
 
-        $form = $this->createForm(ReingresoType::class, $cliente, ['allow_extra_fields' =>true, 'habitaciones' => $haArray, 'tipo' => 'permiso']);
+        $form = $this->createForm(ReingresoType::class, $cliente, ['allow_extra_fields' =>true, 'tipo' => 'permiso']);
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $ncama = $request->request->get('cliente')['nCama'] ?? null;
 
-            $habitacion = $form->get('habitacion')->getData() ? $habitacionRepository->find($form->get('habitacion')->getData()) : null;
+            //$habitacion = $form->get('habitacion')->getData() ? $habitacionRepository->find($form->get('habitacion')->getData()) : null;
 
             $historial = new HistoriaPaciente();
             $entityManager = $this->getDoctrine()->getManager();
 
-            if($habitacion) {
+            /*if($habitacion) {
                 $camasOcupadas = $habitacion->getCamasOcupadas();
                 $habPrivada = $request->request->get('cliente')['habPrivada'] ?? null;
 
@@ -241,7 +241,7 @@ class ClienteController extends AbstractController
                 $historial->setCama($ncama);
                 $historial->setHabitacion($habitacion->getId());
                 $entityManager->persist($habitacion);
-            }
+            }*/
 
             $cliente->setDePermiso(false);
 

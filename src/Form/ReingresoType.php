@@ -33,6 +33,16 @@ class ReingresoType extends AbstractType
                 ]);
                 if($tipo === 'derivado') {
                     $builder
+                        ->add('habitacion', ChoiceType::class, [
+                            'required' => false,
+                            'label' => "Habitación",
+                            'placeholder' => "Seleccione una Habitación",
+                            'choice_attr' => function($choice, $key, $value) {
+                                // adds a class like attending_yes, attending_no, etc
+                                return ['class' => 'attending_'.strtolower($key)];
+                            },
+                            'choices' => $habitaciones
+                        ])
                         ->add('motivoReingresoDerivacion', TextType::class)
                         ->add('fechaReingresoDerivacion', DateType::class, ['label' => 'Fecha de Reingreso', 'required' => false, 'widget' => 'single_text', 'html5' => true, 'attr' => ['class' => 'js-datepicker'],]);
                 } elseif ($tipo === 'permiso') {
@@ -41,17 +51,6 @@ class ReingresoType extends AbstractType
                         ->add('fechaAltaPorPermiso', DateType::class, ['label' => 'De permiso Hasta', 'required' => false, 'widget' => 'single_text', 'html5' => true, 'attr' => ['class' => 'js-datepicker'],]);
                 }
 
-            $builder
-                ->add('habitacion', ChoiceType::class, [
-                    'required' => false,
-                    'label' => "Habitación",
-                    'placeholder' => "Seleccione una Habitación",
-                    'choice_attr' => function($choice, $key, $value) {
-                        // adds a class like attending_yes, attending_no, etc
-                        return ['class' => 'attending_'.strtolower($key)];
-                    },
-                    'choices' => $habitaciones
-                ]);
 
                 if ($options['camasDisp']) {
                     $builder->add('nCama', ChoiceType::class, [
