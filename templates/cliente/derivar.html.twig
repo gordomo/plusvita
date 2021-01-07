@@ -33,15 +33,20 @@
             </div>
             <br>
             {% if tieneTurnos %}
-            <div class="form-row">
-                <div class="col-sm ">
-                    <div class="form-group alert-danger text-center">
-                        <span style="line-height: 50px">El paciente tiene turnos asignados que serán borrados si se deriva.</span>
+                <div class="form-row">
+                    <div class="col-sm ">
+                        <div class="form-group alert-danger text-center">
+                            <span style="line-height: 50px">El paciente tiene turnos asignados que serán borrados si se deriva.</span><br>
+                            <span>Horarios</span>
+                            {% for turno in turnos %}
+                                <br>
+                                <span> {{ turno.beginAt |date('m/d/Y - h:m') }}hs</span>
+                            {% endfor %}
+                        </div>
                     </div>
+                    <div class="col-sm"></div>
+                    <div class="col-sm"></div>
                 </div>
-                <div class="col-sm"></div>
-                <div class="col-sm"></div>
-            </div>
             {% endif %}
             <br>
             <br>

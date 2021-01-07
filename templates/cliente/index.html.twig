@@ -81,7 +81,7 @@
         </thead>
         <tbody>
         {% for cliente in clientes %}
-            <tr class="editarPaciente {{ cliente.disponibleParaTerapia ? '' : 'noDisp' }}">
+            <tr class="editarPaciente {{ cliente.disponibleParaTerapia ? '' : 'noDisp' }}" data-toggle="tooltip" data-placement="top" title="{{ cliente.disponibleParaTerapia ? '' : 'NO disponible para alguna terapia' }}">
                 <div class="editarPacienteInner">
                     <td>{{ cliente.hClinica }}</td>
                     <td>{{ cliente.nombre }}</td>

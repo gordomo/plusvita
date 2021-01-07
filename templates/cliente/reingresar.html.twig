@@ -1,12 +1,12 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}Reingresar Pacientes{% endblock %}
-{% block panelTitle %}Reingresar de Pacientes{% endblock %}
+{% block panelTitle %}Reingresar Paciente: {{ cliente.nombre }} {{ cliente.apellido }}{% endblock %}
 {% block body %}
     {{ form_start(form) }}
 
         <div class="form-group">
-            {% if form.motivoReingresoDerivacio is defined %}
+            {% if form.motivoReingresoDerivacion is defined %}
             <div class="form-row">
                 <div class="col-sm">
                     {{ form_label(form.motivoReingresoDerivacion) }}
@@ -37,8 +37,14 @@
                     {{ form_label(form.disponibleParaTerapia) }}
                     {{ form_widget(form.disponibleParaTerapia) }}
                 </div>
+                <div class="col-sm terapias-no-habilitadas">
+                    {{ form_label(form.terapiasNoHabilitadas) }}
+                    {{ form_widget(form.terapiasNoHabilitadas) }}
+                </div>
+                <div class="col-sm"></div>
             </div>
             <br>
+            {%  if form.habitacion is defined %}
             <div class="form-row habitacion">
                 <div class="col-sm habDiv">
                     {{ form_label(form.habitacion) }}
@@ -57,6 +63,7 @@
                     {% endif %}
                 </div>
             </div>
+            {% endif %}
             <br>
             <br>
             <br>

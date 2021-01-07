@@ -90,6 +90,7 @@ class ClienteController extends AbstractController
         return $this->render('cliente/derivar.html.twig', [
             'cliente' => $cliente,
             'tieneTurnos' => count($turnos),
+            'turnos' => $turnos,
         ]);
     }
 
@@ -153,6 +154,7 @@ class ClienteController extends AbstractController
         return $this->render('cliente/darPermiso.html.twig', [
             'cliente' => $cliente,
             'tieneTurnos' => count($turnos),
+            'turnos' => $turnos,
         ]);
     }
 
@@ -203,48 +205,16 @@ class ClienteController extends AbstractController
     public function reingresarPermiso(Cliente $cliente, Request $request, HabitacionRepository $habitacionRepository, BookingRepository $bookingRepository): Response
     {
         $user = $this->security->getUser();
-        /*$habitaciones = $habitacionRepository->findHabitacionConCamasDisponibles();
-
-
-        $haArray = [];
-        foreach ( $habitaciones as $ha ) {
-            $haArray[$ha->getId()] = $ha->getNombre();
-        }
-        $haArray = array_flip($haArray);*/
-
+        $cliente->setDisponibleParaTerapia(true);
 
         $form = $this->createForm(ReingresoType::class, $cliente, ['allow_extra_fields' =>true, 'tipo' => 'permiso']);
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $ncama = $request->request->get('cliente')['nCama'] ?? null;
-
-            //$habitacion = $form->get('habitacion')->getData() ? $habitacionRepository->find($form->get('habitacion')->getData()) : null;
-
             $historial = new HistoriaPaciente();
             $entityManager = $this->getDoctrine()->getManager();
 
-            /*if($habitacion) {
-                $camasOcupadas = $habitacion->getCamasOcupadas();
-                $habPrivada = $request->request->get('cliente')['habPrivada'] ?? null;
-
-                if ($habPrivada) {
-                    $cliente->setHabPrivada(1);
-                    for ($i=1; $i <= $habitacion->getCamasDisponibles(); $i++) {
-                        $camasOcupadas[$i] = $i;
-                    }
-                } else {
-                    $camasOcupadas[$ncama] = $ncama;
-                }
-                $habitacion->setCamasOcupadas($camasOcupadas);
-                $cliente->setNCama($ncama);
-                $historial->setCama($ncama);
-                $historial->setHabitacion($habitacion->getId());
-                $entityManager->persist($habitacion);
-            }*/
-
             $cliente->setDePermiso(false);
-
 
 
             $historial->setCliente($cliente);
@@ -281,7 +251,7 @@ class ClienteController extends AbstractController
             $haArray[$ha->getId()] = $ha->getNombre();
         }
         $haArray = array_flip($haArray);
-
+        $cliente->setDisponibleParaTerapia(true);
 
         $form = $this->createForm(ReingresoType::class, $cliente, ['allow_extra_fields' =>true, 'habitaciones' => $haArray]);
 

@@ -63,9 +63,6 @@
 .lowercase {
     text-transform: lowercase !important;
 }
-.editarPaciente {
-    cursor: pointer;
-}
 .dropdown-menu.show {
     background-color: #5a6268;
 }
@@ -132,6 +129,9 @@ a.dropdown-item:hover {
 }
 .checkbox .dropdown-item {
     color: white !important;
+}
+.terapias-no-habilitadas {
+    display: none;
 }
 /*      #60b9b9     #b088be
 table {

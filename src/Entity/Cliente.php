@@ -254,6 +254,16 @@ class Cliente
      */
     private $fechaAltaPorPermiso;
 
+    /**
+     * @ORM\Column(type="json", nullable=true)
+     */
+    private $terapiasHabilitadas = [];
+
+    /**
+     * @ORM\Column(type="json", nullable=true)
+     */
+    private $terapiasNoHabilitadas = [];
+
     public function __construct()
     {
         $this->docReferente = new ArrayCollection();
@@ -879,6 +889,30 @@ class Cliente
     public function setFechaAltaPorPermiso(?\DateTimeInterface $fechaAltaPorPermiso): self
     {
         $this->fechaAltaPorPermiso = $fechaAltaPorPermiso;
+
+        return $this;
+    }
+
+    public function getTerapiasHabilitadas(): ?array
+    {
+        return $this->terapiasHabilitadas;
+    }
+
+    public function setTerapiasHabilitadas(?array $terapiasHabilitadas): self
+    {
+        $this->terapiasHabilitadas = $terapiasHabilitadas;
+
+        return $this;
+    }
+
+    public function getTerapiasNoHabilitadas(): ?array
+    {
+        return $this->terapiasNoHabilitadas;
+    }
+
+    public function setTerapiasNoHabilitadas(?array $terapiasNoHabilitadas): self
+    {
+        $this->terapiasNoHabilitadas = $terapiasNoHabilitadas;
 
         return $this;
     }

@@ -46,7 +46,7 @@ class BookingType extends AbstractType
             ->add('cliente', EntityType::class, [
                 'class' => Cliente::class,
                 'choice_label' => 'NombreApellido',
-                'label' => 'Paciente222',
+                'label' => 'Paciente',
                 'attr' => ['class' => 'predictivo'],
                 'query_builder' => function (EntityRepository $er) {
                     return $er->createQueryBuilder('c')
