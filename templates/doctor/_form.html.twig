@@ -217,11 +217,16 @@
     <hr>
     <br>
     <div class="form-row">
-        <div class="col-sm">
+        <div class="col-md-8">
         {{ form_label(form.firmaPdf, 'Firma en Pdf') }}<br>
         {{ form_widget(form.firmaPdf) }}
             <a target="_blank" href="{{ asset('uploads/firmas/') }}{{ doctor.firma }}" >ver firma</a>
         </div>
+        <div class="col-md-2">
+            {{ form_label(form.color, 'Color para el calendario') }}
+            {{ form_widget(form.color) }}
+        </div>
+        <div class="col-md-2"></div>
     </div>
     <br>
     <hr>

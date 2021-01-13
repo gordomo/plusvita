@@ -155,6 +155,7 @@ class DoctorController extends AbstractController
         $doctor = new Doctor();
         $doctor->setRoles([]);
         $doctor->setInicioContrato(new \DateTime());
+        $doctor->setColor('#2196f3');
 
         $form = $this->createForm(DoctorType::class, $doctor, ['is_new' => true, 'allow_extra_fields' =>true]);
 

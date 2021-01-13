@@ -166,6 +166,11 @@ class Doctor implements UserInterface
     private $max_cli_turno;
 
     /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $color;
+
+    /**
      * @return mixed
      */
     public function getMaxCliTurno()
@@ -593,6 +598,18 @@ class Doctor implements UserInterface
     public function setCbu(?string $cbu): self
     {
         $this->cbu = $cbu;
+
+        return $this;
+    }
+
+    public function getColor(): ?string
+    {
+        return $this->color;
+    }
+
+    public function setColor(?string $color): self
+    {
+        $this->color = $color;
 
         return $this;
     }

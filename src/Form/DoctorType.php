@@ -5,6 +5,7 @@ namespace App\Form;
 use App\Entity\Doctor;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\ColorType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
@@ -54,6 +55,7 @@ class DoctorType extends AbstractType
             $builder
                 ->add('nombre', TextType::class)
                 ->add('apellido', TextType::class)
+                ->add('color', ColorType::class)
                 ->add('dni', TextType::class)
                 ->add('telefono', NumberType::class, ['html5' => true])
                 ->add('email', EmailType::class)
