@@ -140,12 +140,12 @@ class ResetPassController extends AbstractController
                 $entityManager->flush();
 
                 $email = (new Email())
-                    ->from('morimartin@gmail.com')
+                    ->from('validaciones@plusvita.com')
                     ->to($userEmail)
                     //->cc('cc@example.com')
                     //->bcc('bcc@example.com')
                     //->replyTo('fabien@example.com')
-                    //->priority(Email::PRIORITY_HIGH)
+                    ->priority(Email::PRIORITY_HIGH)
                     ->subject('Resetear Password del Sistema Plus Vita')
                     //->text('Resetear Password del Sistema Plus Vita');
                     ->html('<p>Use el siguiente codigo para resetear su password</p><p><h1>' . $code . '</h1></p>');
@@ -163,9 +163,9 @@ class ResetPassController extends AbstractController
             return $this->redirectToRoute('app_login',
                 [
                     'last_username' => $userEmail,
-                    'cambioDePassOk' => true,
+                    'cambioDePassOk' => false,
                     'error' => '',
-                    'customError' => 'Hubo un error enviado el correo con el codigo para recuperar la contraseña, por favor, intente de nuevo más tarde',
+                    'customError' => $mensaje,
                 ]);
         } else {
             return $this->render('resetPass/codigoEnviado.html.twig', [

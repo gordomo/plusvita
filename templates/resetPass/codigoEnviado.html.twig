@@ -15,18 +15,19 @@
                     <img src="{{ asset('assets/images/plusVitaLogo.png') }}" id="icon" alt="Logo" class="img-responsive"/>
                 </div>
                 <div class="fadeIn second">
-                    <p class="mb-3 font-weight-normal">Te hemos enviado un correo a {{ userEmail }} con un codigo.</p>
+                    <p class="mb-3 font-weight-normal">Te hemos enviado un correo a <br>{{ userEmail }} con un codigo.</p>
                     <p class="mb-3 font-weight-normal">Ingresalo a continuación junto con tu nueva clave</p>
                     <div class="form-group">
-                        <label for="code">Código</label><br>
+                        <br>
                         <input type="text" name="code" id="code" required autofocus placeholder="codigo" autocomplete="off" value="código">
                     </div>
                     <div class="form-group">
-                        <label for="clave">Nueva Password</label>
                         <input type="password" name="clave" id="clave" required autofocus placeholder="nuevo password" autocomplete="off" value="nuevo password">
                     </div>
                     <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
                     <input type="hidden" name="email" value="{{ userEmail }}">
+                    <br>
+                    <p class="mb-3 font-weight-normal"><small>No te olvides de revisar tu bandeja de span si no encuentras el correo en los proximos 5 minutos</small></p>
                 </div>
 
 
