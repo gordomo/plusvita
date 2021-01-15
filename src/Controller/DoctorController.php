@@ -181,6 +181,8 @@ class DoctorController extends AbstractController
         '#9ACD32'
     ];
 
+    private $dias =  [1 => 'lunes', 2 => 'martes', 3 => 'miercoles', 4 => 'jueves', 5 => 'viernes', 6 => 'sabado'];
+
     /**
      * @Route("/", name="doctor_index", methods={"GET"})
      */
@@ -333,11 +335,9 @@ class DoctorController extends AbstractController
                 $doctor->setFirma($newFilename);
             }
 
-            $dias =  [1 => 'lunes', 2 => 'martes', 3 => 'miercoles', 4 => 'jueves', 5 => 'viernes', 6 => 'sabado'];
-
             $horarios = [];
 
-            foreach ($dias as $key => $dia) {
+            foreach ($this->dias as $key => $dia) {
                 $desde = $form->get($dia.'desde')->getData() ?? '08:00';
                 $ydesde = $form->get('y'.$dia.'desde')->getData() ?? $desde;
 
@@ -388,7 +388,7 @@ class DoctorController extends AbstractController
         }
 
         $form = $this->createForm(DoctorType::class, $doctor, ['is_new' => false, 'allow_extra_fields' =>true, 'colors' => $this->colors]);
-        $dias =  [1 => 'lunes', 2 => 'martes', 3 => 'miercoles', 4 => 'jueves', 5 => 'viernes', 6 => 'sabado'];
+        $dias =  $this->dias;
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -451,7 +451,7 @@ class DoctorController extends AbstractController
                 $businessHours[$dia] = $doctorActualBusinessHours[$key];
             }
         }
-//dd($businessHours);
+
         return $this->render('doctor/edit.html.twig', [
             'doctor' => $doctor,
             'form' => $form->createView(),
@@ -479,6 +479,7 @@ class DoctorController extends AbstractController
             'doctor' => $doctor,
             'form' => $form->createView(),
             'title' => 'Egreso para:' . $doctor->getNombre() . ' ' . $doctor->getApellido(),
+            'businessHours' => []
         ]);
     }
 
