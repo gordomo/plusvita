@@ -51,11 +51,19 @@ class DoctorType extends AbstractType
 
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
+        $colors = $options['colors'];
+
         if(!$options['egreso']) {
             $builder
                 ->add('nombre', TextType::class)
                 ->add('apellido', TextType::class)
-                ->add('color', ColorType::class)
+                ->add('color', ChoiceType::class, [
+                    'choices' => array_combine($colors, $colors),
+                    'choice_attr' => function($choice, $key, $value) {
+                        // adds a class like attending_yes, attending_no, etc
+                        return ['style' => 'background:'.$key];
+                    },
+                ])
                 ->add('dni', TextType::class)
                 ->add('telefono', NumberType::class, ['html5' => true])
                 ->add('email', EmailType::class)
@@ -371,15 +379,6 @@ class DoctorType extends AbstractType
 
     }
 
-    public function configureOptions(OptionsResolver $resolver)
-    {
-        $resolver->setDefaults([
-            'data_class' => Doctor::class,
-            'is_new' => true,
-            'egreso' => false,
-        ]);
-    }
-
     private function getModalidades(int $contrato)
     {
         $empleado = [
@@ -464,5 +463,15 @@ class DoctorType extends AbstractType
                     return ['class' => 'attending_'.strtolower($key)];
                 },
             ]);
+    }
+
+    public function configureOptions(OptionsResolver $resolver)
+    {
+        $resolver->setDefaults([
+            'data_class' => Doctor::class,
+            'is_new' => true,
+            'egreso' => false,
+            'colors' => [],
+        ]);
     }
 }

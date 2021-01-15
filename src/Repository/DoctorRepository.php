@@ -37,32 +37,13 @@ class DoctorRepository extends ServiceEntityRepository
             }
         return $qb->getQuery()->getResult();
     }
-    // /**
-    //  * @return Doctor[] Returns an array of Doctor objects
-    //  */
-    /*
-    public function findByExampleField($value)
-    {
-        return $this->createQueryBuilder('d')
-            ->andWhere('d.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('d.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
 
-    /*
-    public function findOneBySomeField($value): ?Doctor
-    {
+    public function findColoresEnUso() {
         return $this->createQueryBuilder('d')
-            ->andWhere('d.exampleField = :val')
-            ->setParameter('val', $value)
+            ->select('d.color')
+            ->where('d.color is not null')
             ->getQuery()
-            ->getOneOrNullResult()
-        ;
+            ->getResult();
+
     }
-    */
 }
