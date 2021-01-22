@@ -1,0 +1,87 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liquidaciones Profesionales{% endblock %}
+{% block panelTitle %}Liquidaciones Profesionales{% endblock %}
+{% block body %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm">
+                <select class="form-control predictivo" id="contrato" multiple data-placeholder="Filtrar por Tipo de contrato">
+                    <option value="0">Todos</option>
+                    <optgroup label="Directo">
+                        {% for contratoDirecto in contratos['directo'] %}
+                            <option id='{{ contratoDirecto|replace({' ': ''}) }}' value="{{ contratoDirecto }}" {% if contratoDirecto in ctrsArray %} selected {% endif %}>{{ contratoDirecto }}</option>
+                        {% endfor %}
+                    </optgroup>
+                    <optgroup label="Prestacion">
+                        {% for contratoPrestacion in contratos['prestacion'] %}
+                            <option id='{{ contratoPrestacion|replace({' ': ''}) }}' value="{{ contratoPrestacion }}" {% if contratoPrestacion in ctrsArray %} selected {% endif %}>{{ contratoPrestacion }}</option>
+                        {% endfor %}
+                    </optgroup>
+                    <optgroup label="Sin Contrato">
+                        {% for contratoSinContrato in contratos['sinContrato'] %}
+                            <option id='{{ contratoSinContrato|replace({' ': ''}) }}' value="{{ contratoSinContrato }}" {% if contratoSinContrato in ctrsArray %} selected {% endif %}>{{ contratoSinContrato }}</option>
+                        {% endfor %}
+                    </optgroup>
+                </select>
+            </div>
+            <div class="col-sm">
+                <button class="btn btn-default" id="buscarContrato"><i class="fas fa-search" aria-hidden="true"></i></button>
+                <button class="btn btn-default" id="limpiarContratos" style="padding: 2px 16px;">Limpiar</button>
+                <a class="btn btn-success" style="padding: 2px 16px;" href="{{ path('liquidaciones_index') }}">Volver</a>
+            </div>
+        </div>
+    </div>
+    <br><br>
+    <table class="table table-responsive table-striped">
+        <thead>
+        <tr>
+            <th scope="col">Nombre</th>
+            <th scope="col">Apellido</th>
+            <th scope="col">Tipo</th>
+            <th scope="col">Legajo</th>
+            <th scope="col">Inicio Contrato</th>
+            <th scope="col">Vto Contrato</th>
+            <th scope="col">CBU</th>
+            <th scope="col">Liquidar</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for doctor in doctors %}
+            <tr class="editarStaff" data-url="{{ path('doctor_edit', {'id': doctor.id}) }}">
+                <td>{{ doctor.nombre }}</td>
+                <td>{{ doctor.apellido }}</td>
+                <td>
+                    {{ doctor.modalidad | json_encode(constant('JSON_PRETTY_PRINT')) | replace({'[': '', ']': '', '\\': ''})}}
+                </td>
+                <td>
+                    {{ doctor.legajo }}
+                    {#<a href="{{ asset('uploads/firmas/' ~ doctor.firma) }}" target="_blank">Ver firma digital</a>#}
+                </td>
+                <td>
+                    {{ doctor.inicioContrato | date('Y-m-d') }}
+                </td>
+                <td>
+                    {{ doctor.vtoContrato | date('Y-m-d') }}
+                </td>
+                <td class="">
+                    {{ doctor.cbu }}
+                </td>
+                <td>
+                    <a href="{{ path('liquidar', {'id': doctor.id}) }}"><i class="fas fa-money-check-alt"></i></a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="10">No existen registros</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('assets/js/staff.js') }}"></script>
+{% endblock %}

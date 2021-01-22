@@ -27,6 +27,18 @@ class NotasTurnoController extends AbstractController
     }
 
     /**
+     * @Route("/{id}", name="notas_turno_list", methods={"GET"})
+     */
+    public function list($id, NotasTurnoRepository $notasTurnoRepository, BookingRepository $bookingRepository): Response
+    {
+        $booking = $bookingRepository->find($id);
+        return $this->render('notas_turno/index.html.twig', [
+            'notas_turnos' => $notasTurnoRepository->findBy(['turno' => $booking]),
+            'doctor' => $booking->getDoctor(),
+        ]);
+    }
+
+    /**
      * @Route("/new", name="notas_turno_new", methods={"GET","POST"})
      */
     public function new(Request $request): Response

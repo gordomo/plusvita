@@ -34,6 +34,10 @@
                 <i class="fas fa-first-aid"></i>
                 Obras Sociales
             </a>
+            <a class="list-group-item list-group-item-action bg-light " href="{{ path('liquidaciones_index') }}">
+                <i class="fas fa-money-check-alt"></i>
+                Liquidaciones
+            </a>
         {% elseif  is_granted('ROLE_STAFF')%}
             <a class="list-group-item list-group-item-action bg-light " href="{{ path('doctor_agenda', {'periodo': 'dia'}) }}">
                 <i class="far fa-calendar-alt"></i>

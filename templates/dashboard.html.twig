@@ -78,6 +78,21 @@
                 </div>
             </div>
 
+            <div class="row">
+                <div class="col-md-4">
+                    <a href="{{ path('liquidaciones_index') }}">
+                        <div class="card text-white staffOnDash mb-3" style="max-width: 18rem;">
+                            <div class="card-header ">Liquidaciones</div>
+                            <div class="card-body">
+                                <p class="card-text">Desde este gestor se pueden crear y ver las liquidaciones</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+
+            </div>
+
         </div>
     {% elseif  is_granted('ROLE_STAFF')%}
         <div class="container">

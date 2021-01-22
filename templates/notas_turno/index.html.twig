@@ -9,8 +9,7 @@
         <thead>
             <tr>
                 <th>Id</th>
-                <th>Text</th>
-                <th>actions</th>
+                <th>Nota</th>
             </tr>
         </thead>
         <tbody>
@@ -18,18 +17,14 @@
             <tr>
                 <td>{{ notas_turno.id }}</td>
                 <td>{{ notas_turno.text }}</td>
-                <td>
-                    <a href="{{ path('notas_turno_show', {'id': notas_turno.id}) }}">show</a>
-                    <a href="{{ path('notas_turno_edit', {'id': notas_turno.id}) }}">edit</a>
-                </td>
             </tr>
         {% else %}
             <tr>
-                <td colspan="3">no records found</td>
+                <td colspan="3">No hay notas</td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
 
-    <a href="{{ path('notas_turno_new') }}">Create new</a>
+    <a href="{{ path('liquidar', {'id': doctor.id }) }}">volver</a>
 {% endblock %}

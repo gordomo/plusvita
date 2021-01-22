@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liquidaciones Profesionales{% endblock %}
+{% block panelTitle %}Liquidación de: <span style="text-transform: capitalize">{{ doctor.nombre }} {{ doctor.apellido }}</span><a class="btn btn-success" style="padding: 2px 16px;float: right;" href="{{ path('profesionales_index') }}">Volver</a>{% endblock %}
+{% block body %}
+    <div class="container-fluid">
+        <table class="table table-responsive table-striped">
+            <thead>
+            <tr>
+                <th scope="col">Titulo</th>
+                <th scope="col">Paciente</th>
+                <th scope="col">Comenzó</th>
+                <th scope="col">Finalizó</th>
+                <th scope="col">Notas</th>
+            </tr>
+            </thead>
+            <tbody>
+        {% for booking in bookings %}
+            <tr>
+                <td>{{ booking.title }}</td>
+                <td style="text-transform: capitalize">{{ booking.cliente.nombre }} {{ booking.cliente.apellido }}</td>
+                <td>{{ booking.beginAt | date('Y-m-d H:i:s') }}</td>
+                <td>{{ booking.endAt | date('Y-m-d H:i:s') }}</td>
+                <td>
+                    {% if booking.notas | length > 0 %}
+                        <a href="{{ path('notas_turno_list', {'id': booking.id}) }}">ver notas</a>
+                    {% else %}
+                        No tiene
+                    {% endif %}
+                </td>
+            </tr>
+            <tr id="notas-{{ booking.id }}" class="notas">
+            </tr>
+        {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
