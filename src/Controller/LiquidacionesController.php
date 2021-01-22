@@ -83,15 +83,29 @@ class LiquidacionesController extends AbstractController
     /**
      * @Route("/profesional/{id}", name="liquidar", methods={"GET"})
      */
-    public function liquidar($id, DoctorRepository $doctorRepository, BookingRepository $bookingRepository): Response
+    public function liquidar($id, DoctorRepository $doctorRepository, BookingRepository $bookingRepository, Request $request): Response
     {
+        $desde = $request->query->get('desde') ?? '';
+        $hasta = $request->query->get('hasta') ?? '';
+        $from = new \DateTime('2000-01-01');
+        $to = new \DateTime();
+
+        if($desde != '') {
+            $from = (new \DateTime($desde));
+        }
+        if($hasta != '') {
+            $to = (new \DateTime($hasta));
+        }
+
         $doctor = $doctorRepository->find($id);
-        $bookings = $bookingRepository->findBy(['doctor' => $doctor]);
+        $bookings = $bookingRepository->turnosParaAgenda($doctor, $from, '', [], $from, $to);
 
         return $this->render('liquidaciones/liquidar.html.twig',
             [
                 'bookings' => $bookings,
                 'doctor' => $doctor,
+                'desde' => $desde,
+                'hasta' => $hasta
             ]);
     }
 }

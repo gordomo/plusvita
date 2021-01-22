@@ -7,6 +7,38 @@
         <table class="table table-responsive table-striped">
             <thead>
             <tr>
+                <th>
+                    <div class="col-md-6" style="float: left;">
+                        <div class="col-md-2" style="float: left;line-height: 35px;">
+                            Desde:
+                        </div>
+                        <div class="col-md-10" style="float: left;">
+                            <input id='from' type="date" class="js-datepicker form-control" value="{{ desde }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6" style="float: left;">
+                        <div class="col-md-2" style="float: left;line-height: 35px;">
+                            Hasta:
+                        </div>
+                        <div class="col-md-10" style="float: left;">
+                            <input id='to' type="date" class="js-datepicker form-control" value="{{ hasta }}">
+                        </div>
+                    </div>
+                </th>
+                <th>
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <div class="input-group-append">
+                                <a class="btn btn-outline-secondary" data-inactivo="false" data-url="{{ path('liquidar', {'periodo': 'mes', 'id': doctor.id}) }}" type="button" id="buscarPorFechas" style="padding: 10px;">
+                                    <i class="fas fa-search"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+                </th>
+            </tr>
+            <tr>
                 <th scope="col">Titulo</th>
                 <th scope="col">Paciente</th>
                 <th scope="col">Comenzó</th>
@@ -35,4 +67,23 @@
             </tbody>
         </table>
     </div>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        $('#from').on('change', function () {
+            $('#to').attr("min", $('#from').val());
+            $('#to').val($('#from').val());
+        })
+        $('#buscarPorFechas').on('click', function () {
+            let url = $(this).data('url');
+            let from = $('#from').val();
+            let to = $('#to').val();
+
+            url = url + '&desde=' + from + '&hasta=' + to;
+
+            window.location.href = url;
+        })
+    </script>
+
 {% endblock %}
