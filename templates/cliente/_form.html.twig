@@ -147,6 +147,30 @@
 <br>
 <div class="form-row">
     <div class="col-sm">
+        {{ form_label(form.sesionesDisp) }}
+        {{ form_widget(form.sesionesDisp) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.formNum) }}
+        {{ form_widget(form.formNum) }}
+    </div>
+    <div class="col-sm"></div>
+</div>
+<br>
+<div class="form-row">
+    <div class="col-sm">
+        {{ form_label(form.vtoSesiones) }}
+        {{ form_widget(form.vtoSesiones) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.mediaSesion) }}
+        {{ form_widget(form.mediaSesion) }}
+    </div>
+    <div class="col-sm"></div>
+</div>
+<br>
+<div class="form-row">
+    <div class="col-sm">
         {{ form_label(form.docReferente) }}
         {{ form_widget(form.docReferente) }}
     </div>

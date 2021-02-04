@@ -69,18 +69,22 @@
             <th scope="col">Finaliza</th>
             <th scope="col">Paciente</th>
             <th scope="col">O. Social</th>
-            <th scope="col">Completo</th>
+            <th scope="col">Turno Completado?</th>
             <th scope="col">Acciones</th>
         </tr>
         </thead>
         <tbody>
+        {% set cantMediaSesiones = 0 %}
         {% for key,turno in today %}
-            <tr>
+            {% if turno.cliente.MediaSesion %}
+                {% set cantMediaSesiones = cantMediaSesiones + 1 %}
+            {% endif %}
+            <tr class="{% if turno.cliente.MediaSesion %} mediaSesion {% endif %}">
                 <td>{{ key + 1 }}</td>
                 <td>{{ turno.beginAt ?  turno.beginAt | date('Y-m-d H:i:s') : '' }}</th>
                 <td>{{ turno.endAt ?  turno.endAt | date('Y-m-d H:i:s') : '' }}</th>
                 <td>{{ turno.cliente.nombre }} {{ turno.cliente.apellido }}</td>
-                <td>{{ obrasSociales[turno.cliente.obraSocial] }}</td>
+                <td>{{ obrasSociales[turno.cliente.obraSocial] }} {% if turno.cliente.MediaSesion %} (Media Sesion) {% endif %}</td>
                 <td>
                     <input {{ turno.completado ? 'disabled' : '' }} class="completado" data-url="{{ path('doctor_agenda', {'periodo': periodo}) }}" data-turno-id="{{ turno.id }}" type="checkbox" {{ turno.completado ? 'checked' : '' }}>
                 </td>
@@ -94,6 +98,12 @@
                 </td>
             </tr>
         {% endfor %}
+            <tr>
+                <td colspan="4" style="text-align: right">Medias Sesiones:</td>
+                <td >{{ cantMediaSesiones }}</td>
+                <td  style="text-align: right">Total:</td>
+                <td >{{ today|length }}</td>
+            </tr>
         </tbody>
     </table>
 {% endblock %}

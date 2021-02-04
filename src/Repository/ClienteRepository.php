@@ -23,8 +23,16 @@ class ClienteRepository extends ServiceEntityRepository
     {
         $query = $this->createQueryBuilder('c')
             ->andWhere('c.fEgreso > :val')->setParameter('val', $value)
-            ->orWhere('c.fEgreso IS NULL')
-            ->andWhere('c.nombre like  :nombre OR c.apellido like :nombre')->setParameter('nombre','%'. $nombre .'%')
+            ->orWhere('c.fEgreso IS NULL');
+        if ( $nombre != '' ) {
+            $arrayNombres = explode(' ', $nombre);
+            $i = 1;
+            foreach ( $arrayNombres as $nombre ) {
+                $query->andWhere("c.nombre like :nombre$i OR c.apellido like :nombre$i")->setParameter("nombre$i",'%'. $nombre .'%');
+                $i ++;
+            }
+        }
+        $query
             ->andWhere('c.derivado = 0')
             ->orWhere('c.derivado is null')
             ->andWhere('c.dePermiso = 0')
@@ -32,6 +40,7 @@ class ClienteRepository extends ServiceEntityRepository
             if($hab != null) {
                 $query->andWhere('c.habitacion = :hab')->setParameter('hab',$hab);
             }
+
         return $query
             ->orderBy('c.hClinica', 'ASC')
             //->setMaxResults(10)
@@ -43,8 +52,13 @@ class ClienteRepository extends ServiceEntityRepository
     public function findByNombreYobraSocial($nombre = null, $oSocial = null)
     {
         $query = $this->createQueryBuilder('c');
-        if($nombre != null && $nombre != '') {
-            $query->andWhere('c.nombre like  :nombre OR c.apellido like :nombre')->setParameter('nombre', '%' . $nombre . '%');
+        if ( $nombre != '' ) {
+            $arrayNombres = explode(' ', $nombre);
+            $i = 1;
+            foreach ( $arrayNombres as $nombre ) {
+                $query->andWhere("c.nombre like :nombre$i OR c.apellido like :nombre$i")->setParameter("nombre$i",'%'. $nombre .'%');
+                $i ++;
+            }
         }
         if($oSocial != null && $oSocial != 0) {
             $query->andWhere('c.obraSocial = :oSocial')->setParameter('oSocial',$oSocial);
@@ -58,11 +72,20 @@ class ClienteRepository extends ServiceEntityRepository
 
     public function findDerivados($value, $nombre)
     {
-        return $this->createQueryBuilder('c')
+        $query = $this->createQueryBuilder('c')
             ->andWhere('c.fEgreso > :val')->setParameter('val', $value)
-            ->orWhere('c.fEgreso IS NULL')
-            ->andWhere('c.nombre like  :nombre OR c.apellido like :nombre')->setParameter('nombre','%'. $nombre .'%')
-            ->andWhere('c.derivado = 1')
+            ->orWhere('c.fEgreso IS NULL');
+
+        if ( $nombre != '' ) {
+            $arrayNombres = explode(' ', $nombre);
+            $i = 1;
+            foreach ( $arrayNombres as $nombre ) {
+                $query->andWhere("c.nombre like :nombre$i OR c.apellido like :nombre$i")->setParameter("nombre$i",'%'. $nombre .'%');
+                $i ++;
+            }
+        }
+
+        return $query->andWhere('c.derivado = 1')
             ->orderBy('c.hClinica', 'ASC')
             //->setMaxResults(10)
             ->getQuery()
@@ -72,11 +95,18 @@ class ClienteRepository extends ServiceEntityRepository
 
     public function findDePermiso($value, $nombre)
     {
-        return $this->createQueryBuilder('c')
+        $query = $this->createQueryBuilder('c')
             ->andWhere('c.fEgreso > :val')->setParameter('val', $value)
-            ->orWhere('c.fEgreso IS NULL')
-            ->andWhere('c.nombre like  :nombre OR c.apellido like :nombre')->setParameter('nombre','%'. $nombre .'%')
-            ->andWhere('c.dePermiso = 1')
+            ->orWhere('c.fEgreso IS NULL');
+        if ( $nombre != '' ) {
+            $arrayNombres = explode(' ', $nombre);
+            $i = 1;
+            foreach ( $arrayNombres as $nombre ) {
+                $query->andWhere("c.nombre like :nombre$i OR c.apellido like :nombre$i")->setParameter("nombre$i",'%'. $nombre .'%');
+                $i ++;
+            }
+        }
+        return $query->andWhere('c.dePermiso = 1')
             ->orderBy('c.hClinica', 'ASC')
             //->setMaxResults(10)
             ->getQuery()
@@ -86,10 +116,22 @@ class ClienteRepository extends ServiceEntityRepository
 
     public function findInActivos($value, $nombre)
     {
-        return $this->createQueryBuilder('c')
-            ->andWhere('c.fEgreso <= :val')->setParameter('val', $value)
-            ->andWhere('c.nombre like  :nombre OR c.apellido like  :nombre')->setParameter('nombre','%'. $nombre .'%')
-            ->orderBy('c.hClinica', 'ASC')
+        $query = $this->createQueryBuilder('c')
+            ->andWhere('c.fEgreso <= :val')->setParameter('val', $value);
+            if ( $nombre != '' ) {
+                $arrayNombres = explode(' ', $nombre);
+                $i = 1;
+                foreach ( $arrayNombres as $nombre ) {
+                    $where = "c.nombre like :nombre$i OR c.apellido like :nombre$i";
+                    if ($i == 1) {
+                        $query->andWhere($where)->setParameter("nombre$i",'%'. $nombre .'%');
+                    } else {
+                        $query->orWhere($where)->setParameter("nombre$i",'%'. $nombre .'%');
+                    }
+                    $i ++;
+                }
+            }
+            return $query->orderBy('c.hClinica', 'ASC')
             //->setMaxResults(10)
             ->getQuery()
             ->getResult()

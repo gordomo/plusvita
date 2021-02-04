@@ -128,7 +128,7 @@ class DashboardController extends AbstractController
         $arrayClienteHabitaciones = [];
         foreach ($habitaciones as $habitacion) {
             $cliente = $clienteRepository->findActivos(new \DateTime(), '', $habitacion);
-            if ($cliente) $arrayClienteHabitaciones[$habitacion->getId()] = $cliente;
+            if ($cliente) $arrayClienteHabitaciones[$habitacion->getNombre()] = $cliente;
         }
 
         return $arrayClienteHabitaciones;

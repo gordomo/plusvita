@@ -59,24 +59,34 @@
             </tr>
             </thead>
             <tbody>
-        {% for booking in bookings %}
+            {% set cantMediaSesiones = 0 %}
+            {% for booking in bookings %}
+                {% if booking.cliente.MediaSesion %}
+                    {% set cantMediaSesiones = cantMediaSesiones + 1 %}
+                {% endif %}
+                <tr class="{% if booking.cliente.MediaSesion %} mediaSesion {% endif %}">
+                    <td>{{ booking.title }}</td>
+                    <td style="text-transform: capitalize">{{ booking.cliente.nombre }} {{ booking.cliente.apellido }}</td>
+                    <td>{{ obrasSociales[booking.cliente.obraSocial] }}{% if booking.cliente.MediaSesion %} (Media Sesion) {% endif %}</td>
+                    <td>{{ booking.beginAt | date('Y-m-d H:i:s') }}</td>
+                    <td>{{ booking.endAt | date('Y-m-d H:i:s') }}</td>
+                    <td>
+                        {% if booking.notas | length > 0 %}
+                            <a href="{{ path('notas_turno_list', {'id': booking.id}) }}">ver notas</a>
+                        {% else %}
+                            No tiene
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr id="notas-{{ booking.id }}" class="notas">
+                </tr>
+            {% endfor %}
             <tr>
-                <td>{{ booking.title }}</td>
-                <td style="text-transform: capitalize">{{ booking.cliente.nombre }} {{ booking.cliente.apellido }}</td>
-                <td>{{ obrasSociales[booking.cliente.obraSocial] }}</td>
-                <td>{{ booking.beginAt | date('Y-m-d H:i:s') }}</td>
-                <td>{{ booking.endAt | date('Y-m-d H:i:s') }}</td>
-                <td>
-                    {% if booking.notas | length > 0 %}
-                        <a href="{{ path('notas_turno_list', {'id': booking.id}) }}">ver notas</a>
-                    {% else %}
-                        No tiene
-                    {% endif %}
-                </td>
+                <td colspan="3" style="text-align: right">Medias Sesiones:</td>
+                <td >{{ cantMediaSesiones }}</td>
+                <td  style="text-align: right">Total:</td>
+                <td >{{ bookings|length }}</td>
             </tr>
-            <tr id="notas-{{ booking.id }}" class="notas">
-            </tr>
-        {% endfor %}
             </tbody>
         </table>
     </div>

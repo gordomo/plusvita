@@ -140,6 +140,15 @@ class ClienteType extends AbstractType
                 ->add('docDerivante', TextType::class, ['label' => 'Profesional Derivante', 'required' => false])
                 ->add('edad', TextType::class, ['label' => 'Edad', 'required' => false])
                 ->add('dieta', TextType::class, ['label' => 'Dieta', 'required' => false])
+                ->add('sesionesDisp', TextType::class, ['label' => 'Sesiones Disponibles', 'required' => false])
+                ->add('formNum', NumberType::class, ['label' => 'Número de Formulario', 'required' => false, 'html5' => true])
+                ->add('vtoSesiones', DateType::class, ['label' => 'Vto Sesiones', 'required' => false, 'widget' => 'single_text', 'attr' => ['class' => 'js-datepicker']])
+                ->add('mediaSesion', ChoiceType::class, ['label' => 'Media sesion?', 'required' => false, 'choices' => [
+                    'Si' => true,
+                    'No' => false,
+                ],
+                    'multiple' => false,
+                    'expanded' => false,])
                 ->add("familiarResponsableExtra", HiddenType::class, array("mapped" => false, "label" => false));
 
                 $builder->get('motivoIng')->addEventListener(FormEvents::POST_SUBMIT, function(FormEvent $event) {
