@@ -31,7 +31,10 @@
 
     <div class="col-sm">
         {{ form_label(form.hClinica, 'Historia Clinica') }}
-        {{ form_widget(form.hClinica) }}
+        {{ form_widget(form.hClinica, {'attr': { 'data-cliente_check_hc-url' : path('cliente_check_hc'), 'data-cliente-id' : cliente.id }}) }}
+        <div class="invalid-feedback">
+            El número de historia clínica ya se encuentra en uso
+        </div>
     </div>
     <div class="col-sm">
         <div class="form-row">
@@ -135,6 +138,10 @@
         {{ form_label(form.fIngreso) }}
         {{ form_widget(form.fIngreso) }}
     </div>
+    <div class="col-sm">
+        {{ form_label(form.dieta) }}
+        {{ form_widget(form.dieta) }}
+    </div>
     <div class="col-sm"></div>
 </div>
 <br>
@@ -146,6 +153,9 @@
     <div class="col-sm">
         {{ form_label(form.disponibleParaTerapia) }}
         {{ form_widget(form.disponibleParaTerapia) }}
+    </div>
+    <div class="col-sm">
+
     </div>
 </div>
 <br><br>

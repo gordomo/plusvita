@@ -27,6 +27,7 @@ use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -703,6 +704,28 @@ class ClienteController extends AbstractController
         }
 
         return $this->redirectToRoute('cliente_index');
+    }
+
+    /**
+     * @Route("/check/hc", name="cliente_check_hc", methods={"GET"})
+     */
+    public function checkHc(Request $request, ClienteRepository $clienteRepository)
+    {
+        $libre = true;
+        $message = '';
+        $hc = $request->query->get('hc') ?? 0;
+        $id = $request->query->get('id') ?? 0;
+
+
+        $cliente = $clienteRepository->findBy(['hClinica' => $hc], ['id'=>'DESC'], 1);
+
+        if(count($cliente) && $cliente[0]->getId() != $id) {
+            $libre = false;
+            $message = 'El número de historia clínica ya se encuentra en uso.';
+        }
+
+        return new JsonResponse(['libre' => $libre, 'message' => $message]);
+
     }
 
     public function acomodarHabitacion($habitacionNueva, int $nuevaCamaId, $habVieja, int $camaActualId, int $habPrivada, int $habPrivadaNueva, EntityManager $entityManager)

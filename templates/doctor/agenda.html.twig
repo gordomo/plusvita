@@ -22,7 +22,7 @@
                         </li>
                     </ul>
                 </div>
-                <div class="col-md-8" style="display: {{  periodo == 'anteriores' ? 'block' : 'none'  }}; float: left;">
+                <div class="col-md-6" style="display: {{  periodo == 'anteriores' ? 'block' : 'none'  }}; float: left;">
                     <div class="col-md-6" style="float: left;">
                         <div class="col-md-2" style="float: left;line-height: 35px;">
                             Desde:
@@ -40,6 +40,14 @@
                         </div>
                     </div>
                 </div>
+                <div class="col-md-2" style="display: {{  periodo == 'anteriores' ? 'block' : 'none'  }}; float: left;">
+                    <select class="form-control" id="obraSocial" data-url="{{ path('doctor_agenda', {'periodo': periodo}) }}">
+                        <option value="0">Obra Social</option>
+                        {% for key, obrasSocial in obrasSociales %}
+                            <option value="{{ key }}" {% if key == obraSocialSelected %} selected="selected" {% endif %}>{{ obrasSocial }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
             <div class="col-md-4">
                 <div class="input-group mb-3">
@@ -50,9 +58,7 @@
                         </a>
                     </div>
                 </div>
-
             </div>
-
         </div>
     </div>
     <table class="table table-striped">
@@ -62,6 +68,7 @@
             <th scope="col">Comienza</th>
             <th scope="col">Finaliza</th>
             <th scope="col">Paciente</th>
+            <th scope="col">O. Social</th>
             <th scope="col">Completo</th>
             <th scope="col">Acciones</th>
         </tr>
@@ -73,6 +80,7 @@
                 <td>{{ turno.beginAt ?  turno.beginAt | date('Y-m-d H:i:s') : '' }}</th>
                 <td>{{ turno.endAt ?  turno.endAt | date('Y-m-d H:i:s') : '' }}</th>
                 <td>{{ turno.cliente.nombre }} {{ turno.cliente.apellido }}</td>
+                <td>{{ obrasSociales[turno.cliente.obraSocial] }}</td>
                 <td>
                     <input {{ turno.completado ? 'disabled' : '' }} class="completado" data-url="{{ path('doctor_agenda', {'periodo': periodo}) }}" data-turno-id="{{ turno.id }}" type="checkbox" {{ turno.completado ? 'checked' : '' }}>
                 </td>

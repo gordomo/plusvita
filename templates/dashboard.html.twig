@@ -7,92 +7,61 @@
         Por favor, ingrese con su usuario y contraseña
         <a href="{{ path('app_login') }}">ingresar</a>
     {% elseif is_granted('ROLE_ADMIN') %}
-        <div class="container">
-            <div class="row">
-
-                <div class="col-md-4">
-                    <a href="{{ path('user_index') }}">
-                        <div class="card text-white mb-3 usuariosOnDash" style="max-width: 18rem;">
-                            <div class="card-header">Administradores</div>
-                            <div class="card-body">
-                                <p class="card-text">Gestor de Administradores del sistema</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
-                <div class="col-md-4">
-                    <a href="{{ path('doctor_index') }}">
-                        <div class="card text-white staffOnDash mb-3" style="max-width: 18rem;">
-                            <div class="card-header ">Staff</div>
-                            <div class="card-body">
-                                <p class="card-text">Desde este gestor se crean y administran los Miembros del Staff</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
-                <div class="col-md-4">
-                    <a href="{{ path('cliente_index') }}">
-                        <div class="card text-white clientesOnDash mb-3" style="max-width: 18rem;">
-                            <div class="card-header ">Pacientes</div>
-                            <div class="card-body">
-                                <p class="card-text">Desde este gestor se crean y administran los Pacientes</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
+        <div class="">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <th>Habitacion</th>
+                        <th>Paciente</th>
+                        <th>Obra Social</th>
+                        <th>Patología</th>
+                        <th>Edad</th>
+                        <th>Dieta</th>
+                    </thead>
+                    <tbody>
+                        {% for habitacion, pacientes in habitacionesYpacientes %}
+                        <tr>
+                            <td>{{ habitacion }}</td>
+                            <td>
+                            {% for key, paciente in pacientes %}
+                                    {{ paciente.nombre }} {{ paciente.apellido }}
+                                    {% if pacientes|length > 1 %} <br> {% endif %}
+                                    {% if key < pacientes|length - 1 %} <hr> {% endif %}
+                            {% endfor %}
+                            </td>
+                            <td>
+                                {% for key, paciente in pacientes %}
+                                    {{ obrasSociales[paciente.obraSocial] }}
+                                    {% if pacientes|length > 1 %} <br> {% endif %}
+                                    {% if key < pacientes|length - 1 %} <hr> {% endif %}
+                                {% endfor %}
+                            </td>
+                            <td>
+                                {% for key, paciente in pacientes %}
+                                    {{ paciente.motivoIngEspecifico }}
+                                    {% if pacientes|length > 1 %} <br> {% endif %}
+                                    {% if key < pacientes|length - 1 %} <hr> {% endif %}
+                                {% endfor %}
+                            </td>
+                            <td>
+                                {% for key, paciente in pacientes %}
+                                    {{ paciente.edad }}
+                                    {% if pacientes|length > 1 %} <br> {% endif %}
+                                    {% if key < pacientes|length - 1 %} <hr> {% endif %}
+                                {% endfor %}
+                            </td>
+                            <td>
+                                {% for key, paciente in pacientes %}
+                                    {{ paciente.dieta }}
+                                    {% if pacientes|length > 1 %} <br> {% endif %}
+                                    {% if key < pacientes|length - 1 %} <hr> {% endif %}
+                                {% endfor %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
-            <div class="row">
-                <div class="col-md-4">
-                    <a href="{{ path('habitacion_index') }}">
-                        <div class="card text-white clientesOnDash mb-3" style="max-width: 18rem;">
-                            <div class="card-header ">Habitaciones</div>
-                            <div class="card-body">
-                                <p class="card-text">Desde este gestor se pueden crear nuevas habitaciones con sus respectivas camas</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
-                <div class="col-md-4">
-                    <a href="{{ path('obra_social_index') }}">
-                        <div class="card text-white mb-3 usuariosOnDash" style="max-width: 18rem;">
-                            <div class="card-header">Obras Sociales</div>
-                            <div class="card-body">
-                                <p class="card-text">Gestor para Obras sociales</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
-                <div class="col-md-4">
-                    <a href="{{ path('booking_calendar') }}">
-                        <div class="card text-white staffOnDash mb-3" style="max-width: 18rem;">
-                            <div class="card-header ">Turnos</div>
-                            <div class="card-body">
-                                <p class="card-text">Gestor de turnos para pacientes</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-4">
-                    <a href="{{ path('liquidaciones_index') }}">
-                        <div class="card text-white staffOnDash mb-3" style="max-width: 18rem;">
-                            <div class="card-header ">Liquidaciones</div>
-                            <div class="card-body">
-                                <p class="card-text">Desde este gestor se pueden crear y ver las liquidaciones</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
-
-            </div>
-
         </div>
     {% elseif  is_granted('ROLE_STAFF')%}
         <div class="container">

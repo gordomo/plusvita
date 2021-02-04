@@ -3,6 +3,11 @@
 namespace App\Controller;
 
 
+use App\Entity\Cliente;
+use App\Entity\Habitacion;
+use App\Repository\ClienteRepository;
+use App\Repository\HabitacionRepository;
+use App\Repository\ObraSocialRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -16,17 +21,30 @@ class DashboardController extends AbstractController
     /**
      * @Route("/", name="dashboard_index", methods={"GET"})
      */
-    public function index(): Response
+    public function index(HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository): Response
     {
         $isDoctor = $this->isDoctor();
-        return $this->render('dashboard.html.twig', ['dashboardActive' => 'active', 'isDoctor' => $isDoctor]);
+        $habitacionesYpacientes = $this->getHabitacionesYpacientes();
+        $obrasSociales = $obraSocialRepository->findAll();
+        $osArray = [];
+        foreach ($obrasSociales as $os) {
+            $osArray[$os->getId()] = $os->getNombre();
+        }
+
+        return $this->render('dashboard.html.twig',
+            [
+                'dashboardActive' => 'active',
+                'isDoctor' => $isDoctor,
+                'habitacionesYpacientes' => $habitacionesYpacientes,
+                'obrasSociales' => $osArray
+            ]);
     }
 
     private function isDoctor()
     {
         $isDoctor = false;
         $user = $this->getUser();
-//dd($user);
+
         $modalidad = 'sinModalidad';
         if (is_callable([$user, 'getModalidad'])) {
             $modalidad = $user->getModalidad()[0];
@@ -100,5 +118,19 @@ class DashboardController extends AbstractController
             4 => array_combine($sinContrato, $sinContrato)
         ];
         return $modalidades[$contrato];
+    }
+
+    private function getHabitacionesYpacientes()
+    {
+        $habitacionRepository = $this->getDoctrine()->getRepository(Habitacion::class);
+        $clienteRepository = $this->getDoctrine()->getRepository(Cliente::class);
+        $habitaciones = $habitacionRepository->findAll();
+        $arrayClienteHabitaciones = [];
+        foreach ($habitaciones as $habitacion) {
+            $cliente = $clienteRepository->findActivos(new \DateTime(), '', $habitacion);
+            if ($cliente) $arrayClienteHabitaciones[$habitacion->getId()] = $cliente;
+        }
+
+        return $arrayClienteHabitaciones;
     }
 }

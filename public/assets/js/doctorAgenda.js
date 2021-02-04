@@ -7,8 +7,9 @@ $('#buscarPorNombreYfechas').on('click', function () {
     let from = $('#from').val();
     let to = $('#to').val();
     let nombreInput = $('#nombreInput').val();
+    let obraSocial = $('#obraSocial').val();
 
-    url = url + '?desde=' + from + '&hasta=' + to + '&nombreInput='+nombreInput;
+    url = url + '?desde=' + from + '&hasta=' + to + '&nombreInput='+nombreInput + "&obraSocial="+obraSocial;;
 
     window.location.href = url;
 

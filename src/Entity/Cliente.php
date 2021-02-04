@@ -264,6 +264,31 @@ class Cliente
      */
     private $terapiasNoHabilitadas = [];
 
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $sesionesDisp;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $formNum;
+
+    /**
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private $vtoSesiones;
+
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $mediaSesion;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $dieta;
+
     public function __construct()
     {
         $this->docReferente = new ArrayCollection();
@@ -913,6 +938,66 @@ class Cliente
     public function setTerapiasNoHabilitadas(?array $terapiasNoHabilitadas): self
     {
         $this->terapiasNoHabilitadas = $terapiasNoHabilitadas;
+
+        return $this;
+    }
+
+    public function getSesionesDisp(): ?int
+    {
+        return $this->sesionesDisp;
+    }
+
+    public function setSesionesDisp(?int $sesionesDisp): self
+    {
+        $this->sesionesDisp = $sesionesDisp;
+
+        return $this;
+    }
+
+    public function getFormNum(): ?string
+    {
+        return $this->formNum;
+    }
+
+    public function setFormNum(?string $formNum): self
+    {
+        $this->formNum = $formNum;
+
+        return $this;
+    }
+
+    public function getVtoSesiones(): ?\DateTimeInterface
+    {
+        return $this->vtoSesiones;
+    }
+
+    public function setVtoSesiones(?\DateTimeInterface $vtoSesiones): self
+    {
+        $this->vtoSesiones = $vtoSesiones;
+
+        return $this;
+    }
+
+    public function getMediaSesion(): ?bool
+    {
+        return $this->mediaSesion;
+    }
+
+    public function setMediaSesion(?bool $mediaSesion): self
+    {
+        $this->mediaSesion = $mediaSesion;
+
+        return $this;
+    }
+
+    public function getDieta(): ?string
+    {
+        return $this->dieta;
+    }
+
+    public function setDieta(?string $dieta): self
+    {
+        $this->dieta = $dieta;
 
         return $this;
     }

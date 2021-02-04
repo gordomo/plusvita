@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Repository\BookingRepository;
+use App\Repository\ClienteRepository;
 use App\Repository\DoctorRepository;
+use App\Repository\ObraSocialRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -80,13 +82,22 @@ class LiquidacionesController extends AbstractController
             'ctrsArray' => $ctrsArray
         ]);
     }
+
     /**
      * @Route("/profesional/{id}", name="liquidar", methods={"GET"})
+     * @param $id
+     * @param DoctorRepository $doctorRepository
+     * @param BookingRepository $bookingRepository
+     * @param ObraSocialRepository $obraSocialRepository
+     * @param Request $request
+     * @return Response
+     * @throws \Exception
      */
-    public function liquidar($id, DoctorRepository $doctorRepository, BookingRepository $bookingRepository, Request $request): Response
+    public function liquidar($id, DoctorRepository $doctorRepository, BookingRepository $bookingRepository, ObraSocialRepository $obraSocialRepository, ClienteRepository $clienteRepository, Request $request): Response
     {
         $desde = $request->query->get('desde') ?? '';
         $hasta = $request->query->get('hasta') ?? '';
+        $obraSocialSelected = $request->query->get('obraSocial') ?? '';
         $from = new \DateTime('2000-01-01');
         $to = new \DateTime();
 
@@ -98,14 +109,25 @@ class LiquidacionesController extends AbstractController
         }
 
         $doctor = $doctorRepository->find($id);
-        $bookings = $bookingRepository->turnosParaAgenda($doctor, $from, '', [], $from, $to);
+        $clientes = $clienteRepository->findByNombreYobraSocial(null, $obraSocialSelected);
+        $bookings = $bookingRepository->turnosParaAgenda($doctor, $from, '', $clientes, $from, $to);
+
+
+        $obrasSociales = $obraSocialRepository->findAll();
+        $obrasSocialesArray = [];
+
+        foreach ($obrasSociales as $obrasSocial) {
+            $obrasSocialesArray[$obrasSocial->getId()] = $obrasSocial->getNombre();
+        }
 
         return $this->render('liquidaciones/liquidar.html.twig',
             [
                 'bookings' => $bookings,
                 'doctor' => $doctor,
                 'desde' => $desde,
-                'hasta' => $hasta
+                'hasta' => $hasta,
+                'obrasSociales' => $obrasSocialesArray,
+                'obraSocialSelected' => $obraSocialSelected,
             ]);
     }
 }

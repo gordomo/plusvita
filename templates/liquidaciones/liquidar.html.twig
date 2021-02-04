@@ -7,8 +7,8 @@
         <table class="table table-responsive table-striped">
             <thead>
             <tr>
-                <th>
-                    <div class="col-md-6" style="float: left;">
+                <th colspan="2">
+                    <div class="col-md-5" style="float: left;">
                         <div class="col-md-2" style="float: left;line-height: 35px;">
                             Desde:
                         </div>
@@ -16,7 +16,7 @@
                             <input id='from' type="date" class="js-datepicker form-control" value="{{ desde }}">
                         </div>
                     </div>
-                    <div class="col-md-6" style="float: left;">
+                    <div class="col-md-5" style="float: left;">
                         <div class="col-md-2" style="float: left;line-height: 35px;">
                             Hasta:
                         </div>
@@ -24,13 +24,24 @@
                             <input id='to' type="date" class="js-datepicker form-control" value="{{ hasta }}">
                         </div>
                     </div>
+                    <div class="col-md-2" style="float: left;">
+                        <select class="form-control" id="obraSocial">
+                            <option value="0">Obra Social</option>
+                            {% for key, obrasSocial in obrasSociales %}
+                                <option value="{{ key }}" {% if key == obraSocialSelected %} selected="selected" {% endif %}>{{ obrasSocial }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </th>
-                <th>
+                <th colspan="4">
                     <div class="col-md-4">
                         <div class="input-group">
                             <div class="input-group-append">
                                 <a class="btn btn-outline-secondary" data-inactivo="false" data-url="{{ path('liquidar', {'periodo': 'mes', 'id': doctor.id}) }}" type="button" id="buscarPorFechas" style="padding: 10px;">
                                     <i class="fas fa-search"></i>
+                                </a>
+                                <a class="btn btn-outline-secondary" data-inactivo="false" type="button" href="{{ path('liquidar', {'periodo': 'mes', 'id': doctor.id}) }}" style="padding: 10px;">
+                                    Limpiar
                                 </a>
                             </div>
                         </div>
@@ -41,6 +52,7 @@
             <tr>
                 <th scope="col">Titulo</th>
                 <th scope="col">Paciente</th>
+                <th scope="col">O. Social</th>
                 <th scope="col">Comenzó</th>
                 <th scope="col">Finalizó</th>
                 <th scope="col">Notas</th>
@@ -51,6 +63,7 @@
             <tr>
                 <td>{{ booking.title }}</td>
                 <td style="text-transform: capitalize">{{ booking.cliente.nombre }} {{ booking.cliente.apellido }}</td>
+                <td>{{ obrasSociales[booking.cliente.obraSocial] }}</td>
                 <td>{{ booking.beginAt | date('Y-m-d H:i:s') }}</td>
                 <td>{{ booking.endAt | date('Y-m-d H:i:s') }}</td>
                 <td>
@@ -79,8 +92,9 @@
             let url = $(this).data('url');
             let from = $('#from').val();
             let to = $('#to').val();
+            let obraSocial = $('#obraSocial').val();
 
-            url = url + '&desde=' + from + '&hasta=' + to;
+            url = url + '&desde=' + from + '&hasta=' + to + '&obraSocial=' + obraSocial;
 
             window.location.href = url;
         })

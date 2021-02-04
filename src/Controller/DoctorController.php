@@ -9,6 +9,7 @@ use App\Form\DoctorType;
 use App\Repository\BookingRepository;
 use App\Repository\ClienteRepository;
 use App\Repository\DoctorRepository;
+use App\Repository\ObraSocialRepository;
 use App\Repository\UserRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -301,12 +302,21 @@ class DoctorController extends AbstractController
     /**
      * @Route("/new", name="doctor_new", methods={"GET","POST"})
      */
-    public function new(Request $request,  SluggerInterface $slugger): Response
+    public function new(Request $request,  SluggerInterface $slugger, DoctorRepository $doctorRepository): Response
     {
         $doctor = new Doctor();
         $doctor->setRoles([]);
         $doctor->setInicioContrato(new \DateTime());
-        $doctor->setColor('#2196f3');
+        //dd($this->colors);
+        $coloresEnUso = $doctorRepository->findColoresEnUso();
+        foreach($coloresEnUso as $colorUsado) {
+            if (($key = array_search($colorUsado['color'], $this->colors)) !== false) {
+                unset($this->colors[$key]);
+            }
+        }
+
+        if( count($this->colors) === 0 ) $this->colors[0] = '#2196f3';
+        $doctor->setColor($this->colors[array_key_first($this->colors)]);
 
         $form = $this->createForm(DoctorType::class, $doctor, ['is_new' => true, 'allow_extra_fields' =>true, 'colors' => $this->colors]);
 
@@ -386,6 +396,7 @@ class DoctorController extends AbstractController
                 unset($this->colors[$key]);
             }
         }
+        if( count($this->colors) === 0 ) $this->colors[0] = '#2196f3';
 
         $form = $this->createForm(DoctorType::class, $doctor, ['is_new' => false, 'allow_extra_fields' =>true, 'colors' => $this->colors]);
         $dias =  $this->dias;
@@ -469,6 +480,7 @@ class DoctorController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $doctor->setColor('none');
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($doctor);
             $entityManager->flush();
@@ -500,11 +512,13 @@ class DoctorController extends AbstractController
     /**
      * @Route("/doctor/agenda/{periodo}/", name="doctor_agenda", methods={"GET"})
      */
-    public function agenda(Request $request, BookingRepository $bookingRepository, ClienteRepository $clienteRepository, $periodo) {
+    public function agenda(Request $request, BookingRepository $bookingRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, $periodo) {
         $user = $this->getUser();
         $nombreInput = $request->query->get('nombreInput') ?? '';
         $desde = $request->query->get('desde') ?? '';
         $hasta = $request->query->get('hasta') ?? '';
+        $obraSocialSelected = $request->query->get('obraSocial') ?? '';
+
         $from = '';
         $to = '';
 
@@ -515,14 +529,21 @@ class DoctorController extends AbstractController
             $to = (new \DateTime($hasta));
         }
 
-        $clientes = [];
-        if(!empty($nombreInput)) {
-            $clientes = $clienteRepository->findActivos(new \DateTime(), $nombreInput);
-        }
+        $clientes = $clienteRepository->findByNombreYobraSocial($nombreInput, $obraSocialSelected);
 
         $dia = new \DateTime();
-        $turnos = $bookingRepository->turnosParaAgenda($user, $dia, $periodo, $clientes, $from, $to);
+        if ($obraSocialSelected != 0 && count($clientes) == 0) {
+            $turnos = [];
+        } else {
+            $turnos = $bookingRepository->turnosParaAgenda($user, $dia, $periodo, $clientes, $from, $to);
+        }
 
+        $obrasSociales = $obraSocialRepository->findAll();
+        $obrasSocialesArray = [];
+
+        foreach ($obrasSociales as $obrasSocial) {
+            $obrasSocialesArray[$obrasSocial->getId()] = $obrasSocial->getNombre();
+        }
 
         return $this->render('doctor/agenda.html.twig', [
             'today' => $turnos,
@@ -530,6 +551,8 @@ class DoctorController extends AbstractController
             'periodo' => $periodo,
             'desde' => $desde,
             'hasta' => $hasta,
+            'obraSocialSelected' => $obraSocialSelected,
+            'obrasSociales' => $obrasSocialesArray
         ]);
 
     }

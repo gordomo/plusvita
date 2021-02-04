@@ -40,6 +40,22 @@ class ClienteRepository extends ServiceEntityRepository
             ;
     }
 
+    public function findByNombreYobraSocial($nombre = null, $oSocial = null)
+    {
+        $query = $this->createQueryBuilder('c');
+        if($nombre != null && $nombre != '') {
+            $query->andWhere('c.nombre like  :nombre OR c.apellido like :nombre')->setParameter('nombre', '%' . $nombre . '%');
+        }
+        if($oSocial != null && $oSocial != 0) {
+            $query->andWhere('c.obraSocial = :oSocial')->setParameter('oSocial',$oSocial);
+        }
+        return $query
+            ->orderBy('c.hClinica', 'ASC')
+            ->getQuery()
+            ->getResult()
+            ;
+    }
+
     public function findDerivados($value, $nombre)
     {
         return $this->createQueryBuilder('c')

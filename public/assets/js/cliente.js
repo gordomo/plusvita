@@ -152,3 +152,31 @@ $('#cliente_email').on('keyup', function () {
         emailField.next().show();
     }
 });
+
+$('#cliente_hClinica').on('keyup', function () {
+    let hcField = $(this);
+    let id = (hcField.data('cliente-id')) ? hcField.data('cliente-id') : 0;
+    if(hcField.val().length > 0) {
+        $.ajax({
+            url: hcField.data('cliente_check_hc-url'),
+            data: {
+                hc: hcField.val(),
+                id: id,
+            },
+            success: function (response) {
+                if(response.libre) {
+                    hcField.removeClass('is-invalid');
+                    hcField.next().hide();
+                } else {
+                    hcField.addClass('is-invalid');
+                    hcField.next().html(response.message);
+                    hcField.next().show();
+                }
+            }
+        });
+    } else {
+        hcField.addClass('is-invalid');
+        hcField.next().html('Ingrese un número de historia clínica');
+        hcField.next().show();
+    }
+});
