@@ -560,7 +560,7 @@ class DoctorController extends AbstractController
     /**
      * @Route("/doctor/agenda/{periodo}/{turnoId}/{completado}", name="doctor_agenda_update_turno", methods={"GET"})
      */
-    public function updateTurno(Request $request, BookingRepository $bookingRepository, ClienteRepository $clienteRepository, $periodo, $turnoId, $completado) {
+    public function updateTurno(Request $request, BookingRepository $bookingRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, $periodo, $turnoId, $completado) {
         $user = $this->getUser();
 
         if($completado || in_array('ROLE_ADMIN', $user->getRoles())) {
@@ -571,35 +571,7 @@ class DoctorController extends AbstractController
             $entityManager->flush();
         }
 
-        $nombreInput = $request->query->get('nombreInput') ?? '';
-        $desde = $request->query->get('desde') ?? '';
-        $hasta = $request->query->get('hasta') ?? '';
-        $from = '';
-        $to = '';
-
-        if($desde != '') {
-            $from = (new \DateTime($desde));
-        }
-        if($hasta != '') {
-            $to = (new \DateTime($hasta));
-        }
-
-        $clientes = [];
-        if(!empty($nombreInput)) {
-            $clientes = $clienteRepository->findActivos(new \DateTime(), $nombreInput);
-        }
-
-        $dia = new \DateTime();
-        $turnos = $bookingRepository->turnosParaAgenda($user, $dia, $periodo, $clientes, $from, $to);
-
-
-        return $this->render('doctor/agenda.html.twig', [
-            'today' => $turnos,
-            'nombreInput' => $nombreInput,
-            'periodo' => $periodo,
-            'desde' => $desde,
-            'hasta' => $hasta,
-        ]);
+        return $this->redirectToRoute('doctor_agenda', ['periodo' => $periodo]);
 
     }
 }
