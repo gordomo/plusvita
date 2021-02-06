@@ -7,50 +7,50 @@
         Por favor, ingrese con su usuario y contraseña
         <a href="{{ path('app_login') }}">ingresar</a>
     {% elseif is_granted('ROLE_ADMIN') %}
-        <div class="">
+        <div class="printiable">
             <div class="table-responsive">
                 <table class="table">
                     <thead>
-                        <th>Habitacion</th>
-                        <th>Paciente</th>
-                        <th>Obra Social</th>
-                        <th>Patología</th>
-                        <th>Edad</th>
-                        <th>Dieta</th>
+                        <th class="habitacion">Habitacion</th>
+                        <th class="paciente">Paciente</th>
+                        <th class="obraSocial">Obra Social</th>
+                        <th class="patología">Patología</th>
+                        <th class="edad">Edad</th>
+                        <th class="dieta">Dieta</th>
                     </thead>
                     <tbody>
                         {% for habitacion, pacientes in habitacionesYpacientes %}
                         <tr>
-                            <td>{{ habitacion }}</td>
-                            <td>
+                            <td class="habitacion">{{ habitacion }}</td>
+                            <td class="paciente">
                             {% for key, paciente in pacientes %}
                                     {{ paciente.nombre }} {{ paciente.apellido }}
                                     {% if pacientes|length > 1 %} <br> {% endif %}
                                     {% if key < pacientes|length - 1 %} <hr> {% endif %}
                             {% endfor %}
                             </td>
-                            <td>
+                            <td class="obraSocial">
                                 {% for key, paciente in pacientes %}
                                     {{ obrasSociales[paciente.obraSocial] }}
                                     {% if pacientes|length > 1 %} <br> {% endif %}
                                     {% if key < pacientes|length - 1 %} <hr> {% endif %}
                                 {% endfor %}
                             </td>
-                            <td>
+                            <td class="patología">
                                 {% for key, paciente in pacientes %}
                                     {{ paciente.motivoIngEspecifico }}
                                     {% if pacientes|length > 1 %} <br> {% endif %}
                                     {% if key < pacientes|length - 1 %} <hr> {% endif %}
                                 {% endfor %}
                             </td>
-                            <td>
+                            <td class="edad">
                                 {% for key, paciente in pacientes %}
                                     {{ paciente.edad }}
                                     {% if pacientes|length > 1 %} <br> {% endif %}
                                     {% if key < pacientes|length - 1 %} <hr> {% endif %}
                                 {% endfor %}
                             </td>
-                            <td>
+                            <td class="dieta">
                                 {% for key, paciente in pacientes %}
                                     {{ paciente.dieta }}
                                     {% if pacientes|length > 1 %} <br> {% endif %}
@@ -81,4 +81,52 @@
             </div>
         </div>
     {% endif %}
+
+{% endblock %}
+
+{% block modalImprimir %}
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="habitacion" id="habitacion">
+        <label class="form-check-label" for="habitacion">
+            Habitacion
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="paciente" id="paciente">
+        <label class="form-check-label" for="paciente">
+            Paciente
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="obraSocial" id="obraSocial">
+        <label class="form-check-label" for="obraSocial">
+            O. Social
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="dieta" id="dieta">
+        <label class="form-check-label" for="dieta">
+            Dieta
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="edad" id="edad">
+        <label class="form-check-label" for="edad">
+            Edad
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="todos" id="todos">
+        <label class="form-check-label" for="todos">
+            Todos
+        </label>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('assets/js/dashboard.js') }}"></script>
+    <script>
+        let printUrl = "{{ path('imprimir') }}";
+    </script>
 {% endblock %}

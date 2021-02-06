@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\Cliente;
-use App\Entity\Doctor;
 use App\Entity\FamiliarExtra;
 use App\Entity\Habitacion;
 use App\Entity\HistoriaPaciente;
@@ -11,22 +10,13 @@ use App\Form\ClienteType;
 use App\Form\ReingresoType;
 use App\Repository\AdjuntosPacientesRepository;
 use App\Repository\BookingRepository;
-use App\Repository\CamaRepository;
 use App\Repository\ClienteRepository;
 use App\Repository\FamiliarExtraRepository;
 use App\Repository\HabitacionRepository;
 use App\Repository\HistoriaPacienteRepository;
 use App\Repository\ObraSocialRepository;
 use Doctrine\ORM\EntityManager;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\DateType;
-use Symfony\Component\Form\Extension\Core\Type\EmailType;
-use Symfony\Component\Form\Extension\Core\Type\HiddenType;
-use Symfony\Component\Form\Extension\Core\Type\NumberType;
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -52,6 +42,11 @@ class ClienteController extends AbstractController
      */
     public function index(Request $request, ClienteRepository $clienteRepository, HabitacionRepository $habitacionRepository): Response
     {
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
         $pestana = $request->query->get('pestana') ?? 'activos';
         $nombreInput = $request->query->get('nombreInput');
         $hab = $request->query->get('hab') ?? null;
@@ -78,6 +73,7 @@ class ClienteController extends AbstractController
             'pestana' => $pestana,
             'nombreInput' => $nombreInput,
             'habitacionesArray'=>$habitacionesArray,
+            'paginaImprimible' => true,
         ]);
     }
 

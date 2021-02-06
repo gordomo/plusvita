@@ -95,6 +95,11 @@ class LiquidacionesController extends AbstractController
      */
     public function liquidar($id, DoctorRepository $doctorRepository, BookingRepository $bookingRepository, ObraSocialRepository $obraSocialRepository, ClienteRepository $clienteRepository, Request $request): Response
     {
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
         $desde = $request->query->get('desde') ?? '';
         $hasta = $request->query->get('hasta') ?? '';
         $obraSocialSelected = $request->query->get('obraSocial') ?? '';
@@ -128,6 +133,7 @@ class LiquidacionesController extends AbstractController
                 'hasta' => $hasta,
                 'obrasSociales' => $obrasSocialesArray,
                 'obraSocialSelected' => $obraSocialSelected,
+                'paginaImprimible' => true,
             ]);
     }
 }

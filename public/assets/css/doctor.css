@@ -1,0 +1,5 @@
+.libretaSanitaria, .emisionLibretaSanitaria,
+.vtoLibretaSanitaria, .inicioContrato, .posicionEnArchivo,
+.CBU, .Horarios, .matricula, .modalidad, .legajo, .vtoMatricula{
+    display: none;
+}

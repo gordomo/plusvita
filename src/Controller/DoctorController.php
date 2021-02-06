@@ -2,31 +2,22 @@
 
 namespace App\Controller;
 
-use App\Entity\Cliente;
 use App\Entity\Doctor;
-use App\Form\ClienteType;
 use App\Form\DoctorType;
 use App\Repository\BookingRepository;
 use App\Repository\ClienteRepository;
 use App\Repository\DoctorRepository;
 use App\Repository\ObraSocialRepository;
 use App\Repository\UserRepository;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\DateType;
-use Symfony\Component\Form\Extension\Core\Type\FileType;
-use Symfony\Component\Form\Extension\Core\Type\PasswordType;
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
-use Symfony\Component\Validator\Constraints\File;
+
 
 /**
  * @Route("/staff")
@@ -252,6 +243,7 @@ class DoctorController extends AbstractController
             'doctors' => $doctores,
             'contratos' => $contratos,
             'ctrsArray' => $ctrsArray,
+            'paginaImprimible' => true,
             
         ]);
     }
@@ -512,8 +504,12 @@ class DoctorController extends AbstractController
     /**
      * @Route("/doctor/agenda/{periodo}/", name="doctor_agenda", methods={"GET"})
      */
-    public function agenda(Request $request, BookingRepository $bookingRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, $periodo) {
+    public function agenda(Request $request, BookingRepository $bookingRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, $periodo)
+    {
         $user = $this->getUser();
+        if (!$user) {
+           return $this->redirectToRoute('app_login');
+        }
         $nombreInput = $request->query->get('nombreInput') ?? '';
         $desde = $request->query->get('desde') ?? '';
         $hasta = $request->query->get('hasta') ?? '';
@@ -552,7 +548,8 @@ class DoctorController extends AbstractController
             'desde' => $desde,
             'hasta' => $hasta,
             'obraSocialSelected' => $obraSocialSelected,
-            'obrasSociales' => $obrasSocialesArray
+            'obrasSociales' => $obrasSocialesArray,
+            'paginaImprimible' => true,
         ]);
 
     }

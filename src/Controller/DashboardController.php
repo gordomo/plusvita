@@ -36,7 +36,8 @@ class DashboardController extends AbstractController
                 'dashboardActive' => 'active',
                 'isDoctor' => $isDoctor,
                 'habitacionesYpacientes' => $habitacionesYpacientes,
-                'obrasSociales' => $osArray
+                'obrasSociales' => $osArray,
+                'paginaImprimible' => !$isDoctor,
             ]);
     }
 

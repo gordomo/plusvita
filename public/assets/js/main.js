@@ -70,3 +70,97 @@ function validateEmail(email) {
     const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(email);
 }
+
+function imprimirElemento(htmlToPrint){
+    var ventana = window.open('', 'PRINT');
+    ventana.document.write(htmlToPrint);
+    ventana.document.close();
+    ventana.focus();
+    ventana.print();
+
+    return true;
+}
+
+$('#todos').on('click',function(){
+    $('.check').prop('checked',$(this).prop("checked"));
+});
+
+$('.check').on('click', function() {
+    if(!$(this).prop("checked")) {
+        $('#todos').prop("checked", false);
+    }
+});
+
+function GetSelected(id) {
+    //Create an Array.
+    var selected = new Array();
+
+    //Reference the Table.
+    var checkboxes = document.getElementById(id);
+
+    //Reference all the CheckBoxes in Table.
+    var chks = checkboxes.getElementsByTagName("INPUT");
+
+    // Loop and push the checked CheckBox value in Array.
+    for (var i = 0; i < chks.length; i++) {
+        if (chks[i].checked) {
+            selected.push(chks[i].value);
+        }
+    }
+
+    return selected;
+};
+
+$("#imprimir").on('click', function () {
+    $('.filtros').modal('show');
+});
+
+$("#update").on('click', function () {
+    let checkboxes = GetSelected('checkboxes');
+    $('.table th').hide();
+    $('.table td').hide();
+    $('.container-fluid').hide();
+
+    $(checkboxes).each(function (e, a) {
+        $('.'+a).show();
+    });
+
+    let htmlToPrint = '<head>' + $('head').html() + '</head>';
+    htmlToPrint += $('.title').html() + "<br>";
+    htmlToPrint += $('.printiable').html();
+
+    $('.table th').show();
+    $('.table td').show();
+    $('.container-fluid').show();
+
+    imprimirElemento(htmlToPrint);
+
+    $('.filtros').modal('hide');
+
+});
+
+
+$('#todosForView').on('click',function(){
+    $('.checkForView').prop('checked',$(this).prop("checked"));
+});
+
+$('.checkForView').on('click', function() {
+    if(!$(this).prop("checked")) {
+        $('#todosForView').prop("checked", false);
+    }
+});
+
+$("#updateCamposForView").on('click', function () {
+    let checkboxes = GetSelected('checkboxesForView');
+    $('.table th').hide();
+    $('.table td').hide();
+
+    $(checkboxes).each(function (e, a) {
+        $('.'+a).show();
+    });
+
+    $('.acciones').show();
+
+    $('#camposExtras').modal('hide');
+
+});

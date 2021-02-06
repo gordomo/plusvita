@@ -1,6 +1,10 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}Staff index{% endblock %}
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('assets/css/doctor.css') }}"></script>
+{% endblock %}
 {% block panelTitle %}Staff{% endblock %}
 {% block body %}
     <div class="container-fluid">
@@ -34,92 +38,190 @@
                 <button class="btn btn-default" id="buscarContrato"><i class="fas fa-search" aria-hidden="true"></i></button>
                 <button class="btn btn-default" id="limpiarContratos" style="padding: 2px 16px;">Limpiar</button>
                 <a class="btn btn-success" style="padding: 2px 16px;" href="{{ path('doctor_new') }}">Nuevo Staff</a>
+                <button class="btn btn-default" data-toggle="modal" data-target="#camposExtras"><i class="fas fa-filter"></i></button>
             </div>
         </div>
     </div>
     <br><br>
-    <table class="table table-responsive table-striped">
-        <thead>
-            <tr>
-                <th scope="col">Nombre</th>
-                <th scope="col">Apellido</th>
-                <th scope="col">Tipo</th>
-                <th scope="col">Legajo</th>
-                <th scope="col">Email</th>
-                <th scope="col">Inicio Contrato</th>
-                <th scope="col">Vto Contrato</th>
-                <th scope="col">CBU</th>
-                <th scope="col">Horarios</th>
-                <th scope="col">actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for doctor in doctors %}
-            <tr class="editarStaff" data-url="{{ path('doctor_edit', {'id': doctor.id}) }}">
-                <td>{{ doctor.nombre }}</td>
-                <td>{{ doctor.apellido }}</td>
-                <td>
-                    {{ doctor.modalidad | json_encode(constant('JSON_PRETTY_PRINT')) | replace({'[': '', ']': '', '\\': ''})}}
-                </td>
-                <td>
-                    {{ doctor.legajo }}
-                    {#<a href="{{ asset('uploads/firmas/' ~ doctor.firma) }}" target="_blank">Ver firma digital</a>#}
-                </td>
-                <td class="lowercase">
-                    {{ doctor.email }}
-                </td>
-                <td>
-                    {{ doctor.inicioContrato | date('Y-m-d') }}
-                </td>
-                <td>
-                    {{ doctor.vtoContrato | date('Y-m-d') }}
-                </td>
-                <td class="">
-                    {{ doctor.cbu }}
-                </td>
-                <td class="lowercase">
-                    {% for horario in doctor.businessHours %}
-                        {% if (loop.index == 1) %}
-                            Lunes
-                        {% endif %}
-                        {% if (loop.index == 2) %}
-                            Martes
-                        {% endif %}
-                        {% if (loop.index == 3) %}
-                            Miercoles
-                        {% endif %}
-                        {% if (loop.index == 4) %}
-                            Jueves
-                        {% endif %}
-                        {% if (loop.index == 5) %}
-                            Viernes
-                        {% endif %}
-                        {% if (loop.index == 6) %}
-                            Sábado
-                        {% endif %}
-                        {{ horario.desde }} a
-                        {{ horario.hasta }}
-                        {% if (horario.desde != horario.ydesde) %}
-                        y {{ horario.ydesde }} a {{ horario.yhasta }}
-                        {% endif %}
-                        <br>
-                    {% endfor %}
-                </td>
-                <td>
-                    <a href="{{ path('doctor_edit', {'id': doctor.id}) }}"><i class="fas fa-pencil-alt"></i></a>
-                    <a href="{{ path('adjuntos_staff_new', {'id': doctor.id}) }}"><i class="fas fa-paperclip"></i></a>
-                    <a href="{{ path('staff_egreso', {'id': doctor.id}) }}"><i class="far fa-calendar-times"></i></a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="10">No existen registros</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+    <div class="printiable">
+        <table class="table table-responsive table-striped">
+            <thead>
+                <tr>
+                    <th scope="col" class="nombre">Nombre</th>
+                    <th scope="col" class="apellido">Apellido</th>
+                    <th scope="col" class="modalidad">Tipo</th>
+                    <th scope="col" class="legajo">Legajo</th>
+                    <th scope="col" class="matricula">Matricula</th>
+                    <th scope="col" class="vtoMatricula">Vto Matricula</th>
+                    <th scope="col" class="libretaSanitaria">Libreta Sanitaria</th>
+                    <th scope="col" class="emisionLibretaSanitaria">Fecha de emición de Libreta</th>
+                    <th scope="col" class="vtoLibretaSanitaria">Vto Libreta Sanitaria</th>
+                    <th scope="col" class="posicionEnArchivo">Pos. Archivo</th>
+                    <th scope="col" class="Email">Email</th>
+                    <th scope="col" class="inicioContrato">Inicio Contrato</th>
+                    <th scope="col" class="vtoContrato">Vto Contrato</th>
+                    <th scope="col" class="CBU">CBU</th>
+                    <th scope="col" class="Horarios">Horarios</th>
+                    <th scope="col" class="acciones">actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for doctor in doctors %}
+                <tr class="editarStaff" data-url="{{ path('doctor_edit', {'id': doctor.id}) }}">
+                    <td class="nombre">{{ doctor.nombre }}</td>
+                    <td class="apellido">{{ doctor.apellido }}</td>
+                    <td class="modalidad">
+                        {{ doctor.modalidad | json_encode(constant('JSON_PRETTY_PRINT')) | replace({'[': '', ']': '', '\\': ''})}}
+                    </td>
+                    <td class="legajo">
+                        {{ doctor.legajo }}
+                    </td>
+                    <td class="matricula">
+                        {{ doctor.matricula }}
+                    </td>
+                    <td class="vtoMatricula">
+                        {{ doctor.vtoMatricula | date('Y-m-d')}}
+                    </td>
+                    <td class="libretaSanitaria">
+                        {{ doctor.libretaSanitaria }}
+                    </td>
+                    <td class="emisionLibretaSanitaria">
+                        {{ doctor.emisionLibretaSanitaria | date('Y-m-d')}}
+                    </td>
+                    <td class="vtoLibretaSanitaria">
+                        {{ doctor.vtoLibretaSanitaria | date('Y-m-d') }}
+                    </td>
+                    <td class="posicionEnArchivo">
+                        {{ doctor.posicionEnArchivo }}
+                    </td>
+                    <td class="lowercase email">
+                        {{ doctor.email }}
+                    </td>
+                    <td class="inicioContrato">
+                        {{ doctor.inicioContrato | date('Y-m-d') }}
+                    </td>
+                    <td class="vtoContrato">
+                        {{ doctor.vtoContrato | date('Y-m-d') }}
+                    </td>
+                    <td class="cbu">
+                        {{ doctor.cbu }}
+                    </td>
+                    <td class="lowercase Horarios">
+                        {% for horario in doctor.businessHours %}
+                            {% if (loop.index == 1) %}
+                                Lunes
+                            {% endif %}
+                            {% if (loop.index == 2) %}
+                                Martes
+                            {% endif %}
+                            {% if (loop.index == 3) %}
+                                Miercoles
+                            {% endif %}
+                            {% if (loop.index == 4) %}
+                                Jueves
+                            {% endif %}
+                            {% if (loop.index == 5) %}
+                                Viernes
+                            {% endif %}
+                            {% if (loop.index == 6) %}
+                                Sábado
+                            {% endif %}
+                            {{ horario.desde }} a
+                            {{ horario.hasta }}
+                            {% if (horario.desde != horario.ydesde) %}
+                            y {{ horario.ydesde }} a {{ horario.yhasta }}
+                            {% endif %}
+                            <br>
+                        {% endfor %}
+                    </td>
+                    <td class="acciones">
+                        <a href="{{ path('doctor_edit', {'id': doctor.id}) }}"><i class="fas fa-pencil-alt"></i></a>
+                        <a href="{{ path('adjuntos_staff_new', {'id': doctor.id}) }}"><i class="fas fa-paperclip"></i></a>
+                        <a href="{{ path('staff_egreso', {'id': doctor.id}) }}"><i class="far fa-calendar-times"></i></a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="10">No existen registros</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
+    <div class="modal fade bd-example-modal-lg camposExtras" id="camposExtras" tabindex="-1" role="dialog" aria-labelledby="camposExtras" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Seleccione los campos a mostrar</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
 
+                <div class="modal-body">
+                    <div class="form-group columnas-de-dos" id="checkboxesForView">
+                        {% for fiel in ['nombre', 'apellido','modalidad', 'legajo','matricula',
+                            'vtoMatricula','libretaSanitaria', 'emisionLibretaSanitaria',
+                            'vtoLibretaSanitaria', 'Email',
+                            'inicioContrato', 'posicionEnArchivo',
+                            'vtoContrato',
+                            'CBU', 'Horarios'] %}
+                            <div class="form-check">
+                                <input class="form-check-input checkForView"
+                                        {% if fiel == 'nombre' %} checked {% endif %}
+                                        {% if fiel == 'apellido' %} checked {% endif %}
+                                        {% if fiel == 'Email' %} checked {% endif %}
+                                        {% if fiel == 'vtoContrato' %} checked {% endif %}
+                                       type="checkbox" value="{{ fiel }}" id="{{ fiel }}"
+                                >
+                                <label class="form-check-label" for="{{ fiel }}" style="text-transform: capitalize">
+                                    {{ fiel }}
+                                </label>
+                            </div>
+                        {% endfor %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="todos" id="todosForView">
+                            <label class="form-check-label" for="todosForView">
+                                Todos
+                            </label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="updateCamposForView">Mostrar</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block modalImprimir %}
+    {% for fiel in ['nombre', 'apellido','modalidad', 'legajo','matricula',
+        'vtoMatricula','libretaSanitaria', 'emisionLibretaSanitaria',
+        'vtoLibretaSanitaria', 'Email',
+        'inicioContrato', 'posicionEnArchivo', 'vtoContrato',
+        'CBU', 'Horarios'] %}
+        <div class="form-check">
+            <input class="form-check-input check" type="checkbox" value="{{ fiel }}" id="{{ fiel }}"
+                    {% if fiel == 'nombre' %} checked {% endif %}
+                    {% if fiel == 'apellido' %} checked {% endif %}
+                    {% if fiel == 'Email' %} checked {% endif %}
+                    {% if fiel == 'vtoContrato' %} checked {% endif %}
+            >
+            <label class="form-check-label" for="{{ fiel }}" style="text-transform: capitalize">
+                {{ fiel }}
+            </label>
+        </div>
+    {% endfor %}
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="todos" id="todos">
+        <label class="form-check-label" for="todos">
+            Todos
+        </label>
+    </div>
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}

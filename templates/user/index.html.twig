@@ -3,44 +3,92 @@
 {% block title %}Administradores{% endblock %}
 {% block panelTitle %}Administradores{% endblock %}
 {% block body %}
-    <table class="table table-responsive">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Username</th>
-                <th>Roles</th>
-                <th>Email</th>
-                <th>Teléfono</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for user in users %}
-            <tr>
-                <td>{{ user.id }}</td>
-                <td>{{ user.username }}</td>
-                <td>
-                    {% for role in user.roles %}
-                        {% if role == "ROLE_ADMIN" %}
-                            Administrador
-                        {% elseif role == "ROLE_USER" %}
-                            Operador
-                        {% endif %}
-                    {% endfor %}
-                </td>
-                <td class="lowercase">{{ user.email }}</td>
-                <td>{{ user.telefono }}</td>
-                <td>
-                    <a href="{{ path('user_edit', {'id': user.id}) }}">Editar</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="5">No se encontraron Usuarios Administradores</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-
+    <div class="printiable">
+        <table class="table table-responsive">
+            <thead>
+                <tr>
+                    <th class="id">Id</th>
+                    <th class="user">Nombre de Usuario</th>
+                    <th class="roles">Roles</th>
+                    <th class="email">Email</th>
+                    <th class="telefono">Teléfono</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for user in users %}
+                <tr>
+                    <td class="id">{{ user.id }}</td>
+                    <td class="user">{{ user.username }}</td>
+                    <td class="roles">
+                        {% for role in user.roles %}
+                            {% if role == "ROLE_ADMIN" %}
+                                Administrador
+                            {% elseif role == "ROLE_USER" %}
+                                Operador
+                            {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td class="lowercase email">{{ user.email }}</td>
+                    <td class="telefono">{{ user.telefono }}</td>
+                    <td>
+                        <a href="{{ path('user_edit', {'id': user.id}) }}">Editar</a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="5">No se encontraron Usuarios Administradores</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
     <a href="{{ path('user_new') }}">Crear nuevo Usuario Administrador</a>
+{% endblock %}
+
+{% block modalImprimir %}
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="id" id="id">
+        <label class="form-check-label" for="id">
+            Id
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="user" id="user">
+        <label class="form-check-label" for="user">
+            Nombre de Usuario
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="roles" id="roles">
+        <label class="form-check-label" for="roles">
+            Roles
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="email" id="email">
+        <label class="form-check-label" for="email">
+            Email
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="telefono" id="telefono">
+        <label class="form-check-label" for="telefono">
+            Teléfono
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="todos" id="todos">
+        <label class="form-check-label" for="todos">
+            Todos
+        </label>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('assets/js/dashboard.js') }}"></script>
+    <script>
+        let printUrl = "{{ path('imprimir') }}";
+    </script>
 {% endblock %}

@@ -26,8 +26,13 @@ class UserController extends AbstractController
      */
     public function index(UserRepository $userRepository): Response
     {
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
         return $this->render('user/index.html.twig', [
             'users' => $userRepository->findAll(),
+            'paginaImprimible' => true,
             
         ]);
     }

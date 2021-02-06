@@ -1,0 +1,13 @@
+.fNacimiento, .edad, .telefono,
+.obraSocialAfiliado, .fEgreso, .motivoEgr,
+.Email, .vieneDe, .posicionEnArchivo, .docDerivante, .modalidad, .motivoIngEspecifico,
+.habitacion, .nCama, .habPrivada, .familiarResponsableNombre, .familiarResponsableTel,
+.familiarResponsableMail, .familiarResponsableAcompanante,
+.vinculoResponsable, .sistemaDeEmergenciaNombre,
+.sistemaDeEmergenciaTel, .sistemaDeEmergenciaAfiliado, .fIngreso,
+.disponibleParaTerapia, .derivado, .dePermiso, .derivadoEn, .fechaDerivacion,
+.motivoDerivacion, .empTrasladoDerivacion, .fechaReingresoDerivacion, .motivoReingresoDerivacion, .fechaBajaPorPermiso,
+.fechaAltaPorPermiso, .terapiasHabilitadas, .terapiasNoHabilitadas, .sesionesDisp,
+.formNum, .vtoSesiones, .mediaSesionView, .dieta {
+    display: none;
+}

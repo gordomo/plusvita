@@ -35,7 +35,16 @@
             {{ include('navbar.html.twig') }}
         {% endif  %}
         <div class="container-fluid">
-            <h1 class="mt-4">{% block panelTitle %}{% endblock %}</h1>
+            <div class="row">
+                <div class="col-sm title">
+                    <h1 class="mt-4">{% block panelTitle %}{% endblock %}</h1>
+                </div>
+                {% if paginaImprimible is defined and paginaImprimible %}
+                <div class="col-sm" style="align-items: center; justify-content: center; display: flex;">
+                    <button class="btn btn-default" id="imprimir" style="font-size: 2rem; padding: 1rem 2rem"><i class="fas fa-print"></i></button>
+                </div>
+                {% endif  %}
+            </div>
             <hr>
             <div {#style="margin: 0 auto; overflow: auto"#} class="body-content">
                 {% block body %}{% endblock %}
@@ -46,6 +55,33 @@
     <!-- /#page-content-wrapper -->
 
 </div>
+
+{% if app.user %}
+    <!-- Large modal -->
+    <div class="modal fade bd-example-modal-lg filtros" tabindex="-1" role="dialog" aria-labelledby="filtros" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Seleccione los campos a imprimir</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-group columnas-de-dos" id="checkboxes">
+                        {% block modalImprimir %} {% endblock %}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="update">Imprimir</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+{% endif %}
+
 <!-- /#wrapper -->
 {% block javascripts %}
 <!-- Bootstrap core JavaScript -->
