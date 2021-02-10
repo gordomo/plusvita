@@ -104,11 +104,14 @@ class BookingRepository extends ServiceEntityRepository
                 ->setParameter('hasta', $hasta);
         }
 
-        if(!empty($completados)) {
-            $query = $query
-                ->andWhere('b.completado = :completado')
-                ->setParameter('completado', $completados);
-        }
+           if($completados === false) {
+                $query = $query
+                    ->andWhere('b.completado IS NULL');
+           } else if($completados === true) {
+                $query = $query
+                    ->andWhere('b.completado = :completado')
+                    ->setParameter('completado', $completados);
+           }
 
         $query = $query->orderBy('b.beginAt', 'asc');
         $query = $query->getQuery();

@@ -68,7 +68,10 @@
                                 </div>#}
                                 <div class="col-12" style="display: flex;justify-content: center;align-items: center;">
                                     Completados: &nbsp;
-                                    <input type="checkbox" name="completados" {% if completados %} checked {% endif %}>
+                                    Si&nbsp;
+                                    <input type="checkbox" name="completadosSi" {% if completadosSi %} checked {% endif %}>&nbsp;&nbsp;
+                                    No&nbsp;
+                                    <input type="checkbox" name="completadosNo" {% if completadosNo %} checked {% endif %}>
                                 </div>
                             </div>
                         </div>
@@ -107,7 +110,7 @@
                 <td class="finalizo">{{ booking.endAt | date('Y-m-d H:i:s') }}</td>
                 <td class="titulo">{{ booking.completado ? 'si' : 'no' }}</td>
                 <td>
-                    {% if booking.completado %}
+                    {% if not booking.completado %}
                         <input class="borrar" type="checkbox" value="{{ booking.id }}" name="borrarTurno">
                     {% endif %}
                 </td>

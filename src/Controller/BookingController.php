@@ -53,7 +53,8 @@ class BookingController extends AbstractController
         $hasta = $request->query->get('to') ?? '';
         $clienteSelected = $request->query->get('cliente') ?? '';
         $doctorSelected = $request->query->get('doctor') ?? '';
-        $completados = (!empty($request->query->get('completados')) && $request->query->get('completados') == 'on') ? true : '';
+        $completadosSi = (!empty($request->query->get('completadosSi')) && $request->query->get('completadosSi') == 'on') ? true : '';
+        $completadosNo = (!empty($request->query->get('completadosNo')) && $request->query->get('completadosNo') == 'on') ? true : '';
 
         $contrato = $request->query->get('ctr');
         $ctrsArray = [0 => $contrato];
@@ -101,6 +102,16 @@ class BookingController extends AbstractController
         $contratos = ['directo' => $directo, 'prestacion' => $prestacion, 'sinContrato' => $sinContrato];
 
 
+        $completados = $completadosSi;
+
+        if($completadosNo) {
+            $completados = false;
+        }
+
+        if(($completadosSi && $completadosNo) || ($completadosSi == '' && $completadosNo == '')) {
+            $completados = '';
+        }
+
         $booking = $bookingRepository->turnosConFiltro($doctorSelected, $clienteSelected, $desde, $hasta, $completados);
 
         return $this->render('booking/index.html.twig', [
@@ -112,7 +123,8 @@ class BookingController extends AbstractController
             'contratos' => $contratos,
             'ctrsArray' => $ctrsArray,
             'obrasSociales' => $obArray,
-            'completados' => $completados,
+            'completadosSi' => $completadosSi,
+            'completadosNo' => $completadosNo,
             'clienteSelected' => $clienteSelected,
             'doctorSelected' => $doctorSelected
         ]);
@@ -487,7 +499,7 @@ class BookingController extends AbstractController
         foreach ($ids as $id) {
             $booking = $bookingRepository->find($id);
 
-            if($booking->getCompletado()) {
+            if(!$booking->getCompletado()) {
                 $entityManager->remove($booking);
             }
         }
