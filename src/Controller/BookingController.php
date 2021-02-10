@@ -7,7 +7,9 @@ use App\Form\BookingType;
 use App\Repository\BookingRepository;
 use App\Repository\ClienteRepository;
 use App\Repository\DoctorRepository;
+use App\Repository\ObraSocialRepository;
 use DateInterval;
+use PhpParser\Comment\Doc;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -32,10 +34,87 @@ class BookingController extends AbstractController
     /**
      * @Route("/", name="booking_index", methods={"GET"})
      */
-    public function index(BookingRepository $bookingRepository): Response
+    public function index(Request $request, BookingRepository $bookingRepository, DoctorRepository $doctorRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository): Response
     {
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $obrasSociales = $obraSocialRepository->findAll();
+        $obArray = [];
+        foreach ( $obrasSociales as $ob ) {
+            $obArray[$ob->getId()] = $ob->getNombre();
+        }
+
+        $contratoSelected = $request->query->get('contrato') ?? '';
+
+        $desde = $request->query->get('from') ?? '';
+        $hasta = $request->query->get('to') ?? '';
+        $clienteSelected = $request->query->get('cliente') ?? '';
+        $doctorSelected = $request->query->get('doctor') ?? '';
+        $completados = (!empty($request->query->get('completados')) && $request->query->get('completados') == 'on') ? true : '';
+
+        $contrato = $request->query->get('ctr');
+        $ctrsArray = [0 => $contrato];
+
+        if(!empty($contrato)) {
+            $doctores = $doctorRepository->findByContrato($contrato);
+        } else {
+            $doctores = $doctorRepository->findAll();
+        }
+
+        $clientes = $clienteRepository->findAllActivos(new \DateTime());
+        $directo = [
+            'Nutricionista',
+            'Director medico',
+            'Sub director medico',
+            'Trabajadora social',
+            'Psiquiatra',
+            'Infectologo',
+            'Contador',
+            'Abogado',
+            'Estudio contable',
+            'Directivo',
+            'Programador',
+        ];
+        $prestacion = [
+            'Profesional por prestacion',
+            'Medico de guardia',
+            'Kinesiologo',
+            'Kinesiologo respiratorio',
+            'Terapista ocupacional',
+            'Fonoaudiologo',
+            'Psicologo',
+            'Fisiatra',
+            'Neurologo',
+            'Cardiologo',
+            'Urologo',
+            'Hematologo',
+            'Neumonologo',
+        ];
+        $sinContrato = [
+            'Cirujano',
+            'Traumatologo',
+            'Neumonologo',
+        ];
+        $contratos = ['directo' => $directo, 'prestacion' => $prestacion, 'sinContrato' => $sinContrato];
+
+
+        $booking = $bookingRepository->turnosConFiltro($doctorSelected, $clienteSelected, $desde, $hasta, $completados);
+
         return $this->render('booking/index.html.twig', [
-            'bookings' => $bookingRepository->findAll(),
+            'bookings' => $booking,
+            'desde' => $desde,
+            'hasta' => $hasta,
+            'clientes' => $clientes,
+            'doctores' => $doctores,
+            'contratos' => $contratos,
+            'ctrsArray' => $ctrsArray,
+            'obrasSociales' => $obArray,
+            'completados' => $completados,
+            'clienteSelected' => $clienteSelected,
+            'doctorSelected' => $doctorSelected
         ]);
     }
 
@@ -70,6 +149,11 @@ class BookingController extends AbstractController
      */
     public function calendar(Request $request, DoctorRepository $doctorRepository, ClienteRepository $clienteRepository): Response
     {
+        $user = $this->security->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
         $booking = new Booking();
 
         $contrato = $request->query->get('ctr');
@@ -116,7 +200,7 @@ class BookingController extends AbstractController
             'Neumonologo',
         ];
         $contratos = ['directo' => $directo, 'prestacion' => $prestacion, 'sinContrato' => $sinContrato];
-        $user = $this->security->getUser();
+
         $booking->setUser($user);
 
         //$form = $this->createForm(BookingType::class, $booking);
@@ -383,6 +467,34 @@ class BookingController extends AbstractController
         }
 
         return $this->redirectToRoute('booking_calendar');
+    }
+
+    /**
+     * @Route("/delete/multiple", name="booking_multi_delete", methods={"GET"})
+     */
+    public function multiDelete(Request $request, BookingRepository $bookingRepository): Response
+    {
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $ids = $request->query->get('ids') ?? '';
+        $ids = explode(',', $ids);
+
+        $entityManager = $this->getDoctrine()->getManager();
+
+        foreach ($ids as $id) {
+            $booking = $bookingRepository->find($id);
+
+            if($booking->getCompletado()) {
+                $entityManager->remove($booking);
+            }
+        }
+
+        $entityManager->flush();
+
+        return $this->redirectToRoute('booking_index');
     }
 
     private function getBusinessHours(array $doctores)

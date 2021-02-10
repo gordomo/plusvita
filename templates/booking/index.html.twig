@@ -1,39 +1,152 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Booking index{% endblock %}
-
+{% block title %}Turnos{% endblock %}
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('assets/css/cliente.css') }}"></script>
+{% endblock %}
+{% block panelTitle %}Turnos{% endblock %}
 {% block body %}
-    <h1>Booking index</h1>
-
+    <div class="container-fluid">
+        <form action="{{ path('booking_index') }}">
+            <div class="row">
+                <div class="col-5">
+                    <div class="row">
+                        <div class="col-1" style="display: flex;align-items: center;justify-content: flex-end;">
+                            Desde:
+                        </div>
+                        <div class="col-5">
+                            <input name='from' type="date" class="js-datepicker form-control" value="{{ desde }}">
+                        </div>
+                        <div class="col-1" style="display: flex;align-items: center;justify-content: flex-end;">
+                            Hasta:
+                        </div>
+                        <div class="col-5">
+                            <input name='to' type="date" class="js-datepicker form-control" value="{{ hasta }}">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-5">
+                    <div class="row">
+                        <div class="col-sm">
+                            <select name="doctor" class="form-control predictivo">
+                                <option value="">Profesional</option>
+                                {% for doctor in doctores %}
+                                    <option value="{{ doctor.id }}" {% if doctor.id == doctorSelected %} selected {% endif %}>{{ doctor.nombre }} {{ doctor.apellido }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-sm">
+                            <select name="cliente" class="form-control predictivo">
+                                <option value="">Paciente</option>
+                                {% for cliente in clientes %}
+                                    <option value="{{ cliente.id }}" {% if cliente.id == clienteSelected %} selected {% endif %} >{{ cliente.nombre }} {{ cliente.apellido }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-sm">
+                            <div class="row" style="height: 100%;">
+                                {#<div class="col-10">
+                                    <select class="form-control predictivo" name="contrato">
+                                        <option value="0">Contrato</option>
+                                        <optgroup label="Directo">
+                                            {% for contratoDirecto in contratos['directo'] %}
+                                                <option id='{{ contratoDirecto|replace({' ': ''}) }}' value="{{ contratoDirecto }}" {% if contratoDirecto in ctrsArray %} selected {% endif %}>{{ contratoDirecto }}</option>
+                                            {% endfor %}
+                                        </optgroup>
+                                        <optgroup label="Prestacion">
+                                            {% for contratoPrestacion in contratos['prestacion'] %}
+                                                <option id='{{ contratoPrestacion|replace({' ': ''}) }}' value="{{ contratoPrestacion }}" {% if contratoPrestacion in ctrsArray %} selected {% endif %}>{{ contratoPrestacion }}</option>
+                                            {% endfor %}
+                                        </optgroup>
+                                        <optgroup label="Sin Contrato">
+                                            {% for contratoSinContrato in contratos['sinContrato'] %}
+                                                <option id='{{ contratoSinContrato|replace({' ': ''}) }}' value="{{ contratoSinContrato }}" {% if contratoSinContrato in ctrsArray %} selected {% endif %}>{{ contratoSinContrato }}</option>
+                                            {% endfor %}
+                                        </optgroup>
+                                    </select>
+                                </div>#}
+                                <div class="col-12" style="display: flex;justify-content: center;align-items: center;">
+                                    Completados: &nbsp;
+                                    <input type="checkbox" name="completados" {% if completados %} checked {% endif %}>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-2">
+                    <button class="btn btn-default" type="submit" style="padding: 10px"><i class="fas fa-search"></i></button>
+                    <a class="btn btn-default" style="padding: 10px" href="{{ path('booking_index') }}">Ver todos</a>
+                    <a class="btn btn-default" style="padding: 10px" id="borrarTurnos">Borrar Turnos</a>
+                </div>
+            </div>
+        </form>
+    </div>
+    <br>
     <table class="table">
         <thead>
             <tr>
-                <th>Id</th>
-                <th>BeginAt</th>
-                <th>EndAt</th>
-                <th>Title</th>
-                <th>actions</th>
+                <th>Titulo</th>
+                <th>Profesional</th>
+                <th>Paciente</th>
+                <th>Obra Social</th>
+                <th>Comienza</th>
+                <th>Finaliza</th>
+                <th>Completado</th>
+                <th>Seleccionar</th>
             </tr>
         </thead>
         <tbody>
         {% for booking in bookings %}
             <tr>
-                <td>{{ booking.id }}</td>
-                <td>{{ booking.beginAt ? booking.beginAt|date('Y-m-d H:i:s') : '' }}</td>
-                <td>{{ booking.endAt ? booking.endAt|date('Y-m-d H:i:s') : '' }}</td>
-                <td>{{ booking.title }}</td>
+                <td class="titulo">{{ booking.title }}</td>
+                <td class="profesional" style="text-transform: capitalize">{{ booking.doctor.nombre }} {{ booking.doctor.apellido }}</td>
+                <td class="paciente" style="text-transform: capitalize">{{ booking.cliente.nombre }} {{ booking.cliente.apellido }}</td>
+                <td class="obraSocial">{{ obrasSociales[booking.cliente.obraSocial] }}{% if booking.cliente.MediaSesion %} (Media Sesion) {% endif %}</td>
+                <td class="comenzo">{{ booking.beginAt | date('Y-m-d H:i:s') }}</td>
+                <td class="finalizo">{{ booking.endAt | date('Y-m-d H:i:s') }}</td>
+                <td class="titulo">{{ booking.completado ? 'si' : 'no' }}</td>
                 <td>
-                    <a href="{{ path('booking_show', {'id': booking.id}) }}">show</a>
-                    <a href="{{ path('booking_edit', {'id': booking.id}) }}">edit</a>
+                    {% if booking.completado %}
+                        <input class="borrar" type="checkbox" value="{{ booking.id }}" name="borrarTurno">
+                    {% endif %}
                 </td>
             </tr>
         {% else %}
             <tr>
-                <td colspan="5">no records found</td>
+                <td colspan="5">No se encontraron registros</td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
+{% endblock %}
 
-    <a href="{{ path('booking_new') }}">Create new</a>
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        $('.predictivo').chosen();
+
+        $('#borrarTurnos').click(function () {
+            var idsArray = [];
+
+            $("input:checkbox[name=borrarTurno]:checked").each(function(){
+                idsArray.push($(this).val());
+            });
+
+            if( idsArray.length > 0 ) {
+                var txt;
+                var r = confirm("¿Está seguro que desea borrar los turnos seleccionados?");
+                if (r == true) {
+                    var url = "{{ path('booking_multi_delete') }}" + "?ids=" ;
+                    url += idsArray.toString();
+                    location.href = url;
+                }
+            } else {
+                alert('Deber seleccionar al menos un turno para borrar');
+            }
+        });
+
+
+
+    </script>
 {% endblock %}

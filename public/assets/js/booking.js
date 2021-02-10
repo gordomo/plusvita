@@ -203,16 +203,23 @@ if(!window.location.href.includes('edit') && !window.location.href.includes('new
                     },
                 ],
                 customButtons: {
-                    myCustomButton: {
+                    filtros: {
                         text: 'Filtros',
                         //icon: 'fc-icon-filter',
                         click: function() {
                             $('.filtros').modal('show');
                         }
+                    },
+                    ver: {
+                        text: 'Ver Todos',
+                        //icon: 'fc-icon-filter',
+                        click: function() {
+                            location.href = '/booking/';
+                        }
                     }
                 },
                 header: {
-                    left: 'prev,next today, myCustomButton',
+                    left: 'prev,next today, filtros, ver',
                     center: 'title',
                     right: 'dayGridMonth,timeGridWeek,timeGridDay',
                 },

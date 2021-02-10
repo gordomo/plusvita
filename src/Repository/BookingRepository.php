@@ -50,10 +50,11 @@ class BookingRepository extends ServiceEntityRepository
                 ->setParameter('start', $start);
         }
 
-        $query = $query
-            ->andWhere('b.doctor = :doctor')
-            ->setParameter('doctor', $doctor);
-
+        if(!empty($doctor)) {
+            $query = $query
+                ->andWhere('b.doctor = :doctor')
+                ->setParameter('doctor', $doctor);
+        }
         if(!empty($user)) {
           $query = $query->andWhere('b.cliente IN (:cliente)')->setParameter('cliente', $user);
         };
@@ -61,6 +62,59 @@ class BookingRepository extends ServiceEntityRepository
         $query = $query->getQuery();
 
         return $query->getResult();
+    }
+
+
+    /**
+     * @return Booking[] Returns an array of Booking objects
+     */
+    public function turnosConFiltro($doctor = '', $paciente = '', $desde = '', $hasta = '', $completados = '')
+    {
+        $query = $this->createQueryBuilder('b');
+
+        if(!empty($doctor)) {
+            $query = $query
+                ->andWhere('b.doctor = :doctor')
+                ->setParameter('doctor', $doctor);
+        }
+
+        if(!empty($paciente)) {
+            $query = $query
+                ->andWhere('b.cliente = :cliente')
+                ->setParameter('cliente', $paciente);
+        }
+
+        if(!empty($desde)) {
+            $from = (new \DateTime($desde));
+            $from->setTime(00, 00, 00);
+            $desde = $from->format("Y-m-d H:i:s");
+
+            $query = $query
+                ->andWhere('b.beginAt >= :desde')
+                ->setParameter('desde', $desde);
+        }
+
+        if(!empty($hasta)) {
+            $to = (new \DateTime($hasta));
+            $to->setTime(23, 59, 59);
+            $hasta = $to->format("Y-m-d H:i:s");
+
+            $query = $query
+                ->andWhere('b.endAt <= :hasta')
+                ->setParameter('hasta', $hasta);
+        }
+
+        if(!empty($completados)) {
+            $query = $query
+                ->andWhere('b.completado = :completado')
+                ->setParameter('completado', $completados);
+        }
+
+        $query = $query->orderBy('b.beginAt', 'asc');
+        $query = $query->getQuery();
+
+        return $query->getResult();
+
     }
 
 

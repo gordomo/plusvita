@@ -112,7 +112,7 @@ function GetSelected(id) {
 };
 
 $("#imprimir").on('click', function () {
-    $('.filtros').modal('show');
+    $('.filtrosPlanilla').modal('show');
 });
 
 $("#update").on('click', function () {
@@ -135,7 +135,7 @@ $("#update").on('click', function () {
 
     imprimirElemento(htmlToPrint);
 
-    $('.filtros').modal('hide');
+    $('.filtrosPlanilla').modal('hide');
 
 });
 
