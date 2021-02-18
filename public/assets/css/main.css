@@ -142,6 +142,17 @@ a.dropdown-item:hover {
     border-color: #00bcd4;
 }
 
+select:invalid {
+    height: 0px !important;
+    opacity: 0 !important;
+    position: absolute !important;
+    display: flex !important;
+}
+
+select:invalid[multiple] {
+    margin-top: 15px !important;
+}
+
 
 /*      #60b9b9     #b088be
 table {

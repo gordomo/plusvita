@@ -1,0 +1,5 @@
+<form method="post" action="{{ path('consumible_delete', {'id': consumible.id}) }}" onsubmit="return confirm('Está seguro que desea borrar por completo el consumible con todo su historial?');">
+    <input type="hidden" name="_method" value="DELETE">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ consumible.id) }}">
+    <button class="btn btn-danger">Borrar</button>
+</form>

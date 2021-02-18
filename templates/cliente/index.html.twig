@@ -254,6 +254,12 @@
                                             <i class="fas fa-arrow-right" data-toggle="tooltip" data-placement="top" title="derivar"></i> Dar Permiso
                                         </a>
                                     {% endif %}
+                                    <a class="dropdown-item" href="{{ path('consumible_imputar_view', {'id': cliente.id}) }}">
+                                        <i class="fas fa-band-aid" data-toggle="tooltip" data-placement="top" title="Imputar consumible"></i> Imputar Consumible
+                                    </a>
+                                    <a class="dropdown-item" href="{{ path('consumible_historico', {'id': cliente.id}) }}">
+                                        <i class="fas fa-eye" data-toggle="tooltip" data-placement="top" title="Ver consumos"></i> Ver Consumos
+                                    </a>
                                 </div>
                             </div>
                         </td>

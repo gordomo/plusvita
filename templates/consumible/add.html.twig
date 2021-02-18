@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Agregar Consumibles{% endblock %}
+{% block panelTitle %}Agregar Consumibles{% endblock %}
+{% block body %}
+    <div class="container">
+        <form action="{{ path('consumible_add', {'id': consumible.id}) }}">
+            <div class="form-group">
+                <h2>{{ consumible.nombre }}</h2>
+            </div>
+            <br><br>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="agregarQuitar" id="agregar" value="agregar" checked>
+                <label class="form-check-label" for="exampleRadios1">
+                    Agregar
+                </label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="agregarQuitar" id="quitar" value="quitar">
+                <label class="form-check-label" for="exampleRadios2">
+                    Quitar
+                </label>
+            </div>
+            <br><br>
+            <div class="form-group">
+                <label for="cantidad">Cantidad</label>
+                <input type="number" class="form-control" name="cantidad" value="0" required>
+            </div>
+            <br>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" value="1" id="aNombreDe" name="aNombreDe" >
+                <label class="form-check-label" for="aNombreDe">
+                    A nombre de un Paciente
+                </label>
+            </div>
+            <div class="form-check form-check-inline clientes">
+                <select name="cliente" class="form-control predictivo" id="cliente">
+                    <option value="">Paciente</option>
+                    {% for cliente in clientes %}
+                        <option value="{{ cliente.id }}" >{{ cliente.nombre }} {{ cliente.apellido }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <br><br><br>
+            <button type="submit" class="btn btn-primary">Guardar</button>
+            <a class="btn btn-default" href="javascript:history.back();">Volver</a>
+        </form>
+    </div>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('assets/js/consumibles.js') }}"></script>
+{% endblock %}

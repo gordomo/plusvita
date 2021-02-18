@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20201109133750 extends AbstractMigration
+final class Version20210217172505 extends AbstractMigration
 {
     public function getDescription() : string
     {
@@ -22,7 +22,7 @@ final class Version20201109133750 extends AbstractMigration
         // this up() migration is auto-generated, please modify it to your needs
         $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'mysql', 'Migration can only be executed safely on \'mysql\'.');
 
-        $this->addSql('ALTER TABLE cliente CHANGE h_clinica h_clinica INT DEFAULT NULL');
+        $this->addSql('DROP TABLE consumible_cliente');
     }
 
     public function down(Schema $schema) : void
@@ -30,6 +30,8 @@ final class Version20201109133750 extends AbstractMigration
         // this down() migration is auto-generated, please modify it to your needs
         $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'mysql', 'Migration can only be executed safely on \'mysql\'.');
 
-        $this->addSql('ALTER TABLE cliente CHANGE h_clinica h_clinica VARCHAR(255) CHARACTER SET utf8mb4 DEFAULT NULL COLLATE `utf8mb4_unicode_ci`');
+        $this->addSql('CREATE TABLE consumible_cliente (consumible_id INT NOT NULL, cliente_id INT NOT NULL, INDEX IDX_73DAEE119AA59506 (consumible_id), INDEX IDX_73DAEE11DE734E51 (cliente_id), PRIMARY KEY(consumible_id, cliente_id)) DEFAULT CHARACTER SET utf8 COLLATE `utf8_unicode_ci` ENGINE = InnoDB COMMENT = \'\' ');
+        $this->addSql('ALTER TABLE consumible_cliente ADD CONSTRAINT FK_73DAEE119AA59506 FOREIGN KEY (consumible_id) REFERENCES consumible (id) ON UPDATE NO ACTION ON DELETE CASCADE');
+        $this->addSql('ALTER TABLE consumible_cliente ADD CONSTRAINT FK_73DAEE11DE734E51 FOREIGN KEY (cliente_id) REFERENCES cliente (id) ON UPDATE NO ACTION ON DELETE CASCADE');
     }
 }

@@ -55,7 +55,7 @@
                     {% endif %}
                 </td>
                 <td>{{ historia.patologia_especifica }}</td>
-                <td>{{ obraSociales[historia.obra_social] }}</td>
+                <td>{{ obraSociales[historia.obra_social] is defined ? obraSociales[historia.obra_social] : '' }}</td>
                 <td>{{ historia.nAfiliadoObraSocial }}</td>
                 <td>{{ historia.sistemaDeEmergencia }}</td>
                 <td>{{ historia.nAfiliadoSistemaDeEmergencia }}</td>

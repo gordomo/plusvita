@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Consumibles Imputar{% endblock %}
+{% block panelTitle %}
+    Imputar Consumibles a
+    <b style="text-transform: capitalize"> {{ cliente.nombre }}</b> <br><br>
+    <a href="{{ path('consumible_new') }}" class="btn-success btn">Nuevo Consumible</a>
+{% endblock %}
+{% block body %}
+<form action="{{ path('consumible_imputar') }}" method="post">
+    <input type="hidden" name="cliente" value="{{ cliente.id }}">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm">
+                <select class="form-control " id="consumible" name="consumible">
+                    <option value="0" data-unidades="unidades">Consumible</option>
+                    {% for consumible in consumibles %}
+                        <option value="{{ consumible.id }}" data-unidades="{{ consumible.unidades }}">{{ consumible.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-sm">
+                <input class="form-control" type="number" placeholder="Cantidad" name="cantidad" id="cantidad">
+            </div>
+            <div class="col-sm" style="display: flex;align-items: center;">
+                <span>Quedan: </span>
+                <span id="unidades"></span>
+            </div>
+            <div class="col-sm">
+                <button type="submit" class="btn btn-success">Imputar</button>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('assets/js/consumibles.js') }}"></script>
+{% endblock %}

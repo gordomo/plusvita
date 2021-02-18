@@ -1,0 +1,29 @@
+{{ form_start(form) }}
+    <br>
+    <div class="form-row">
+        <div class="col-sm">
+            {{ form_label(form.nombre, 'Nombre') }}
+            {{ form_widget(form.nombre) }}
+        </div>
+        <div class="col-sm">
+            {{ form_label(form.existencia, 'Existencia al ingreso') }}
+            {{ form_widget(form.existencia) }}
+        </div>
+        <div class="col-sm">
+            {{ form_label(form.precio, 'Precio') }}
+            {{ form_widget(form.precio) }}
+        </div>
+        <div class="col-sm">
+            {{ form_label(form.unidades, 'Se mide en:') }}
+            {{ form_widget(form.unidades) }}
+        </div>
+    </div>
+<br>
+<br>
+    <div class="form-group">
+        {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary'}}) }}
+        <a class="btn btn-default" href="{{ path('consumible_index') }}">volver</a>
+    </div>
+    <br>
+
+{{ form_end(form) }}

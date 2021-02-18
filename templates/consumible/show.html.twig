@@ -1,0 +1,40 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Historial de {{ consumible.nombre }} {% endblock %}
+
+{% block body %}
+    <h1>Historial de {{ consumible.nombre }}</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Accion</th>
+                <th>Cantidad</th>
+                <th>Paciente</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% set total = 0 %}
+        {% for dato in historicoConsumible %}
+            {% if dato.accion %}
+                {% set total = total + dato.cantidad %}
+            {% else %}
+                {% set total = total - dato.cantidad %}
+            {% endif %}
+            <tr>
+                <td>{{ dato.fecha | date('Y-m-d') }}</td>
+                <td>{{ dato.accion ? 'ingreso' : 'egreso' }}</td>
+                <td style="text-align: right;">{{ dato.cantidad }}</td>
+                <td>{{ pacientes[dato.clienteId] is defined ? pacientes[dato.clienteId] : 'no registrado'}}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+
+
+    </table>
+
+
+
+    {{ include('consumible/_delete_form.html.twig') }}
+{% endblock %}
