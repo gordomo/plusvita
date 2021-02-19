@@ -651,7 +651,7 @@ class ClienteController extends AbstractController
     /**
      * @Route("/{id}/egreso", name="cliente_egreso", methods={"GET","POST"})
      */
-    public function egreso(Request $request, Cliente $cliente, HistoriaPacienteRepository $historiaPacienteRepository, HabitacionRepository $habitacionRepository): Response
+    public function egreso(Request $request, Cliente $cliente, HistoriaPacienteRepository $historiaPacienteRepository, HabitacionRepository $habitacionRepository, BookingRepository $bookingRepository): Response
     {
         $form = $this->createForm(ClienteType::class, $cliente, ['egreso' => true]);
 
@@ -664,6 +664,13 @@ class ClienteController extends AbstractController
             foreach ($doctoresReferentes as $doctor) {
                 $doctor->addCliente($cliente);
                 $entityManager->persist($doctor);
+            }
+            $fechaDeEgresoString = $cliente->getFEgreso()->setTime(23, 59, 59)->format('Y-m-d H:i:s');
+
+            $turnos = $bookingRepository->turnosConFiltro('', $cliente, $fechaDeEgresoString);
+
+            foreach ($turnos as $turno) {
+                $entityManager->remove($turno);
             }
 
             $entityManager->persist($cliente);
