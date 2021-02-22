@@ -57,6 +57,7 @@ class DoctorType extends AbstractType
             $builder
                 ->add('nombre', TextType::class)
                 ->add('apellido', TextType::class)
+                ->add('fNac', DateType::class, ['widget' => 'single_text', 'required' => false])
                 ->add('color', ChoiceType::class, [
                     'choices' => array_combine($colors, $colors),
                     'choice_attr' => function($choice, $key, $value) {

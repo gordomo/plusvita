@@ -1,5 +1,5 @@
 .libretaSanitaria, .emisionLibretaSanitaria,
 .vtoLibretaSanitaria, .inicioContrato, .posicionEnArchivo,
-.CBU, .Horarios, .matricula, .modalidad, .legajo, .vtoMatricula{
+.CBU, .Horarios, .matricula, .modalidad, .legajo, .vtoMatricula, .dni, .fnac {
     display: none;
 }

@@ -136,6 +136,7 @@ $("#update").on('click', function () {
     imprimirElemento(htmlToPrint);
 
     $('.filtrosPlanilla').modal('hide');
+    location.reload();
 
 });
 

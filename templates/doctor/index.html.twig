@@ -49,6 +49,8 @@
                 <tr>
                     <th scope="col" class="nombre">Nombre</th>
                     <th scope="col" class="apellido">Apellido</th>
+                    <th scope="col" class="dni">Dni</th>
+                    <th scope="col" class="fnac">Fecha de Nacimiento</th>
                     <th scope="col" class="modalidad">Tipo</th>
                     <th scope="col" class="legajo">Legajo</th>
                     <th scope="col" class="matricula">Matricula</th>
@@ -70,6 +72,8 @@
                 <tr class="editarStaff" data-url="{{ path('doctor_edit', {'id': doctor.id}) }}">
                     <td class="nombre">{{ doctor.nombre }}</td>
                     <td class="apellido">{{ doctor.apellido }}</td>
+                    <td class="dni">{{ doctor.dni }}</td>
+                    <td class="fnac">{{ doctor.fnac ? doctor.fnac | date('d/m/Y') : '' }}</td>
                     <td class="modalidad">
                         {{ doctor.modalidad | json_encode(constant('JSON_PRETTY_PRINT')) | replace({'[': '', ']': '', '\\': ''})}}
                     </td>
@@ -161,7 +165,7 @@
 
                 <div class="modal-body">
                     <div class="form-group columnas-de-dos" id="checkboxesForView">
-                        {% for fiel in ['nombre', 'apellido','modalidad', 'legajo','matricula',
+                        {% for fiel in ['nombre', 'apellido', 'dni', 'fnac', 'modalidad', 'legajo','matricula',
                             'vtoMatricula','libretaSanitaria', 'emisionLibretaSanitaria',
                             'vtoLibretaSanitaria', 'Email',
                             'inicioContrato', 'posicionEnArchivo',
@@ -199,7 +203,7 @@
 {% endblock %}
 
 {% block modalImprimir %}
-    {% for fiel in ['nombre', 'apellido','modalidad', 'legajo','matricula',
+    {% for fiel in ['nombre', 'apellido', 'dni', 'fnac', 'modalidad', 'legajo','matricula',
         'vtoMatricula','libretaSanitaria', 'emisionLibretaSanitaria',
         'vtoLibretaSanitaria', 'Email',
         'inicioContrato', 'posicionEnArchivo', 'vtoContrato',

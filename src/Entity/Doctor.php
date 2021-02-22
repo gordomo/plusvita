@@ -171,6 +171,11 @@ class Doctor implements UserInterface
     private $color;
 
     /**
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private $fNac;
+
+    /**
      * @return mixed
      */
     public function getMaxCliTurno()
@@ -610,6 +615,18 @@ class Doctor implements UserInterface
     public function setColor(?string $color): self
     {
         $this->color = $color;
+
+        return $this;
+    }
+
+    public function getFNac(): ?\DateTimeInterface
+    {
+        return $this->fNac;
+    }
+
+    public function setFNac(?\DateTimeInterface $fNac): self
+    {
+        $this->fNac = $fNac;
 
         return $this;
     }
