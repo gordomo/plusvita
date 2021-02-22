@@ -331,6 +331,21 @@ $('#booking_desde').on('change', function () {
 });
 
 $('#booking_beginAt').on('change', function () {
+    var beginAtString = $('#booking_beginAt').val();
+    var newDateEndAt = new Date(beginAtString);
+    newDateEndAt.setMinutes(newDateEndAt.getMinutes() + 30);
+
+    var ye = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(newDateEndAt);
+    var mo = new Intl.DateTimeFormat('en', { month: '2-digit' }).format(newDateEndAt);
+    var da = new Intl.DateTimeFormat('en', { day: '2-digit' }).format(newDateEndAt);
+    var hr = new Intl.DateTimeFormat('en', { hour: 'numeric', hour12: false }).format(newDateEndAt);
+    var min = new Intl.DateTimeFormat('en', { minute: '2-digit' }).format(newDateEndAt);
+
+    var newDateEndAtString = (`${ye}-${mo}-${da}T${hr}:${min}:00`);
+
+    $('#booking_endAt').val(newDateEndAtString);
+
+
     $.each($('#booking_dias').find('input'), function(e, a) {
         a.checked = false;
     })
