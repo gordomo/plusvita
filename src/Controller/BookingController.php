@@ -621,5 +621,29 @@ class BookingController extends AbstractController
         return $businessHours ?? [];
     }
 
+    /**
+     * @Route("/limpiar/turnos", name="booking_limpiar", methods={"GET"})
+     */
+    public function limpiarTurnos(Request $request, BookingRepository $bookingRepository, ClienteRepository $clienteRepository) {
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $clientes = $clienteRepository->findAllInactivos(new \DateTime());
+        $entityManager = $this->getDoctrine()->getManager();
+
+        foreach ($clientes as $cliente) {
+            $fechaDeEgresoString = $cliente->getFEgreso()->setTime(23, 59, 59)->format('Y-m-d H:i:s');
+            $turnosDePacienteInactivo = $bookingRepository->turnosConFiltro('', $cliente, $fechaDeEgresoString);
+
+            foreach($turnosDePacienteInactivo as $turnoDePacienteInactivo) {
+                $entityManager->remove($turnoDePacienteInactivo);
+            }
+        }
+        $entityManager->flush();
+
+        return $this->json("ok");
+    }
 
 }
