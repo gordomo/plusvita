@@ -30,9 +30,11 @@ $('#buscarPorNombre').click( function () {
 
 $(".completado").on('change', function () {
     let url = $(this).data('url');
-    let turnoId = $(this).data('turnoId');
-    let check = ($(this).prop("checked")) ? 1 : 0;
+    if(typeof url !== 'undefined') {
+        let turnoId = $(this).data('turnoId');
+        let check = ($(this).prop("checked")) ? 1 : 0;
 
-    url += turnoId+'/'+check;
-    window.location.href = url;
+        url += turnoId+'/'+check;
+        window.location.href = url;
+    }
 });
