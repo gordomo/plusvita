@@ -25,6 +25,7 @@ class DashboardController extends AbstractController
     {
         $isDoctor = $this->isDoctor();
         $habitacionesYpacientes = $this->getHabitacionesYpacientes();
+
         $obrasSociales = $obraSocialRepository->findAll();
         $osArray = [];
         foreach ($obrasSociales as $os) {
@@ -129,7 +130,12 @@ class DashboardController extends AbstractController
         $arrayClienteHabitaciones = [];
         foreach ($habitaciones as $habitacion) {
             $cliente = $clienteRepository->findActivos(new \DateTime(), '', $habitacion);
-            if ($cliente) $arrayClienteHabitaciones[$habitacion->getNombre()] = $cliente;
+            $data = [
+                'cliente' => $cliente,
+                'ocupadas' => count($habitacion->getCamasOcupadas()),
+                'disponibles' => $habitacion->getCamasDisponibles(),
+            ];
+            if ($cliente) $arrayClienteHabitaciones['habitación ' . $habitacion->getNombre()] = $data;
         }
 
         return $arrayClienteHabitaciones;

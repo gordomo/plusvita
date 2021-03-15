@@ -153,7 +153,12 @@ select:invalid[multiple] {
     margin-top: 15px !important;
 }
 
-
+.dashboard hr {
+    margin: 8px 0;
+}
+.dashboard td {
+    padding: 8px 0;
+}
 /*      #60b9b9     #b088be
 table {
     width: 716px; !* 140px * 5 column + 16px scrollbar width *!

@@ -9,7 +9,7 @@
     {% elseif is_granted('ROLE_ADMIN') %}
         <div class="printiable">
             <div class="table-responsive">
-                <table class="table">
+                <table class="table dashboard">
                     <thead>
                         <th class="habitacion">Habitacion</th>
                         <th class="paciente">Paciente</th>
@@ -19,42 +19,54 @@
                         <th class="dieta">Dieta</th>
                     </thead>
                     <tbody>
-                        {% for habitacion, pacientes in habitacionesYpacientes %}
-                        <tr>
-                            <td class="habitacion">{{ habitacion }}</td>
+                        {% for nombre, habitacion in habitacionesYpacientes %}
+                        <tr class="{{ ( habitacion.ocupadas is same as (habitacion.disponibles) ) ? 'completa' : 'incompleta' }}">
+                            <td class="habitacion">
+                                {{ nombre }} - {{ habitacion.ocupadas }} / {{ habitacion.disponibles }}
+                            </td>
                             <td class="paciente">
-                            {% for key, paciente in pacientes %}
-                                    {{ paciente.nombre }} {{ paciente.apellido }}
-                                    {% if pacientes|length > 1 %} <br> {% endif %}
-                                    {% if key < pacientes|length - 1 %} <hr> {% endif %}
+                            {% for key, paciente in habitacion.cliente %}
+                                     <span>
+                                         {{ paciente.nombre }} {{ paciente.apellido }}
+                                     </span>
+                                    {% if habitacion.cliente | length > 1 %} <br> {% endif %}
+                                    {% if key < habitacion.cliente | length - 1 %} <hr> {% endif %}
                             {% endfor %}
                             </td>
                             <td class="obraSocial">
-                                {% for key, paciente in pacientes %}
-                                    {{ obrasSociales[paciente.obraSocial] }}
-                                    {% if pacientes|length > 1 %} <br> {% endif %}
-                                    {% if key < pacientes|length - 1 %} <hr> {% endif %}
+                                {% for key, paciente in habitacion.cliente %}
+                                    <span>
+                                        {{ obrasSociales[paciente.obraSocial] }}
+                                    </span>
+                                    {% if habitacion.cliente|length > 1 %} <br> {% endif %}
+                                    {% if key < habitacion.cliente|length - 1 %} <hr> {% endif %}
                                 {% endfor %}
                             </td>
                             <td class="patología">
-                                {% for key, paciente in pacientes %}
-                                    {{ paciente.motivoIngEspecifico }}
-                                    {% if pacientes|length > 1 %} <br> {% endif %}
-                                    {% if key < pacientes|length - 1 %} <hr> {% endif %}
+                                {% for key, paciente in habitacion.cliente %}
+                                    <span>
+                                        {{ paciente.motivoIngEspecifico }}
+                                    </span>
+                                    {% if habitacion.cliente|length > 1 %} <br> {% endif %}
+                                    {% if key < habitacion.cliente|length - 1 %} <hr> {% endif %}
                                 {% endfor %}
                             </td>
                             <td class="edad">
-                                {% for key, paciente in pacientes %}
-                                    {{ paciente.edad }}
-                                    {% if pacientes|length > 1 %} <br> {% endif %}
-                                    {% if key < pacientes|length - 1 %} <hr> {% endif %}
+                                {% for key, paciente in habitacion.cliente %}
+                                    <span>
+                                        {{ paciente.edad }}
+                                    </span>
+                                    {% if habitacion.cliente|length > 1 %} <br> {% endif %}
+                                    {% if key < habitacion.cliente|length - 1 %} <hr> {% endif %}
                                 {% endfor %}
                             </td>
                             <td class="dieta">
-                                {% for key, paciente in pacientes %}
-                                    {{ paciente.dieta }}
-                                    {% if pacientes|length > 1 %} <br> {% endif %}
-                                    {% if key < pacientes|length - 1 %} <hr> {% endif %}
+                                {% for key, paciente in habitacion.cliente %}
+                                    <span>
+                                        {{ paciente.dieta }}
+                                    </span>
+                                    {% if habitacion.cliente|length > 1 %} <br> {% endif %}
+                                    {% if key < habitacion.cliente|length - 1 %} <hr> {% endif %}
                                 {% endfor %}
                             </td>
                         </tr>
