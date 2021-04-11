@@ -29,13 +29,28 @@ class DoctorRepository extends ServiceEntityRepository
             ;
     }
 
-    public function findByContratos($valueArray)
+    public function findByContratos($valueArray, $vencidos)
     {
+        $hoy = new \DateTime();
         $qb = $this->createQueryBuilder('d');
-            foreach($valueArray as $value) {
-                $qb = $qb->orWhere("JSON_CONTAINS (d.modalidad, '\"$value\"', '$') = 1");
-            }
+        foreach($valueArray as $value) {
+            $qb = $qb->orWhere("JSON_CONTAINS (d.modalidad, '\"$value\"', '$') = 1");
+        }
+        if($vencidos) {
+            $qb->where('d.vtoContrato <= :hoy')
+                ->setParameter('hoy', $hoy);
+        }
+
         return $qb->getQuery()->getResult();
+    }
+
+    public function findAllVencidos()
+    {
+        $hoy = new \DateTime();
+        return $this->createQueryBuilder('d')
+            ->where('d.vtoContrato <= :hoy')
+            ->setParameter('hoy', $hoy)
+            ->getQuery()->getResult();
     }
 
     public function findColoresEnUso() {

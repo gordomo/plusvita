@@ -199,18 +199,19 @@ class ConsumibleController extends AbstractController
         $clienteId = $request->get('cliente');
         $consumibleId = $request->get('consumible');
         $cantidad = $request->get('cantidad');
+        $accion = ($request->get('accion', 0) !== "0") ? 1 : 0;
 
         $consumible = $consumibleRepository->find($consumibleId);
 
         $existenciaActual = $consumible->getExistencia();
 
-        if ($cantidad <= $existenciaActual) {
+        /*if ($cantidad <= $existenciaActual) {
             $consumible->setExistencia($existenciaActual - $cantidad);
-        }
+        }*/
 
         $consumiblesClientesHistorico = new ConsumiblesClientes();
         $consumiblesClientesHistorico->setFecha(new \DateTime);
-        $consumiblesClientesHistorico->setAccion(0);
+        $consumiblesClientesHistorico->setAccion($accion);
         $consumiblesClientesHistorico->setCantidad($cantidad);
         $consumiblesClientesHistorico->setClienteId($clienteId);
         $consumiblesClientesHistorico->setConsumibleId($consumibleId);

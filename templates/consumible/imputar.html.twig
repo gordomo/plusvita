@@ -12,7 +12,7 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-sm">
-                <select class="form-control " id="consumible" name="consumible">
+                <select class="form-control " id="consumible" name="consumible" required>
                     <option value="0" data-unidades="unidades">Consumible</option>
                     {% for consumible in consumibles %}
                         <option value="{{ consumible.id }}" data-unidades="{{ consumible.unidades }}">{{ consumible.nombre }}</option>
@@ -20,12 +20,22 @@
                 </select>
             </div>
             <div class="col-sm">
-                <input class="form-control" type="number" placeholder="Cantidad" name="cantidad" id="cantidad">
+                <input class="form-control" type="number" placeholder="Cantidad" name="cantidad" id="cantidad" required>
             </div>
-            <div class="col-sm" style="display: flex;align-items: center;">
+            <div class="col-sm">
+                <label class="checkcontainer" style="display: inline-block; margin-right: 10px">Consume
+                    <input type="radio" checked name="accion" required value="0">
+                    <span class="checkmark"></span>
+                </label>
+                <label class="checkcontainer" style="display: inline-block" value="1">Agrega
+                    <input type="radio"  name="accion">
+                    <span class="checkmark"></span>
+                </label>
+            </div>
+            {#<div class="col-sm" style="display: flex;align-items: center;">
                 <span>Quedan: </span>
                 <span id="unidades"></span>
-            </div>
+            </div>#}
             <div class="col-sm">
                 <button type="submit" class="btn btn-success">Imputar</button>
             </div>

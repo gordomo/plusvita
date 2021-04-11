@@ -232,9 +232,12 @@ class DoctorController extends AbstractController
         $ctrs = $request->query->get('ctr');
         $ctrsArray = explode(',', $ctrs);
 
+        $conContratosVencidos = $request->query->get('vencidos', '0');
 
         if(!empty($ctrs)) {
-            $doctores = $doctorRepository->findByContratos($ctrsArray);
+            $doctores = $doctorRepository->findByContratos($ctrsArray, $conContratosVencidos);
+        } else if ($conContratosVencidos) {
+            $doctores = $doctorRepository->findAllVencidos();
         } else {
             $doctores = $doctorRepository->findAll();
         }
@@ -244,6 +247,7 @@ class DoctorController extends AbstractController
             'contratos' => $contratos,
             'ctrsArray' => $ctrsArray,
             'paginaImprimible' => true,
+            'conContratosVencidos' => $conContratosVencidos,
             
         ]);
     }

@@ -1,7 +1,11 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}Dashboard index{% endblock %}
-{% block panelTitle %}Dashboard{% endblock %}
+{% block panelTitle %}Dashboard
+    {% if (isContratosVencidos) %}
+        <a href="{{ path('doctor_index', {'vencidos': true}) }}"><i class="bell far fa-bell"></i></a>
+    {% endif %}
+{% endblock %}
 {% block body %}
     {% if not app.user %}
         Por favor, ingrese con su usuario y contraseña

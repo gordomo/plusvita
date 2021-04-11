@@ -48,6 +48,8 @@ class ConsumiblesClientesRepository extends ServiceEntityRepository
                      ->setParameter('accion', $accion);
         }
 
+        $query->orderBy('c.id', ' desc');
+
         return $query->getQuery()->getResult();
     }
 

@@ -6,8 +6,10 @@ namespace App\Controller;
 use App\Entity\Cliente;
 use App\Entity\Habitacion;
 use App\Repository\ClienteRepository;
+use App\Repository\DoctorRepository;
 use App\Repository\HabitacionRepository;
 use App\Repository\ObraSocialRepository;
+use PhpParser\Comment\Doc;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -21,7 +23,7 @@ class DashboardController extends AbstractController
     /**
      * @Route("/", name="dashboard_index", methods={"GET"})
      */
-    public function index(HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository): Response
+    public function index(HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, DoctorRepository $doctorRepository): Response
     {
         $isDoctor = $this->isDoctor();
         $habitacionesYpacientes = $this->getHabitacionesYpacientes();
@@ -32,6 +34,8 @@ class DashboardController extends AbstractController
             $osArray[$os->getId()] = $os->getNombre();
         }
 
+        $isContratosVencidos = $this->isContratosVencidos($doctorRepository);
+
         return $this->render('dashboard.html.twig',
             [
                 'dashboardActive' => 'active',
@@ -39,6 +43,7 @@ class DashboardController extends AbstractController
                 'habitacionesYpacientes' => $habitacionesYpacientes,
                 'obrasSociales' => $osArray,
                 'paginaImprimible' => !$isDoctor,
+                'isContratosVencidos' => $isContratosVencidos,
             ]);
     }
 
@@ -139,5 +144,10 @@ class DashboardController extends AbstractController
         }
 
         return $arrayClienteHabitaciones;
+    }
+
+    private function isContratosVencidos(DoctorRepository $doctorRepository)
+    {
+        return count($doctorRepository->findAllVencidos());
     }
 }

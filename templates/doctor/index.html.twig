@@ -40,6 +40,12 @@
                 <a class="btn btn-success" style="padding: 2px 16px;" href="{{ path('doctor_new') }}">Nuevo Staff</a>
                 <button class="btn btn-default" data-toggle="modal" data-target="#camposExtras"><i class="fas fa-filter"></i></button>
             </div>
+            <div class="col-sm">
+                <label class="checkcontainer">Con Contratos Vencidos
+                    <input type="checkbox" {{ (conContratosVencidos == 1) ? 'checked' : '' }} id="checkContratos">
+                    <span class="checkmark"></span>
+                </label>
+            </div>
         </div>
     </div>
     <br><br>

@@ -198,3 +198,24 @@ $( "#buscarContrato" ).on('click', function(){
 $( "#limpiarContratos" ).on('click', function(){
     location.href = '?ctr=';
 });
+
+$('#checkContratos').on('change', function () {
+    if($(this).prop("checked") == true) {
+        if(location.href.includes("?vencidos=0")) {
+            location.href = location.href.replace('?vencidos=0', '?vencidos=1');
+        } else if (location.href.includes("&vencidos=0")) {
+            location.href = location.href.replace('&vencidos=0', '&vencidos=1');
+        } else {
+            location.href = location.href + '?vencidos=1';
+        }
+    }
+    else if($(this).prop("checked") == false) {
+        if(location.href.includes("?vencidos=1")) {
+            location.href = location.href.replace('?vencidos=1', '?vencidos=0');
+        } else if (location.href.includes("&vencidos=1")) {
+            location.href = location.href.replace('&vencidos=1', '&vencidos=0');
+        } else {
+            location.href = location.href + '?vencidos=0';
+        }
+    }
+});

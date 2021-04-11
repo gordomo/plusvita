@@ -1,6 +1,6 @@
 var cantidadActual = 0;
 
-$('#consumible').change(function () {
+/*$('#consumible').change(function () {
     let unidades = $(this).find(':selected').data('unidades');
     let consumibleId = $(this).find(':selected').val();
     let url = "/consumible/check/existencias?id="+consumibleId;
@@ -18,9 +18,9 @@ $('#consumible').change(function () {
     } else {
         $('#unidades').html('');
     }
-});
+});*/
 
-$('#cantidad').on('keyup', function () {
+/*$('#cantidad').on('keyup', function () {
     if ($('#consumible').find(':selected').val() === '0') {
         alert('primero seleccione un consumible');
         $('#cantidad').val('');
@@ -31,7 +31,7 @@ $('#cantidad').on('keyup', function () {
         }
     }
 
-});
+});*/
 
 $(document).on('change', 'input[type=radio][name=agregarQuitar]', function (event) {
     switch($(this).val()) {

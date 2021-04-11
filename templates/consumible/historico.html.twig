@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}Consumibles Historico{% endblock %}
-{% block panelTitle %}Consumos de {{ cliente.nombre }} <a href="javascript:history.back();" class="btn btn-success">Volver</a> {% endblock %}
+{% block panelTitle %}Consumos de <span style="text-transform: capitalize">{{ cliente.nombre }}</span> <a href="javascript:history.back();" class="btn btn-success">Volver</a> {% endblock %}
 {% block body %}
     <div class="container-fluid">
         <div class="row">
@@ -25,7 +25,6 @@
     <table class="table">
         <thead>
         <tr>
-            <th>Id</th>
             <th>Consumo</th>
             <th>Tipo</th>
             <th>Fecha</th>
@@ -41,13 +40,12 @@
                     {% set total = total - dato.cantidad %}
                 {% endif %}
                 <tr>
-                    <td>{{ dato.id }}</td>
                     <td>{{ consumibles[dato.consumibleId] }}</td>
                     <td>{{ dato.accion ? 'ingreso' : 'egreso' }}</td>
                     <td>
                         {{ dato.fecha ? dato.fecha|date('Y-m-d') : ''}}
                     </td>
-                    <td style="text-align: right;">{{ dato.cantidad }}</td>
+                    <td style="text-align: right;" class="{{ dato.accion ? 'ingreso' : 'egreso' }}">{{ dato.cantidad }}</td>
                 </tr>
             {% else %}
                 <tr>
@@ -58,7 +56,7 @@
         <tfoot>
             <tr>
                 <td colspan="5" style="text-align: right;">
-                    Total: <span>{{ total }}</span>
+                    Total: <span class="{{ total >= 0 ? 'ingreso' : 'egreso' }}"><b>{{ total }}</b></span>
                 </td>
             </tr>
         </tfoot>
