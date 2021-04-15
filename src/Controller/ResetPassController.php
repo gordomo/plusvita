@@ -140,7 +140,7 @@ class ResetPassController extends AbstractController
                 $entityManager->flush();
 
                 $email = (new Email())
-                    ->from('validaciones@plusvita.com')
+                    ->from('morimartin@gmail.com')
                     ->to($userEmail)
                     //->cc('cc@example.com')
                     //->bcc('bcc@example.com')
