@@ -70,9 +70,9 @@ class LiquidacionesController extends AbstractController
 
 
         if(!empty($ctrs)) {
-            $profesionales = $doctorRepository->findByContratos($ctrsArray);
+            $profesionales = $doctorRepository->findByContratos($ctrsArray, false);
         } else {
-            $profesionales = $doctorRepository->findByContratos($contratosParaBusqueda);
+            $profesionales = $doctorRepository->findByContratos($contratosParaBusqueda, false);
         }
 
 
