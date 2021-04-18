@@ -142,9 +142,11 @@ $("#update").on('click', function () {
 
 $("#descargarExcel").on('click', function () {
     let checkboxes = GetSelected('checkboxes');
-    console.log(location.href + 'excel?' + serialize(checkboxes));
-
-
+    if (checkboxes.length < 1) {
+        alert('seleccione al menos un campo')
+    } else {
+        location.href = location.href + 'excel?' + serialize(checkboxes);
+    }
 });
 
 serialize = function(obj) {

@@ -72,16 +72,38 @@ class DashboardController extends AbstractController
 
         $colums = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
 
+        $styleArrayHeaders = [
+            'font' => [
+                'bold' => true,
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                ],
+            ],
+        ];
+
         foreach ($cabeceras as $key => $value) {
             $sheet->setCellValue($colums[$key].'1', ucfirst($value));
+            $sheet->getColumnDimension($colums[$key])->setAutoSize(true);
+            $sheet->getStyle($colums[$key].'1')->applyFromArray($styleArrayHeaders);
+
         }
         $count = 2;
         $totalRows = count($habitacionesYpacientes);
         $osArray = $this->getOSarray($obraSocialRepository);
+
+        $styleArrayBody = [
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                ],
+            ],
+        ];
         foreach ($habitacionesYpacientes as $nombre => $habitacion) {
             if ( in_array('habitacion', $cabeceras) ) {
                 $sheet->setCellValue($colums[0].$count, ucfirst($nombre . ' - ' . $habitacion['ocupadas'] . '/' . $habitacion['disponibles']));
-            }
+                            }
             if ( in_array('paciente', $cabeceras) ) {
                 foreach ($habitacion['cliente'] as $cliente) {
                     $sheet->setCellValue($colums[1].$count, ucfirst($cliente->getNombre() . " " . $cliente->getApellido() ));
@@ -110,6 +132,8 @@ class DashboardController extends AbstractController
 
             $count ++;
         }
+
+
 
         $writer = new Xlsx($spreadsheet);
 
