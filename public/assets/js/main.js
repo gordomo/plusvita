@@ -140,6 +140,21 @@ $("#update").on('click', function () {
 
 });
 
+$("#descargarExcel").on('click', function () {
+    let checkboxes = GetSelected('checkboxes');
+    console.log(location.href + 'excel?' + serialize(checkboxes));
+
+
+});
+
+serialize = function(obj) {
+    var str = [];
+    for (var p in obj)
+        if (obj.hasOwnProperty(p)) {
+            str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+        }
+    return str.join("&");
+}
 
 $('#todosForView').on('click',function(){
     $('.checkForView').prop('checked',$(this).prop("checked"));

@@ -44,6 +44,16 @@ class DoctorRepository extends ServiceEntityRepository
         return $qb->getQuery()->getResult();
     }
 
+    public function findAllVencenEsteMes()
+    {
+        $hoy = new \DateTime();
+        $esteMes = $hoy->format('n');
+        return $this->createQueryBuilder('d')
+            ->where('MONTH(d.vtoContrato) = :esteMes')
+            ->setParameter('esteMes', $esteMes)
+            ->getQuery()->getResult();
+    }
+
     public function findAllVencidos()
     {
         $hoy = new \DateTime();

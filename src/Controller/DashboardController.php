@@ -5,13 +5,20 @@ namespace App\Controller;
 
 use App\Entity\Cliente;
 use App\Entity\Habitacion;
+use App\Helpers\ExportToExcel;
 use App\Repository\ClienteRepository;
 use App\Repository\DoctorRepository;
 use App\Repository\HabitacionRepository;
 use App\Repository\ObraSocialRepository;
+use DateTime;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\HttpFoundation\Request;
 use PhpParser\Comment\Doc;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
 
@@ -28,13 +35,16 @@ class DashboardController extends AbstractController
         $isDoctor = $this->isDoctor();
         $habitacionesYpacientes = $this->getHabitacionesYpacientes();
 
-        $obrasSociales = $obraSocialRepository->findAll();
-        $osArray = [];
-        foreach ($obrasSociales as $os) {
-            $osArray[$os->getId()] = $os->getNombre();
-        }
+        $osArray = $this->getOSarray($obraSocialRepository);
 
-        $isContratosVencidos = $this->isContratosVencidos($doctorRepository);
+        $isContratosVencidos = $this->hayContratosVencidos($doctorRepository);
+        $vencenEsteMes = $this->hayVencenEsteMes($doctorRepository);
+
+        $colorCampana = 'grey';
+
+        if ($isContratosVencidos) {
+            $colorCampana = 'red';
+        }
 
         return $this->render('dashboard.html.twig',
             [
@@ -43,8 +53,76 @@ class DashboardController extends AbstractController
                 'habitacionesYpacientes' => $habitacionesYpacientes,
                 'obrasSociales' => $osArray,
                 'paginaImprimible' => !$isDoctor,
-                'isContratosVencidos' => $isContratosVencidos,
+                'hayContratosVencidos' => $isContratosVencidos,
+                'hayVencenEsteMes' => $vencenEsteMes,
+                'colorCampana' => $colorCampana
             ]);
+    }
+
+    /**
+     * @Route("/excel", name="to_excel", methods={"GET"})
+     */
+
+    public function toExcel(Request $request, KernelInterface $kernel, ObraSocialRepository $obraSocialRepository) {
+        $habitacionesYpacientes = $this->getHabitacionesYpacientes();
+        $cabeceras = $request->query->all();
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $colums = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+
+        foreach ($cabeceras as $key => $value) {
+            $sheet->setCellValue($colums[$key].'1', ucfirst($value));
+        }
+        $count = 2;
+        $totalRows = count($habitacionesYpacientes);
+        $osArray = $this->getOSarray($obraSocialRepository);
+        foreach ($habitacionesYpacientes as $nombre => $habitacion) {
+            if ( in_array('habitacion', $cabeceras) ) {
+                $sheet->setCellValue($colums[0].$count, ucfirst($nombre . ' - ' . $habitacion['ocupadas'] . '/' . $habitacion['disponibles']));
+            }
+            if ( in_array('paciente', $cabeceras) ) {
+                foreach ($habitacion['cliente'] as $cliente) {
+                    $sheet->setCellValue($colums[1].$count, ucfirst($cliente->getNombre() . " " . $cliente->getApellido() ));
+
+                    if ( in_array('obraSocial', $cabeceras) ) {
+                        $sheet->setCellValue($colums[2].$count, ucfirst($osArray[$cliente->getObraSocial()] ));
+                    }
+
+                    if ( in_array('patologia', $cabeceras) ) {
+                        $sheet->setCellValue($colums[3].$count, ucfirst($cliente->getMotivoIng() ));
+                    }
+
+                    if ( in_array('dieta', $cabeceras) ) {
+                        $sheet->setCellValue($colums[4].$count, ucfirst($cliente->getDieta() ));
+                    }
+                    if ( in_array('edad', $cabeceras) ) {
+                        $sheet->setCellValue($colums[5].$count, ucfirst($cliente->getEdad() ));
+                    }
+
+
+                    if (count($habitacion['cliente']) > 1) {
+                        $count ++;
+                    }
+                }
+            }
+
+            $count ++;
+        }
+
+        $writer = new Xlsx($spreadsheet);
+
+        // Create a Temporary file in the system
+        $fileName = 'Dashboard.xlsx';
+        $temp_file = tempnam(sys_get_temp_dir(), $fileName);
+
+        // Create the excel file in the tmp directory of the system
+        $writer->save($temp_file);
+
+        // Return the excel file as an attachment
+        return $this->file($temp_file, $fileName, ResponseHeaderBag::DISPOSITION_INLINE);
+
     }
 
     private function isDoctor()
@@ -146,8 +224,24 @@ class DashboardController extends AbstractController
         return $arrayClienteHabitaciones;
     }
 
-    private function isContratosVencidos(DoctorRepository $doctorRepository)
+    private function hayContratosVencidos(DoctorRepository $doctorRepository)
     {
         return count($doctorRepository->findAllVencidos());
+    }
+
+    private function hayVencenEsteMes(DoctorRepository $doctorRepository)
+    {
+        return count($doctorRepository->findAllVencenEsteMes());
+    }
+
+    private function getOSarray($obraSocialRepository)
+    {
+        $obrasSociales = $obraSocialRepository->findAll();
+        $osArray = [];
+        foreach ($obrasSociales as $os) {
+            $osArray[$os->getId()] = $os->getNombre();
+        }
+
+        return $osArray;
     }
 }

@@ -236,8 +236,10 @@ class DoctorController extends AbstractController
 
         if(!empty($ctrs)) {
             $doctores = $doctorRepository->findByContratos($ctrsArray, $conContratosVencidos);
-        } else if ($conContratosVencidos) {
+        } else if ($conContratosVencidos == 1) {
             $doctores = $doctorRepository->findAllVencidos();
+        } else if ($conContratosVencidos == 2) {
+            $doctores = $doctorRepository->findAllVencenEsteMes();
         } else {
             $doctores = $doctorRepository->findAll();
         }

@@ -2,8 +2,10 @@
 
 {% block title %}Dashboard index{% endblock %}
 {% block panelTitle %}Dashboard
-    {% if (isContratosVencidos) %}
-        <a href="{{ path('doctor_index', {'vencidos': true}) }}"><i class="bell far fa-bell"></i></a>
+    {% if (hayContratosVencidos or hayVencenEsteMes) %}
+        <a href="{{ path('doctor_index', {'vencidos': (hayContratosVencidos) ? 1 : 2}) }}">
+            <i class="bell far fa-bell" style="color: {{ colorCampana }}"></i>
+        </a>
     {% endif %}
 {% endblock %}
 {% block body %}
@@ -117,6 +119,12 @@
         <input class="form-check-input check" type="checkbox" value="obraSocial" id="obraSocial">
         <label class="form-check-label" for="obraSocial">
             O. Social
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="patologia" id="patologia">
+        <label class="form-check-label" for="patologia">
+            Patología
         </label>
     </div>
     <div class="form-check">
