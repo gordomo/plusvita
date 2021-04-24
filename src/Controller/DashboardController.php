@@ -13,12 +13,16 @@ use App\Repository\ObraSocialRepository;
 use DateTime;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use PhpParser\Comment\Doc;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Component\Mime\FileinfoMimeTypeGuesser;
 use Symfony\Component\Routing\Annotation\Route;
 
 
@@ -60,94 +64,71 @@ class DashboardController extends AbstractController
     }
 
     /**
-     * @Route("/excel", name="to_excel", methods={"GET"})
+     * @Route("/excel", name="to_excel", methods={"POST"})
      */
 
-    public function toExcel(Request $request, KernelInterface $kernel, ObraSocialRepository $obraSocialRepository) {
-        $habitacionesYpacientes = $this->getHabitacionesYpacientes();
-        $cabeceras = $request->query->all();
+    public function toExcel(Request $request, KernelInterface $kernel) {
+        try {
+            $reader = new \PhpOffice\PhpSpreadsheet\Reader\Html();
+            $spreadsheet = $reader->loadFromString($request->get('html'));
 
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-
-        $colums = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
-
-        $styleArrayHeaders = [
-            'font' => [
-                'bold' => true,
-            ],
-            'borders' => [
-                'allBorders' => [
-                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                ],
-            ],
-        ];
-
-        foreach ($cabeceras as $key => $value) {
-            $sheet->setCellValue($colums[$key].'1', ucfirst($value));
-            $sheet->getColumnDimension($colums[$key])->setAutoSize(true);
-            $sheet->getStyle($colums[$key].'1')->applyFromArray($styleArrayHeaders);
-
-        }
-        $count = 2;
-        $totalRows = count($habitacionesYpacientes);
-        $osArray = $this->getOSarray($obraSocialRepository);
-
-        $styleArrayBody = [
-            'borders' => [
-                'allBorders' => [
-                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                ],
-            ],
-        ];
-        foreach ($habitacionesYpacientes as $nombre => $habitacion) {
-            if ( in_array('habitacion', $cabeceras) ) {
-                $sheet->setCellValue($colums[0].$count, ucfirst($nombre . ' - ' . $habitacion['ocupadas'] . '/' . $habitacion['disponibles']));
-                            }
-            if ( in_array('paciente', $cabeceras) ) {
-                foreach ($habitacion['cliente'] as $cliente) {
-                    $sheet->setCellValue($colums[1].$count, ucfirst($cliente->getNombre() . " " . $cliente->getApellido() ));
-
-                    if ( in_array('obraSocial', $cabeceras) ) {
-                        $sheet->setCellValue($colums[2].$count, ucfirst($osArray[$cliente->getObraSocial()] ));
-                    }
-
-                    if ( in_array('patologia', $cabeceras) ) {
-                        $sheet->setCellValue($colums[3].$count, ucfirst($cliente->getMotivoIng() ));
-                    }
-
-                    if ( in_array('dieta', $cabeceras) ) {
-                        $sheet->setCellValue($colums[4].$count, ucfirst($cliente->getDieta() ));
-                    }
-                    if ( in_array('edad', $cabeceras) ) {
-                        $sheet->setCellValue($colums[5].$count, ucfirst($cliente->getEdad() ));
-                    }
-
-
-                    if (count($habitacion['cliente']) > 1) {
-                        $count ++;
-                    }
-                }
+            $colums = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+            foreach ($colums as $colum) {
+                $spreadsheet->getActiveSheet()->getColumnDimension($colum)->setAutoSize(true);
             }
+            $spreadsheet->getActiveSheet()->getRowDimension(1)->setRowHeight(40);
+            $spreadsheet->getActiveSheet()->getDefaultRowDimension()->setRowHeight(20);
+            $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xls');
 
-            $count ++;
+            $temp_file = tempnam(sys_get_temp_dir(), 'dashboard.xls');
+
+            // Create the file
+            $writer->save($temp_file);
+
+            return new JsonResponse(['error' => false, 'message' => $temp_file]);
+
+        } catch (\Exception $e) {
+            return new JsonResponse(['error' => true, 'code' => $e->getCode(), 'message' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * @Route("/getExcel", name="get_excel", methods={"GET"})
+     */
+
+    public function getExcel(Request $request) {
+        $filename = $request->query->get('path') ?? '';
+        // This should return the file to the browser as response
+        $response = new BinaryFileResponse($filename);
+
+        // To generate a file download, you need the mimetype of the file
+        $mimeTypeGuesser = new FileinfoMimeTypeGuesser();
+
+        // Set the mimetype with the guesser or manually
+        if($mimeTypeGuesser->isGuesserSupported()){
+            // Guess the mimetype of the file according to the extension of the file
+            $response->headers->set('Content-Type', $mimeTypeGuesser->guessMimeType($filename));
+        }else{
+            // Set the mimetype of the file manually, in this case for a text file is text/plain
+            $response->headers->set('Content-Type', 'text/plain');
         }
 
+        $filenameFallback = preg_replace(
+            '#^.*\.#',
+            md5($filename) . '.', $filename
+        );
 
 
-        $writer = new Xlsx($spreadsheet);
+        $disposition = $response->headers->makeDisposition(
+            ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+            'dashboard.xlsx'
+        );
 
-        // Create a Temporary file in the system
-        $fileName = 'Dashboard.xlsx';
-        $temp_file = tempnam(sys_get_temp_dir(), $fileName);
-
-        // Create the excel file in the tmp directory of the system
-        $writer->save($temp_file);
-
-        // Return the excel file as an attachment
-        return $this->file($temp_file, $fileName, ResponseHeaderBag::DISPOSITION_INLINE);
+        $response->headers->set('Content-Disposition', $disposition);
+        return $response;
 
     }
+
 
     private function isDoctor()
     {

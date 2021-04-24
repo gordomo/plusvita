@@ -15,7 +15,7 @@
     {% elseif is_granted('ROLE_ADMIN') %}
         <div class="printiable">
             <div class="table-responsive">
-                <table class="table dashboard">
+                <table class="table dashboard border-0 mb-0">
                     <thead>
                         <th class="habitacion">Habitacion</th>
                         <th class="paciente">Paciente</th>
@@ -26,56 +26,32 @@
                     </thead>
                     <tbody>
                         {% for nombre, habitacion in habitacionesYpacientes %}
-                        <tr class="{{ ( habitacion.ocupadas is same as (habitacion.disponibles) ) ? 'completa' : 'incompleta' }}">
-                            <td class="habitacion">
-                                {{ nombre }} - {{ habitacion.ocupadas }} / {{ habitacion.disponibles }}
-                            </td>
-                            <td class="paciente">
+                            {% set nombreHabitacionAnterior = "nuevo"  %}
                             {% for key, paciente in habitacion.cliente %}
-                                     <span>
-                                         {{ paciente.nombre }} {{ paciente.apellido }}
-                                     </span>
-                                    {% if habitacion.cliente | length > 1 %} <br> {% endif %}
-                                    {% if key < habitacion.cliente | length - 1 %} <hr> {% endif %}
-                            {% endfor %}
-                            </td>
-                            <td class="obraSocial">
-                                {% for key, paciente in habitacion.cliente %}
-                                    <span>
+                                <tr class="{{ ( habitacion.ocupadas is same as (habitacion.disponibles) ) ? 'completa' : 'incompleta' }}">
+                                    <td class="habitacion {{ (habitacion.cliente | length > 1 and key != 0) ? '' : 'border-0' }}">
+                                        {% if (nombre != nombreHabitacionAnterior) %}
+                                            {{ nombre }} - {{ habitacion.ocupadas }} / {{ habitacion.disponibles }}
+                                        {% endif %}
+                                    </td>
+                                    <td class="paciente {{ (habitacion.cliente | length > 1 and key != 0) ? '' : 'border-0' }}" >
+                                        {{ paciente.nombre }} {{ paciente.apellido }}
+                                    </td>
+                                    <td class="obraSocial {{ (habitacion.cliente | length > 1 and key != 0) ? '' : 'border-0' }}">
                                         {{ obrasSociales[paciente.obraSocial] }}
-                                    </span>
-                                    {% if habitacion.cliente|length > 1 %} <br> {% endif %}
-                                    {% if key < habitacion.cliente|length - 1 %} <hr> {% endif %}
-                                {% endfor %}
-                            </td>
-                            <td class="patología">
-                                {% for key, paciente in habitacion.cliente %}
-                                    <span>
+                                    </td>
+                                    <td class="patología {{ (habitacion.cliente | length > 1 and key != 0) ? '' : 'border-0' }}">
                                         {{ paciente.motivoIngEspecifico }}
-                                    </span>
-                                    {% if habitacion.cliente|length > 1 %} <br> {% endif %}
-                                    {% if key < habitacion.cliente|length - 1 %} <hr> {% endif %}
-                                {% endfor %}
-                            </td>
-                            <td class="edad">
-                                {% for key, paciente in habitacion.cliente %}
-                                    <span>
+                                    </td>
+                                    <td class="edad {{ (habitacion.cliente | length > 1 and key != 0) ? '' : 'border-0' }}">
                                         {{ paciente.edad }}
-                                    </span>
-                                    {% if habitacion.cliente|length > 1 %} <br> {% endif %}
-                                    {% if key < habitacion.cliente|length - 1 %} <hr> {% endif %}
-                                {% endfor %}
-                            </td>
-                            <td class="dieta">
-                                {% for key, paciente in habitacion.cliente %}
-                                    <span>
+                                    </td>
+                                    <td class="dieta {{ (habitacion.cliente | length > 1 and key != 0) ? '' : 'border-0' }}">
                                         {{ paciente.dieta }}
-                                    </span>
-                                    {% if habitacion.cliente|length > 1 %} <br> {% endif %}
-                                    {% if key < habitacion.cliente|length - 1 %} <hr> {% endif %}
-                                {% endfor %}
-                            </td>
-                        </tr>
+                                    </td>
+                                </tr>
+                                {% set nombreHabitacionAnterior = nombre %}
+                            {% endfor %}
                         {% endfor %}
                     </tbody>
                 </table>
