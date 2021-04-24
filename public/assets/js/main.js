@@ -111,12 +111,7 @@ function GetSelected(id) {
     return selected;
 };
 
-$("#imprimir").on('click', function () {
-    $('.filtrosPlanilla').modal('show');
-});
-
-$("#update").on('click', function () {
-    let checkboxes = GetSelected('checkboxes');
+function getHtmlToPrint(checkboxes, conHead) {
     $('.table th').hide();
     $('.table td').hide();
     $('.container-fluid').hide();
@@ -125,7 +120,12 @@ $("#update").on('click', function () {
         $('.'+a).show();
     });
 
-    let htmlToPrint = '<head>' + $('head').html() + '</head>';
+    let htmlToPrint = '';
+
+    if ( conHead ) {
+        htmlToPrint = '<head>' + $('head').html() + '</head>';
+    }
+
     htmlToPrint += $('.title').html() + "<br>";
     htmlToPrint += $('.printiable').html();
 
@@ -133,11 +133,23 @@ $("#update").on('click', function () {
     $('.table td').show();
     $('.container-fluid').show();
 
-    imprimirElemento(htmlToPrint);
+    return htmlToPrint;
+}
 
-    $('.filtrosPlanilla').modal('hide');
-    location.reload();
+$("#imprimir").on('click', function () {
+    $('.filtrosPlanilla').modal('show');
+});
 
+$("#update").on('click', function () {
+    let checkboxes = GetSelected('checkboxes');
+    if (checkboxes.length < 1) {
+        alert('seleccione al menos un campo')
+    } else {
+        let htmlToPrint = getHtmlToPrint(checkboxes, true);
+        imprimirElemento(htmlToPrint);
+        $('.filtrosPlanilla').modal('hide');
+        location.reload();
+    }
 });
 
 $("#descargarExcel").on('click', function () {
@@ -145,7 +157,23 @@ $("#descargarExcel").on('click', function () {
     if (checkboxes.length < 1) {
         alert('seleccione al menos un campo')
     } else {
-        location.href = location.href + 'excel?' + serialize(checkboxes);
+        $(this).attr('disabled', true);
+        let htmlToPrint = getHtmlToPrint(checkboxes, false);
+        $.post({
+            url: 'excel',
+            data: {
+                html: htmlToPrint
+            },
+            success: function (response) {
+                $('#descargarExcel').attr('disabled', false);
+                window.open(location.href + 'getExcel?path=' + response.message);
+            },
+            error: function(e){
+                console.log(e);
+                alert("download failed");
+                $('#descargarExcel').attr('disabled', false);
+            }
+        });
     }
 });
 
@@ -182,3 +210,7 @@ $("#updateCamposForView").on('click', function () {
     $('#camposExtras').modal('hide');
 
 });
+
+function file_get_contents(uri, callback) {
+    return(fetch(uri));
+}

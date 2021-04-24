@@ -157,7 +157,7 @@ select:invalid[multiple] {
     margin: 8px 0;
 }
 .dashboard td {
-    padding: 8px 0;
+    padding: 8px 0.75rem;
 }
 
 .bell{
