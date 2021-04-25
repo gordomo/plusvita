@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}TipoConsumible{% endblock %}
+
+{% block body %}
+    <h1>TipoConsumible</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ tipo_consumible.id }}</td>
+            </tr>
+            <tr>
+                <th>Nombre</th>
+                <td>{{ tipo_consumible.nombre }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('tipo_consumible_index') }}">back to list</a>
+
+    <a href="{{ path('tipo_consumible_edit', {'id': tipo_consumible.id}) }}">edit</a>
+
+    {{ include('tipo_consumible/_delete_form.html.twig') }}
+{% endblock %}

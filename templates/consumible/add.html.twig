@@ -22,9 +22,20 @@
                 </label>
             </div>
             <br><br>
-            <div class="form-group">
-                <label for="cantidad">Cantidad</label>
-                <input type="number" class="form-control" name="cantidad" value="0" required>
+            <div class="row">
+                <div class="col-sm">
+                    <label for="cantidad">Cantidad</label>
+                    <input type="number" class="form-control" name="cantidad" value="0" required>
+                </div>
+                <div class="col-sm">
+                    <label for="tipo">Tipo de Consumible</label>
+                    <select name="tipo" class="form-control" id="tipo">
+                        <option value="">Seleccione uno</option>
+                        {% for tipo in tipoConsumibles %}
+                            <option value="{{ tipo.id }}" >{{ tipo.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
             <br>
             <div class="form-check form-check-inline">

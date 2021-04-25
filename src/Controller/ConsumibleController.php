@@ -9,6 +9,7 @@ use App\Form\ConsumibleType;
 use App\Repository\ClienteRepository;
 use App\Repository\ConsumibleRepository;
 use App\Repository\ConsumiblesClientesRepository;
+use App\Repository\TipoConsumibleRepository;
 use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -24,17 +25,27 @@ class ConsumibleController extends AbstractController
     /**
      * @Route("/", name="consumible_index", methods={"GET"})
      */
-    public function index(ConsumibleRepository $consumibleRepository): Response
+    public function index(Request $request, ConsumibleRepository $consumibleRepository, TipoConsumibleRepository $tipoConsumibleRepository): Response
     {
+        $tipoSeleccionado = $request->query->get('tipoSeleccionado', 0);
+        if ($tipoSeleccionado) {
+            $consumibles = $consumibleRepository->findByTipo($tipoSeleccionado);
+        } else {
+            $consumibles = $consumibleRepository->findBy([], ['tipo'=>'DESC']);
+        }
+
+
         return $this->render('consumible/index.html.twig', [
-            'consumibles' => $consumibleRepository->findAll(),
+            'consumibles' => $consumibles,
+            'tipoSeleccionado' => $tipoSeleccionado,
+            'tipos' => $tipoConsumibleRepository->findAll(),
         ]);
     }
 
     /**
      * @Route("/new", name="consumible_new", methods={"GET","POST"})
      */
-    public function new(Request $request): Response
+    public function new(Request $request, TipoConsumibleRepository $tipoConsumibleRepository): Response
     {
         $consumible = new Consumible();
         $form = $this->createForm(ConsumibleType::class, $consumible);
@@ -50,6 +61,7 @@ class ConsumibleController extends AbstractController
 
         return $this->render('consumible/new.html.twig', [
             'consumible' => $consumible,
+            'tipos' => $tipoConsumibleRepository->findAll(),
             'form' => $form->createView(),
         ]);
     }
@@ -232,25 +244,35 @@ class ConsumibleController extends AbstractController
                               ClienteRepository $clienteRepository,
                               ConsumibleRepository $consumibleRepository,
                               ConsumiblesClientesRepository $consumiblesClientesRepository,
+                              TipoConsumibleRepository $tipoConsumibleRepository,
                               Request $request): Response
     {
         $pestana = $request->query->get('pestana') ?? 'todos';
         $cliente = $clienteRepository->find($id);
-        $consumibles = $consumibleRepository->findAll();
+
+        $tipoSeleccionado = $request->query->get('tipoSeleccionado', 0);
+        if ($tipoSeleccionado) {
+            $consumibles = $consumibleRepository->findByTipo($tipoSeleccionado);
+        } else {
+            $consumibles = $consumibleRepository->findBy([], ['tipo'=>'DESC']);
+        }
+
         $consumibleArray = [];
         foreach ($consumibles as $consumible) {
-            $consumibleArray[$consumible->getId()] = $consumible->getNombre();
+            $consumibleArray[$consumible->getId()] = $consumible;
         }
         $accion = ($pestana === 'todos') ? null : (($pestana === 'ingresos') ? 1 : 0);
 
-        $consumiblesClientes = $consumiblesClientesRepository->findOneByAccionAndClientId($id, $accion);
+        $consumiblesClientes = $consumiblesClientesRepository->findByAccionAndClientId($id, $accion);
 
 
         return $this->render('consumible/historico.html.twig', [
             'cliente' => $cliente,
             'consumibles' => $consumibleArray,
             'consumiblesClientes' => $consumiblesClientes,
-            'pestana' => $pestana
+            'pestana' => $pestana,
+            'tipos' => $tipoConsumibleRepository->findAll(),
+            'tipoSeleccionado' => $tipoSeleccionado,
 
         ]);
 

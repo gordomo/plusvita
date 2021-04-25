@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit TipoConsumible{% endblock %}
+
+{% block body %}
+    <h1>Edit TipoConsumible</h1>
+
+    {{ include('tipo_consumible/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('tipo_consumible_index') }}">back to list</a>
+
+    {{ include('tipo_consumible/_delete_form.html.twig') }}
+{% endblock %}

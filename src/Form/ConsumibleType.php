@@ -3,6 +3,9 @@
 namespace App\Form;
 
 use App\Entity\Consumible;
+use App\Entity\TipoConsumible;
+use Doctrine\ORM\EntityRepository;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -26,8 +29,17 @@ class ConsumibleType extends AbstractType
                 'Kilos' => 'Kilos',
                 'Gramos' => 'Gramos',
                 'Bulto' => 'Bulto'
-            ],
-    ])
+            ],])
+            ->add('tipo', EntityType::class, [
+                'class' => TipoConsumible::class,
+                'choice_label' => 'nombre',
+                'query_builder' => function (EntityRepository $er) {
+                    return $er->createQueryBuilder('u');
+                },
+                'required' => true,
+                'multiple' => false,
+                'expanded' => false,
+            ])
             ->add('save', SubmitType::class, ['label' => 'Guardar', 'attr' => ['class' => 'btn-success']]);
         ;
     }

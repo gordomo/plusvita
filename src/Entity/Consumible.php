@@ -39,6 +39,11 @@ class Consumible
      */
     private $unidades;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=TipoConsumible::class, inversedBy="comsumibles")
+     */
+    private $tipo;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -114,6 +119,18 @@ class Consumible
         if ($this->cliente->contains($cliente)) {
             $this->cliente->removeElement($cliente);
         }
+
+        return $this;
+    }
+
+    public function getTipo(): ?TipoConsumible
+    {
+        return $this->tipo;
+    }
+
+    public function setTipo(?TipoConsumible $tipo): self
+    {
+        $this->tipo = $tipo;
 
         return $this;
     }

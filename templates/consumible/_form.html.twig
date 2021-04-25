@@ -6,6 +6,10 @@
             {{ form_widget(form.nombre) }}
         </div>
         <div class="col-sm">
+            {{ form_label(form.tipo, 'Tipo') }}
+            {{ form_widget(form.tipo) }}
+        </div>
+        <div class="col-sm">
             {{ form_label(form.existencia, 'Existencia al ingreso') }}
             {{ form_widget(form.existencia) }}
         </div>

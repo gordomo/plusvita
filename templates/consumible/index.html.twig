@@ -1,8 +1,32 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}Consumibles index{% endblock %}
-{% block panelTitle %}Consumibles <a href="{{ path('consumible_new') }}" class="btn-success btn">Nuevo Consumible</a>{% endblock %}
+{% block panelTitle %}
+    Consumibles
+    <a href="{{ path('consumible_new') }}" class="btn-success btn">Nuevo Consumible</a>
+    <a href="{{ path('tipo_consumible_new') }}" class="btn-success btn">Nuevo Tipo de Consumible</a>
+{% endblock %}
 {% block body %}
+<div class="container-fluid">
+    <div class="row text-right">
+        <div class="col-sm">
+            <div>
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Filtrar por Tipo
+                    </button>
+                    <div class="dropdown-menu " aria-labelledby="dropdownMenuButton">
+                        <a class="dropdown-item text-white" href="{{ path('consumible_index') }}">Todos</a>
+                        {% for tipo in tipos %}
+                            <a class="dropdown-item text-white {% if tipoSeleccionado == tipo.id %} active {% endif %}" href="{{ path('consumible_index') }}{{ '?tipoSeleccionado=' ~ tipo.id }}">{{ tipo.nombre }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    <br>
     <table class="table">
         <thead>
             <tr>
@@ -11,6 +35,7 @@
                 <th>Existencia</th>
                 <th>Precio</th>
                 <th>Unidades</th>
+                <th>Tipo</th>
                 <th>actions</th>
             </tr>
         </thead>
@@ -22,6 +47,7 @@
                 <td>{{ consumible.existencia }}</td>
                 <td>{{ consumible.precio }}</td>
                 <td>{{ consumible.unidades }}</td>
+                <td>{{ consumible.tipo ? consumible.tipo.nombre : 'sin tipo' }}</td>
                 <td>
                     <a href="{{ path('consumible_show', {'id': consumible.id}) }}"><i class="fas fa-eye"></i></a>&nbsp;&nbsp;&nbsp;
                     <a href="{{ path('consumible_edit', {'id': consumible.id}) }}"><i class="fas fa-pencil-alt"></i></a>&nbsp;&nbsp;&nbsp;

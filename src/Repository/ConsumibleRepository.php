@@ -22,19 +22,18 @@ class ConsumibleRepository extends ServiceEntityRepository
     // /**
     //  * @return Consumible[] Returns an array of Consumible objects
     //  */
-    /*
-    public function findByExampleField($value)
+
+    public function findByTipo($value)
     {
         return $this->createQueryBuilder('c')
-            ->andWhere('c.exampleField = :val')
+            ->andWhere('c.tipo = :val')
             ->setParameter('val', $value)
             ->orderBy('c.id', 'ASC')
-            ->setMaxResults(10)
             ->getQuery()
             ->getResult()
         ;
     }
-    */
+
 
     /*
     public function findOneBySomeField($value): ?Consumible

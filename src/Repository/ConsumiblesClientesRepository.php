@@ -37,7 +37,7 @@ class ConsumiblesClientesRepository extends ServiceEntityRepository
     */
 
 
-    public function findOneByAccionAndClientId($id, $accion = null)
+    public function findByAccionAndClientId($id, $accion = null)
     {
         $query = $this->createQueryBuilder('c')
             ->andWhere('c.clienteId = :id')

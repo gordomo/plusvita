@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}TipoConsumible index{% endblock %}
+
+{% block body %}
+    <h1>TipoConsumible index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Nombre</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for tipo_consumible in tipo_consumibles %}
+            <tr>
+                <td>{{ tipo_consumible.id }}</td>
+                <td>{{ tipo_consumible.nombre }}</td>
+                <td>
+                    <a href="{{ path('tipo_consumible_show', {'id': tipo_consumible.id}) }}">show</a>
+                    <a href="{{ path('tipo_consumible_edit', {'id': tipo_consumible.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="3">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('tipo_consumible_new') }}">Create new</a>
+{% endblock %}

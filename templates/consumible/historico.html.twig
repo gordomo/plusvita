@@ -20,12 +20,31 @@
                     </ul>
                 </div>
             </div>
+            <div class="col-sm text-right">
+                <div>
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Filtrar por Tipo
+                        </button>
+                        <div class="dropdown-menu " aria-labelledby="dropdownMenuButton">
+                            <a class="dropdown-item text-white" href="{{ path('consumible_historico', {'id': cliente.id}) }}{{  pestana != 'activos' ? '?pestana=' ~ pestana : '' }}">Todos</a>
+                            {% for tipo in tipos %}
+                                <a class="dropdown-item text-white "
+                                   href="{{ path('consumible_historico', {'id': cliente.id}) }}{{  pestana != 'activos' ? '?pestana=' ~ pestana ~ '&tipoSeleccionado=' ~ tipo.id : '?tipoSeleccionado=' ~ tipo.id }}">{{ tipo.nombre }}
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br>
         </div>
     </div>
     <table class="table">
         <thead>
         <tr>
             <th>Consumo</th>
+            <th>Acción</th>
             <th>Tipo</th>
             <th>Fecha</th>
             <th style="text-align: right;">Cantidad</th>
@@ -33,24 +52,25 @@
         </thead>
         <tbody>
             {% set total = 0 %}
+            {% set totalPorTipo = [] %}
             {% for dato in consumiblesClientes %}
-                {% if dato.accion %}
-                    {% set total = total + dato.cantidad %}
-                {% else %}
-                    {% set total = total - dato.cantidad %}
+                {% if consumibles[dato.consumibleId] is defined %}
+                    {% if dato.accion %}
+                        {% set total = total + dato.cantidad %}
+                    {% else %}
+                        {% set total = total - dato.cantidad %}
+                    {% endif %}
+                    <tr>
+                        <td>{{ consumibles[dato.consumibleId] ? consumibles[dato.consumibleId].nombre }}</td>
+                        <td>{{ dato.accion ? 'ingreso' : 'egreso' }}</td>
+                        <td>{{ consumibles[dato.consumibleId].tipo ? consumibles[dato.consumibleId].tipo.nombre }}</td>
+
+                        <td>
+                            {{ dato.fecha ? dato.fecha|date('Y-m-d') : ''}}
+                        </td>
+                        <td style="text-align: right;" class="{{ dato.accion ? 'ingreso' : 'egreso' }}">{{ dato.cantidad }}</td>
+                    </tr>
                 {% endif %}
-                <tr>
-                    <td>{{ consumibles[dato.consumibleId] }}</td>
-                    <td>{{ dato.accion ? 'ingreso' : 'egreso' }}</td>
-                    <td>
-                        {{ dato.fecha ? dato.fecha|date('Y-m-d') : ''}}
-                    </td>
-                    <td style="text-align: right;" class="{{ dato.accion ? 'ingreso' : 'egreso' }}">{{ dato.cantidad }}</td>
-                </tr>
-            {% else %}
-                <tr>
-                    <td colspan="6">No hay registros</td>
-                </tr>
             {% endfor %}
         </tbody>
         <tfoot>
