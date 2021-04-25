@@ -96,7 +96,7 @@
                 <th>Comienza</th>
                 <th>Finaliza</th>
                 <th>Completado</th>
-                <th>Seleccionar</th>
+                <th>Seleccionar <input class="borrarTodos" type="checkbox"></th>
             </tr>
         </thead>
         <tbody>
@@ -128,7 +128,9 @@
     {{ parent() }}
     <script>
         $('.predictivo').chosen();
-
+        $('.borrarTodos').click(function () {
+            $('.borrar').prop('checked',$(this).prop("checked"));
+        });
         $('#borrarTurnos').click(function () {
             var idsArray = [];
 
