@@ -214,7 +214,7 @@ class DashboardController extends AbstractController
     {
         $habitacionRepository = $this->getDoctrine()->getRepository(Habitacion::class);
         $clienteRepository = $this->getDoctrine()->getRepository(Cliente::class);
-        $habitaciones = $habitacionRepository->findAll();
+        $habitaciones = $habitacionRepository->findAllInNameOrder();
         $arrayClienteHabitaciones = [];
         foreach ($habitaciones as $habitacion) {
             $cliente = $clienteRepository->findActivos(new \DateTime(), '', $habitacion);

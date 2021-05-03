@@ -1,11 +1,15 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}Consumibles Historico{% endblock %}
-{% block panelTitle %}Consumos de <span style="text-transform: capitalize">{{ cliente.nombre }}</span> <a href="javascript:history.back();" class="btn btn-success">Volver</a> {% endblock %}
+{% block panelTitle %}Consumos de <span style="text-transform: capitalize">{{ cliente.nombre }}</span>
+    <a href="javascript:history.back();" class="btn btn-danger">Volver</a>
+    <a href="{{ path('consumible_new') }}" class="btn-success btn">Nuevo Consumible</a>
+    <a href="{{ path('consumible_imputar_view', {'id': cliente.id}) }}" class="btn-info btn">Imputar</a>
+{% endblock %}
 {% block body %}
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-sm">
+        <div class="row mb-4">
+            <div class="col-sm-5">
                 <div>
                     <ul class="nav nav-tabs justify-content-center">
                         <li class="nav-item">
@@ -20,22 +24,35 @@
                     </ul>
                 </div>
             </div>
-            <div class="col-sm text-right">
-                <div>
-                    <div class="dropdown">
-                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            Filtrar por Tipo
-                        </button>
-                        <div class="dropdown-menu " aria-labelledby="dropdownMenuButton">
-                            <a class="dropdown-item text-white" href="{{ path('consumible_historico', {'id': cliente.id}) }}{{  pestana != 'activos' ? '?pestana=' ~ pestana : '' }}">Todos</a>
-                            {% for tipo in tipos %}
-                                <a class="dropdown-item text-white "
-                                   href="{{ path('consumible_historico', {'id': cliente.id}) }}{{  pestana != 'activos' ? '?pestana=' ~ pestana ~ '&tipoSeleccionado=' ~ tipo.id : '?tipoSeleccionado=' ~ tipo.id }}">{{ tipo.nombre }}
-                                </a>
-                            {% endfor %}
-                        </div>
+            <div class="col-sm-4 text-right">
+                <div class="form-row">
+                    <div class="col-sm">
+                        <label class="control-label">Desde:</label>
+                        <input type="date" name="desde" id="desde" style="padding: 4px;border: 1px #ced4da solid;" {% if(desde) %} value={{ desde }} {% endif %}>
+                    </div>
+                    <div class="col-sm">
+                        <label class="control-label">Hasta:</label>
+                        <input type="date" name="hasta" id="hasta" style="padding: 4px;border: 1px #ced4da solid;" {% if(hasta) %} value={{ hasta }} {% endif %}>
                     </div>
                 </div>
+            </div>
+            <div class="col-sm-2 text-right">
+                <select class="form-control" id="tipo">
+                    <option value="0">Filtrar por Tipo</option>
+                    {% for tipo in tipos %}
+                        <option value="{{ tipo.id }}" {% if tipoSeleccionado == tipo.id %} selected {% endif %} >
+                           {{ tipo.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-sm-1 text-left">
+                <a class="btn btn-outline-secondary" data-url="{{ path('consumible_historico', {'id': cliente.id}) }}?pestana={{ pestana }}" data-todos="{{ pestana == 'todos' }}" type="button" id="buscar" style="padding: 10px;">
+                    <i class="fas fa-search"></i>
+                </a>
+                <a class="btn btn-outline-secondary" href="{{ path('consumible_historico', {'id': cliente.id}) }}" type="button" style="padding: 10px;">
+                    Todos
+                </a>
             </div>
             <br>
         </div>
@@ -47,6 +64,8 @@
             <th>Acción</th>
             <th>Tipo</th>
             <th>Fecha</th>
+            <th>Desde</th>
+            <th>Hasta</th>
             <th style="text-align: right;">Cantidad</th>
         </tr>
         </thead>
@@ -68,6 +87,12 @@
                         <td>
                             {{ dato.fecha ? dato.fecha|date('Y-m-d') : ''}}
                         </td>
+                        <td>
+                            {{ dato.desde ? dato.desde|date('Y-m-d') : ''}}
+                        </td>
+                        <td>
+                            {{ dato.hasta ? dato.hasta|date('Y-m-d') : ''}}
+                        </td>
                         <td style="text-align: right;" class="{{ dato.accion ? 'ingreso' : 'egreso' }}">{{ dato.cantidad }}</td>
                     </tr>
                 {% endif %}
@@ -75,10 +100,14 @@
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="5" style="text-align: right;">
+                <td colspan="7" style="text-align: right;">
                     Total: <span class="{{ total >= 0 ? 'ingreso' : 'egreso' }}"><b>{{ total }}</b></span>
                 </td>
             </tr>
         </tfoot>
     </table>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('assets/js/consumibles.js') }}"></script>
 {% endblock %}

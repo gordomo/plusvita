@@ -19,6 +19,15 @@ class HabitacionRepository extends ServiceEntityRepository
         parent::__construct($registry, Habitacion::class);
     }
 
+    public function findAllInNameOrder()
+    {
+        return $this->createQueryBuilder('q')
+                    ->addSelect('ABS(q.nombre) AS HIDDEN foo')
+                    ->orderBy('foo')
+                    ->getQuery()
+                    ->getResult();
+    }
+
     public function findHabitacionConCamasDisponibles()
     {
         $resp = [];

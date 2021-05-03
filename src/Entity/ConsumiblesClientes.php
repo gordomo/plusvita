@@ -32,6 +32,16 @@ class ConsumiblesClientes
     private $fecha;
 
     /**
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private $desde;
+
+    /**
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private $hasta;
+
+    /**
      * @ORM\Column(type="integer", nullable=false)
      */
     private $cantidad;
@@ -135,5 +145,37 @@ class ConsumiblesClientes
     public function setAccion($accion): void
     {
         $this->accion = $accion;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDesde()
+    {
+        return $this->desde;
+    }
+
+    /**
+     * @param mixed $desde
+     */
+    public function setDesde($desde): void
+    {
+        $this->desde = $desde;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getHasta()
+    {
+        return $this->hasta;
+    }
+
+    /**
+     * @param mixed $hasta
+     */
+    public function setHasta($hasta): void
+    {
+        $this->hasta = $hasta;
     }
 }

@@ -3,8 +3,10 @@
 {% block title %}Consumibles Imputar{% endblock %}
 {% block panelTitle %}
     Imputar Consumibles a
-    <b style="text-transform: capitalize"> {{ cliente.nombre }}</b> <br><br>
+    <b style="text-transform: capitalize"> {{ cliente.nombre }}</b>
+    <a href="javascript:history.back()" class="btn-danger btn">Volver</a>
     <a href="{{ path('consumible_new') }}" class="btn-success btn">Nuevo Consumible</a>
+    <a href="{{ path('cliente_index') }}" class="btn-info btn">Pacientes</a>
 {% endblock %}
 {% block body %}
 <form action="{{ path('consumible_imputar') }}" method="post">
@@ -12,17 +14,27 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-sm">
+                <label class="control-label required">Consumible:</label>
                 <select class="form-control " id="consumible" name="consumible" required>
-                    <option value="0" data-unidades="unidades">Consumible</option>
+                    <option value="0" data-unidades="unidades">Seleccione un Consumible</option>
                     {% for consumible in consumibles %}
                         <option value="{{ consumible.id }}" data-unidades="{{ consumible.unidades }}">{{ consumible.nombre }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div class="col-sm">
-                <input class="form-control" type="number" placeholder="Cantidad" name="cantidad" id="cantidad" required>
+                <label class="control-label required">Cantidad Diaria:</label>
+                <input class="form-control" type="number" placeholder="Cantidad Diaria" name="cantidad" id="cantidad" required>
             </div>
             <div class="col-sm">
+                <label class="control-label required">Desde:</label>
+                <input class="form-control" type="date" name="desde">
+            </div>
+            <div class="col-sm">
+                <label class="control-label required">Hasta:</label>
+                <input class="form-control" type="date" name="hasta">
+            </div>
+            <div class="col-sm" style="padding-top: 35px;">
                 <label class="checkcontainer" style="display: inline-block; margin-right: 10px">Consume
                     <input type="radio" checked name="accion" required value="0">
                     <span class="checkmark"></span>
@@ -36,7 +48,7 @@
                 <span>Quedan: </span>
                 <span id="unidades"></span>
             </div>#}
-            <div class="col-sm">
+            <div class="col-sm" style="padding-top: 35px;">
                 <button type="submit" class="btn btn-success">Imputar</button>
             </div>
         </div>

@@ -37,15 +37,23 @@ class ConsumiblesClientesRepository extends ServiceEntityRepository
     */
 
 
-    public function findByAccionAndClientId($id, $accion = null)
+    public function findByAccionAndClientId($id, $desde, $hasta, $accion = null)
     {
         $query = $this->createQueryBuilder('c')
             ->andWhere('c.clienteId = :id')
             ->setParameter('id', $id);
 
         if ($accion !== null) {
-            $query->andWhere('c.accion = :accion')
-                     ->setParameter('accion', $accion);
+            $query->andWhere('c.accion = :accion')->setParameter('accion', $accion);
+        }
+
+        if ($desde) {
+            $desde = new \DateTime($desde);
+            $query->andWhere('c.desde >= :desde')->setParameter('desde', $desde);
+        }
+        if ($hasta) {
+            $hasta = new \DateTime($hasta);
+            $query->andWhere('c.hasta <= :hasta')->setParameter('hasta', $hasta);
         }
 
         $query->orderBy('c.id', ' desc');

@@ -59,3 +59,18 @@ $('.predictivo').chosen();
 $( document ).ready(function () {
    $('.clientes').hide();
 });
+
+$('#buscar').click(function () {
+    let tipo = $("#tipo").val();
+    let desde = $("#desde").val();
+    let hasta = $("#hasta").val();
+    let url = $(this).data('url');
+
+    url += "&tipoSeleccionado=" + tipo + "&desde=" + desde + "&hasta=" + hasta;
+    location.href = url;
+});
+
+$("#desde").on('change', function () {
+    $('#hasta').attr("min", $('#desde').val());
+    $('#hasta').val($('#desde').val());
+});

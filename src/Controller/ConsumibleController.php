@@ -11,6 +11,7 @@ use App\Repository\ConsumibleRepository;
 use App\Repository\ConsumiblesClientesRepository;
 use App\Repository\TipoConsumibleRepository;
 use App\Repository\UserRepository;
+use DateTimeZone;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -212,6 +213,8 @@ class ConsumibleController extends AbstractController
         $consumibleId = $request->get('consumible');
         $cantidad = $request->get('cantidad');
         $accion = ($request->get('accion', 0) !== "0") ? 1 : 0;
+        $desde = new \DateTime($request->get('desde', ''), new DateTimeZone('America/Argentina/Buenos_Aires'));
+        $hasta = new \DateTime($request->get('hasta', ''), new DateTimeZone('America/Argentina/Buenos_Aires'));
 
         $consumible = $consumibleRepository->find($consumibleId);
 
@@ -223,6 +226,8 @@ class ConsumibleController extends AbstractController
 
         $consumiblesClientesHistorico = new ConsumiblesClientes();
         $consumiblesClientesHistorico->setFecha(new \DateTime);
+        $consumiblesClientesHistorico->setDesde($desde);
+        $consumiblesClientesHistorico->setHasta($hasta);
         $consumiblesClientesHistorico->setAccion($accion);
         $consumiblesClientesHistorico->setCantidad($cantidad);
         $consumiblesClientesHistorico->setClienteId($clienteId);
@@ -233,7 +238,7 @@ class ConsumibleController extends AbstractController
         $entityManager->persist($consumible);
         $entityManager->flush();
 
-        return $this->redirectToRoute('cliente_index');
+        return $this->redirectToRoute('consumible_historico', ['id' => $clienteId]);
 
     }
 
@@ -262,8 +267,10 @@ class ConsumibleController extends AbstractController
             $consumibleArray[$consumible->getId()] = $consumible;
         }
         $accion = ($pestana === 'todos') ? null : (($pestana === 'ingresos') ? 1 : 0);
+        $desde = $request->query->get('desde', 0);
+        $hasta = $request->query->get('hasta', 0);
 
-        $consumiblesClientes = $consumiblesClientesRepository->findByAccionAndClientId($id, $accion);
+        $consumiblesClientes = $consumiblesClientesRepository->findByAccionAndClientId($id, $desde, $hasta, $accion);
 
 
         return $this->render('consumible/historico.html.twig', [
@@ -273,6 +280,8 @@ class ConsumibleController extends AbstractController
             'pestana' => $pestana,
             'tipos' => $tipoConsumibleRepository->findAll(),
             'tipoSeleccionado' => $tipoSeleccionado,
+            'hasta' => $hasta,
+            'desde' => $desde,
 
         ]);
 
