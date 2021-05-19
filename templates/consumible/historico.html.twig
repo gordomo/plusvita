@@ -2,6 +2,8 @@
 
 {% block title %}Consumibles Historico{% endblock %}
 {% block panelTitle %}Consumos de <span style="text-transform: capitalize">{{ cliente.nombre }}</span>
+{% endblock %}
+{% block titleButtons %}
     <a href="javascript:history.back();" class="btn btn-danger">Volver</a>
     <a href="{{ path('consumible_new') }}" class="btn-success btn">Nuevo Consumible</a>
     <a href="{{ path('consumible_imputar_view', {'id': cliente.id}) }}" class="btn-info btn">Imputar</a>
@@ -19,7 +21,7 @@
                             <a class="nav-link {{  pestana == 'ingresos' ? 'active' : ''  }}" href="{{ path('consumible_historico', {'id': cliente.id}) }}?pestana=ingresos">Ingresos</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{  pestana == 'egresos' ? 'active' : ''  }}" href="{{ path('consumible_historico', {'id': cliente.id}) }}?pestana=egresos">Egresos</a>
+                            <a class="nav-link {{  pestana == 'egresos' ? 'active' : ''  }}" href="{{ path('consumible_historico', {'id': cliente.id}) }}?pestana=egresos">Indicaciones</a>
                         </li>
                     </ul>
                 </div>
@@ -57,55 +59,107 @@
             <br>
         </div>
     </div>
-    <table class="table">
-        <thead>
-        <tr>
-            <th>Consumo</th>
-            <th>Acción</th>
-            <th>Tipo</th>
-            <th>Fecha</th>
-            <th>Desde</th>
-            <th>Hasta</th>
-            <th style="text-align: right;">Cantidad</th>
-        </tr>
-        </thead>
-        <tbody>
-            {% set total = 0 %}
-            {% set totalPorTipo = [] %}
-            {% for dato in consumiblesClientes %}
-                {% if consumibles[dato.consumibleId] is defined %}
-                    {% if dato.accion %}
-                        {% set total = total + dato.cantidad %}
-                    {% else %}
-                        {% set total = total - dato.cantidad %}
-                    {% endif %}
-                    <tr>
-                        <td>{{ consumibles[dato.consumibleId] ? consumibles[dato.consumibleId].nombre }}</td>
-                        <td>{{ dato.accion ? 'ingreso' : 'egreso' }}</td>
-                        <td>{{ consumibles[dato.consumibleId].tipo ? consumibles[dato.consumibleId].tipo.nombre }}</td>
-
-                        <td>
-                            {{ dato.fecha ? dato.fecha|date('Y-m-d') : ''}}
-                        </td>
-                        <td>
-                            {{ dato.desde ? dato.desde|date('Y-m-d') : ''}}
-                        </td>
-                        <td>
-                            {{ dato.hasta ? dato.hasta|date('Y-m-d') : ''}}
-                        </td>
-                        <td style="text-align: right;" class="{{ dato.accion ? 'ingreso' : 'egreso' }}">{{ dato.cantidad }}</td>
-                    </tr>
-                {% endif %}
-            {% endfor %}
-        </tbody>
-        <tfoot>
+    <div class="printiable">
+        <table class="table">
+            <thead>
             <tr>
-                <td colspan="7" style="text-align: right;">
-                    Total: <span class="{{ total >= 0 ? 'ingreso' : 'egreso' }}"><b>{{ total }}</b></span>
-                </td>
+                <th class="consumo">Consumo</th>
+                <th class="accion">Acción</th>
+                <th class="tipo">Tipo</th>
+                <th class="fecha">Fecha</th>
+                <th class="desde">Desde</th>
+                <th class="hasta">Hasta</th>
+                <th class="cantidad" style="text-align: right;">Cantidad</th>
             </tr>
-        </tfoot>
-    </table>
+            </thead>
+            <tbody>
+                {% set total = 0 %}
+                {% set totalPorTipo = [] %}
+                {% for dato in consumiblesClientes %}
+                    {% if consumibles[dato.consumibleId] is defined %}
+                        {% if dato.accion %}
+                            {% set total = total + dato.cantidad %}
+                        {% else %}
+                            {% set total = total - dato.cantidad %}
+                        {% endif %}
+                        <tr>
+                            <td class="consumo">{{ consumibles[dato.consumibleId] ? consumibles[dato.consumibleId].nombre }}</td>
+                            <td class="accion">{{ dato.accion ? 'ingreso' : 'indicacion' }}</td>
+                            <td class="tipo">{{ consumibles[dato.consumibleId].tipo ? consumibles[dato.consumibleId].tipo.nombre }}</td>
+
+                            <td class="fecha">
+                                {{ dato.fecha ? dato.fecha|date('Y-m-d') : ''}}
+                            </td>
+                            <td class="desde">
+                                {{ dato.desde ? dato.desde|date('Y-m-d') : ''}}
+                            </td>
+                            <td class="hasta">
+                                {{ dato.hasta ? dato.hasta|date('Y-m-d') : ''}}
+                            </td>
+                            <td style="text-align: right;" class="{{ dato.accion ? 'ingreso' : 'egreso' }} cantidad">{{ dato.cantidad }}</td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="7" style="text-align: right;">
+                        Total: <span class="{{ total >= 0 ? 'ingreso' : 'egreso' }}"><b>{{ total }}</b></span>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+{% endblock %}
+{% block modalImprimir %}
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="consumo" id="consumo">
+        <label class="form-check-label" for="consumo">
+            Consumo
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="accion" id="accion">
+        <label class="form-check-label" for="accion">
+            Acción
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="tipo" id="tipo">
+        <label class="form-check-label" for="tipo">
+            Tipo
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="fecha" id="fecha">
+        <label class="form-check-label" for="fecha">
+            Fecha
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="desde" id="desde">
+        <label class="form-check-label" for="desde">
+            Desde
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="hasta" id="hasta">
+        <label class="form-check-label" for="hasta">
+            Hasta
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="cantidad" id="cantidad">
+        <label class="form-check-label" for="cantidad">
+            Cantidad
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="todos" id="todos">
+        <label class="form-check-label" for="todos">
+            Todos
+        </label>
+    </div>
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}

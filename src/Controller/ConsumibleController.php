@@ -6,6 +6,7 @@ use App\Entity\Cliente;
 use App\Entity\Consumible;
 use App\Entity\ConsumiblesClientes;
 use App\Form\ConsumibleType;
+use App\Controller\ExportToExcel;
 use App\Repository\ClienteRepository;
 use App\Repository\ConsumibleRepository;
 use App\Repository\ConsumiblesClientesRepository;
@@ -13,10 +14,15 @@ use App\Repository\TipoConsumibleRepository;
 use App\Repository\UserRepository;
 use DateTimeZone;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Component\Mime\FileinfoMimeTypeGuesser;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\RouterInterface;
 
 /**
  * @Route("/consumible")
@@ -211,6 +217,7 @@ class ConsumibleController extends AbstractController
     {
         $clienteId = $request->get('cliente');
         $consumibleId = $request->get('consumible');
+
         $cantidad = $request->get('cantidad');
         $accion = ($request->get('accion', 0) !== "0") ? 1 : 0;
         $desde = new \DateTime($request->get('desde', ''), new DateTimeZone('America/Argentina/Buenos_Aires'));
@@ -282,8 +289,16 @@ class ConsumibleController extends AbstractController
             'tipoSeleccionado' => $tipoSeleccionado,
             'hasta' => $hasta,
             'desde' => $desde,
-
+            'paginaImprimible' => true,
         ]);
 
+    }
+
+    /**
+     * @Route("/{path}/excel", name="consumible_to_excel", methods={"POST"})
+     */
+
+    public function toExcel(Request $request, RouterInterface $router) {
+        return ExportToExcel::toExcel($request->get('html'), $router, 'consumible_historico.xlsx');
     }
 }

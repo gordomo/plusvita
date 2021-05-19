@@ -5,7 +5,7 @@ namespace App\Controller;
 
 use App\Entity\Cliente;
 use App\Entity\Habitacion;
-use App\Helpers\ExportToExcel;
+use App\Controller\ExportToExcel;
 use App\Repository\ClienteRepository;
 use App\Repository\DoctorRepository;
 use App\Repository\HabitacionRepository;
@@ -24,6 +24,7 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Mime\FileinfoMimeTypeGuesser;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\RouterInterface;
 
 
 /**
@@ -67,68 +68,9 @@ class DashboardController extends AbstractController
      * @Route("/excel", name="to_excel", methods={"POST"})
      */
 
-    public function toExcel(Request $request, KernelInterface $kernel) {
-        try {
-            $reader = new \PhpOffice\PhpSpreadsheet\Reader\Html();
-            $spreadsheet = $reader->loadFromString($request->get('html'));
-
-            $colums = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
-            foreach ($colums as $colum) {
-                $spreadsheet->getActiveSheet()->getColumnDimension($colum)->setAutoSize(true);
-            }
-            $spreadsheet->getActiveSheet()->getRowDimension(1)->setRowHeight(40);
-            $spreadsheet->getActiveSheet()->getDefaultRowDimension()->setRowHeight(20);
-            $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xls');
-
-            $temp_file = tempnam(sys_get_temp_dir(), 'dashboard.xls');
-
-            // Create the file
-            $writer->save($temp_file);
-
-            return new JsonResponse(['error' => false, 'message' => $temp_file]);
-
-        } catch (\Exception $e) {
-            return new JsonResponse(['error' => true, 'code' => $e->getCode(), 'message' => $e->getMessage()]);
-        }
+    public function toExcel(Request $request, RouterInterface $router) {
+        return ExportToExcel::toExcel($request->get('html'), $router, 'dashboard.xls');
     }
-
-    /**
-     * @Route("/getExcel", name="get_excel", methods={"GET"})
-     */
-
-    public function getExcel(Request $request) {
-        $filename = $request->query->get('path') ?? '';
-        // This should return the file to the browser as response
-        $response = new BinaryFileResponse($filename);
-
-        // To generate a file download, you need the mimetype of the file
-        $mimeTypeGuesser = new FileinfoMimeTypeGuesser();
-
-        // Set the mimetype with the guesser or manually
-        if($mimeTypeGuesser->isGuesserSupported()){
-            // Guess the mimetype of the file according to the extension of the file
-            $response->headers->set('Content-Type', $mimeTypeGuesser->guessMimeType($filename));
-        }else{
-            // Set the mimetype of the file manually, in this case for a text file is text/plain
-            $response->headers->set('Content-Type', 'text/plain');
-        }
-
-        $filenameFallback = preg_replace(
-            '#^.*\.#',
-            md5($filename) . '.', $filename
-        );
-
-
-        $disposition = $response->headers->makeDisposition(
-            ResponseHeaderBag::DISPOSITION_ATTACHMENT,
-            'dashboard.xlsx'
-        );
-
-        $response->headers->set('Content-Disposition', $disposition);
-        return $response;
-
-    }
-
 
     private function isDoctor()
     {

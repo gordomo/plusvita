@@ -112,13 +112,11 @@ function GetSelected(id) {
 };
 
 function getHtmlToPrint(checkboxes, conHead) {
-    $('.table th').hide();
-    $('.table td').hide();
-    $('.container-fluid').hide();
-
     $(checkboxes).each(function (e, a) {
-        $('.'+a).show();
+        $('.'+a).addClass('notRemove');
     });
+    $('.table td').not('.notRemove').remove();
+    $('.table th').not('.notRemove').remove();
 
     let htmlToPrint = '';
 
@@ -128,10 +126,6 @@ function getHtmlToPrint(checkboxes, conHead) {
 
     htmlToPrint += $('.title').html() + "<br>";
     htmlToPrint += $('.printiable').html();
-
-    $('.table th').show();
-    $('.table td').show();
-    $('.container-fluid').show();
 
     return htmlToPrint;
 }
@@ -166,7 +160,8 @@ $("#descargarExcel").on('click', function () {
             },
             success: function (response) {
                 $('#descargarExcel').attr('disabled', false);
-                window.open(location.href + 'getExcel?path=' + response.message);
+                window.open(response.message);
+                location.reload();
             },
             error: function(e){
                 console.log(e);

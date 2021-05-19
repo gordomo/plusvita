@@ -74,3 +74,20 @@ $("#desde").on('change', function () {
     $('#hasta').attr("min", $('#desde').val());
     $('#hasta').val($('#desde').val());
 });
+
+let agrega = document.getElementById('agrega');
+if (agrega !== null) {
+    agrega.addEventListener('change', (event) => {
+        if (event.currentTarget.checked) {
+            $('.desdeHasta').hide();
+        }
+    })
+}
+let consume = document.getElementById('consume');
+if (consume !== null) {
+    consume.addEventListener('change', (event) => {
+        if (event.currentTarget.checked) {
+            $('.desdeHasta').show();
+        }
+    })
+}

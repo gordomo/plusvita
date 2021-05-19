@@ -36,8 +36,11 @@
         {% endif  %}
         <div class="container-fluid">
             <div class="row">
-                <div class="col-sm title">
-                    <h1 class="mt-4">{% block panelTitle %}{% endblock %}</h1>
+                <div class="col-sm">
+                    <h1 class="mt-4 notRemove title">{% block panelTitle %}{% endblock %}</h1>
+                </div>
+                <div class="col-sm buttons mt-4">
+                    {% block titleButtons %}{% endblock %}
                 </div>
                 {% if paginaImprimible is defined and paginaImprimible %}
                 <div class="col-sm" style="align-items: center; justify-content: center; display: flex;">
