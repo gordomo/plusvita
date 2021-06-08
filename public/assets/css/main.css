@@ -327,6 +327,14 @@ select:invalid[multiple] {
 .egreso {
     color: darkred;
 }
+.floatingButtons {
+    position: absolute;
+    right: 20px;
+    bottom: 10px;
+}
+.btn-info, .btn-warning {
+    color: white !important;
+}
 /*      #60b9b9     #b088be
 table {
     width: 716px; !* 140px * 5 column + 16px scrollbar width *!

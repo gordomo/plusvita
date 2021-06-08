@@ -64,9 +64,10 @@ $('#buscar').click(function () {
     let tipo = $("#tipo").val();
     let desde = $("#desde").val();
     let hasta = $("#hasta").val();
+    let imputacion = $("#imputacion").val();
     let url = $(this).data('url');
 
-    url += "&tipoSeleccionado=" + tipo + "&desde=" + desde + "&hasta=" + hasta;
+    url += "&tipoSeleccionado=" + tipo + "&desde=" + desde + "&hasta=" + hasta + "&imputacion=" + imputacion;
     location.href = url;
 });
 
@@ -91,3 +92,29 @@ if (consume !== null) {
         }
     })
 }
+
+let rowCount = $('#rowContainer').find('.row').length - 2;
+$('#agregarItem').click(function () {
+    let html = '';
+    rowCount ++;
+    console.log(rowCount);
+    $('#rowOriginal div:not(.noAgregar)').each(function() {
+        html += ' <div class="col-sm">' + $(this).html() + '</div>';
+    })
+    html += ' <div class="col-sm">';
+
+    html += '<div className="col-sm noAgregar" style="padding-top: 5px;"><label class="checkcontainer" style="display: inline-block; margin-right: 10px">Consume<input type="radio" checked name="accion-'+rowCount+'" required value="0"><span class="checkmark"></span></label><label class="checkcontainer" style="display: inline-block" value="1">Agrega<input type="radio" name="accion-'+rowCount+'"><span class="checkmark"></span></label></div>'
+
+    html += ' </div><div class="col-sm"></div>';
+
+    let newDiv = '<div class="row">' +  html  + '</div>';
+    $('#rowContainer').append(newDiv);
+});
+
+$('#eliminarItem').click(function () {
+    if ($('#rowContainer .row:not(#rowOriginal)').length > 1) {
+        rowCount --;
+        console.log(rowCount);
+        $('#rowContainer .row:not(#rowOriginal)').last().remove();
+    }
+});

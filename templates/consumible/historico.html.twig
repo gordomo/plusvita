@@ -11,7 +11,7 @@
 {% block body %}
     <div class="container-fluid">
         <div class="row mb-4">
-            <div class="col-sm-5">
+            <div class="col-sm-3">
                 <div>
                     <ul class="nav nav-tabs justify-content-center">
                         <li class="nav-item">
@@ -26,8 +26,12 @@
                     </ul>
                 </div>
             </div>
-            <div class="col-sm-4 text-right">
+            <div class="col-sm-6 text-right">
                 <div class="form-row">
+                    <div class="col-sm">
+                        <label class="control-label">Imputación:</label>
+                        <input type="date" name="imputacion" id="imputacion" style="padding: 4px;border: 1px #ced4da solid;" {% if(imputacion) %} value={{ imputacion }} {% endif %}>
+                    </div>
                     <div class="col-sm">
                         <label class="control-label">Desde:</label>
                         <input type="date" name="desde" id="desde" style="padding: 4px;border: 1px #ced4da solid;" {% if(desde) %} value={{ desde }} {% endif %}>
@@ -73,16 +77,9 @@
             </tr>
             </thead>
             <tbody>
-                {% set total = 0 %}
-                {% set totalPorTipo = [] %}
                 {% for dato in consumiblesClientes %}
                     {% if consumibles[dato.consumibleId] is defined %}
-                        {% if dato.accion %}
-                            {% set total = total + dato.cantidad %}
-                        {% else %}
-                            {% set total = total - dato.cantidad %}
-                        {% endif %}
-                        <tr>
+                        <tr class="consumible-{{ dato.consumibleId }}">
                             <td class="consumo">{{ consumibles[dato.consumibleId] ? consumibles[dato.consumibleId].nombre }}</td>
                             <td class="accion">{{ dato.accion ? 'ingreso' : 'indicacion' }}</td>
                             <td class="tipo">{{ consumibles[dato.consumibleId].tipo ? consumibles[dato.consumibleId].tipo.nombre }}</td>
@@ -101,13 +98,6 @@
                     {% endif %}
                 {% endfor %}
             </tbody>
-            <tfoot>
-                <tr>
-                    <td colspan="7" style="text-align: right;">
-                        Total: <span class="{{ total >= 0 ? 'ingreso' : 'egreso' }}"><b>{{ total }}</b></span>
-                    </td>
-                </tr>
-            </tfoot>
         </table>
     </div>
 {% endblock %}
@@ -164,4 +154,29 @@
 {% block javascripts %}
     {{ parent() }}
     <script src="{{ asset('assets/js/consumibles.js') }}"></script>
+
+    <script>
+        $( document ).ready(function () {
+            clases = [];
+            $('tbody tr').each(function() {
+                if ( !clases.includes($(this).attr('class'))) {
+                    clases.push($(this).attr('class'));
+                }
+            })
+
+            clases.forEach(element => {
+                var subtotal = 0;
+                $('.'+element).each(function() {
+                    if($(this).find('td:last-child').hasClass('egreso')) {
+                        subtotal -= parseFloat($(this).find('td:last-child').html());
+                    } else if ($(this).find('td:last-child').hasClass('ingreso')) {
+                        subtotal += parseFloat($(this).find('td:last-child').html());
+                    }
+                })
+                $('.'+element).last().after('<tr><td colspan="7" style="text-align: right; border-top: 1px solid black; border-bottom: 1px solid black;">Total: '+subtotal+'</td></tr>');
+            });
+        });
+    </script>
+
+
 {% endblock %}

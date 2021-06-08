@@ -190,13 +190,20 @@ class ConsumibleController extends AbstractController
     /**
      * @Route("/imputar-view/{id}", name="consumible_imputar_view", methods={"GET"})
      */
-    public function imputarView(Cliente $cliente, ConsumibleRepository $consumibleRepository): Response
+    public function imputarView(Cliente $cliente, ConsumibleRepository $consumibleRepository, ConsumiblesClientesRepository $consumiblesClientesRepository): Response
     {
         $consumibles = $consumibleRepository->findAll();
+        $consumiblesMesAnterior = $consumiblesClientesRepository->findLastMes();
+        $default = new \DateTime();
+        $defaultDesde = $default->modify('first day of this month')->format('Y-m-d');
+        $defaultHasta = $default->modify('last day of this month')->format('Y-m-d');
 
         return $this->render('consumible/imputar.html.twig', [
             'cliente' => $cliente,
-            'consumibles' => $consumibles
+            'consumibles' => $consumibles,
+            'consumiblesMesAnterior' => $consumiblesMesAnterior,
+            'defaultDesde' => $defaultDesde,
+            'defaultHasta' => $defaultHasta,
         ]);
     }
     /**
@@ -216,34 +223,46 @@ class ConsumibleController extends AbstractController
     public function imputar(Request $request, ConsumibleRepository $consumibleRepository): Response
     {
         $clienteId = $request->get('cliente');
-        $consumibleId = $request->get('consumible');
+        $consumibleIds = $request->get('consumible');
 
-        $cantidad = $request->get('cantidad');
-        $accion = ($request->get('accion', 0) !== "0") ? 1 : 0;
-        $desde = new \DateTime($request->get('desde', ''), new DateTimeZone('America/Argentina/Buenos_Aires'));
-        $hasta = new \DateTime($request->get('hasta', ''), new DateTimeZone('America/Argentina/Buenos_Aires'));
+        $cantidades = $request->get('cantidad');
+        $desdes = $request->get('desde', '');
+        $hastas = $request->get('hasta', '');
 
-        $consumible = $consumibleRepository->find($consumibleId);
+        foreach ($consumibleIds as $key => $consumibleId) {
+            $accion = ($request->get('accion-'.$key, 0) !== "0") ? 1 : 0;
+            $consumible = $consumibleRepository->find($consumibleId);
 
-        $existenciaActual = $consumible->getExistencia();
+            $dateDesde = $desdes[$key] !== '' && $accion === 0 ? $desdes[$key] : '';
+            $desde = new \DateTime($desdes[$key]);
+            $desde->setTimezone(new DateTimeZone('America/Argentina/Buenos_Aires'));
 
-        /*if ($cantidad <= $existenciaActual) {
-            $consumible->setExistencia($existenciaActual - $cantidad);
-        }*/
+            $dateHasta = $hastas[$key] !== '' && $accion === 0 ? $hastas[$key] : '';
+            $hasta = new \DateTime($hastas[$key]);
+            $hasta->setTimezone(new DateTimeZone('America/Argentina/Buenos_Aires'));
 
-        $consumiblesClientesHistorico = new ConsumiblesClientes();
-        $consumiblesClientesHistorico->setFecha(new \DateTime);
-        $consumiblesClientesHistorico->setDesde($desde);
-        $consumiblesClientesHistorico->setHasta($hasta);
-        $consumiblesClientesHistorico->setAccion($accion);
-        $consumiblesClientesHistorico->setCantidad($cantidad);
-        $consumiblesClientesHistorico->setClienteId($clienteId);
-        $consumiblesClientesHistorico->setConsumibleId($consumibleId);
 
-        $entityManager = $this->getDoctrine()->getManager();
-        $entityManager->persist($consumiblesClientesHistorico);
-        $entityManager->persist($consumible);
-        $entityManager->flush();
+            $cantidad = $cantidades[$key];
+
+            //$existenciaActual = $consumible->getExistencia();
+            /*if ($cantidad <= $existenciaActual) {
+                $consumible->setExistencia($existenciaActual - $cantidad);
+            }*/
+
+            $consumiblesClientesHistorico = new ConsumiblesClientes();
+            $consumiblesClientesHistorico->setFecha(new \DateTime);
+            $consumiblesClientesHistorico->setDesde($desde);
+            $consumiblesClientesHistorico->setHasta($hasta);
+            $consumiblesClientesHistorico->setAccion($accion);
+            $consumiblesClientesHistorico->setCantidad($cantidad);
+            $consumiblesClientesHistorico->setClienteId($clienteId);
+            $consumiblesClientesHistorico->setConsumibleId($consumibleId);
+
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($consumiblesClientesHistorico);
+            $entityManager->persist($consumible);
+            $entityManager->flush();
+        }
 
         return $this->redirectToRoute('consumible_historico', ['id' => $clienteId]);
 
@@ -274,11 +293,15 @@ class ConsumibleController extends AbstractController
             $consumibleArray[$consumible->getId()] = $consumible;
         }
         $accion = ($pestana === 'todos') ? null : (($pestana === 'ingresos') ? 1 : 0);
-        $desde = $request->query->get('desde', 0);
-        $hasta = $request->query->get('hasta', 0);
+        $default = new \DateTime();
+        $defaultDesde = $default->modify('first day of this month')->format('Y-m-d');
+        $defaultHasta = $default->modify('last day of this month')->format('Y-m-d');
 
-        $consumiblesClientes = $consumiblesClientesRepository->findByAccionAndClientId($id, $desde, $hasta, $accion);
+        $desde = $request->query->get('desde', $defaultDesde);
+        $hasta = $request->query->get('hasta', $defaultHasta);
+        $fecha = $request->query->get('imputacion', '');
 
+        $consumiblesClientes = $consumiblesClientesRepository->findByAccionAndClientId($id, $desde, $hasta, $fecha, $accion);
 
         return $this->render('consumible/historico.html.twig', [
             'cliente' => $cliente,
@@ -290,6 +313,7 @@ class ConsumibleController extends AbstractController
             'hasta' => $hasta,
             'desde' => $desde,
             'paginaImprimible' => true,
+            'imputacion' => $fecha,
         ]);
 
     }

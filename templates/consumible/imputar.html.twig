@@ -2,59 +2,137 @@
 
 {% block title %}Consumibles Imputar{% endblock %}
 {% block panelTitle %}
-    Imputar Consumibles a
-    <b style="text-transform: capitalize"> {{ cliente.nombre }}</b>
+    Imputar Consumibles a <b style="text-transform: capitalize"> {{ cliente.nombre }}</b>
+{% endblock %}
+{% block titleButtons %}
     <a href="javascript:history.back()" class="btn-danger btn">Volver</a>
     <a href="{{ path('consumible_new') }}" class="btn-success btn">Nuevo Consumible</a>
     <a href="{{ path('cliente_index') }}" class="btn-info btn">Pacientes</a>
 {% endblock %}
 {% block body %}
-<form action="{{ path('consumible_imputar') }}" method="post">
+    <div class="floatingButtons">
+        <a id="agregarItem" class="btn btn-info">+</a>
+        <a id="eliminarItem" class="btn btn-warning">-</a>
+    </div>
+<form action="{{ path('consumible_imputar') }}" method="post" >
     <input type="hidden" name="cliente" value="{{ cliente.id }}">
-    <div class="container-fluid">
+    <div class="container-fluid" id="rowContainer">
+
         <div class="row">
             <div class="col-sm">
                 <label class="control-label required">Consumible:</label>
-                <select class="form-control " id="consumible" name="consumible" required="required">
-                    {% for consumible in consumibles %}
-                        <option value="{{ consumible.id }}" data-unidades="{{ consumible.unidades }}">{{ consumible.nombre }}</option>
-                    {% endfor %}
-                </select>
             </div>
             <div class="col-sm">
                 <label class="control-label required">Cantidad Diaria:</label>
-                <input class="form-control" type="number" placeholder="Cantidad Diaria" name="cantidad" id="cantidad" required>
             </div>
             <div class="col-sm desdeHasta">
                 <label class="control-label required">Desde:</label>
-                <input class="form-control" type="date" name="desde">
             </div>
             <div class="col-sm desdeHasta">
                 <label class="control-label required">Hasta:</label>
-                <input class="form-control" type="date" name="hasta">
             </div>
-            <div class="col-sm" style="padding-top: 35px;">
-                <label class="checkcontainer" style="display: inline-block; margin-right: 10px">Consume
-                    <input type="radio" checked id='consume' name="accion" required value="0">
-                    <span class="checkmark"></span>
-                </label>
-                <label class="checkcontainer" style="display: inline-block" value="1">Agrega
-                    <input type="radio" id="agrega" name="accion">
-                    <span class="checkmark"></span>
-                </label>
+            <div class="col-sm" style="padding-top: 5px;">
             </div>
             {#<div class="col-sm" style="display: flex;align-items: center;">
                 <span>Quedan: </span>
                 <span id="unidades"></span>
             </div>#}
-            <div class="col-sm" style="padding-top: 35px;">
-                <button type="submit" class="btn btn-success">Imputar</button>
+            <div class="col-sm" style="padding-top: 5px;">
             </div>
         </div>
+        {% set rowCount = 0 %}
+        {% for consumibleMesAnterior in consumiblesMesAnterior  %}
+            <div class="row">
+                <div class="col-sm">
+                    <select class="form-control " name="consumible[]" required="required">
+                        {% for consumible in consumibles %}
+                            <option value="{{ consumible.id }}" {% if consumible.id == consumibleMesAnterior.consumibleId %} selected {% endif %} data-unidades="{{ consumible.unidades }}">{{ consumible.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-sm">
+                    <input class="form-control" type="number" value="{{ consumibleMesAnterior.cantidad }}" placeholder="Cantidad Diaria" name="cantidad[]" required>
+                </div>
+                <div class="col-sm desdeDesde">
+                    <input class="form-control" type="date" value="{{ defaultDesde | date('Y-m-d') }}" name="desde[]">
+                </div>
+                <div class="col-sm desdeHasta">
+                    <input class="form-control" type="date" value="{{ defaultHasta | date('Y-m-d') }}" name="hasta[]">
+                </div>
+                <div class="col-sm noAgregar" style="padding-top: 5px;">
+                    <label class="checkcontainer" style="display: inline-block; margin-right: 10px">Consume
+                        <input type="radio" name="accion-{{ rowCount }}" required value="0" {% if consumibleMesAnterior.accion == 0 %} checked {% endif %}>
+                        <span class="checkmark"></span>
+                    </label>
+                    <label class="checkcontainer" style="display: inline-block" >Agrega
+                        <input type="radio" name="accion-{{ rowCount }}" value="1" {% if consumibleMesAnterior.accion == 1 %} checked {% endif %}>
+                        <span class="checkmark"></span>
+                    </label>
+                </div>
+                {#<div class="col-sm" style="display: flex;align-items: center;">
+                        <span>Quedan: </span>
+                        <span id="unidades"></span>
+                    </div>#}
+                <div class="col-sm noAgregar" style="padding-top: 5px;">
+
+                </div>
+            </div>
+            {% set rowCount = rowCount + 1 %}
+        {% endfor %}
+            <div class="row" id="rowOriginal">
+                <div class="col-sm">
+                    <select class="form-control " name="consumible[]" required="required">
+                        {% for consumible in consumibles %}
+                            <option value="{{ consumible.id }}" data-unidades="{{ consumible.unidades }}">{{ consumible.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-sm">
+                    <input class="form-control" type="number" placeholder="Cantidad Diaria" name="cantidad[]" required>
+                </div>
+                <div class="col-sm desdeHasta">
+                    <input class="form-control" type="date" name="desde[]" value="{{ defaultDesde | date('Y-m-d') }}">
+                </div>
+                <div class="col-sm desdeHasta">
+                    <input class="form-control" type="date" name="hasta[]" value="{{ defaultHasta | date('Y-m-d') }}">
+                </div>
+                <div class="col-sm noAgregar" style="padding-top: 5px;">
+                    <label class="checkcontainer" style="display: inline-block; margin-right: 10px">Consume
+                        <input type="radio" checked name="accion-{{ rowCount }}" required value="0">
+                        <span class="checkmark"></span>
+                    </label>
+                    <label class="checkcontainer" style="display: inline-block">Agrega
+                        <input type="radio" name="accion-{{ rowCount }}">
+                        <span class="checkmark"></span>
+                    </label>
+                </div>
+                {#<div class="col-sm" style="display: flex;align-items: center;">
+                    <span>Quedan: </span>
+                    <span id="unidades"></span>
+                </div>#}
+                <div class="col-sm noAgregar" style="padding-top: 5px;">
+                    <button type="submit" class="btn btn-success">Imputar</button>
+                </div>
+            </div>
     </div>
 </form>
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
     <script src="{{ asset('assets/js/consumibles.js') }}"></script>
+    <script>
+       /* $( document ).ready(function () {
+            $('input[type="date"]').each(function() {
+                var fecha = $(this).val();
+
+                if (fecha !== '') {
+                    var firstDateSplit = fecha.split("-");
+                    var first = new Date(firstDateSplit[0], firstDateSplit[1] - 1, firstDateSplit[2]);
+                    first.setMonth( first.getMonth( ) + 1 );
+                    var seconddate = ( first.getFullYear() + '-' + (("0" + (first.getMonth() + 1)).slice(-2))  + '-' + first.getDate( ));
+                    $(this).val(seconddate);
+                }
+            });
+        });*/
+    </script>
 {% endblock %}

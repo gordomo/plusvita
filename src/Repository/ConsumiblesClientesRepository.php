@@ -36,8 +36,24 @@ class ConsumiblesClientesRepository extends ServiceEntityRepository
     }
     */
 
+    public function findLastMes()
+    {
+        $default = new \DateTime();
+        $defaultDesde = $default->modify('first day of this month')->format('Y-m-d');
+        $defaultHasta = $default->modify('last day of this month')->format('Y-m-d');
 
-    public function findByAccionAndClientId($id, $desde, $hasta, $accion = null)
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.fecha >= :defaultDesde')
+            ->setParameter('defaultDesde', $defaultDesde)
+            ->andWhere('c.fecha <= :defaultHasta')
+            ->setParameter('defaultHasta', $defaultHasta)
+            ->orderBy('c.id', 'ASC')
+            ->getQuery()
+            ->getResult()
+            ;
+    }
+
+    public function findByAccionAndClientId($id, $desde, $hasta, $fecha, $accion = null)
     {
         $query = $this->createQueryBuilder('c')
             ->andWhere('c.clienteId = :id')
@@ -55,8 +71,13 @@ class ConsumiblesClientesRepository extends ServiceEntityRepository
             $hasta = new \DateTime($hasta);
             $query->andWhere('c.hasta <= :hasta')->setParameter('hasta', $hasta);
         }
+        if ($fecha) {
+            $query->andWhere('c.fecha = :fecha')->setParameter('fecha', $fecha);
+        }
 
-        $query->orderBy('c.id', ' desc');
+
+        //$query->groupBy('c.consumibleId');
+        $query->orderBy('c.consumibleId', ' desc');
 
         return $query->getQuery()->getResult();
     }
