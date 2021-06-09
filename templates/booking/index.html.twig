@@ -101,7 +101,7 @@
         </thead>
         <tbody>
         {% for booking in bookings %}
-            <tr>
+            <tr class="contenido">
                 <td class="titulo">{{ booking.title }}</td>
                 <td class="profesional" style="text-transform: capitalize">{{ booking.doctor.nombre }} {{ booking.doctor.apellido }}</td>
                 <td class="paciente" style="text-transform: capitalize">{{ booking.cliente.nombre }} {{ booking.cliente.apellido }}</td>
@@ -117,9 +117,14 @@
             </tr>
         {% else %}
             <tr>
-                <td colspan="5">No se encontraron registros</td>
+                <td colspan="8">No se encontraron registros</td>
             </tr>
         {% endfor %}
+            <tr class="loading">
+                <td colspan="8">
+                    <img src="{{ asset('assets/images/loading.gif') }}">
+                </td>
+            </tr>
         </tbody>
     </table>
 {% endblock %}
@@ -132,6 +137,8 @@
             $('.borrar').prop('checked',$(this).prop("checked"));
         });
         $('#borrarTurnos').click(function () {
+            $('.contenido').hide();
+            $('.loading').show();
             var idsArray = [];
 
             $("input:checkbox[name=borrarTurno]:checked").each(function(){
@@ -142,9 +149,26 @@
                 var txt;
                 var r = confirm("¿Está seguro que desea borrar los turnos seleccionados?");
                 if (r == true) {
-                    var url = "{{ path('booking_multi_delete') }}" + "?ids=" ;
-                    url += idsArray.toString();
-                    location.href = url;
+                    var url = "{{ path('booking_multi_delete') }}";
+                    $.post({
+                        url: url,
+                        data: {
+                            ids: idsArray
+                        },
+                        success: function (response) {
+                            console.log(response);
+                            location.reload();
+                        },
+                        error: function(e){
+                            console.log(e);
+                            alert("download failed");
+                        },
+                        finally: function () {
+                            $('.contenido').show();
+                            $('.loading').hide();
+                        }
+                    });
+
                 }
             } else {
                 alert('Deber seleccionar al menos un turno para borrar');

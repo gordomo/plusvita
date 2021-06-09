@@ -482,7 +482,7 @@ class BookingController extends AbstractController
     }
 
     /**
-     * @Route("/delete/multiple", name="booking_multi_delete", methods={"GET"})
+     * @Route("/delete/multiple", name="booking_multi_delete", methods={"POST"})
      */
     public function multiDelete(Request $request, BookingRepository $bookingRepository): Response
     {
@@ -491,8 +491,7 @@ class BookingController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        $ids = $request->query->get('ids') ?? '';
-        $ids = explode(',', $ids);
+        $ids = $request->get('ids') ?? '';
 
         $entityManager = $this->getDoctrine()->getManager();
 
@@ -506,7 +505,7 @@ class BookingController extends AbstractController
 
         $entityManager->flush();
 
-        return $this->redirectToRoute('booking_index');
+        return $this->json("ok");
     }
 
     private function getBusinessHours(array $doctores)
