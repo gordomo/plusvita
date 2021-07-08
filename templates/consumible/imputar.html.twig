@@ -23,13 +23,10 @@
                 <label class="control-label required">Consumible:</label>
             </div>
             <div class="col-sm">
-                <label class="control-label required">Cantidad Diaria:</label>
+                <label class="control-label required">Cantidad Mensual:</label>
             </div>
             <div class="col-sm desdeHasta">
-                <label class="control-label required">Desde:</label>
-            </div>
-            <div class="col-sm desdeHasta">
-                <label class="control-label required">Hasta:</label>
+                <label class="control-label required">Mes:</label>
             </div>
             <div class="col-sm" style="padding-top: 5px;">
             </div>
@@ -53,11 +50,12 @@
                 <div class="col-sm">
                     <input class="form-control" type="number" value="{{ consumibleMesAnterior.cantidad }}" placeholder="Cantidad Diaria" name="cantidad[]" required>
                 </div>
-                <div class="col-sm desdeDesde">
-                    <input class="form-control" type="date" value="{{ defaultDesde | date('Y-m-d') }}" name="desde[]">
-                </div>
-                <div class="col-sm desdeHasta">
-                    <input class="form-control" type="date" value="{{ defaultHasta | date('Y-m-d') }}" name="hasta[]">
+                <div class="col-sm mes">
+                    <select class="form-control" name="mes[]" required>
+                        {% for nombre, num in meses %}
+                            <option {%  if num == consumibleMesAnterior.mes %} selected {% endif %} value="{{ num }}">{{ nombre }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
                 <div class="col-sm noAgregar" style="padding-top: 5px;">
                     <label class="checkcontainer" style="display: inline-block; margin-right: 10px">Consume
@@ -88,20 +86,21 @@
                     </select>
                 </div>
                 <div class="col-sm">
-                    <input class="form-control" type="number" placeholder="Cantidad Diaria" name="cantidad[]" required>
+                    <input class="form-control" type="number" placeholder="Cantidad" name="cantidad[]" required>
                 </div>
-                <div class="col-sm desdeHasta">
-                    <input class="form-control" type="date" name="desde[]" value="{{ defaultDesde | date('Y-m-d') }}">
-                </div>
-                <div class="col-sm desdeHasta">
-                    <input class="form-control" type="date" name="hasta[]" value="{{ defaultHasta | date('Y-m-d') }}">
+                <div class="col-sm mes">
+                    <select class="form-control" name="mes[]" required>
+                        {% for nombre, num in meses %}
+                            <option {%  if num == mes %} selected {% endif %} value="{{ num }}">{{ nombre }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
                 <div class="col-sm noAgregar" style="padding-top: 5px;">
-                    <label class="checkcontainer" style="display: inline-block; margin-right: 10px">Consume
+                    <label class="checkcontainer red" style="display: inline-block; margin-right: 10px">Indicación
                         <input type="radio" checked name="accion-{{ rowCount }}" required value="0">
                         <span class="checkmark"></span>
                     </label>
-                    <label class="checkcontainer" style="display: inline-block">Agrega
+                    <label class="checkcontainer green" style="display: inline-block">Ingresa
                         <input type="radio" name="accion-{{ rowCount }}">
                         <span class="checkmark"></span>
                     </label>

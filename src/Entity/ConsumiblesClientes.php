@@ -32,14 +32,9 @@ class ConsumiblesClientes
     private $fecha;
 
     /**
-     * @ORM\Column(type="date", nullable=true)
+     * @ORM\Column(type="string", nullable=true)
      */
-    private $desde;
-
-    /**
-     * @ORM\Column(type="date", nullable=true)
-     */
-    private $hasta;
+    private $mes;
 
     /**
      * @ORM\Column(type="integer", nullable=false)
@@ -150,32 +145,16 @@ class ConsumiblesClientes
     /**
      * @return mixed
      */
-    public function getDesde()
+    public function getMes()
     {
-        return $this->desde;
+        return $this->mes;
     }
 
     /**
      * @param mixed $desde
      */
-    public function setDesde($desde): void
+    public function setMes($mes): void
     {
-        $this->desde = $desde;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getHasta()
-    {
-        return $this->hasta;
-    }
-
-    /**
-     * @param mixed $hasta
-     */
-    public function setHasta($hasta): void
-    {
-        $this->hasta = $hasta;
+        $this->mes = $mes;
     }
 }

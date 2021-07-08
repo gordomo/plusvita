@@ -143,10 +143,10 @@ a.dropdown-item:hover {
 }
 
 select:invalid {
-    height: 0px !important;
+/*    height: 0px !important;
     opacity: 0 !important;
     position: absolute !important;
-    display: flex !important;
+    display: flex !important;*/
 }
 
 select:invalid[multiple] {
@@ -322,10 +322,10 @@ select:invalid[multiple] {
     transform: rotate(45deg);
 }
 .ingreso {
-    color: darkgreen;
+    color: #1b9448;
 }
 .egreso {
-    color: darkred;
+    color: #bb0000;
 }
 .floatingButtons {
     position: absolute;
@@ -335,6 +335,14 @@ select:invalid[multiple] {
 .btn-info, .btn-warning {
     color: white !important;
 }
+
+.green.checkcontainer input:checked ~ .checkmark {
+    background-color: #1b9448 !important;
+}
+.red.checkcontainer input:checked ~ .checkmark {
+    background-color: #bb0000 !important;
+}
+
 /*      #60b9b9     #b088be
 table {
     width: 716px; !* 140px * 5 column + 16px scrollbar width *!

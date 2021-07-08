@@ -62,18 +62,12 @@ $( document ).ready(function () {
 
 $('#buscar').click(function () {
     let tipo = $("#tipo").val();
-    let desde = $("#desde").val();
-    let hasta = $("#hasta").val();
+    let mes = $("#mes").val();
     let imputacion = $("#imputacion").val();
     let url = $(this).data('url');
 
-    url += "&tipoSeleccionado=" + tipo + "&desde=" + desde + "&hasta=" + hasta + "&imputacion=" + imputacion;
+    url += "&tipoSeleccionado=" + tipo + "&mes=" + mes + "&imputacion=" + imputacion;
     location.href = url;
-});
-
-$("#desde").on('change', function () {
-    $('#hasta').attr("min", $('#desde').val());
-    $('#hasta').val($('#desde').val());
 });
 
 let agrega = document.getElementById('agrega');
@@ -103,7 +97,7 @@ $('#agregarItem').click(function () {
     })
     html += ' <div class="col-sm">';
 
-    html += '<div className="col-sm noAgregar" style="padding-top: 5px;"><label class="checkcontainer" style="display: inline-block; margin-right: 10px">Consume<input type="radio" checked name="accion-'+rowCount+'" required value="0"><span class="checkmark"></span></label><label class="checkcontainer" style="display: inline-block" value="1">Agrega<input type="radio" name="accion-'+rowCount+'"><span class="checkmark"></span></label></div>'
+    html += '<div className="col-sm noAgregar" style="padding-top: 5px;"><label class="checkcontainer red" style="display: inline-block; margin-right: 15px">Indicación<input type="radio" checked name="accion-'+rowCount+'" required value="0"><span class="checkmark"></span></label><label class="checkcontainer green" style="display: inline-block" value="1">Ingresa<input type="radio" name="accion-'+rowCount+'"><span class="checkmark"></span></label></div>'
 
     html += ' </div><div class="col-sm"></div>';
 

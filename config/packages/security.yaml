@@ -55,6 +55,7 @@ security:
         - { path: ^/habitacion, roles: [ROLE_ADMIN] }
         - { path: ^/booking, roles: [ROLE_ADMIN] }
         - { path: ^/consumible, roles: [ROLE_ADMIN] }
-        - { path: ^/staff, roles: [IS_AUTHENTICATED_FULLY] }
+        - { path: ^/staff/doctor/agenda/dia/, roles: [IS_AUTHENTICATED_FULLY] }
+        - { path: ^/staff, roles: [ROLE_ADMIN] }
         - { path: ^/liquidaciones, roles: [ROLE_ADMIN] }
         # - { path: ^/profile, roles: ROLE_USER }

@@ -33,12 +33,12 @@
                         <input type="date" name="imputacion" id="imputacion" style="padding: 4px;border: 1px #ced4da solid;" {% if(imputacion) %} value={{ imputacion }} {% endif %}>
                     </div>
                     <div class="col-sm">
-                        <label class="control-label">Desde:</label>
-                        <input type="date" name="desde" id="desde" style="padding: 4px;border: 1px #ced4da solid;" {% if(desde) %} value={{ desde }} {% endif %}>
-                    </div>
-                    <div class="col-sm">
-                        <label class="control-label">Hasta:</label>
-                        <input type="date" name="hasta" id="hasta" style="padding: 4px;border: 1px #ced4da solid;" {% if(hasta) %} value={{ hasta }} {% endif %}>
+                        <select class="form-control" name="mes" id="mes">
+                            <option value="0"> Todos </option>
+                            {% for nombre, num in meses %}
+                                <option {%  if num == mes %} selected {% endif %} value="{{ num }}">{{ nombre }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                 </div>
             </div>
@@ -71,8 +71,7 @@
                 <th class="accion">Acción</th>
                 <th class="tipo">Tipo</th>
                 <th class="fecha">Fecha</th>
-                <th class="desde">Desde</th>
-                <th class="hasta">Hasta</th>
+                <th class="mes">Mes</th>
                 <th class="cantidad" style="text-align: right;">Cantidad</th>
             </tr>
             </thead>
@@ -87,11 +86,8 @@
                             <td class="fecha">
                                 {{ dato.fecha ? dato.fecha|date('Y-m-d') : ''}}
                             </td>
-                            <td class="desde">
-                                {{ dato.desde ? dato.desde|date('Y-m-d') : ''}}
-                            </td>
-                            <td class="hasta">
-                                {{ dato.hasta ? dato.hasta|date('Y-m-d') : ''}}
+                            <td class="mes">
+                                {{ dato.mes }}
                             </td>
                             <td style="text-align: right;" class="{{ dato.accion ? 'ingreso' : 'egreso' }} cantidad">{{ dato.cantidad }}</td>
                         </tr>
@@ -127,15 +123,9 @@
         </label>
     </div>
     <div class="form-check">
-        <input class="form-check-input check" type="checkbox" value="desde" id="desde">
-        <label class="form-check-label" for="desde">
-            Desde
-        </label>
-    </div>
-    <div class="form-check">
-        <input class="form-check-input check" type="checkbox" value="hasta" id="hasta">
-        <label class="form-check-label" for="hasta">
-            Hasta
+        <input class="form-check-input check" type="checkbox" value="mes" id="mes">
+        <label class="form-check-label" for="mes">
+            Mes
         </label>
     </div>
     <div class="form-check">

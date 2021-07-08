@@ -194,16 +194,15 @@ class ConsumibleController extends AbstractController
     {
         $consumibles = $consumibleRepository->findAll();
         $consumiblesMesAnterior = $consumiblesClientesRepository->findLastMes();
-        $default = new \DateTime();
-        $defaultDesde = $default->modify('first day of this month')->format('Y-m-d');
-        $defaultHasta = $default->modify('last day of this month')->format('Y-m-d');
+        $now = new \DateTime();
+        $mes = $now->modify("+1 month")->format('m');
 
         return $this->render('consumible/imputar.html.twig', [
             'cliente' => $cliente,
             'consumibles' => $consumibles,
             'consumiblesMesAnterior' => $consumiblesMesAnterior,
-            'defaultDesde' => $defaultDesde,
-            'defaultHasta' => $defaultHasta,
+            'mes' => $mes,
+            'meses' => ['Enero' => '01', 'Febrero' => '02', 'Marzo' => '03', 'Abril' => 04, 'Mayo' => '05', 'Junio' => '06', 'Julio' => '07', 'Agosto' => '08', 'Septiembre' => '09', 'Octubre' => '10', 'Noviembre' => '11', 'Diciembre' => '12', ]
         ]);
     }
     /**
@@ -226,21 +225,16 @@ class ConsumibleController extends AbstractController
         $consumibleIds = $request->get('consumible');
 
         $cantidades = $request->get('cantidad');
-        $desdes = $request->get('desde', '');
-        $hastas = $request->get('hasta', '');
+        $mes = $request->get('mes', '');
+
+        if ($mes == '') {
+            $now = new \DateTime();
+            $mes = $now->modify("+1 month")->format('m');
+        }
 
         foreach ($consumibleIds as $key => $consumibleId) {
             $accion = ($request->get('accion-'.$key, 0) !== "0") ? 1 : 0;
             $consumible = $consumibleRepository->find($consumibleId);
-
-            $dateDesde = $desdes[$key] !== '' && $accion === 0 ? $desdes[$key] : '';
-            $desde = new \DateTime($desdes[$key]);
-            $desde->setTimezone(new DateTimeZone('America/Argentina/Buenos_Aires'));
-
-            $dateHasta = $hastas[$key] !== '' && $accion === 0 ? $hastas[$key] : '';
-            $hasta = new \DateTime($hastas[$key]);
-            $hasta->setTimezone(new DateTimeZone('America/Argentina/Buenos_Aires'));
-
 
             $cantidad = $cantidades[$key];
 
@@ -251,8 +245,7 @@ class ConsumibleController extends AbstractController
 
             $consumiblesClientesHistorico = new ConsumiblesClientes();
             $consumiblesClientesHistorico->setFecha(new \DateTime);
-            $consumiblesClientesHistorico->setDesde($desde);
-            $consumiblesClientesHistorico->setHasta($hasta);
+            $consumiblesClientesHistorico->setMes($mes[$key]);
             $consumiblesClientesHistorico->setAccion($accion);
             $consumiblesClientesHistorico->setCantidad($cantidad);
             $consumiblesClientesHistorico->setClienteId($clienteId);
@@ -293,15 +286,16 @@ class ConsumibleController extends AbstractController
             $consumibleArray[$consumible->getId()] = $consumible;
         }
         $accion = ($pestana === 'todos') ? null : (($pestana === 'ingresos') ? 1 : 0);
-        $default = new \DateTime();
-        $defaultDesde = $default->modify('first day of this month')->format('Y-m-d');
-        $defaultHasta = $default->modify('last day of this month')->format('Y-m-d');
 
-        $desde = $request->query->get('desde', $defaultDesde);
-        $hasta = $request->query->get('hasta', $defaultHasta);
+        $mes = $request->get('mes', '');
+        if ($mes == '') {
+            $now = new \DateTime();
+            $mes = $now->modify("+1 month")->format('m');
+        }
+
         $fecha = $request->query->get('imputacion', '');
 
-        $consumiblesClientes = $consumiblesClientesRepository->findByAccionAndClientId($id, $desde, $hasta, $fecha, $accion);
+        $consumiblesClientes = $consumiblesClientesRepository->findByAccionAndClientId($id, $mes, $fecha, $accion);
 
         return $this->render('consumible/historico.html.twig', [
             'cliente' => $cliente,
@@ -310,8 +304,8 @@ class ConsumibleController extends AbstractController
             'pestana' => $pestana,
             'tipos' => $tipoConsumibleRepository->findAll(),
             'tipoSeleccionado' => $tipoSeleccionado,
-            'hasta' => $hasta,
-            'desde' => $desde,
+            'mes' => $mes,
+            'meses' => ['Enero' => '01', 'Febrero' => '02', 'Marzo' => '03', 'Abril' => 04, 'Mayo' => '05', 'Junio' => '06', 'Julio' => '07', 'Agosto' => '08', 'Septiembre' => '09', 'Octubre' => '10', 'Noviembre' => '11', 'Diciembre' => '12', ],
             'paginaImprimible' => true,
             'imputacion' => $fecha,
         ]);
