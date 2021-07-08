@@ -135,6 +135,12 @@
         </label>
     </div>
     <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="totales" id="totales">
+        <label class="form-check-label" for="totales">
+            Totales
+        </label>
+    </div>
+    <div class="form-check">
         <input class="form-check-input" type="checkbox" value="todos" id="todos">
         <label class="form-check-label" for="todos">
             Todos
@@ -163,7 +169,7 @@
                         subtotal += parseFloat($(this).find('td:last-child').html());
                     }
                 })
-                $('.'+element).last().after('<tr><td colspan="7" style="text-align: right; border-top: 1px solid black; border-bottom: 1px solid black;">Total: '+subtotal+'</td></tr>');
+                $('.'+element).last().after('<tr class="totales"><td colspan="7" class="totales" style="text-align: right; border-top: 1px solid black; border-bottom: 1px solid black;">Total: '+subtotal+'</td></tr>');
             });
         });
     </script>
