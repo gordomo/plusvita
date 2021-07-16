@@ -106,6 +106,13 @@ $(document).ready(function() {
             var sabadoyHasta = (typeof (businessHoursJson.sabado.yhasta) != 'undefined' && businessHoursJson.sabado.yhasta != businessHoursJson.sabado.hasta) ? businessHoursJson.sabado.yhasta : '';
         }
 
+        if (typeof (businessHoursJson.domingo) != 'undefined') {
+            var domingoDesde = (typeof (businessHoursJson.domingo.desde) != 'undefined') ? businessHoursJson.domingo.desde : '';
+            var domingoHasta = (typeof (businessHoursJson.domingo.hasta) != 'undefined') ? businessHoursJson.domingo.hasta : '';
+            var domingoyDesde = (typeof (businessHoursJson.domingo.ydesde) != 'undefined' && businessHoursJson.domingo.ydesde != businessHoursJson.domingo.desde) ? businessHoursJson.domingo.ydesde : '';
+            var domingoyHasta = (typeof (businessHoursJson.domingo.yhasta) != 'undefined' && businessHoursJson.domingo.yhasta != businessHoursJson.domingo.hasta) ? businessHoursJson.domingo.yhasta : '';
+        }
+
 
         $('#doctor_lunesdesde').val(lunesDesde);
         $('#doctor_luneshasta').val(lunesHasta);
@@ -132,11 +139,15 @@ $(document).ready(function() {
         $('#doctor_yvierneshasta').val(viernesyHasta);
         $('#doctor_yviernesdesde').val(viernesyDesde);
 
-
         $('#doctor_sabadodesde').val(sabadoDesde);
         $('#doctor_sabadohasta').val(sabadoHasta);
         $('#doctor_ysabadohasta').val(sabadoyHasta);
         $('#doctor_ysabadodesde').val(sabadoyDesde);
+
+        $('#doctor_domingodesde').val(domingoDesde);
+        $('#doctor_domingohasta').val(domingoHasta);
+        $('#doctor_ydomingohasta').val(domingoyHasta);
+        $('#doctor_ydomingodesde').val(domingoyDesde);
     }
 
 

@@ -173,7 +173,7 @@ class DoctorController extends AbstractController
         '#9ACD32'
     ];
 
-    private $dias =  [1 => 'lunes', 2 => 'martes', 3 => 'miercoles', 4 => 'jueves', 5 => 'viernes', 6 => 'sabado'];
+    private $dias =  [1 => 'lunes', 2 => 'martes', 3 => 'miercoles', 4 => 'jueves', 5 => 'viernes', 6 => 'sabado', 7 => 'domingo'];
 
     /**
      * @Route("/", name="doctor_index", methods={"GET"})

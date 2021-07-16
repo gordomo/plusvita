@@ -64,6 +64,7 @@ class BookingType extends AbstractType
                     'Jueves' => 4,
                     'Viernes' => 5,
                     'Sábado' => 6,
+                    'Domingo' => 7,
                 ],
                     'multiple'=>true,
                     'expanded'=>true,

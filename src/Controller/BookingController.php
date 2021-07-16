@@ -533,6 +533,9 @@ class BookingController extends AbstractController
                     if (isset($doctorsBusinessHours[6])) {
                         $businessHours['sabado'] = $doctorsBusinessHours[6];
                     }
+                    if (isset($doctorsBusinessHours[7])) {
+                        $businessHours['domingo'] = $doctorsBusinessHours[7];
+                    }
                 } else {
                     //lunes
                     if (isset($doctorsBusinessHours[1]) && (isset($businessHours['lunes'])) && $businessHours['lunes']['desde'] > $doctorsBusinessHours[1]['desde']) {
@@ -611,6 +614,19 @@ class BookingController extends AbstractController
                     }
                     if (isset($doctorsBusinessHours[6]) && (isset($businessHours['sabado'])) && $businessHours['sabado']['yhasta'] < $doctorsBusinessHours[6]['yhasta']) {
                         $businessHours['sabado']['yhasta'] = $doctorsBusinessHours[6]['yhasta'];
+                    }
+                    //domingo
+                    if (isset($doctorsBusinessHours[7]) && (isset($businessHours['domingo'])) && $businessHours['domingo']['desde'] > $doctorsBusinessHours[7]['desde']) {
+                        $businessHours['domingo']['desde'] = $doctorsBusinessHours[7]['desde'];
+                    }
+                    if (isset($doctorsBusinessHours[7]) && (isset($businessHours['domingo'])) && $businessHours['domingo']['hasta'] < $doctorsBusinessHours[7]['hasta']) {
+                        $businessHours['domingo']['hasta'] = $doctorsBusinessHours[7]['hasta'];
+                    }
+                    if (isset($doctorsBusinessHours[7]) && (isset($businessHours['domingo'])) && $businessHours['domingo']['ydesde'] > $doctorsBusinessHours[7]['ydesde']) {
+                        $businessHours['domingo']['ydesde'] = $doctorsBusinessHours[7]['ydesde'];
+                    }
+                    if (isset($doctorsBusinessHours[7]) && (isset($businessHours['domingo'])) && $businessHours['domingo']['yhasta'] < $doctorsBusinessHours[7]['yhasta']) {
+                        $businessHours['domingo']['yhasta'] = $doctorsBusinessHours[7]['yhasta'];
                     }
                 }
             }

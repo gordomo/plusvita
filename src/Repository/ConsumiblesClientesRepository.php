@@ -38,15 +38,12 @@ class ConsumiblesClientesRepository extends ServiceEntityRepository
 
     public function findLastMes()
     {
-        $default = new \DateTime();
-        $defaultDesde = $default->modify('first day of this month')->format('Y-m-d');
-        $defaultHasta = $default->modify('last day of this month')->format('Y-m-d');
+        $now = new \DateTime();
+        $mes = $now->modify("-1 month")->format('m');
 
         return $this->createQueryBuilder('c')
-            ->andWhere('c.fecha >= :defaultDesde')
-            ->setParameter('defaultDesde', $defaultDesde)
-            ->andWhere('c.fecha <= :defaultHasta')
-            ->setParameter('defaultHasta', $defaultHasta)
+            ->andWhere('c.mes = :mes')
+            ->setParameter('mes', $mes)
             ->orderBy('c.id', 'ASC')
             ->getQuery()
             ->getResult()

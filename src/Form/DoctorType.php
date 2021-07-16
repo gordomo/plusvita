@@ -326,13 +326,51 @@ class DoctorType extends AbstractType
                 'mapped' => false,
                 'placeholder' => 'seleccione horario cortado',
                 'choices' => $this->horarios,
-            ])
+                ])
                 ->add('ysabadohasta', ChoiceType::class, [
                     'required' => false,
                     'mapped' => false,
                     'placeholder' => 'seleccione horario cortado',
                     'choices' => $this->horarios,
-                ]);
+                ])
+                ->add('domingodesde', ChoiceType::class, [
+                    'required' => false,
+                    'mapped' => false,
+                    'choice_attr' => function($choice, $key, $value) {
+                        if ($value == '08:00') {
+                            return ['selected' => 'selected'];
+                        } else {
+                            return [];
+                        }
+                    },
+                    'placeholder' => 'Desde',
+                    'choices' => $this->horarios,
+                ])
+                    ->add('domingohasta', ChoiceType::class, [
+                        'required' => false,
+                        'mapped' => false,
+                        'placeholder' => 'Hasta',
+                        'choice_attr' => function($choice, $key, $value) {
+                            if ($value == '18:00') {
+                                return ['selected' => 'selected'];
+                            } else {
+                                return [];
+                            }
+                        },
+                        'choices' => $this->horarios,
+                    ])
+                    ->add('ydomingodesde', ChoiceType::class, [
+                        'required' => false,
+                        'mapped' => false,
+                        'placeholder' => 'seleccione horario cortado',
+                        'choices' => $this->horarios,
+                    ])
+                    ->add('ydomingohasta', ChoiceType::class, [
+                        'required' => false,
+                        'mapped' => false,
+                        'placeholder' => 'seleccione horario cortado',
+                        'choices' => $this->horarios,
+                    ]);
 
 
             $builder->get('tipo')->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event) {
