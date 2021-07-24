@@ -56,6 +56,9 @@ security:
         - { path: ^/booking, roles: [ROLE_ADMIN] }
         - { path: ^/consumible, roles: [ROLE_ADMIN] }
         - { path: ^/staff/doctor/agenda/dia/, roles: [IS_AUTHENTICATED_FULLY] }
+        - { path: ^/staff/doctor/agenda/semana/, roles: [IS_AUTHENTICATED_FULLY] }
+        - { path: ^/staff/doctor/agenda/mes/, roles: [IS_AUTHENTICATED_FULLY] }
+        - { path: ^/staff/doctor/agenda/anteriores/, roles: [IS_AUTHENTICATED_FULLY] }
         - { path: ^/staff, roles: [ROLE_ADMIN] }
         - { path: ^/liquidaciones, roles: [ROLE_ADMIN] }
         # - { path: ^/profile, roles: ROLE_USER }
