@@ -193,7 +193,7 @@ class ConsumibleController extends AbstractController
     public function imputarView(Cliente $cliente, ConsumibleRepository $consumibleRepository, ConsumiblesClientesRepository $consumiblesClientesRepository): Response
     {
         $consumibles = $consumibleRepository->findAll();
-        $consumiblesMesAnterior = $consumiblesClientesRepository->findLastMes();
+        $consumiblesMesAnterior = $consumiblesClientesRepository->findConsumibleMesAnteriorParaElCliente($cliente->getId());
         $now = new \DateTime();
         $mes = $now->modify("+1 month")->format('m');
 

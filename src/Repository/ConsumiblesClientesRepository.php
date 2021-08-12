@@ -50,6 +50,22 @@ class ConsumiblesClientesRepository extends ServiceEntityRepository
             ;
     }
 
+    public function findConsumibleMesAnteriorParaElCliente($id)
+    {
+        $now = new \DateTime();
+        $mes = $now->modify("-1 month")->format('m');
+
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.mes = :mes')
+            ->setParameter('mes', $mes)
+            ->andWhere('c.clienteId = :cid')
+            ->setParameter('cid', $id)
+            ->orderBy('c.id', 'ASC')
+            ->getQuery()
+            ->getResult()
+            ;
+    }
+
     public function findByAccionAndClientId($id, $mes, $fecha, $accion = null)
     {
         $query = $this->createQueryBuilder('c')
