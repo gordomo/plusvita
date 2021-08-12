@@ -73,6 +73,7 @@
                 <th class="fecha">Fecha</th>
                 <th class="mes">Mes</th>
                 <th class="cantidad" style="text-align: right;">Cantidad</th>
+                <th class="accion" style="text-align: right;">Accion</th>
             </tr>
             </thead>
             <tbody>
@@ -90,6 +91,11 @@
                                 {{ dato.mes }}
                             </td>
                             <td style="text-align: right;" class="{{ dato.accion ? 'ingreso' : 'egreso' }} cantidad">{{ dato.cantidad }}</td>
+                            <td style="text-align: right;" class="accion">
+                                <a href="{{ path('borrar_consumible', {'id': dato.id, 'mes': mes}) }}">
+                                    <i class="fas fa-trash" title="borrar"></i>
+                                </a>
+                            </td>
                         </tr>
                     {% endif %}
                 {% endfor %}

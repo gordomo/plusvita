@@ -1,8 +1,34 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}Pacientes{% endblock %}
-{% block panelTitle %}Historia de {{ cliente.nombre }}{% endblock %}
+{% block panelTitle %}
+    <div class="small">
+        Nombre y Apellido: <small>{{ cliente.nombre }} {{ cliente.apellido }}</small><br>
+        DNI: <small>{{ cliente.dni }}</small><br>
+        Obra social: <small>{{ obraSociales[cliente.obraSocial] is defined ? obraSociales[cliente.obraSocial] : '' }}</small>
+    </div>
+{% endblock %}
 {% block body %}
+    <div class="row">
+        <div class="col-12">
+            <h2>Historia Clínica</h2>
+            <br>
+            <h4>Notas en Turnos</h4>
+        </div>
+    </div>
+
+    <table class="table table-responsive" style="display: inline-table">
+    {% for turno in notasTurnos %}
+        <tr style="background-color: #dee2e6">
+            <td>{{ turno.fecha ? turno.fecha|date('Y-m-d') : ''}}</td>
+        </tr>
+        {% for nota in turno.notas %}
+            <tr><td>{{ nota }}</td></tr>
+        {% endfor %}
+    {% endfor %}
+    </table>
+<br><br>
+<h4>Cambios</h4>
     <table class="table table-responsive table-striped">
         <thead>
         <tr>

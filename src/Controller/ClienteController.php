@@ -14,6 +14,7 @@ use App\Repository\ClienteRepository;
 use App\Repository\FamiliarExtraRepository;
 use App\Repository\HabitacionRepository;
 use App\Repository\HistoriaPacienteRepository;
+use App\Repository\NotasTurnoRepository;
 use App\Repository\ObraSocialRepository;
 use Doctrine\ORM\EntityManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -474,7 +475,7 @@ class ClienteController extends AbstractController
     /**
      * @Route("/{id}/historia", name="cliente_historial", methods={"GET"})
      */
-    public function historia(Cliente $cliente, HistoriaPacienteRepository $historiaPacienteRepository, ObraSocialRepository $obraSocialRepository): Response
+    public function historia(Cliente $cliente, HistoriaPacienteRepository $historiaPacienteRepository, ObraSocialRepository $obraSocialRepository, NotasTurnoRepository $notasTurnoRepository, BookingRepository $bookingRepository): Response
     {
         $historiaPaciente = $historiaPacienteRepository->findBy(['id_paciente' => $cliente->getId()]);
         $obrasSociales = $obraSocialRepository->findAll();
@@ -482,10 +483,28 @@ class ClienteController extends AbstractController
         foreach ($obrasSociales as $obraSocial) {
             $obraSocialesArray[$obraSocial->getId()] = $obraSocial->getNombre();
         }
+
+
+        $turnos = $bookingRepository->turnosConFiltro('', $cliente->getId(), '', '', 1);
+        $notasTurnos = [];
+        foreach ($turnos as $turno) {
+            $notas = $notasTurnoRepository->findBy(['turno' => $turno] );
+            if ( !empty($notas) ) {
+                $notasTurnos[$turno->getId()]['fecha'] = $turno->getBeginAt();
+                foreach ($notas as $nota ) {
+                    $notasTurnos[$turno->getId()]['notas'][$nota->getId()] = $nota->getText();
+                }
+
+            }
+
+        }
+
         return $this->render('cliente/historia.html.twig', [
                 'cliente' => $cliente,
                 'historiaPaciente' => $historiaPaciente,
-                'obraSociales' => $obraSocialesArray
+                'obraSociales' => $obraSocialesArray,
+                'paginaImprimible' => true,
+                'notasTurnos' => $notasTurnos,
         ]);
     }
 

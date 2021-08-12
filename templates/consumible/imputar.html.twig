@@ -41,7 +41,7 @@
         {% for consumibleMesAnterior in consumiblesMesAnterior  %}
             <div class="row">
                 <div class="col-sm">
-                    <select class="form-control " name="consumible[]" required="required">
+                    <select class="form-control predictivo" name="consumible[]" required="required">
                         {% for consumible in consumibles %}
                             <option value="{{ consumible.id }}" {% if consumible.id == consumibleMesAnterior.consumibleId %} selected {% endif %} data-unidades="{{ consumible.unidades }}">{{ consumible.nombre }}</option>
                         {% endfor %}

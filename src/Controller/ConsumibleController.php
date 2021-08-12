@@ -121,12 +121,13 @@ class ConsumibleController extends AbstractController
     /**
      * @Route("/{id}/addView", name="consumible_add_view", methods={"GET"})
      */
-    public function addView(Request $request, Consumible $consumible, ClienteRepository $clienteRepository): Response
+    public function addView(Request $request, Consumible $consumible, ClienteRepository $clienteRepository, TipoConsumibleRepository $tipoConsumibleRepository): Response
     {
         $clientes = $clienteRepository->findAllActivos(new \DateTime());
         return $this->render('consumible/add.html.twig', [
             'consumible' => $consumible,
             'clientes' => $clientes,
+            'tipoConsumibles' => $tipoConsumibleRepository->findAll(),
         ]);
     }
 
@@ -192,7 +193,7 @@ class ConsumibleController extends AbstractController
      */
     public function imputarView(Cliente $cliente, ConsumibleRepository $consumibleRepository, ConsumiblesClientesRepository $consumiblesClientesRepository): Response
     {
-        $consumibles = $consumibleRepository->findAll();
+        $consumibles = $consumibleRepository->findBy([], ['nombre' => 'ASC']);
         $consumiblesMesAnterior = $consumiblesClientesRepository->findConsumibleMesAnteriorParaElCliente($cliente->getId());
         $now = new \DateTime();
         $mes = $now->modify("+1 month")->format('m');
@@ -309,6 +310,21 @@ class ConsumibleController extends AbstractController
             'paginaImprimible' => true,
             'imputacion' => $fecha,
         ]);
+
+    }
+
+    /**
+     * @Route("/borrar/{id}", name="borrar_consumible", methods={"GET"})
+     */
+    public function borrarConsumible(ConsumiblesClientes $consumibleCliente, Request $request): Response
+    {
+        $clientId = $consumibleCliente->getClienteId();
+
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->remove($consumibleCliente);
+        $entityManager->flush();
+
+        return $this->redirectToRoute('consumible_historico', ['id' => $clientId, 'mes' => $request->get('mes')]);
 
     }
 
