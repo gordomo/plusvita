@@ -50,20 +50,49 @@ class ConsumiblesClientesRepository extends ServiceEntityRepository
             ;
     }
 
-    public function findConsumibleMesAnteriorParaElCliente($id)
+    public function findConsumibleMesAnteriorParaElCliente($id, $accion = null)
     {
         $now = new \DateTime();
         $mes = $now->modify("-1 month")->format('m');
 
-        return $this->createQueryBuilder('c')
+        $query = $this->createQueryBuilder('c')
             ->andWhere('c.mes = :mes')
             ->setParameter('mes', $mes)
             ->andWhere('c.clienteId = :cid')
-            ->setParameter('cid', $id)
-            ->orderBy('c.id', 'ASC')
-            ->getQuery()
-            ->getResult()
-            ;
+            ->setParameter('cid', $id);
+
+        if ( $accion !== null ) {
+            $query->andWhere('c.accion = :accion')
+                ->setParameter('accion', $accion);
+        }
+            return $query->orderBy('c.consumibleId', 'ASC')->getQuery()->getResult();
+    }
+
+    public function findIndicacionesParaElCliente($id)
+    {
+        $query = $this->createQueryBuilder('c')
+            ->where('c.mes is not null')
+            ->andWhere('c.clienteId = :cid')
+            ->setParameter('cid', $id);
+        $query->andWhere('c.accion = :accion')
+                ->setParameter('accion', '0');
+
+        return $query->orderBy('c.mes, c.consumibleId', 'ASC')->getQuery()->getResult();
+    }
+
+    public function findImputacionesMesConsumibleCliente($mes, $consumibleId, $cid)
+    {
+        $query = $this->createQueryBuilder('c')
+            ->andWhere('c.mes = :mes')
+            ->setParameter('mes', $mes)
+            ->andWhere('c.clienteId = :cid')
+            ->setParameter('cid', $cid)
+            ->andWhere('c.consumibleId = :consumibleId')
+            ->setParameter('consumibleId', $consumibleId)
+            ->andWhere('c.accion = :accion')
+            ->setParameter('accion', '1');
+
+        return $query->orderBy('c.consumibleId', 'ASC')->getQuery()->getResult();
     }
 
     public function findByAccionAndClientId($id, $mes, $fecha, $accion = null)

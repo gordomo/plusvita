@@ -8,118 +8,184 @@
     <a href="javascript:history.back()" class="btn-danger btn">Volver</a>
     <a href="{{ path('consumible_new') }}" class="btn-success btn">Nuevo Consumible</a>
     <a href="{{ path('cliente_index') }}" class="btn-info btn">Pacientes</a>
+    <a href="{{ path('consumible_indicar_view', {'id': cliente.id}) }}" class="btn-action btn">Cargar Indicaciones</a>
 {% endblock %}
 {% block body %}
-    <div class="floatingButtons">
-        <a id="agregarItem" class="btn btn-info">+</a>
-        <a id="eliminarItem" class="btn btn-warning">-</a>
-    </div>
-<form action="{{ path('consumible_imputar') }}" method="post" >
-    <input type="hidden" name="cliente" value="{{ cliente.id }}">
-    <div class="container-fluid" id="rowContainer">
-
-        <div class="row">
-            <div class="col-sm">
-                <label class="control-label required">Consumible:</label>
-            </div>
-            <div class="col-sm">
-                <label class="control-label required">Cantidad Mensual:</label>
-            </div>
-            <div class="col-sm desdeHasta">
-                <label class="control-label required">Mes:</label>
-            </div>
-            <div class="col-sm" style="padding-top: 5px;">
-            </div>
-            {#<div class="col-sm" style="display: flex;align-items: center;">
-                <span>Quedan: </span>
-                <span id="unidades"></span>
-            </div>#}
-            <div class="col-sm" style="padding-top: 5px;">
-            </div>
-        </div>
-        {% set rowCount = 0 %}
-        {% for consumibleMesAnterior in consumiblesMesAnterior  %}
-            <div class="row">
-                <div class="col-sm">
-                    <select class="form-control predictivo" name="consumible[]" required="required">
-                        {% for consumible in consumibles %}
-                            <option value="{{ consumible.id }}" {% if consumible.id == consumibleMesAnterior.consumibleId %} selected {% endif %} data-unidades="{{ consumible.unidades }}">{{ consumible.nombre }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-sm">
-                    <input class="form-control" type="number" value="{{ consumibleMesAnterior.cantidad }}" placeholder="Cantidad Diaria" name="cantidad[]" required>
-                </div>
-                <div class="col-sm mes">
-                    <select class="form-control" name="mes[]" required>
-                        {% for nombre, num in meses %}
-                            <option {%  if num == consumibleMesAnterior.mes %} selected {% endif %} value="{{ num }}">{{ nombre }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-sm noAgregar" style="padding-top: 5px;">
-                    <label class="checkcontainer red" style="display: inline-block; margin-right: 10px">Indicación
-                        <input type="radio" name="accion-{{ rowCount }}" required value="0" {% if consumibleMesAnterior.accion == 0 %} checked {% endif %}>
-                        <span class="checkmark"></span>
-                    </label>
-                    <label class="checkcontainer green" style="display: inline-block">Ingresa
-                        <input type="radio" name="accion-{{ rowCount }}" value="1" {% if consumibleMesAnterior.accion == 1 %} checked {% endif %}>
-                        <span class="checkmark"></span>
-                    </label>
-                </div>
-                {#<div class="col-sm" style="display: flex;align-items: center;">
+    <table class="table table-striped" id="rowContainer">
+        <thead>
+            <tr>
+                <th colspan="4">
+                    Indicaciones Cargadas
+                </th>
+            </tr>
+            <tr>
+                <th>
+                    Consumible
+                </th>
+                <th>
+                    Cantidad Mensual
+                </th>
+                <th>
+                    Mes
+                </th>
+                <th>
+                    Ya Imputadas
+                </th>
+                <th>
+                    Restan
+                </th>
+                <th>
+                    Acciones
+                </th>
+                    {#<div class="col-sm" style="padding-top: 5px;">
+                    </div>#}
+                    {#<div class="col-sm" style="display: flex;align-items: center;">
                         <span>Quedan: </span>
                         <span id="unidades"></span>
                     </div>#}
-                <div class="col-sm noAgregar" style="padding-top: 5px;">
-
-                </div>
-            </div>
-            {% set rowCount = rowCount + 1 %}
-        {% endfor %}
-            <div class="row" id="rowOriginal">
-                <div class="col-sm">
-                    <select class="form-control " name="consumible[]" required="required">
+            </tr>
+        </thead>
+        <tbody>
+        {% set rowCount = 0 %}
+        {% for indicacionCargada in indicacionesCargadas  %}
+            {% if (indicacionCargada.accion is same as (0))  %}
+                <tr class="row-{{ rowCount }}" style="line-height: 30px;">
+                    <td>
                         {% for consumible in consumibles %}
-                            <option value="{{ consumible.id }}" data-unidades="{{ consumible.unidades }}">{{ consumible.nombre }}</option>
+                            {% if consumible.id == indicacionCargada.consumibleId %} {{ consumible.nombre }} {% endif %}
                         {% endfor %}
-                    </select>
-                </div>
-                <div class="col-sm">
-                    <input class="form-control" type="number" placeholder="Cantidad" name="cantidad[]" required>
-                </div>
-                <div class="col-sm mes">
-                    <select class="form-control" name="mes[]" required>
+                    </td>
+                    <td>
+                        {{ indicacionCargada.cantidad }}
+                    </td>
+                    <td class="mes">
                         {% for nombre, num in meses %}
-                            <option {%  if num == mes %} selected {% endif %} value="{{ num }}">{{ nombre }}</option>
+                            {%  if num == indicacionCargada.mes %} {{ nombre }} {% endif %}
                         {% endfor %}
-                    </select>
-                </div>
-                <div class="col-sm noAgregar" style="padding-top: 5px;">
-                    <label class="checkcontainer red" style="display: inline-block; margin-right: 10px">Indicación
-                        <input type="radio" checked name="accion-{{ rowCount }}" required value="0">
-                        <span class="checkmark"></span>
-                    </label>
-                    <label class="checkcontainer green" style="display: inline-block">Ingresa
-                        <input type="radio" name="accion-{{ rowCount }}">
-                        <span class="checkmark"></span>
-                    </label>
-                </div>
-                {#<div class="col-sm" style="display: flex;align-items: center;">
-                    <span>Quedan: </span>
-                    <span id="unidades"></span>
-                </div>#}
-                <div class="col-sm noAgregar" style="padding-top: 5px;">
-                    <button type="submit" class="btn btn-success">Imputar</button>
-                </div>
-            </div>
-    </div>
-</form>
+
+                    </td>
+                    <td style="text-align: center" class="yaImputadas" id="imputadas-{{ indicacionCargada.id }}" data-cantidad="{{ indicacionCargada.cantidad }}" data-id="{{ indicacionCargada.id }}" data-mes="{{ indicacionCargada.mes }}" data-consumible="{{ indicacionCargada.consumibleId }}" data-cliente="{{ indicacionCargada.clienteId }}">
+                        <img src="{{ asset('assets/images/loading.gif') }}" style="width: 35px;">
+                    </td>
+                    <td style="text-align: center" class="total" id="total-{{ indicacionCargada.id }}">
+                        <img src="{{ asset('assets/images/loading.gif') }}" style="width: 35px;">
+                    </td>
+                    {#<div class="col-sm noAgregar" style="padding-top: 5px;">
+                        <label class="checkcontainer red" style="display: inline-block; margin-right: 10px">Indicación
+                            <input type="radio" name="accion-{{ rowCount }}"  required value="0" {% if indicacionCargada.accion == 0 %} checked {% endif %}>
+                            <span class="checkmark"></span>
+                        </label>
+                        <label class="checkcontainer green" style="display: inline-block">Ingresa
+                            <input type="radio" name="accion-{{ rowCount }}" id="accion-{{ rowCount }}" value="1" {% if indicacionCargada.accion == 1 %} checked {% endif %}>
+                            <span class="checkmark"></span>
+                        </label>
+                    </div>#}
+                    {#<div class="col-sm" style="display: flex;align-items: center;">
+                            <span>Quedan: </span>
+                            <span id="unidades"></span>
+                        </div>#}
+                    <td id="botones-{{ rowCount }}" class="noAgregar row" >
+                        <button class="btn btn-success guardarIndividual"
+                                data-row="{{ rowCount }}"
+                                data-mes="{{ indicacionCargada.mes }}"
+                                data-consumible-id="{{ indicacionCargada.consumibleId }}">Imputar</button>
+                        <input type="number" class="form-control col-sm-7" style="margin-left: 5px; margin-right: 5px" id="cantidad-{{ rowCount }}">
+                        {% for consumible in consumibles %}
+                            {% if consumible.id == indicacionCargada.consumibleId %} <label for="cantidad-{{ rowCount }}">{{ consumible.unidades }} </label>{% endif %}
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% set rowCount = rowCount + 1 %}
+            {% endif %}
+        {% endfor %}
+        </tbody>
+    </table>
+
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
     <script src="{{ asset('assets/js/consumibles.js') }}"></script>
     <script>
+        /*$(document).on('change', '.selectConsumible', function() {
+            var consumibleId = $(this).val();
+            var row = $(this).data('row');
+            $('#botonGuardar-'+row).data('consumible-id', consumibleId);
+        });
+
+        $(document).on('change', '.mes', function() {
+            var mes = $(this).val();
+            var row = $(this).data('row');
+            $('#botonGuardar-'+row).data('mes', mes);
+        });*/
+
+        $(document).on( 'click', '.guardarIndividual', function() {
+            var rowCount = $(this).data('row');
+            var cantidad = $('#cantidad-' + rowCount).val();
+
+            if (!isNaN(cantidad) && cantidad > 0) {
+
+                $.ajax({
+                    url: '{{ path('consumible_imputar') }}',
+                    data: {
+                        'cliente': {{ cliente.id }},
+                        'consumibleId': $(this).data('consumible-id'),
+                        'cantidad': $('#cantidad-' + rowCount).val(),
+                        'mes': $(this).data('mes'),
+                        'accion': 1,
+                        'isAjax': true,
+                    },
+                    success: function (response) {
+                        if (response.error) {
+                            alert('error: ' + response.message);
+                        } else {
+                            cargarImputaciones();
+                        }
+                    }
+                });
+            } else {
+                alert("Debe indicar una cantidad válidad")
+            }
+            return false;
+        } );
+
+        function cargarImputaciones() {
+            $('.yaImputadas').each(function () {
+                var mes = $(this).data('mes');
+                var consumibleId = $(this).data('consumible');
+                var cid = $(this).data('cliente');
+                var id = $(this).data('id');
+                var cantidad = $(this).data('cantidad');
+
+                $.ajax({
+                    url: '{{ path('consumible_imputar_view_get_imputaciones') }}',
+                    data: {
+                        'cid': cid,
+                        'consumibleId': consumibleId,
+                        'mes': mes,
+                    },
+                    success: function (response) {
+                        if (response.error) {
+                            alert('error: ' + response.message);
+                        } else {
+                           $('#imputadas-'+id).html(response);
+                           let total = cantidad - response;
+                           $('#total-'+id).html(total);
+
+
+
+                        }
+                    }
+                });
+
+            });
+
+        }
+        $( document ).ready(function () {
+            cargarImputaciones();
+
+        });
+
+
        /* $( document ).ready(function () {
             $('input[type="date"]').each(function() {
                 var fecha = $(this).val();

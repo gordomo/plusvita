@@ -87,28 +87,47 @@ if (consume !== null) {
     })
 }
 
-let rowCount = $('#rowContainer').find('.row').length - 2;
+let rowCount = $('#tabla-imputar tr').length - 1;
 $('#agregarItem').click(function () {
+    let rowOriginal = $('#rowOriginal');
     let html = '';
     rowCount ++;
-    console.log(rowCount);
-    $('#rowOriginal div:not(.noAgregar)').each(function() {
-        html += ' <div class="col-sm">' + $(this).html() + '</div>';
-    })
-    html += ' <div class="col-sm">';
+        html += '<tr class="row-'+rowCount+'" data-row="'+ rowCount + '">' +
+                    '<td>' +
+                        '<select class="form-control predictivo" id="consumible-'+ rowCount +'">';
+        html += rowOriginal.find('.selectConsumible').html();
+        html += '       </select>' +
+                    '</td>';
 
-    html += '<div className="col-sm noAgregar" style="padding-top: 5px;"><label class="checkcontainer red" style="display: inline-block; margin-right: 15px">Indicación<input type="radio" checked name="accion-'+rowCount+'" required value="0"><span class="checkmark"></span></label><label class="checkcontainer green" style="display: inline-block" value="1">Ingresa<input type="radio" name="accion-'+rowCount+'"><span class="checkmark"></span></label></div>'
+        html += '<td><input class="form-control" type="number" placeholder="Cantidad" id="cantidad-'+ rowCount +'"></td>';
 
-    html += ' </div><div class="col-sm"></div>';
+        html += '<td><select class="form-control" id="mes-'+rowCount+'">';
+        html += rowOriginal.find('.mes').html();
+        html += '</select></td>';
 
-    let newDiv = '<div class="row">' +  html  + '</div>';
-    $('#rowContainer').append(newDiv);
+        $('#tabla-imputar').append(html);
+
+
+    //$('.predictivo').chosen();
 });
 
 $('#eliminarItem').click(function () {
-    if ($('#rowContainer .row:not(#rowOriginal)').length > 1) {
+    let rows = $('#tabla-imputar tr:not(#rowOriginal, .indicacionesMesAnterior)');
+    if (rows.length > 0) {
         rowCount --;
         console.log(rowCount);
-        $('#rowContainer .row:not(#rowOriginal)').last().remove();
+        rows.last().remove();
     }
 });
+
+$('#verIndMesAnt').click(function () {
+    $('.indicacionesMesAnterior').show();
+    $('#verIndMesAnt').hide();
+    $('#ocultarIndMesAnt').show();
+})
+
+$('#ocultarIndMesAnt').click(function () {
+    $('.indicacionesMesAnterior').hide();
+    $('#verIndMesAnt').show();
+    $('#ocultarIndMesAnt').hide();
+})

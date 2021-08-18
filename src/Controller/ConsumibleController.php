@@ -191,18 +191,59 @@ class ConsumibleController extends AbstractController
     /**
      * @Route("/imputar-view/{id}", name="consumible_imputar_view", methods={"GET"})
      */
-    public function imputarView(Cliente $cliente, ConsumibleRepository $consumibleRepository, ConsumiblesClientesRepository $consumiblesClientesRepository): Response
+    public function imputarView(Request $request, Cliente $cliente, ConsumibleRepository $consumibleRepository, ConsumiblesClientesRepository $consumiblesClientesRepository): Response
     {
         $consumibles = $consumibleRepository->findBy([], ['nombre' => 'ASC']);
-        $consumiblesMesAnterior = $consumiblesClientesRepository->findConsumibleMesAnteriorParaElCliente($cliente->getId());
+        $indicacionesCargadas = $consumiblesClientesRepository->findIndicacionesParaElCliente($cliente->getId());
+
         $now = new \DateTime();
         $mes = $now->modify("+1 month")->format('m');
 
         return $this->render('consumible/imputar.html.twig', [
             'cliente' => $cliente,
             'consumibles' => $consumibles,
-            'consumiblesMesAnterior' => $consumiblesMesAnterior,
+            'indicacionesCargadas' => $indicacionesCargadas,
             'mes' => $mes,
+            'meses' => ['Enero' => '01', 'Febrero' => '02', 'Marzo' => '03', 'Abril' => 04, 'Mayo' => '05', 'Junio' => '06', 'Julio' => '07', 'Agosto' => '08', 'Septiembre' => '09', 'Octubre' => '10', 'Noviembre' => '11', 'Diciembre' => '12', ]
+        ]);
+    }
+
+    /**
+     * @Route("/imputar-view/acciones/get-imputaciones/", name="consumible_imputar_view_get_imputaciones", methods={"GET"})
+     */
+    public function imputarViewGetImputaciones(Request $request, ConsumiblesClientesRepository $consumiblesClientesRepository): Response
+    {
+        $mes = $request->query->get('mes');
+        $consumibleId = $request->query->get('consumibleId');
+        $cid = $request->query->get('cid');
+
+        $indicacionesCargadas = $consumiblesClientesRepository->findImputacionesMesConsumibleCliente($mes, $consumibleId, $cid);
+
+        $cant = 0;
+
+        foreach ($indicacionesCargadas as $indicacion) {
+            $cant += $indicacion->getCantidad();
+        }
+
+
+        return new JsonResponse($cant);
+    }
+
+    /**
+     * @Route("/indicar_view/{id}", name="consumible_indicar_view", methods={"GET"})
+     */
+    public function indicarView(Cliente $cliente, ConsumibleRepository $consumibleRepository, ConsumiblesClientesRepository $consumiblesClientesRepository): Response
+    {
+        $consumibles = $consumibleRepository->findBy([], ['nombre' => 'ASC']);
+        $indicacionesCargadas = $consumiblesClientesRepository->findConsumibleMesAnteriorParaElCliente($cliente->getId(), 0);
+        $now = new \DateTime();
+        $mes = $now->format('m');
+
+        return $this->render('consumible/indicar.html.twig', [
+            'cliente' => $cliente,
+            'consumibles' => $consumibles,
+            'mes' => $mes,
+            'indicacionesCargadas' => $indicacionesCargadas,
             'meses' => ['Enero' => '01', 'Febrero' => '02', 'Marzo' => '03', 'Abril' => 04, 'Mayo' => '05', 'Junio' => '06', 'Julio' => '07', 'Agosto' => '08', 'Septiembre' => '09', 'Octubre' => '10', 'Noviembre' => '11', 'Diciembre' => '12', ]
         ]);
     }
@@ -218,26 +259,25 @@ class ConsumibleController extends AbstractController
 
 
     /**
-     * @Route("/imputar", name="consumible_imputar", methods={"POST"})
+     * @Route("/acciones/imputar", name="consumible_imputar", methods={"GET"})
      */
     public function imputar(Request $request, ConsumibleRepository $consumibleRepository): Response
     {
         $clienteId = $request->get('cliente');
-        $consumibleIds = $request->get('consumible');
-
-        $cantidades = $request->get('cantidad');
+        $consumibleId = $request->get('consumibleId');
+        $cantidad = $request->get('cantidad');
+        $accion = $request->get('accion');
         $mes = $request->get('mes', '');
+        $isAjax = $request->get('isAjax', false);
+        $error = false;
+        $message = 'ok';
 
         if ($mes == '') {
             $now = new \DateTime();
-            $mes = $now->modify("+1 month")->format('m');
         }
 
-        foreach ($consumibleIds as $key => $consumibleId) {
-            $accion = ($request->get('accion-'.$key, 0) !== "0") ? 1 : 0;
+        try {
             $consumible = $consumibleRepository->find($consumibleId);
-
-            $cantidad = $cantidades[$key];
 
             //$existenciaActual = $consumible->getExistencia();
             /*if ($cantidad <= $existenciaActual) {
@@ -246,7 +286,7 @@ class ConsumibleController extends AbstractController
 
             $consumiblesClientesHistorico = new ConsumiblesClientes();
             $consumiblesClientesHistorico->setFecha(new \DateTime);
-            $consumiblesClientesHistorico->setMes($mes[$key]);
+            $consumiblesClientesHistorico->setMes($mes);
             $consumiblesClientesHistorico->setAccion($accion);
             $consumiblesClientesHistorico->setCantidad($cantidad);
             $consumiblesClientesHistorico->setClienteId($clienteId);
@@ -256,10 +296,16 @@ class ConsumibleController extends AbstractController
             $entityManager->persist($consumiblesClientesHistorico);
             $entityManager->persist($consumible);
             $entityManager->flush();
+
+        } catch (\Exception $e) {
+            $error = true;
+            $message = $e->getMessage();
         }
-
-        return $this->redirectToRoute('consumible_historico', ['id' => $clienteId]);
-
+        if($isAjax) {
+            return new JsonResponse(['error' => $error, 'message' => $message]);
+        } else {
+            return $this->redirectToRoute('consumible_historico', ['id' => $clienteId]);
+        }
     }
 
     /**

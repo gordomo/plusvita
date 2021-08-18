@@ -1,12 +1,13 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}Consumibles Historico{% endblock %}
-{% block panelTitle %}Consumos de <span style="text-transform: capitalize">{{ cliente.nombre }}</span>
+{% block panelTitle %}Consumos de <span style="text-transform: capitalize">{{ cliente.nombre }} {{ cliente.apellido }}</span>
 {% endblock %}
 {% block titleButtons %}
     <a href="javascript:history.back();" class="btn btn-danger">Volver</a>
     <a href="{{ path('consumible_new') }}" class="btn-success btn">Nuevo Consumible</a>
     <a href="{{ path('consumible_imputar_view', {'id': cliente.id}) }}" class="btn-info btn">Imputar</a>
+    <a href="{{ path('consumible_indicar_view', {'id': cliente.id}) }}" class="btn-action btn">Cargar Indicaciones</a>
 {% endblock %}
 {% block body %}
     <div class="container-fluid">
@@ -26,7 +27,7 @@
                     </ul>
                 </div>
             </div>
-            <div class="col-sm-6 text-right">
+            <div class="col-sm-5 text-right">
                 <div class="form-row">
                     <div class="col-sm">
                         <label class="control-label">Imputación:</label>
@@ -52,11 +53,11 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-sm-1 text-left">
+            <div class="col-sm-2 text-left">
                 <a class="btn btn-outline-secondary" data-url="{{ path('consumible_historico', {'id': cliente.id}) }}?pestana={{ pestana }}" data-todos="{{ pestana == 'todos' }}" type="button" id="buscar" style="padding: 10px;">
                     <i class="fas fa-search"></i>
                 </a>
-                <a class="btn btn-outline-secondary" href="{{ path('consumible_historico', {'id': cliente.id}) }}" type="button" style="padding: 10px;">
+                <a class="btn btn-outline-secondary" href="{{ path('consumible_historico', {'id': cliente.id}) }}" type="button" style="padding: 6px 10px;">
                     Todos
                 </a>
             </div>
@@ -169,10 +170,10 @@
             clases.forEach(element => {
                 var subtotal = 0;
                 $('.'+element).each(function() {
-                    if($(this).find('td:last-child').hasClass('egreso')) {
-                        subtotal -= parseFloat($(this).find('td:last-child').html());
-                    } else if ($(this).find('td:last-child').hasClass('ingreso')) {
-                        subtotal += parseFloat($(this).find('td:last-child').html());
+                    if($(this).find('.cantidad').hasClass('egreso')) {
+                        subtotal -= parseFloat($(this).find('.cantidad').html());
+                    } else if ($(this).find('.cantidad').hasClass('ingreso')) {
+                        subtotal += parseFloat($(this).find('.cantidad').html());
                     }
                 })
                 $('.'+element).last().after('<tr class="totales"><td colspan="7" class="totales" style="text-align: right; border-top: 1px solid black; border-bottom: 1px solid black;">Total: '+subtotal+'</td></tr>');

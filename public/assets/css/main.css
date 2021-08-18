@@ -25,6 +25,8 @@
 .btn-action {
     display: inline-block;
     vertical-align: top;
+    background-color: #999;
+    color: white;
 }
 
 .form-group .control-label.required:after {
@@ -331,6 +333,7 @@ select:invalid[multiple] {
     position: absolute;
     right: 20px;
     bottom: 10px;
+    z-index: 9999999999;
 }
 .btn-info, .btn-warning {
     color: white !important;
@@ -341,6 +344,17 @@ select:invalid[multiple] {
 }
 .red.checkcontainer input:checked ~ .checkmark {
     background-color: #bb0000 !important;
+}
+
+.indicacionesMesAnterior, #ocultarIndMesAnt {
+    display: none;
+}
+
+#tabla-imputar .error {
+    background-color: red;
+}
+#tabla-imputar .guardada {
+    background-color: #2ea790;
 }
 
 /*      #60b9b9     #b088be
