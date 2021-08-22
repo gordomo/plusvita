@@ -309,6 +309,49 @@ class ConsumibleController extends AbstractController
     }
 
     /**
+     * @Route("/acciones/update/consumible-cliente", name="update_consumible_cliente", methods={"GET"})
+     */
+    public function updateConsumibleCliente(Request $request, ConsumiblesClientesRepository $consumiblesClientesRepository): Response
+    {
+        $fecha = new \DateTime($request->get('fecha'));
+        $consumibleId = $request->get('cid');
+        $consumible = $request->get('consumible');
+        $cantidad = $request->get('cantidad');
+        $accion = $request->get('accion');
+        $mes = $request->get('mes', '');
+
+        $error = false;
+        $message = 'ok';
+
+
+        try {
+            $consumiblesClientesHistorico = $consumiblesClientesRepository->find($consumibleId);
+
+            //$existenciaActual = $consumible->getExistencia();
+            /*if ($cantidad <= $existenciaActual) {
+                $consumible->setExistencia($existenciaActual - $cantidad);
+            }*/
+
+            $consumiblesClientesHistorico->setFecha($fecha);
+            $consumiblesClientesHistorico->setMes($mes);
+            $consumiblesClientesHistorico->setAccion($accion);
+            $consumiblesClientesHistorico->setCantidad($cantidad);
+            $consumiblesClientesHistorico->setConsumibleId($consumible);
+
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($consumiblesClientesHistorico);
+            $entityManager->flush();
+
+        } catch (\Exception $e) {
+            $error = true;
+            $message = $e->getMessage();
+        }
+
+        return new JsonResponse(['error' => $error, 'message' => $message]);
+
+    }
+
+    /**
      * @Route("/historico/{id}", name="consumible_historico", methods={"GET"})
      */
     public function historico($id,

@@ -19,7 +19,7 @@
                             <a class="nav-link {{  pestana == 'todos' ? 'active' : ''  }}" href="{{ path('consumible_historico', {'id': cliente.id}) }}">Todos</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{  pestana == 'ingresos' ? 'active' : ''  }}" href="{{ path('consumible_historico', {'id': cliente.id}) }}?pestana=ingresos">Ingresos</a>
+                            <a class="nav-link {{  pestana == 'imputacion' ? 'active' : ''  }}" href="{{ path('consumible_historico', {'id': cliente.id}) }}?pestana=imputacion">Imputaciones</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {{  pestana == 'egresos' ? 'active' : ''  }}" href="{{ path('consumible_historico', {'id': cliente.id}) }}?pestana=egresos">Indicaciones</a>
@@ -68,32 +68,88 @@
         <table class="table">
             <thead>
             <tr>
-                <th class="consumo">Consumo</th>
-                <th class="accion">Acción</th>
-                <th class="tipo">Tipo</th>
-                <th class="fecha">Fecha</th>
-                <th class="mes">Mes</th>
-                <th class="cantidad" style="text-align: right;">Cantidad</th>
-                <th class="accion" style="text-align: right;">Accion</th>
+                <th class="consumo col-sm-2">Consumible</th>
+                <th class="accion col-sm-2">Acción</th>
+                <th class="tipo col-sm-2">Tipo</th>
+                <th class="fecha col-sm-2">Fecha</th>
+                <th class="mes col-sm-2">Mes</th>
+                <th class="cantidad col-sm-1">Cantidad</th>
+                <th class="accion col-sm-1">Accion</th>
             </tr>
             </thead>
             <tbody>
-                {% for dato in consumiblesClientes %}
+                {% for key, dato in consumiblesClientes %}
                     {% if consumibles[dato.consumibleId] is defined %}
-                        <tr class="consumible-{{ dato.consumibleId }}">
-                            <td class="consumo">{{ consumibles[dato.consumibleId] ? consumibles[dato.consumibleId].nombre }}</td>
-                            <td class="accion">{{ dato.accion ? 'ingreso' : 'indicacion' }}</td>
-                            <td class="tipo">{{ consumibles[dato.consumibleId].tipo ? consumibles[dato.consumibleId].tipo.nombre }}</td>
-
+                        <tr class="consumible-{{ key }} editar consumible ">
+                            <td class="consumo">
+                                <select class="form-control" id="consumible-{{ key }}">
+                                    {% for consumible in consumibles %}
+                                        <option {%  if consumible.id == dato.consumibleId %} selected {% endif %} value="{{ consumible.id }}">{{ consumible.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td class="accion">
+                                <select class="form-control" id="accion-{{ key }}">
+                                    {% for accion in ['0', '1'] %}
+                                        <option {%  if accion == dato.accion %} selected {% endif %} value="{{ accion }}">{{ accion ? 'Inputación' : 'Indicacion' }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td class="tipo">
+                                <select class="form-control" id="tipo-{{ key }}" readonly="true" disabled>
+                                    {% for tipo in tipos %}
+                                        <option {%  if ((consumibles[dato.consumibleId].tipo) and (tipo.id == consumibles[dato.consumibleId].tipo.id)) %} selected {% endif %} value="{{ tipo.id }}">{{ tipo.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td class="fecha">
+                                <input class="form-control" id='fecha-{{ key }}' type="date" value="{{ dato.fecha ? dato.fecha|date('Y-m-d') : ''}}">
+                            </td>
+                            <td class="mes">
+                                <select class="form-control" id="mes-{{ key }}">
+                                    {% for nombre, num in meses %}
+                                        <option {%  if num == mes %} selected {% endif %} value="{{ num }}">{{ nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td class="cantidad">
+                                <input class="form-control" id='cantidad-{{ key }}' type="number" value="{{ dato.cantidad }}">
+                            </td>
+                            <td style="vertical-align: middle;" class="acciones">
+                                <a href="#" class="editar" data-id="{{ key }}">
+                                    <i class="fas fa-edit" title="editar"></i>
+                                </a>
+                                <a href="#" class="guardar" data-id="{{ key }}" data-cid="{{ dato.id }}" style="margin: 0 5px;">
+                                    <i class="fas fa-save" title="guardar"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr class="consumible-{{ key }} dato consumible {%  if dato.accion == 1 %} imputacion {% endif %}">
+                            <td class="consumo">
+                                {{ consumibles[dato.consumibleId].nombre }}
+                            </td>
+                            <td class="accion">
+                                {{ dato.accion ? 'imputacion' : 'indicacion' }}
+                            </td>
+                            <td class="tipo">
+                                {{ consumibles[dato.consumibleId].tipo ? consumibles[dato.consumibleId].tipo.nombre }}
+                            </td>
                             <td class="fecha">
                                 {{ dato.fecha ? dato.fecha|date('Y-m-d') : ''}}
                             </td>
                             <td class="mes">
-                                {{ dato.mes }}
+                                {% for nombre, num in meses %}
+                                {%  if num == mes %} {{ nombre }} {% endif %}
+                                {% endfor %}
                             </td>
-                            <td style="text-align: right;" class="{{ dato.accion ? 'ingreso' : 'egreso' }} cantidad">{{ dato.cantidad }}</td>
-                            <td style="text-align: right;" class="accion">
-                                <a href="{{ path('borrar_consumible', {'id': dato.id, 'mes': mes}) }}">
+                            <td class="{{ dato.accion ? 'ingreso' : 'egreso' }} cantidad">
+                                {{ dato.cantidad }}
+                            </td>
+                            <td class="acciones">
+                                <a href="#" class="editar" data-id="{{ key }}">
+                                    <i class="fas fa-edit" title="editar"></i>
+                                </a>
+                                <a href="{{ path('borrar_consumible', {'id': dato.id, 'mes': mes}) }}" style="margin: 0 5px;">
                                     <i class="fas fa-trash" title="borrar"></i>
                                 </a>
                             </td>
@@ -179,6 +235,69 @@
                 $('.'+element).last().after('<tr class="totales"><td colspan="7" class="totales" style="text-align: right; border-top: 1px solid black; border-bottom: 1px solid black;">Total: '+subtotal+'</td></tr>');
             });
         });
+
+        $('.editar').click(function () {
+            let id = $(this).data('id');
+            $('.editar.consumible-'+id).toggle();
+            $('.dato.consumible-'+id).toggle();
+        });
+
+        $(".guardar").on( 'click', function() {
+
+            $(this).removeClass('error');
+
+            let cid = $(this).data('cid');
+            let id = $(this).data('id');
+            let cantidad = $('#cantidad-' + id).val();
+            let fecha = $('#fecha-' + id).val();
+            let mes = $('#mes-' + id).val();
+            let consumible = $('#consumible-' + id).val();
+            let accion = $('#accion-' + id).val();
+            let tipo = $('#tipo-' + id).val();
+
+                if (!isNaN(cantidad) && cantidad > 0 && consumible !== '' && tipo !== '') {
+                    $.ajax({
+                        url: '{{ path('update_consumible_cliente') }}',
+                        data: {
+                            'cid': cid,
+                            'cantidad': cantidad,
+                            'consumible': consumible,
+                            'mes': mes,
+                            'accion': accion,
+                            'fecha': fecha,
+                            'tipo': tipo,
+                        },
+                        success: function (response) {
+                            if (response.error) {
+                                alert('error: ' + response.message);
+                                $(this).addClass('error');
+                            } else {
+                                var row = $('.dato.consumible-'+id);
+                                row.find('.consumo').html($('#consumible-'+id+' option:selected').text())
+                                row.find('.accion').html($('#accion-'+id+' option:selected').text())
+                                row.find('.fecha').html($('#fecha-'+id).val())
+                                row.find('.mes').html($('#mes-'+id+' option:selected').text())
+                                row.find('.cantidad').html($('#cantidad-'+id).val())
+                                row.removeClass('imputacion');
+                                row.find('.cantidad').removeClass('ingreso');
+                                row.find('.cantidad').removeClass('egreso');
+
+                                if( accion == 1) {
+                                    row.addClass('imputacion');
+                                    row.find('.cantidad').addClass('ingreso');
+                                } else {
+                                    row.find('.cantidad').addClass('egreso');
+                                }
+                                $('.editar.consumible-'+id).toggle();
+                                row.toggle();
+                            }
+                        }
+                    });
+                } else if (!$(this).hasClass('rowOriginal')) {
+                    $(this).addClass('error');
+                    alert("Existe un error en la linea con fondo rojo");
+                }
+            } );
     </script>
 
 

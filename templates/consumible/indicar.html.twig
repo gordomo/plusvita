@@ -54,11 +54,14 @@
                             <input class="form-control" type="number" placeholder="Cantidad" id="cantidad-{{ rowCount }}" value="{{ indicacionCargada.cantidad }}">
                         </td>
                         <td class="mes">
-                            <select class="form-control mes" id="mes-{{ rowCount }}" data-row="{{ rowCount }}">
+                            <select class="form-control mes col-sm-10" id="mes-{{ rowCount }}" data-row="{{ rowCount }}" style="display: inline;">
                             {% for nombre, num in meses %}
                                 <option {%  if num == mes %} selected {% endif %} value="{{ num }}">{{ nombre }}</option>
                             {% endfor %}
                             </select>
+                            <a href="#" class="borrar-row col-sm-2" data-row="{{ rowCount }}">
+                                <i class="fas fa-trash" title="borrar"></i>
+                            </a>
                         </td>
                     </tr>
                     {% set rowCount = rowCount + 1 %}
@@ -100,6 +103,13 @@
     <script src="{{ asset('assets/js/consumibles.js') }}"></script>
 
     <script>
+        $('.borrar-row').click(function (e) {
+            e.preventDefault();
+            let row = $(this).data('row');
+            console.log(row);
+            $('.row-'+row).hide();
+        });
+
         $("#guardar").on( 'click', function() {
 
             let rows = $('#tabla-imputar tr:visible').not('guardada');

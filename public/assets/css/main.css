@@ -356,6 +356,16 @@ select:invalid[multiple] {
 #tabla-imputar .guardada {
     background-color: #2ea790;
 }
+.consumible.editar {
+    display: none;
+}
+
+.dato.consumible.imputacion {
+    background-color: #00800017;
+}
+.dato.consumible {
+    background-color: #ff000024;
+}
 
 /*      #60b9b9     #b088be
 table {
