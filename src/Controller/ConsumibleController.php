@@ -375,7 +375,7 @@ class ConsumibleController extends AbstractController
         foreach ($consumibles as $consumible) {
             $consumibleArray[$consumible->getId()] = $consumible;
         }
-        $accion = ($pestana === 'todos') ? null : (($pestana === 'ingresos') ? 1 : 0);
+        $accion = ($pestana === 'todos') ? null : (($pestana === 'imputaciones') ? 1 : 0);
 
         $mes = $request->get('mes', '');
         if ($mes == '') {
