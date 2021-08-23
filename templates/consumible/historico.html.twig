@@ -81,41 +81,41 @@
                 {% for key, dato in consumiblesClientes %}
                     {% if consumibles[dato.consumibleId] is defined %}
                         <tr class="consumible-{{ key }} editar consumible ">
-                            <td class="consumo">
+                            <td >
                                 <select class="form-control" id="consumible-{{ key }}">
                                     {% for consumible in consumibles %}
                                         <option {%  if consumible.id == dato.consumibleId %} selected {% endif %} value="{{ consumible.id }}">{{ consumible.nombre }}</option>
                                     {% endfor %}
                                 </select>
                             </td>
-                            <td class="accion">
+                            <td >
                                 <select class="form-control" id="accion-{{ key }}">
                                     {% for accion in ['0', '1'] %}
                                         <option {%  if accion == dato.accion %} selected {% endif %} value="{{ accion }}">{{ accion ? 'Inputación' : 'Indicacion' }}</option>
                                     {% endfor %}
                                 </select>
                             </td>
-                            <td class="tipo">
+                            <td >
                                 <select class="form-control" id="tipo-{{ key }}" readonly="true" disabled>
                                     {% for tipo in tipos %}
                                         <option {%  if ((consumibles[dato.consumibleId].tipo) and (tipo.id == consumibles[dato.consumibleId].tipo.id)) %} selected {% endif %} value="{{ tipo.id }}">{{ tipo.nombre }}</option>
                                     {% endfor %}
                                 </select>
                             </td>
-                            <td class="fecha">
+                            <td >
                                 <input class="form-control" id='fecha-{{ key }}' type="date" value="{{ dato.fecha ? dato.fecha|date('Y-m-d') : ''}}">
                             </td>
-                            <td class="mes">
+                            <td >
                                 <select class="form-control" id="mes-{{ key }}">
                                     {% for nombre, num in meses %}
                                         <option {%  if num == mes %} selected {% endif %} value="{{ num }}">{{ nombre }}</option>
                                     {% endfor %}
                                 </select>
                             </td>
-                            <td class="cantidad">
+                            <td >
                                 <input class="form-control" id='cantidad-{{ key }}' type="number" value="{{ dato.cantidad }}">
                             </td>
-                            <td style="vertical-align: middle;" class="acciones">
+                            <td style="vertical-align: middle;" >
                                 <a href="#" class="editar" data-id="{{ key }}">
                                     <i class="fas fa-edit" title="editar"></i>
                                 </a>
