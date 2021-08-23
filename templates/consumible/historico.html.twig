@@ -124,7 +124,7 @@
                                 </a>
                             </td>
                         </tr>
-                        <tr class="consumible-{{ key }} dato consumible {%  if dato.accion == 1 %} imputacion {% endif %}">
+                        <tr class="consumible-{{ key }} dato consumible {%  if dato.accion == 1 %} imputacion {% endif %} " data-consumible-nombre="{{ consumibles[dato.consumibleId].nombre }}">
                             <td class="consumo">
                                 {{ consumibles[dato.consumibleId].nombre }}
                             </td>
@@ -216,23 +216,28 @@
 
     <script>
         $( document ).ready(function () {
+            let row = $('tbody tr.dato');
             clases = [];
-            $('tbody tr').each(function() {
-                if ( !clases.includes($(this).attr('class'))) {
-                    clases.push($(this).attr('class'));
+            row.each(function() {
+                if (!clases.includes($(this).data('consumible-nombre'))) {
+                    clases.push($(this).data('consumible-nombre'));
                 }
             })
-
             clases.forEach(element => {
-                var subtotal = 0;
-                $('.'+element).each(function() {
+                let subtotal = 0;
+                let fila = $('tbody tr.dato[data-consumible-nombre="'+element+'"]');
+
+                fila.each(function() {
+                    console.log('1');
                     if($(this).find('.cantidad').hasClass('egreso')) {
+                        console.log('2');
                         subtotal -= parseFloat($(this).find('.cantidad').html());
                     } else if ($(this).find('.cantidad').hasClass('ingreso')) {
+                        console.log('3');
                         subtotal += parseFloat($(this).find('.cantidad').html());
                     }
                 })
-                $('.'+element).last().after('<tr class="totales"><td colspan="7" class="totales" style="text-align: right; border-top: 1px solid black; border-bottom: 1px solid black;">Total: '+subtotal+'</td></tr>');
+                fila.last().after('<tr class="totales"><td colspan="7" class="totales" style="text-align: right; border-top: 1px solid black; border-bottom: 1px solid black;">Total: '+subtotal+'</td></tr>');
             });
         });
 

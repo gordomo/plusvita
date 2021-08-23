@@ -64,7 +64,7 @@
                         {% endfor %}
 
                     </td>
-                    <td style="text-align: center" class="yaImputadas" id="imputadas-{{ indicacionCargada.id }}" data-cantidad="{{ indicacionCargada.cantidad }}" data-id="{{ indicacionCargada.id }}" data-mes="{{ indicacionCargada.mes }}" data-consumible="{{ indicacionCargada.consumibleId }}" data-cliente="{{ indicacionCargada.clienteId }}">
+                    <td style="text-align: center" class="yaImputadas" id="imputadas-{{ indicacionCargada.id }}" data-row-id="{{ rowCount }}" data-cantidad="{{ indicacionCargada.cantidad }}" data-id="{{ indicacionCargada.id }}" data-mes="{{ indicacionCargada.mes }}" data-consumible="{{ indicacionCargada.consumibleId }}" data-cliente="{{ indicacionCargada.clienteId }}">
                         <img src="{{ asset('assets/images/loading.gif') }}" style="width: 35px;">
                     </td>
                     <td style="text-align: center" class="total" id="total-{{ indicacionCargada.id }}">
@@ -150,6 +150,7 @@
 
         function cargarImputaciones() {
             $('.yaImputadas').each(function () {
+                var rowId = $(this).data('row-id');
                 var mes = $(this).data('mes');
                 var consumibleId = $(this).data('consumible');
                 var cid = $(this).data('cliente');
@@ -169,10 +170,10 @@
                         } else {
                            $('#imputadas-'+id).html(response);
                            let total = cantidad - response;
+                           if ( total === 0 ){
+                               $('.row-'+rowId).hide();
+                           }
                            $('#total-'+id).html(total);
-
-
-
                         }
                     }
                 });
