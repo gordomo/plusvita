@@ -113,7 +113,7 @@ class ConsumiblesClientesRepository extends ServiceEntityRepository
 
 
         //$query->groupBy('c.consumibleId');
-        $query->orderBy('c.fecha, c.consumibleId', ' desc');
+        $query->orderBy('c.consumibleId', ' desc');
 
         return $query->getQuery()->getResult();
     }

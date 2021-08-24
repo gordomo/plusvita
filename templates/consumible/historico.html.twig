@@ -1,8 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}Consumibles Historico{% endblock %}
-{% block panelTitle %}Consumos de <span style="text-transform: capitalize">{{ cliente.nombre }} {{ cliente.apellido }}</span>
-{% endblock %}
+{% block panelTitle %}Consumos de  {{ cliente.nombre }} {{ cliente.apellido }}{% endblock %}
 {% block titleButtons %}
     <a href="javascript:history.back();" class="btn btn-danger">Volver</a>
     <a href="{{ path('consumible_new') }}" class="btn-success btn">Nuevo Consumible</a>
@@ -228,12 +227,9 @@
                 let fila = $('tbody tr.dato[data-consumible-nombre="'+element+'"]');
 
                 fila.each(function() {
-                    console.log('1');
                     if($(this).find('.cantidad').hasClass('egreso')) {
-                        console.log('2');
                         subtotal -= parseFloat($(this).find('.cantidad').html());
                     } else if ($(this).find('.cantidad').hasClass('ingreso')) {
-                        console.log('3');
                         subtotal += parseFloat($(this).find('.cantidad').html());
                     }
                 })
