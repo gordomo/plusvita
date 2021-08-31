@@ -95,6 +95,19 @@ class ConsumiblesClientesRepository extends ServiceEntityRepository
         return $query->orderBy('c.consumibleId', 'ASC')->getQuery()->getResult();
     }
 
+    public function findImputacionesFechaConsumible($fecha, $cid)
+    {
+        $query = $this->createQueryBuilder('c')
+            ->andWhere('c.fecha = :fecha')
+            ->setParameter('fecha', $fecha)
+            ->andWhere('c.clienteId = :cid')
+            ->setParameter('cid', $cid)
+            ->andWhere('c.accion = :accion')
+            ->setParameter('accion', '1');
+
+        return $query->orderBy('c.consumibleId', 'ASC')->getQuery()->getResult();
+    }
+
     public function findByAccionAndClientId($id, $mes, $fecha, $accion = null)
     {
         $query = $this->createQueryBuilder('c')

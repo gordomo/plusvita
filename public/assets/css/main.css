@@ -28,7 +28,22 @@
     background-color: #999;
     color: white;
 }
-
+.btn-action:hover {
+    color: white;
+    background-color: #7b7878;
+}
+#data {
+    padding: 25px 15px;
+}
+#data .row {
+    border-top: 1px solid;
+}
+#data .row:last-child {
+    border-bottom: 1px solid;
+}
+#loading {
+    display: none;
+}
 .form-group .control-label.required:after {
     content:" *";
     color:red;
@@ -365,6 +380,15 @@ select:invalid[multiple] {
 }
 .dato.consumible {
     background-color: #ff000024;
+}
+.btn-done {
+    background-color: #b088be;
+    color: white;
+}
+
+.btn-done:hover {
+    background-color: #9d74ab;
+    color: white;
 }
 
 /*      #60b9b9     #b088be

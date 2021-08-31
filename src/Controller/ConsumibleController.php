@@ -220,13 +220,32 @@ class ConsumibleController extends AbstractController
         $indicacionesCargadas = $consumiblesClientesRepository->findImputacionesMesConsumibleCliente($mes, $consumibleId, $cid);
 
         $cant = 0;
-
         foreach ($indicacionesCargadas as $indicacion) {
             $cant += $indicacion->getCantidad();
         }
-
-
         return new JsonResponse($cant);
+    }
+
+    /**
+     * @Route("/imputar-view/acciones/get-imputaciones/imprimir", name="consumible_imputar_view_get_imputaciones_imprimir", methods={"GET"})
+     */
+    public function imputarViewGetImputacionesParaImprimir(Request $request, ConsumiblesClientesRepository $consumiblesClientesRepository, ConsumibleRepository $consumibleRepository): Response
+    {
+        $fecha = $request->query->get('fecha');
+        $cid = $request->query->get('cid');
+
+        $indicacionesCargadas = $consumiblesClientesRepository->findImputacionesFechaConsumible($fecha, $cid);
+        $indicacionesArray = [];
+
+            foreach ($indicacionesCargadas as $indicacion) {
+                if (isset($indicacionesArray[$indicacion->getConsumibleId()])) {
+                    $indicacionesArray[$indicacion->getConsumibleId()]['cant'] += $indicacion->getCantidad();
+                } else {
+                    $indicacionesArray[$indicacion->getConsumibleId()] = ['id' => $indicacion->getId(), 'nombre' => $consumibleRepository->find($indicacion->getConsumibleId())->getNombre(), 'cant' => $indicacion->getCantidad()];
+                }
+            }
+            return new JsonResponse($indicacionesArray);
+
     }
 
     /**

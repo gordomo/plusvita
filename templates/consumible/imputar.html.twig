@@ -9,6 +9,39 @@
     <a href="{{ path('consumible_new') }}" class="btn-success btn">Nuevo Consumible</a>
     <a href="{{ path('cliente_index') }}" class="btn-info btn">Pacientes</a>
     <a href="{{ path('consumible_indicar_view', {'id': cliente.id}) }}" class="btn-action btn">Cargar Indicaciones</a>
+    <button class="btn-done btn" data-toggle="modal" data-target="#exampleModal">Generar Recibo</button>
+
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Inputaciones</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <input type="date" id="fechaImputaciones">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12" id="data">
+                            <div id="loading" class="text-center">
+                                <img src="{{ asset('assets/images/loading.gif') }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" id="generarRecibo">Generar Recibo</button>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 {% block body %}
     <table class="table table-striped" id="rowContainer">
@@ -35,7 +68,7 @@
                     Restan
                 </th>
                 <th>
-                    Acciones
+                    Cantidad a Imputar
                 </th>
                     {#<div class="col-sm" style="padding-top: 5px;">
                     </div>#}
@@ -49,7 +82,11 @@
         {% set rowCount = 0 %}
         {% for indicacionCargada in indicacionesCargadas  %}
             {% if (indicacionCargada.accion is same as (0))  %}
-                <tr class="row-{{ rowCount }}" style="line-height: 30px;">
+                <tr class="consumibles row-{{ rowCount }}"
+                    data-row="{{ rowCount }}"
+                    data-mes="{{ indicacionCargada.mes }}"
+                    data-consumible-id="{{ indicacionCargada.consumibleId }}"
+                    style="line-height: 30px;">
                     <td>
                         {% for consumible in consumibles %}
                             {% if consumible.id == indicacionCargada.consumibleId %} {{ consumible.nombre }} {% endif %}
@@ -85,10 +122,6 @@
                             <span id="unidades"></span>
                         </div>#}
                     <td id="botones-{{ rowCount }}" class="noAgregar row" >
-                        <button class="btn btn-success guardarIndividual"
-                                data-row="{{ rowCount }}"
-                                data-mes="{{ indicacionCargada.mes }}"
-                                data-consumible-id="{{ indicacionCargada.consumibleId }}">Imputar</button>
                         <input type="number" class="form-control col-sm-7" style="margin-left: 5px; margin-right: 5px" id="cantidad-{{ rowCount }}">
                         {% for consumible in consumibles %}
                             {% if consumible.id == indicacionCargada.consumibleId %} <label for="cantidad-{{ rowCount }}">{{ consumible.unidades }} </label>{% endif %}
@@ -99,6 +132,13 @@
             {% endif %}
         {% endfor %}
         </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="6" style="text-align: right">
+                    <button class="btn btn-success guardarIndividual">Imputar</button>
+                </td>
+            </tr>
+        </tfoot>
     </table>
 
 {% endblock %}
@@ -118,33 +158,75 @@
             $('#botonGuardar-'+row).data('mes', mes);
         });*/
 
-        $(document).on( 'click', '.guardarIndividual', function() {
-            var rowCount = $(this).data('row');
-            var cantidad = $('#cantidad-' + rowCount).val();
+        $('#fechaImputaciones').change(function () {
+            let date = $('#fechaImputaciones').val();
 
-            if (!isNaN(cantidad) && cantidad > 0) {
+            $('#loading').show();
 
-                $.ajax({
-                    url: '{{ path('consumible_imputar') }}',
-                    data: {
-                        'cliente': {{ cliente.id }},
-                        'consumibleId': $(this).data('consumible-id'),
-                        'cantidad': $('#cantidad-' + rowCount).val(),
-                        'mes': $(this).data('mes'),
-                        'accion': 1,
-                        'isAjax': true,
-                    },
-                    success: function (response) {
-                        if (response.error) {
-                            alert('error: ' + response.message);
-                        } else {
-                            cargarImputaciones();
-                        }
+            $.ajax({
+                url: '{{ path('consumible_imputar_view_get_imputaciones_imprimir') }}',
+                data: {
+                    'cid': {{ cliente.id }},
+                    'fecha': date,
+                },
+                success: function (response) {
+                    if (response.error) {
+                        alert('error: ' + response.message);
+                    } else {
+                        let html = '';
+                        $.each(response, function (e, v) {
+                            html += '<div class="row">';
+                            html += '<div class="col-sm"><span>'+v.nombre+'</span></div>';
+                            html += '<div class="col-sm-1"><span>'+v.cant+'</span></div>';
+                            html += '</div>';
+                        });
+
+                        $('#data').html(html);
                     }
-                });
-            } else {
-                alert("Debe indicar una cantidad válidad")
-            }
+                },
+                complete: function () {
+                    $('#loading').hide();
+                }
+            });
+
+
+        })
+
+        $(document).on( 'click', '.guardarIndividual', function() {
+            var self = $(this);
+            self.attr('disabled', true);
+            $(".consumibles").each(function () {
+                var rowCount = $(this).data('row');
+                var cantidad = $('#cantidad-' + rowCount).val();
+
+                if (!isNaN(cantidad) && cantidad > 0) {
+                    $.ajax({
+                        url: '{{ path('consumible_imputar') }}',
+                        data: {
+                            'cliente': {{ cliente.id }},
+                            'consumibleId': $(this).data('consumible-id'),
+                            'cantidad': $('#cantidad-' + rowCount).val(),
+                            'mes': $(this).data('mes'),
+                            'accion': 1,
+                            'isAjax': true,
+                        },
+                        success: function (response) {
+                            if (response.error) {
+                                alert('error: ' + response.message);
+                            } else {
+                                cargarImputaciones();
+                                $('#cantidad-' + rowCount).val('');
+                            }
+                        },
+                        finally: function () {
+                            self.prop("disabled", false)
+                        }
+                    });
+                } else {
+                    self.prop("disabled", false);
+                }
+            });
+
             return false;
         } );
 
@@ -184,6 +266,18 @@
         $( document ).ready(function () {
             cargarImputaciones();
 
+        });
+
+        $('#generarRecibo').click(function () {
+            var html = '<head>' + $('head').html() + '</head>';
+            html += '<div class="container"><div class="row"><div><span>Fecha: '+$('#fechaImputaciones').val()+' Insumos no incluidos en modulo</span></div></div><div id="data">'
+            html += $('#data').html();
+            html += '</div></div>';
+            var ventana = window.open('', 'PRINT');
+            ventana.document.write(html);
+            ventana.document.close();
+            ventana.focus();
+            ventana.print();
         });
 
 
