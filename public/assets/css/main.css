@@ -390,7 +390,10 @@ select:invalid[multiple] {
     background-color: #9d74ab;
     color: white;
 }
-
+.recibo_html {
+    display: none;
+    padding: 15px 0;
+}
 /*      #60b9b9     #b088be
 table {
     width: 716px; !* 140px * 5 column + 16px scrollbar width *!

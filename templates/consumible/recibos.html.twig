@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Consumibles Historico{% endblock %}
+{% block panelTitle %}Recibos de  {{ cliente.nombre }} {{ cliente.apellido }}{% endblock %}
+{% block titleButtons %}
+    <a href="javascript:history.back();" class="btn btn-danger">Volver</a>
+    <a href="{{ path('consumible_new') }}" class="btn-success btn">Nuevo Consumible</a>
+    <a href="{{ path('consumible_imputar_view', {'id': cliente.id}) }}" class="btn-info btn">Imputar</a>
+    <a href="{{ path('consumible_indicar_view', {'id': cliente.id}) }}" class="btn-action btn">Cargar Indicaciones</a>
+    <a href="{{ path('consumibles_recibos', {'id': cliente.id}) }}" class="btn-action btn">Recibos</a>
+{% endblock %}
+{% block body %}
+        <table class="table">
+            <thead>
+            <tr>
+                <th class="consumo col-sm-2">Fecha</th>
+                <th class="accion col-sm-2">Numero</th>
+                <th class="tipo col-sm-2">Ver</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for recibo in recibos %}
+                    <tr>
+                        <td >
+                            {{ recibo.fecha ? recibo.fecha|date('Y-m-d') : ''}}
+                        </td>
+                        <td >
+                            {{ recibo.count }}
+                        </td>
+                        <td >
+                            <a href="#" class="ver"><i class="fas fa-eye"></i></a>
+                            <div class="recibo_html">{{ recibo.html | raw }}</div>
+                        </td>
+                    </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        $('.ver').click(function () {
+            $(this).next('.recibo_html').toggle();
+        });
+    </script>
+{% endblock %}

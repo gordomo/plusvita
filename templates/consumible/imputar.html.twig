@@ -269,15 +269,38 @@
         });
 
         $('#generarRecibo').click(function () {
+            let date = $('#fechaImputaciones').val();
             var html = '<head>' + $('head').html() + '</head>';
-            html += '<div class="container"><div class="row"><div><span>Fecha: '+$('#fechaImputaciones').val()+' Insumos no incluidos en modulo</span></div></div><div id="data">'
+            html += '<div class="container"><div class="row"><div><span>Fecha: '+date+' Insumos no incluidos en modulo</span></div></div><div id="data">'
+            html += '<div class="row"><div><span>Recibo Nº: ###numero###</span></div></div>';
             html += $('#data').html();
             html += '</div></div>';
-            var ventana = window.open('', 'PRINT');
-            ventana.document.write(html);
-            ventana.document.close();
-            ventana.focus();
-            ventana.print();
+
+            $.ajax({
+                url: '{{ path('guardar_recibo') }}',
+                type: 'get',
+                data: {
+                    'cid': {{ cliente.id }},
+                    'fecha': date,
+                    'tipo': 'consumible',
+                    'html': html,
+                },
+                success: function (response) {
+                    if (response.error) {
+                        alert('error: ' + response.message);
+                    } else {
+                        $('#exampleModal').modal('hide');
+                        var ventana = window.open('', 'PRINT');
+                        ventana.document.write(response);
+                        ventana.document.close();
+                        ventana.focus();
+                        ventana.print();
+                    }
+                },
+                complete: function () {
+                    $('#loading').hide();
+                }
+            });
         });
 
 

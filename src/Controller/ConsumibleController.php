@@ -5,11 +5,13 @@ namespace App\Controller;
 use App\Entity\Cliente;
 use App\Entity\Consumible;
 use App\Entity\ConsumiblesClientes;
+use App\Entity\Recibo;
 use App\Form\ConsumibleType;
 use App\Controller\ExportToExcel;
 use App\Repository\ClienteRepository;
 use App\Repository\ConsumibleRepository;
 use App\Repository\ConsumiblesClientesRepository;
+use App\Repository\ReciboRepository;
 use App\Repository\TipoConsumibleRepository;
 use App\Repository\UserRepository;
 use DateTimeZone;
@@ -266,6 +268,42 @@ class ConsumibleController extends AbstractController
             'meses' => ['Enero' => '01', 'Febrero' => '02', 'Marzo' => '03', 'Abril' => 04, 'Mayo' => '05', 'Junio' => '06', 'Julio' => '07', 'Agosto' => '08', 'Septiembre' => '09', 'Octubre' => '10', 'Noviembre' => '11', 'Diciembre' => '12', ]
         ]);
     }
+
+    /**
+     * @Route("/imputar_view/guardar_recibo", name="guardar_recibo", methods={"GET"})
+     */
+    public function guardarRecibo(Request $request, ReciboRepository $reciboRepository): Response
+    {
+        try {
+            $clienteId = $request->get('cid');
+            $fecha = new \DateTime($request->get('fecha'));
+            $tipo = $request->get('tipo');
+            $html = $request->get('html');
+            $html = (preg_replace('/\v(?:[\v\h]+)/', '', $html));
+
+
+            $count = $reciboRepository->getCountByType($tipo);
+            $count ++;
+
+            $html = str_replace("###numero###", $count, $html);
+
+            $recibo = new Recibo();
+            $recibo->setTipo($tipo);
+            $recibo->setCid($clienteId);
+            $recibo->setFecha($fecha);
+            $recibo->setHtml($html);
+            $recibo->setCount($count);
+
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($recibo);
+            $entityManager->flush();
+        } catch (\Exception $e) {
+            return new JsonResponse(['error' => true, 'message' => $e->getMessage()]);
+        }
+
+        return new JsonResponse($html);
+    }
+
     /**
      * @Route("/check/existencias/", name="consumible_check_existencias", methods={"GET"})
      */
@@ -433,6 +471,20 @@ class ConsumibleController extends AbstractController
         $entityManager->flush();
 
         return $this->redirectToRoute('consumible_historico', ['id' => $clientId, 'mes' => $request->get('mes')]);
+
+    }
+    /**
+     * @Route("/recibos/{id}", name="consumibles_recibos", methods={"GET"})
+     */
+    public function verRecibos($id, ReciboRepository $reciboRepository, ClienteRepository $clienteRepository): Response
+    {
+        $cliente = $clienteRepository->find($id);
+        $recibos = $reciboRepository->findReciboImputacionCliente($id);
+
+        return $this->render('consumible/recibos.html.twig', [
+            'recibos' => $recibos,
+            'cliente' => $cliente
+        ]);
 
     }
 
