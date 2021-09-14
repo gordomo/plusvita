@@ -45,7 +45,7 @@ class LiquidacionesController extends AbstractController
         $prestacion = [
             'Profesional por prestacion',
             'Medico de guardia',
-            'Kinesiologo',
+            'Kinesiologo motora ',
             'Kinesiologo respiratorio',
             'Terapista ocupacional',
             'Fonoaudiologo',
