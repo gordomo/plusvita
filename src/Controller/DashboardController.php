@@ -69,7 +69,7 @@ class DashboardController extends AbstractController
      */
 
     public function toExcel(Request $request, RouterInterface $router) {
-        return ExportToExcel::toExcel($request->get('html'), $router, 'dashboard.xls');
+        return ExportToExcel::toExcel($request->get('html'), $router, $request->request->get('tituloExcel'));
     }
 
     private function isDoctor()
@@ -91,7 +91,7 @@ class DashboardController extends AbstractController
         return $isDoctor;
 
     }
-    
+
     private function getModalidades(int $contrato)
     {
         $empleado = [

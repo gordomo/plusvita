@@ -387,4 +387,7 @@
 {% block javascripts %}
     {{ parent() }}
     <script src="{{ asset('assets/js/cliente.js') }}"></script>
+    <script>
+        var tituloExcel = 'clientes.xlsx';
+    </script>
 {% endblock %}

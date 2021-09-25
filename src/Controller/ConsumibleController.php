@@ -487,12 +487,4 @@ class ConsumibleController extends AbstractController
         ]);
 
     }
-
-    /**
-     * @Route("/{path}/excel", name="consumible_to_excel", methods={"POST"})
-     */
-
-    public function toExcel(Request $request, RouterInterface $router) {
-        return ExportToExcel::toExcel($request->get('html'), $router, 'consumible_historico.xlsx');
-    }
 }

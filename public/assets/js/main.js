@@ -154,9 +154,10 @@ $("#descargarExcel").on('click', function () {
         $(this).attr('disabled', true);
         let htmlToPrint = getHtmlToPrint(checkboxes, false);
         $.post({
-            url: 'excel',
+            url: '/dashboard/excel',
             data: {
-                html: htmlToPrint
+                html: htmlToPrint,
+                tituloExcel: typeof (tituloExcel) != 'undefined' ? tituloExcel : 'default.xlsx',
             },
             success: function (response) {
                 $('#descargarExcel').attr('disabled', false);

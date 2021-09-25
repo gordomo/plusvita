@@ -151,6 +151,7 @@
     {{ parent() }}
     <script src="{{ asset('assets/js/doctorAgenda.js') }}"></script>
     <script>
+        var tituloExcel = 'agenda.xlsx';
         let printUrl = "{{ path('imprimir') }}";
     </script>
 {% endblock %}

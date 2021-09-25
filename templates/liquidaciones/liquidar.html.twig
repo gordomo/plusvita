@@ -122,6 +122,7 @@
 {% block javascripts %}
     {{ parent() }}
     <script>
+        var tituloExcel = 'liquidaciones.xlsx';
         $('#from').on('change', function () {
             $('#to').attr("min", $('#from').val());
             $('#to').val($('#from').val());
