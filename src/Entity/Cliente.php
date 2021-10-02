@@ -289,6 +289,21 @@ class Cliente
      */
     private $dieta;
 
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $ambulatorio;
+
+    /**
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private $fechaAmbulatorio;
+
+    /**
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private $fechaReingresoAmbulatorio;
+
     public function __construct()
     {
         $this->docReferente = new ArrayCollection();
@@ -998,6 +1013,42 @@ class Cliente
     public function setDieta(?string $dieta): self
     {
         $this->dieta = $dieta;
+
+        return $this;
+    }
+
+    public function getAmbulatorio(): ?bool
+    {
+        return $this->ambulatorio;
+    }
+
+    public function setAmbulatorio(bool $ambulatorio): self
+    {
+        $this->ambulatorio = $ambulatorio;
+
+        return $this;
+    }
+
+    public function getFechaAmbulatorio(): ?\DateTimeInterface
+    {
+        return $this->fechaAmbulatorio;
+    }
+
+    public function setFechaAmbulatorio(?\DateTimeInterface $fechaAmbulatorio): self
+    {
+        $this->fechaAmbulatorio = $fechaAmbulatorio;
+
+        return $this;
+    }
+
+    public function getFechaReingresoAmbulatorio(): ?\DateTimeInterface
+    {
+        return $this->fechaReingresoAmbulatorio;
+    }
+
+    public function setFechaReingresoAmbulatorio(?\DateTimeInterface $fechaReingresoAmbulatorio): self
+    {
+        $this->fechaReingresoAmbulatorio = $fechaReingresoAmbulatorio;
 
         return $this;
     }

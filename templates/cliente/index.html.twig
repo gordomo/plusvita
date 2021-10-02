@@ -24,6 +24,9 @@
                         <li class="nav-item">
                             <a class="nav-link {{  pestana == 'permiso' ? 'active' : ''  }}"  href="{{ path('cliente_index') }}?pestana=permiso">De Permiso</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{  pestana == 'ambulatorios' ? 'active' : ''  }}"  href="{{ path('cliente_index') }}?pestana=ambulatorios">Ambulatorios</a>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -252,6 +255,15 @@
                                     {% else %}
                                         <a class="dropdown-item" href="{{ path('cliente_permiso', {'id': cliente.id}) }}">
                                             <i class="fas fa-arrow-right" data-toggle="tooltip" data-placement="top" title="derivar"></i> Dar Permiso
+                                        </a>
+                                    {% endif %}
+                                    {% if cliente.ambulatorio %}
+                                        <a class="dropdown-item" href="{{ path('cliente_reingreso_ambulatorio', {'id': cliente.id}) }}">
+                                            <i class="fas fa-arrow-left" data-toggle="tooltip" data-placement="top" title="reingreso ambulatorio"></i> Reingreso Ambulatorio
+                                        </a>
+                                    {% else %}
+                                        <a class="dropdown-item" href="{{ path('cliente_ambulatorio', {'id': cliente.id}) }}">
+                                            <i class="fas fa-arrow-right" data-toggle="tooltip" data-placement="top" title="ambulatorio"></i> Ambulatorio
                                         </a>
                                     {% endif %}
                                     {#<a class="dropdown-item" href="{{ path('consumible_imputar_view', {'id': cliente.id}) }}">

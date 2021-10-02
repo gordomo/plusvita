@@ -36,7 +36,9 @@ class ClienteRepository extends ServiceEntityRepository
             ->andWhere('c.derivado = 0')
             ->orWhere('c.derivado is null')
             ->andWhere('c.dePermiso = 0')
-            ->orWhere('c.dePermiso is null');
+            ->orWhere('c.dePermiso is null')
+            ->andWhere('c.ambulatorio = 0')
+            ->orWhere('c.ambulatorio is null');
             if($hab != null) {
                 $query->andWhere('c.habitacion = :hab')->setParameter('hab',$hab);
             }
@@ -107,6 +109,30 @@ class ClienteRepository extends ServiceEntityRepository
             }
         }
         return $query->andWhere('c.dePermiso = 1')
+            ->orderBy('c.hClinica', 'ASC')
+            //->setMaxResults(10)
+            ->getQuery()
+            ->getResult()
+            ;
+    }
+    public function findAmbulatorios($value, $nombre)
+    {
+        //Esto puede servir para agregar un filtro por fechas
+        /*$query = $this->createQueryBuilder('c')
+            ->andWhere('c.fechaAmbulatorio > :val')->setParameter('val', $value)
+            ->orWhere('c.fechaAmbulatorio IS NULL');*/
+
+        $query = $this->createQueryBuilder('c');
+
+        if ( $nombre != '' ) {
+            $arrayNombres = explode(' ', $nombre);
+            $i = 1;
+            foreach ( $arrayNombres as $nombre ) {
+                $query->andWhere("c.nombre like :nombre$i OR c.apellido like :nombre$i")->setParameter("nombre$i",'%'. $nombre .'%');
+                $i ++;
+            }
+        }
+        return $query->andWhere('c.ambulatorio = 1')
             ->orderBy('c.hClinica', 'ASC')
             //->setMaxResults(10)
             ->getQuery()

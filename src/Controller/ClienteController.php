@@ -58,6 +58,8 @@ class ClienteController extends AbstractController
             $clientes = $clienteRepository->findDerivados(new \DateTime(), $nombreInput);
         } else if ( $pestana == 'permiso') {
             $clientes = $clienteRepository->findDePermiso(new \DateTime(), $nombreInput);
+        } else if ( $pestana == 'ambulatorios') {
+            $clientes = $clienteRepository->findAmbulatorios(new \DateTime(), $nombreInput);
         } else {
             $clientes = $clienteRepository->findActivos(new \DateTime(), $nombreInput, $hab);
         }
@@ -195,6 +197,65 @@ class ClienteController extends AbstractController
         $entityManager->flush();
 
         return $this->redirectToRoute('cliente_index');
+    }
+
+    /**
+     * @Route("/ambulatorio/{id}", name="cliente_ambulatorio", methods={"GET"})
+     */
+    public function ambulatorio(Cliente $cliente, Request $request, HabitacionRepository $habitacionRepository, BookingRepository $bookingRepository): Response
+    {
+        $user = $this->security->getUser();
+
+        $cliente->setAmbulatorio(true);
+        $cliente->setFechaAmbulatorio(new \DateTime());
+
+        $this->liberarCamaCliente($cliente);
+
+        $turnos = $bookingRepository->findBy(['cliente' => $cliente]);
+
+        $historial = new HistoriaPaciente();
+        $historial->setCama(null);
+        $historial->setCliente($cliente);
+        $historial->setIdPaciente($cliente->getId());
+        $historial->setFecha(new \DateTime());
+        $historial->setHabitacion(null);
+        $historial->setUsuario($user->getUsername());
+        $historial->setAmbulatorio(true);
+
+        $entityManager = $this->getDoctrine()->getManager();
+
+        $entityManager->persist($historial);
+        $entityManager->persist($cliente);
+        foreach ($turnos as $turno) {
+            $entityManager->remove($turno);
+        }
+
+        $entityManager->flush();
+
+        return $this->redirectToRoute('cliente_index');
+    }
+
+    /**
+     * @Route("/ambulatorio/reingresar/{id}", name="cliente_reingreso_ambulatorio", methods={"GET", "POST"})
+     */
+    public function reingresarAmbulatorio(Cliente $cliente, Request $request, HabitacionRepository $habitacionRepository, BookingRepository $bookingRepository): Response
+    {
+        $user = $this->security->getUser();
+
+        $historial = new HistoriaPaciente();
+        $entityManager = $this->getDoctrine()->getManager();
+
+        $cliente->setAmbulatorio(false);
+        $historial->setCliente($cliente);
+        $historial->setIdPaciente($cliente->getId());
+        $historial->setFecha(new \DateTime());
+        $historial->setUsuario($user->getUsername());
+
+        $entityManager->persist($cliente);
+        $entityManager->flush();
+
+        return $this->redirectToRoute('cliente_index', ['pestana' => 'ambulatorio']);
+
     }
 
     /**
@@ -478,6 +539,7 @@ class ClienteController extends AbstractController
     public function historia(Cliente $cliente, HistoriaPacienteRepository $historiaPacienteRepository, ObraSocialRepository $obraSocialRepository, NotasTurnoRepository $notasTurnoRepository, BookingRepository $bookingRepository): Response
     {
         $historiaPaciente = $historiaPacienteRepository->findBy(['id_paciente' => $cliente->getId()]);
+
         $obrasSociales = $obraSocialRepository->findAll();
         $obraSocialesArray = [];
         foreach ($obrasSociales as $obraSocial) {

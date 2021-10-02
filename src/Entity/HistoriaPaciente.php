@@ -133,6 +133,11 @@ class HistoriaPaciente
     private $dePermiso;
 
     /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $ambulatorio;
+
+    /**
      * @return mixed
      */
     public function getFechaEngreso()
@@ -430,6 +435,18 @@ class HistoriaPaciente
     public function setDePermiso(?bool $dePermiso): self
     {
         $this->dePermiso = $dePermiso;
+
+        return $this;
+    }
+
+    public function getAmbulatorio(): ?bool
+    {
+        return $this->ambulatorio;
+    }
+
+    public function setAmbulatorio(?bool $ambulatorio): self
+    {
+        $this->ambulatorio = $ambulatorio;
 
         return $this;
     }
