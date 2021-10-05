@@ -19,7 +19,6 @@ class ReingresoType extends AbstractType
         $habitaciones = $options['habitaciones'] ?? '';
         $tipo = $options['tipo'] ?? '';
 
-
         $builder
             ->add('disponibleParaTerapia', ChoiceType::class, [
                 'required' => true,
@@ -49,6 +48,17 @@ class ReingresoType extends AbstractType
             $builder
                 ->add('fechaBajaPorPermiso', DateType::class, ['label' => 'De permiso Desde', 'required' => false, 'widget' => 'single_text', 'html5' => true, 'attr' => ['class' => 'js-datepicker'],])
                 ->add('fechaAltaPorPermiso', DateType::class, ['label' => 'De permiso Hasta', 'required' => false, 'widget' => 'single_text', 'html5' => true, 'attr' => ['class' => 'js-datepicker'],]);
+        } elseif ($tipo === 'ambulatorio') {
+            $builder->add('habitacion', ChoiceType::class, [
+                'required' => false,
+                'label' => "Habitación",
+                'placeholder' => "Seleccione una Habitación",
+                'choice_attr' => function($choice, $key, $value) {
+                    // adds a class like attending_yes, attending_no, etc
+                    return ['class' => 'attending_'.strtolower($key)];
+                },
+                'choices' => $habitaciones
+            ]);
         }
 
         $builder
@@ -88,6 +98,7 @@ class ReingresoType extends AbstractType
             'tipo' => 'derivado',
             'habitaciones' => [],
             'camasDisp' => 0,
+            'ambulatorio' => 0,
         ]);
     }
 }

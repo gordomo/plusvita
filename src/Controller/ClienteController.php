@@ -236,29 +236,6 @@ class ClienteController extends AbstractController
     }
 
     /**
-     * @Route("/ambulatorio/reingresar/{id}", name="cliente_reingreso_ambulatorio", methods={"GET", "POST"})
-     */
-    public function reingresarAmbulatorio(Cliente $cliente, Request $request, HabitacionRepository $habitacionRepository, BookingRepository $bookingRepository): Response
-    {
-        $user = $this->security->getUser();
-
-        $historial = new HistoriaPaciente();
-        $entityManager = $this->getDoctrine()->getManager();
-
-        $cliente->setAmbulatorio(false);
-        $historial->setCliente($cliente);
-        $historial->setIdPaciente($cliente->getId());
-        $historial->setFecha(new \DateTime());
-        $historial->setUsuario($user->getUsername());
-
-        $entityManager->persist($cliente);
-        $entityManager->flush();
-
-        return $this->redirectToRoute('cliente_index', ['pestana' => 'ambulatorio']);
-
-    }
-
-    /**
      * @Route("/permiso/reingresar/{id}", name="cliente_reingreso_permiso", methods={"GET", "POST"})
      */
     public function reingresarPermiso(Cliente $cliente, Request $request, HabitacionRepository $habitacionRepository, BookingRepository $bookingRepository): Response
@@ -311,8 +288,9 @@ class ClienteController extends AbstractController
         }
         $haArray = array_flip($haArray);
         $cliente->setDisponibleParaTerapia(true);
+        $tipo = $request->query->get('ambulatorio') != null ? 'ambulatorio' : 0;
 
-        $form = $this->createForm(ReingresoType::class, $cliente, ['allow_extra_fields' =>true, 'habitaciones' => $haArray]);
+        $form = $this->createForm(ReingresoType::class, $cliente, ['allow_extra_fields' =>true, 'habitaciones' => $haArray, 'tipo' => $tipo]);
 
         $form->handleRequest($request);
 
@@ -323,8 +301,6 @@ class ClienteController extends AbstractController
             $ncama = $request->request->get('cliente')['nCama'] ?? null;
 
             $habitacion = $form->get('habitacion')->getData() ? $habitacionRepository->find($form->get('habitacion')->getData()) : null;
-
-
 
             if($habitacion) {
                 $camasOcupadas = $habitacion->getCamasOcupadas();
@@ -343,22 +319,31 @@ class ClienteController extends AbstractController
                 $entityManager->persist($habitacion);
             }
 
-            $cliente->setDerivado(false);
             $cliente->setNCama($ncama);
-
 
             $historial->setCama($ncama);
             $historial->setCliente($cliente);
             $historial->setIdPaciente($cliente->getId());
             $historial->setFecha(new \DateTime());
 
-            $historial->setFechaReingresoDerivacion($form->get('fechaReingresoDerivacion')->getData() ?? null);
-            $historial->setDerivadoEn(null);
-            $historial->setMotivoDerivacion($form->get('motivoReingresoDerivacion')->getData() ?? null);
-            $historial->setEmpresaTransporteDerivacion(null);
+            if($cliente->getDerivado()) {
+                $historial->setFechaReingresoDerivacion($form->get('fechaReingresoDerivacion')->getData() ?? null);
+                $historial->setDerivadoEn(null);
+                $historial->setMotivoDerivacion($form->get('motivoReingresoDerivacion')->getData() ?? null);
+                $historial->setEmpresaTransporteDerivacion(null);
+                $cliente->setDerivado(false);
+            }
+
+            if($cliente->getAmbulatorio()) {
+                $historial->setDerivadoEn(null);
+                $cliente->setAmbulatorio(false);
+            }
+
+            if($cliente->getDePermiso()) {
+                $cliente->setDePermiso(false);
+            }
+
             $historial->setUsuario($user->getUsername());
-
-
 
             $entityManager->persist($cliente);
 
@@ -775,6 +760,84 @@ class ClienteController extends AbstractController
     }
 
     /**
+     * @Route("/{id}/reingreso", name="cliente_reingreso", methods={"GET","POST"})
+     */
+    public function reingreso(Request $request, Cliente $cliente, HistoriaPacienteRepository $historiaPacienteRepository, HabitacionRepository $habitacionRepository, BookingRepository $bookingRepository): Response
+    {
+        $user = $this->security->getUser();
+        $habitaciones = $habitacionRepository->findHabitacionConCamasDisponibles();
+
+        $haArray = [];
+        foreach ( $habitaciones as $ha ) {
+            $haArray[$ha->getId()] = $ha->getNombre();
+        }
+        $haArray = array_flip($haArray);
+        $cliente->setDisponibleParaTerapia(true);
+
+        $form = $this->createForm(ReingresoType::class, $cliente, ['allow_extra_fields' =>true, 'habitaciones' => $haArray]);
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $historial = new HistoriaPaciente();
+            $entityManager = $this->getDoctrine()->getManager();
+
+            $ncama = $request->request->get('cliente')['nCama'] ?? null;
+
+            $habitacion = $form->get('habitacion')->getData() ? $habitacionRepository->find($form->get('habitacion')->getData()) : null;
+
+
+
+            if($habitacion) {
+                $camasOcupadas = $habitacion->getCamasOcupadas();
+                $habPrivada = $request->request->get('cliente')['habPrivada'] ?? null;
+
+                if ($habPrivada) {
+                    $cliente->setHabPrivada(1);
+                    for ($i=1; $i <= $habitacion->getCamasDisponibles(); $i++) {
+                        $camasOcupadas[$i] = $i;
+                    }
+                } else {
+                    $camasOcupadas[$ncama] = $ncama;
+                }
+                $habitacion->setCamasOcupadas($camasOcupadas);
+                $historial->setHabitacion($habitacion->getId());
+                $entityManager->persist($habitacion);
+            }
+
+            $cliente->setDerivado(false);
+            $cliente->setNCama($ncama);
+
+
+            $historial->setCama($ncama);
+            $historial->setCliente($cliente);
+            $historial->setIdPaciente($cliente->getId());
+            $historial->setFecha(new \DateTime());
+
+            $historial->setFechaReingresoDerivacion($form->get('fechaReingresoDerivacion')->getData() ?? null);
+            $historial->setDerivadoEn(null);
+            $historial->setMotivoDerivacion($form->get('motivoReingresoDerivacion')->getData() ?? null);
+            $historial->setEmpresaTransporteDerivacion(null);
+            $historial->setUsuario($user->getUsername());
+
+
+
+            $entityManager->persist($cliente);
+
+            $entityManager->flush();
+
+            return $this->redirectToRoute('cliente_index');
+
+        }
+
+        return $this->render('cliente/reingresar.html.twig', [
+            'cliente' => $cliente,
+            'form' => $form->createView(),
+
+        ]);
+    }
+
+        /**
      * @Route("/{id}", name="cliente_delete", methods={"DELETE"})
      */
     public function delete(Request $request, Cliente $cliente): Response

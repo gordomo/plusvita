@@ -233,12 +233,18 @@
                                     <a class="dropdown-item" href="{{ path('adjuntos_pacientes_new', {'id': cliente.id}) }}">
                                         <i class="fas fa-paperclip" data-toggle="tooltip" data-placement="top" title="adjuntar"></i> Adjuntar
                                     </a>
-                                    <a class="dropdown-item" href="{{ path('cliente_egreso', {'id': cliente.id}) }}">
-                                        <i class="far fa-calendar-times" data-toggle="tooltip" data-placement="top" title="egreso"></i> Egresar
+                                    {% if pestana == 'inactivos' %}
+                                    <a class="dropdown-item" href="{{ path('cliente_reingresar', {'id': cliente.id}) }}">
+                                        <i class="far fa-calendar-times" data-toggle="tooltip" data-placement="top" title="Reingresar"></i> Reingresar
                                     </a>
+                                    <a class="dropdown-item" href="{{ path('cliente_egreso', {'id': cliente.id}) }}">
+                                        <i class="far fa-calendar-times" data-toggle="tooltip" data-placement="top" title="Egresar"></i> Egresar
+                                    </a>
+                                    {% else %}
                                     <a class="dropdown-item" href="{{ path('cliente_historial', {'id': cliente.id}) }}">
                                         <i class="far fa-calendar-alt" data-toggle="tooltip" data-placement="top" title="historia"></i> Ver Historia
                                     </a>
+                                    {% endif %}
                                     {% if cliente.derivado %}
                                         <a class="dropdown-item" href="{{ path('cliente_reingresar', {'id': cliente.id}) }}">
                                             <i class="fas fa-arrow-left" data-toggle="tooltip" data-placement="top" title="reingresar derivado"></i> Reingresar
@@ -258,7 +264,7 @@
                                         </a>
                                     {% endif %}
                                     {% if cliente.ambulatorio %}
-                                        <a class="dropdown-item" href="{{ path('cliente_reingreso_ambulatorio', {'id': cliente.id}) }}">
+                                        <a class="dropdown-item" href="{{ path('cliente_reingresar', {'id': cliente.id, 'ambulatorio': true}) }}">
                                             <i class="fas fa-arrow-left" data-toggle="tooltip" data-placement="top" title="reingreso ambulatorio"></i> Reingreso Ambulatorio
                                         </a>
                                     {% else %}
