@@ -50,8 +50,8 @@
             <th>Habitación</th>
             <th>Cama</th>
             <th>De Permiso</th>
-            <th>Fecha alta por Permiso</th>
-            <th>Fecha baja por Permiso</th>
+            <th>Baja por Permiso</th>
+            <th>Alta por Permiso</th>
             <th>Ambulatorio</th>
             <th>Usuario</th>
             <th>Fecha</th>
@@ -104,8 +104,8 @@
                 <td>{{ historia.habitacion }}</td>
                 <td>{{ historia.cama }}</td>
                 <td>{{ historia.dePermiso ? 'si' : 'no'}}</td>
-                <td>{{ historia.fechaAltaPorPermiso ? historia.fechaAltaPorPermiso|date('Y-m-d') : ''}}</td>
                 <td>{{ historia.fechaBajaPorPermiso ? historia.fechaBajaPorPermiso|date('Y-m-d') : ''}}</td>
+                <td>{{ historia.fechaAltaPorPermiso ? historia.fechaAltaPorPermiso|date('Y-m-d') : ''}}</td>
                 <td>{{ historia.ambulatorio ? 'si' : 'no'}}</td>
                 <td class="lowercase">{{ historia.usuario }}</td>
                 <td>{{ historia.fecha ? historia.fecha|date('Y-m-d') : '' }}</td>

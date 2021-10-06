@@ -30,7 +30,7 @@ class ReingresoType extends AbstractType
                     'No' => false,
                 ],
             ]);
-        if($tipo === 'derivado') {
+        if($tipo === 'derivados') {
             $builder
                 ->add('habitacion', ChoiceType::class, [
                     'required' => false,
@@ -43,12 +43,12 @@ class ReingresoType extends AbstractType
                     'choices' => $habitaciones
                 ])
                 ->add('motivoReingresoDerivacion', TextType::class)
-                ->add('fechaReingresoDerivacion', DateType::class, ['label' => 'Fecha de Reingreso', 'required' => false, 'widget' => 'single_text', 'html5' => true, 'attr' => ['class' => 'js-datepicker'],]);
+                ->add('fechaReingresoDerivacion', DateType::class, ['label' => 'Fecha de Reingreso', 'required' => false, 'widget' => 'single_text', 'html5' => true,]);
         } elseif ($tipo === 'permiso') {
             $builder
-                ->add('fechaBajaPorPermiso', DateType::class, ['label' => 'De permiso Desde', 'required' => false, 'widget' => 'single_text', 'html5' => true, 'attr' => ['class' => 'js-datepicker'],])
-                ->add('fechaAltaPorPermiso', DateType::class, ['label' => 'De permiso Hasta', 'required' => false, 'widget' => 'single_text', 'html5' => true, 'attr' => ['class' => 'js-datepicker'],]);
-        } elseif ($tipo === 'ambulatorio') {
+                ->add('fechaBajaPorPermiso', DateType::class, ['label' => 'De permiso Desde', 'required' => false, 'widget' => 'single_text', 'html5' => true,])
+                ->add('fechaAltaPorPermiso', DateType::class, ['label' => 'De permiso Hasta', 'required' => false, 'widget' => 'single_text', 'html5' => true,]);
+        } elseif ($tipo === 'ambulatorios') {
             $builder->add('habitacion', ChoiceType::class, [
                 'required' => false,
                 'label' => "Habitación",
@@ -95,7 +95,7 @@ class ReingresoType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Cliente::class,
-            'tipo' => 'derivado',
+            'tipo' => 'derivados',
             'habitaciones' => [],
             'camasDisp' => 0,
             'ambulatorio' => 0,
