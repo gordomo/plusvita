@@ -240,7 +240,7 @@
                                         <i class="fas fa-eye" data-toggle="tooltip" data-placement="top" title="consumos"></i> Consumos
                                     </a>
                                     {% if pestana == 'inactivos' %}
-                                        <a class="dropdown-item" href="{{ path('cliente_reingresar', {'id': cliente.id}) }}">
+                                        <a class="dropdown-item" href="{{ path('cliente_reingresar', {'id': cliente.id, 'tipo': pestana}) }}">
                                             <i class="far fa-calendar-times" data-toggle="tooltip" data-placement="top" title="Reingresar"></i> Reingresar
                                         </a>
                                     {% elseif pestana == 'activos' %}

@@ -30,7 +30,19 @@ class ReingresoType extends AbstractType
                     'No' => false,
                 ],
             ]);
-        if($tipo === 'derivados') {
+        if($tipo === 'inactivos') {
+            $builder
+                ->add('habitacion', ChoiceType::class, [
+                    'required' => false,
+                    'label' => "Habitación",
+                    'placeholder' => "Seleccione una Habitación",
+                    'choice_attr' => function ($choice, $key, $value) {
+                        // adds a class like attending_yes, attending_no, etc
+                        return ['class' => 'attending_' . strtolower($key)];
+                    },
+                    'choices' => $habitaciones
+                ]);
+        } else if($tipo === 'derivados') {
             $builder
                 ->add('habitacion', ChoiceType::class, [
                     'required' => false,

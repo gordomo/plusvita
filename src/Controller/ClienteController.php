@@ -289,7 +289,7 @@ class ClienteController extends AbstractController
         }
         $haArray = array_flip($haArray);
         $cliente->setDisponibleParaTerapia(true);
-        $tipo = $request->query->get('tipo') != null ? $request->query->get('tipo') : 0;
+        $tipo = $request->query->get('tipo') != null ? $request->query->get('tipo') : 'inactivo';
 
         $form = $this->createForm(ReingresoType::class, $cliente, ['allow_extra_fields' =>true, 'habitaciones' => $haArray, 'tipo' => $tipo]);
 
@@ -347,6 +347,12 @@ class ClienteController extends AbstractController
             if($cliente->getDePermiso()) {
                 $cliente->setDePermiso(false);
             }
+
+            if ($tipo == 'inactivos') {
+                $historial->setFechaIngreso(new \DateTime());
+                $cliente->setFEgreso(null);
+            }
+
 
             $historial->setUsuario($user->getUsername());
 
