@@ -35,7 +35,7 @@ class Cliente
     private $apellido;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $dni;
 
@@ -290,7 +290,7 @@ class Cliente
     private $dieta;
 
     /**
-     * @ORM\Column(type="boolean")
+     * @ORM\Column(type="boolean", options={"default" : 0})
      */
     private $ambulatorio;
 
@@ -356,12 +356,12 @@ class Cliente
         return $this;
     }
 
-    public function getDni(): ?int
+    public function getDni(): ?string
     {
         return $this->dni;
     }
 
-    public function setDni(int $dni): self
+    public function setDni(string $dni): self
     {
         $this->dni = $dni;
 

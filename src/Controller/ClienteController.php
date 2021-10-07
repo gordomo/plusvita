@@ -404,6 +404,7 @@ class ClienteController extends AbstractController
 
         $cliente->setActivo(true);
         $cliente->setFIngreso(new \DateTime());
+        $cliente->setAmbulatorio(0);
 
         $obrasSociales = $obraSocialRepository->findAll();
         $obArray = [];
@@ -425,6 +426,7 @@ class ClienteController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $cliente->setAmbulatorio($form->get('modalidad')->getData() == 1);
             $familiarResponsableExtraNombres = $request->request->get('familiarResponsableExtraNombre');
             $familiarResponsableExtraTel = $request->request->get('familiarResponsableExtraTel');
             $familiarResponsableExtraMail = $request->request->get('familiarResponsableExtraMail');
@@ -628,6 +630,7 @@ class ClienteController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             try {
+                $cliente->setAmbulatorio($form->get('modalidad')->getData() == 1);
                 $entityManager = $this->getDoctrine()->getManager();
                 $doctoresReferentes = $cliente->getDocReferente();
 
