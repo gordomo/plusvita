@@ -218,15 +218,15 @@ class ClienteController extends AbstractController
 
             $historial = $this->getHistorialActualizado($cliente, $parametros, $user);
 
-            $historiaHabitacines = new HistoriaHabitaciones();
+/*            $historiaHabitacines = new HistoriaHabitaciones();
             $historiaHabitacines->setCliente($cliente);
             $historiaHabitacines->setHabitacion($habitacionRepository->find($cliente->getHabitacion()));
             $historiaHabitacines->setNCama($cliente->getNCama());
-            $historiaHabitacines->setFecha(new \DateTime());
+            $historiaHabitacines->setFecha(new \DateTime());*/
 
             $entityManager->persist($historial);
             $entityManager->persist($cliente);
-            $entityManager->persist($historiaHabitacines);
+            //$entityManager->persist($historiaHabitacines);
 
             $entityManager->flush();
 
