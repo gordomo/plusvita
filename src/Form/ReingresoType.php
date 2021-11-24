@@ -54,8 +54,8 @@ class ReingresoType extends AbstractType
                     },
                     'choices' => $habitaciones
                 ])
-                ->add('motivoReingresoDerivacion', TextType::class)
-                ->add('fechaReingresoDerivacion', DateType::class, ['label' => 'Fecha de Reingreso', 'required' => false, 'widget' => 'single_text', 'html5' => true,]);
+                ->add('motivoReingresoDerivacion', TextType::class);
+                //->add('fechaReingresoDerivacion', DateType::class, ['label' => 'Fecha de Reingreso', 'required' => false, 'widget' => 'single_text', 'html5' => true,]);
         } elseif ($tipo === 'permiso') {
             $builder
                 ->add('fechaBajaPorPermiso', DateType::class, ['label' => 'De permiso Desde', 'required' => false, 'widget' => 'single_text', 'html5' => true,])

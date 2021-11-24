@@ -43,6 +43,9 @@
                 <div class="col-sm buttons mt-4">
                     {% block titleButtons %}{% endblock %}
                 </div>
+                <div class="col-sm" style="align-items: center; justify-content: center; display: flex;">
+                    {% block filtros %}{% endblock %}
+                </div>
                 {% if paginaImprimible is defined and paginaImprimible %}
                 <div class="col-sm" style="align-items: center; justify-content: center; display: flex;">
                     <button class="btn btn-default" id="imprimir" style="font-size: 2rem; padding: 1rem 2rem"><i class="fas fa-print"></i></button>

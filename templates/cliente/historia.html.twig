@@ -14,101 +14,256 @@
 {% endblock %}
 {% block body %}
     <div class="row">
-        <div class="col-12">
+        <div class="col-4">
             <h2>Historia Clínica</h2>
-            <br>
-            <h4>Notas en Turnos</h4>
+        </div>
+        <div class="col-8">
+            {% if  is_granted('ROLE_STAFF')%}
+                <button class="btn btn-action">Agregar Nota</button>
+            {% endif %}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <h4 style="border-top: 1px solid; padding-top: 10px">Notas</h4>
+            <table class="table table-responsive" style="display: inline-table">
+                {% for nota in notasHistoria %}
+                    <tr style="background-color: #dee2e6">
+                        <td>{{ nota.fecha ? nota.fecha|date('Y-m-d') : ''}}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ nota.text }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+            <h4 style="border-top: 1px solid; padding-top: 10px">Notas en Turnos</h4>
+            <table class="table table-responsive" style="display: inline-table">
+                {% for turno in notasTurnos %}
+                    <tr style="background-color: #dee2e6">
+                        <td>{{ turno.fecha ? turno.fecha|date('Y-m-d') : ''}}</td>
+                    </tr>
+                    {% for nota in turno.notas %}
+                        <tr><td>{{ nota }}</td></tr>
+                    {% endfor %}
+                {% endfor %}
+            </table>
         </div>
     </div>
 
-    <table class="table table-responsive" style="display: inline-table">
-    {% for turno in notasTurnos %}
-        <tr style="background-color: #dee2e6">
-            <td>{{ turno.fecha ? turno.fecha|date('Y-m-d') : ''}}</td>
-        </tr>
-        {% for nota in turno.notas %}
-            <tr><td>{{ nota }}</td></tr>
-        {% endfor %}
-    {% endfor %}
-    </table>
-<br><br>
-<h4>Novedades</h4>
+
+<h4 style="padding-top: 10px; border-top: 1px solid;">Novedades</h4>
     <table class="table table-responsive table-striped">
         <thead>
         <tr>
             <th>Fecha</th>
-            <th>Modalidad</th>
-            <th>Motivo de Derivacion</th>
-            <th>Derivado en</th>
-            <th>Empresa de Transporte de Derivacion</th>
-            <th>Patologia</th>
-            <th>Patologia Especifica</th>
-            <th>Obra Social</th>
-            <th>N. Afiliado</th>
-            <th>S. Emergencias</th>
-            <th>N. Afiliado</th>
-            <th>Habitación</th>
-            <th>Cama</th>
-            <th>De Permiso</th>
-            <th>Baja por Permiso</th>
-            <th>Alta por Permiso</th>
-            <th>Ambulatorio</th>
+            <th>Cambio</th>
             <th>Usuario</th>
-            <th>Fecha</th>
         </tr>
         </thead>
         <tbody>
-        {% for historia in historiaPaciente %}
+        {% for key, historia in historiaPaciente %}
             <tr>
-                <td>
-                    {{ historia.fecha ? historia.fecha|date('Y-m-d') : ''}}
-                </td>
-                <td>
-                    {% if(historia.modalidad == 1) %}
-                        Ambulatorio
-                    {% elseif(historia.modalidad == 2) %}
-                        Internacion
-                    {% elseif(historia.modalidad == 3) %}
-                        Hospital de día
-                    {% elseif(historia.modalidad == 4) %}
-                        ART
-                    {% endif %}
-                </td>
-                <td>
-                    {{ historia.motivoDerivacion }}
-                </td>
-                <td>
-                    {{ historia.derivadoEn }}
-                </td>
-                <td>
-                    {{ historia.empresaTransporteDerivacion }}
-                </td>
-                <td>
-                    {% if(historia.patologia == 1) %}
-                        Neurologicas
-                    {% elseif(historia.patologia == 2) %}
-                        Traumatológicas
-                    {% elseif(historia.patologia == 3) %}
-                        Respiratorias
-                    {% elseif(historia.patologia == 4) %}
-                        Paliativos
-                    {% elseif(historia.patologia == 5) %}
-                        Patologías laborales
-                    {% endif %}
-                </td>
-                <td>{{ historia.patologia_especifica }}</td>
-                <td>{{ obraSociales[historia.obra_social] is defined ? obraSociales[historia.obra_social] : '' }}</td>
-                <td>{{ historia.nAfiliadoObraSocial }}</td>
-                <td>{{ historia.sistemaDeEmergencia }}</td>
-                <td>{{ historia.nAfiliadoSistemaDeEmergencia }}</td>
-                <td>{{ historia.habitacion }}</td>
-                <td>{{ historia.cama }}</td>
-                <td>{{ historia.dePermiso ? 'si' : 'no'}}</td>
-                <td>{{ historia.fechaBajaPorPermiso ? historia.fechaBajaPorPermiso|date('Y-m-d') : ''}}</td>
-                <td>{{ historia.fechaAltaPorPermiso ? historia.fechaAltaPorPermiso|date('Y-m-d') : ''}}</td>
-                <td>{{ historia.ambulatorio ? 'si' : 'no'}}</td>
-                <td class="lowercase">{{ historia.usuario }}</td>
-                <td>{{ historia.fecha ? historia.fecha|date('Y-m-d') : '' }}</td>
+                {% if key > 0 %}
+                    <td>{{ historia.fecha ? historia.fecha|date('Y-m-d') : ''}}</td>
+                    <td class="lowercase">
+                        {% if historia.modalidad != historiaPaciente[key - 1].modalidad %}
+                            <b class="text-capitalize">modalidad:</b> de <b class="text-capitalize">
+                            {% if(historiaPaciente[key - 1].modalidad == 1) %}
+                                Ambulatorio
+                            {% elseif(historiaPaciente[key - 1].modalidad == 2) %}
+                                Internacion
+                            {% elseif(historiaPaciente[key - 1].modalidad == 3) %}
+                                Hospital de día
+                            {% elseif(historiaPaciente[key - 1].modalidad == 4) %}
+                                ART
+                            {% endif %}
+                        </b>
+                            a
+                            <b class="text-capitalize">
+                                {% if(historia.modalidad == 1) %}
+                                    Ambulatorio
+                                {% elseif(historia.modalidad == 2) %}
+                                    Internacion
+                                {% elseif(historia.modalidad == 3) %}
+                                    Hospital de día
+                                {% elseif(historia.modalidad == 4) %}
+                                    ART
+                                {% endif %}
+                            </b>
+                            <br>
+                        {% endif %}
+                        {% if historia.patologia != historiaPaciente[key - 1].patologia %}
+                            <b class="text-capitalize">Patología:</b> de
+                            <b class="text-capitalize">
+                                {% if(historia.patologia == 1) %}
+                                    Neurologicas
+                                {% elseif(historia.patologia == 2) %}
+                                    Traumatológicas
+                                {% elseif(historia.patologia == 3) %}
+                                    Respiratorias
+                                {% elseif(historia.patologia == 4) %}
+                                    Paliativos
+                                {% elseif(historia.patologia == 4) %}
+                                    Patologías laborales
+                                {% endif %}
+                            </b>
+                            a
+                            <b class="text-capitalize">
+                                {% if(historiaPaciente[key - 1].patologia == 1) %}
+                                    Neurologicas
+                                {% elseif(historiaPaciente[key - 1].patologia == 2) %}
+                                    Traumatológicas
+                                {% elseif(historiaPaciente[key - 1].patologia == 3) %}
+                                    Respiratorias
+                                {% elseif(historiaPaciente[key - 1].patologia == 4) %}
+                                    Paliativos
+                                {% elseif(historiaPaciente[key - 1].patologia == 4) %}
+                                    Patologías laborales
+                                {% endif %}
+                            </b>
+                            <br>
+                        {% endif %}
+                        {% if historia.patologiaEspecifica != historiaPaciente[key - 1].patologiaEspecifica %}
+                            <b class="text-capitalize">Patologia Especifica:</b>
+                            de
+                            <b class="text-capitalize">{{ historiaPaciente[key - 1].patologiaEspecifica }}</b>
+                            a
+                            <b class="text-capitalize">{{ historia.patologiaEspecifica }}</b>
+                            <br>
+                        {% endif %}
+                        {% if historia.obraSocial != historiaPaciente[key - 1].obraSocial %}
+                            <b class="text-capitalize">Obra Social:</b>
+                                de
+                            <b class="text-capitalize">{{ (historiaPaciente[key - 1].obraSocial is not empty and obraSociales[historiaPaciente[key - 1].obraSocial] is not empty) ? obraSociales[historiaPaciente[key - 1].obraSocial] : 'Vacío' }}</b>
+                                a
+                            <b class="text-capitalize">{{ (historia.obraSocial is not empty and obraSociales[historia.obraSocial] is not empty) ? obraSociales[historia.obraSocial] : 'Vacío' }}</b>
+                            <br>
+                        {% endif %}
+                        
+                        {% if historia.nAfiliadoObraSocial != historiaPaciente[key - 1].nAfiliadoObraSocial %}
+                            <b class="text-capitalize">Nº Afiliado OS:</b>
+                                de
+                            <b class="text-capitalize">{{ historiaPaciente[key - 1].nAfiliadoObraSocial }}</b>
+                                a
+                            <b class="text-capitalize">{{ historia.nAfiliadoObraSocial }}</b>
+                            <br>
+                        {% endif %}
+                        {% if historia.sistemaDeEmergencia != historiaPaciente[key - 1].sistemaDeEmergencia %}
+                            <b class="text-capitalize">Sistema De Emergencia:</b>
+                                de
+                            <b class="text-capitalize">{{ historiaPaciente[key - 1].sistemaDeEmergencia }}</b>
+                                a
+                            <b class="text-capitalize">{{ historia.sistemaDeEmergencia }}</b>
+                            <br>
+                        {% endif %}
+                        {% if historia.nAfiliadoSistemaDeEmergencia != historiaPaciente[key - 1].nAfiliadoSistemaDeEmergencia %}
+                            <b class="text-capitalize">Nº Afiliado SdE:</b>
+                                de
+                            <b class="text-capitalize">{{ historiaPaciente[key - 1].nAfiliadoSistemaDeEmergencia }}</b>
+                                a
+                            <b class="text-capitalize">{{ historia.nAfiliadoSistemaDeEmergencia }}</b>
+                            <br>
+                        {% endif %}
+                        {% if historia.habitacion != historiaPaciente[key - 1].habitacion %}
+                            <b class="text-capitalize">habitacion:</b>
+                            de
+                            <b class="text-capitalize">{{ historiaPaciente[key - 1].habitacion }}</b>
+                            a
+                            <b class="text-capitalize">{{ historia.habitacion }}</b>
+                            <br>
+                        {% endif %}
+                        {% if historia.cama != historiaPaciente[key - 1].cama %}
+                            <b class="text-capitalize">cama:</b>
+                            de
+                            <b class="text-capitalize">{{ historiaPaciente[key - 1].cama }}</b>
+                            a
+                            <b class="text-capitalize">{{ historia.cama }}</b>
+                            <br>
+                        {% endif %}
+                        {% if historia.fechaIngreso != historiaPaciente[key - 1].fechaIngreso %}
+                            <b class="text-capitalize">Fecha de Ingreso:</b>
+                            de
+                            <b class="text-capitalize">{{ historiaPaciente[key - 1].fechaIngreso | date('Y-m-d') }}</b>
+                            a
+                            <b class="text-capitalize">{{ historia.fechaIngreso | date('Y-m-d') }}</b>
+                            <br>
+                        {% endif %}
+                        {% if historia.fechaDerivacion != historiaPaciente[key - 1].fechaDerivacion %}
+                            <b class="text-capitalize">Fecha de Derivacion:</b>
+                            de
+                            <b class="text-capitalize">{{ historiaPaciente[key - 1].fechaDerivacion is not empty ? historiaPaciente[key - 1].fechaDerivacion | date('Y-m-d') : 'Vacío' }}</b>
+                            a
+                            <b class="text-capitalize">{{ historia.fechaDerivacion is not empty ? historia.fechaDerivacion | date('Y-m-d') : 'Vacio' }}</b>
+                            <br>
+                        {% endif %}
+                        {% if historia.fechaReingresoDerivacion != historiaPaciente[key - 1].fechaReingresoDerivacion %}
+                            <b class="text-capitalize">Fecha de reingreso de Derivacion:</b>
+                            de
+                            <b class="text-capitalize">{{ historiaPaciente[key - 1].fechaReingresoDerivacion is not empty ? historiaPaciente[key - 1].fechaReingresoDerivacion | date('Y-m-d') : 'Vacío' }}</b>
+                            a
+                            <b class="text-capitalize">{{ historia.fechaReingresoDerivacion is not empty ? historia.fechaReingresoDerivacion | date('Y-m-d') : 'Vacio' }}</b>
+                            <br>
+                        {% endif %}
+                        {% if historia.motivoDerivacion != historiaPaciente[key - 1].motivoDerivacion %}
+                            <b class="text-capitalize">Motivo de Derivacion:</b>
+                            de
+                            <b class="text-capitalize">{{ historiaPaciente[key - 1].motivoDerivacion }}</b>
+                            a
+                            <b class="text-capitalize">{{ historia.motivoDerivacion }}</b>
+                            <br>
+                        {% endif %}
+                        {% if historia.derivadoEn != historiaPaciente[key - 1].derivadoEn %}
+                            <b class="text-capitalize">Derivado En:</b>
+                            de
+                            <b class="text-capitalize">{{ historiaPaciente[key - 1].derivadoEn }}</b>
+                            a
+                            <b class="text-capitalize">{{ historia.derivadoEn }}</b>
+                            <br>
+                        {% endif %}
+                        {% if historia.empresaTransporteDerivacion != historiaPaciente[key - 1].empresaTransporteDerivacion %}
+                            <b class="text-capitalize">Empresa de Transporte de Derivacion:</b>
+                            de
+                            <b class="text-capitalize">{{ historiaPaciente[key - 1].empresaTransporteDerivacion }}</b>
+                            a
+                            <b class="text-capitalize">{{ historia.empresaTransporteDerivacion }}</b>
+                            <br>
+                        {% endif %}
+                        {% if historia.fechaAltaPorPermiso != historiaPaciente[key - 1].fechaAltaPorPermiso %}
+                            <b class="text-capitalize">Fecha de Alta Por Permiso:</b>
+                            de
+                            <b class="text-capitalize">{{ historiaPaciente[key - 1].fechaAltaPorPermiso is not empty ? historiaPaciente[key - 1].fechaAltaPorPermiso | date('Y-m-d') : 'vacio'}}</b>
+                            a
+                            <b class="text-capitalize">{{ historia.fechaAltaPorPermiso is not empty ? historia.fechaAltaPorPermiso | date('Y-m-d') : 'vacio'}}</b>
+                            <br>
+                        {% endif %}
+                        {% if historia.fechaBajaPorPermiso != historiaPaciente[key - 1].fechaBajaPorPermiso %}
+                            <b class="text-capitalize">Fecha de Baja Por Permiso:</b>
+                            de
+                            <b class="text-capitalize">{{ historiaPaciente[key - 1].fechaBajaPorPermiso is not empty ? historiaPaciente[key - 1].fechaBajaPorPermiso | date('Y-m-d') : 'vacio'}}</b>
+                            a
+                            <b class="text-capitalize">{{ historia.fechaBajaPorPermiso is not empty ? historia.fechaBajaPorPermiso | date('Y-m-d') : 'vacio'}}</b>
+                            <br>
+                        {% endif %}
+                        {% if historia.dePermiso != historiaPaciente[key - 1].dePermiso %}
+                            <b class="text-capitalize">De Permiso:</b>
+                            de
+                            <b class="text-capitalize">{{ historiaPaciente[key - 1].dePermiso is empty or historiaPaciente[key - 1].dePermiso == 0 ? 'no' : 'si' }}</b>
+                            a
+                            <b class="text-capitalize">{{ historia.dePermiso is empty or historia.dePermiso == 0 ? 'no' : 'si'}}</b>
+                            <br>
+                        {% endif %}
+                        {% if historia.ambulatorio != historiaPaciente[key - 1].ambulatorio %}
+                            <b class="text-capitalize">Ambulatorio:</b>
+                            de
+                            <b class="text-capitalize">{{ historiaPaciente[key - 1].ambulatorio is empty or historiaPaciente[key - 1].ambulatorio == 0 ? 'no' : 'si' }}</b>
+                            a
+                            <b class="text-capitalize">{{ historia.ambulatorio is empty or historia.ambulatorio == 0 ? 'no' : 'si'}}</b>
+                            <br>
+                        {% endif %}
+                    </td>
+                    <td class="lowercase">{{ historia.usuario }}</td>
+                {% endif %}
+
             </tr>
         {% else %}
             <tr>
@@ -118,6 +273,6 @@
         </tbody>
     </table>
 
-    <a class="btn btn-default" href="{{ path('cliente_index') }}">volver</a>
+    <a class="btn btn-default" href="javascript:history.back();">volver</a>
 {% endblock %}
 

@@ -19,7 +19,7 @@ $("#menu-toggle").click(function(e) {
 });
 
 var form = document.querySelector('form');
-if(typeof (form) != "undefined" && form != null && form.name != 'booking') {
+if(typeof (form) != "undefined" && form != null && form.name != 'booking' && form.name != 'filtros') {
     form.addEventListener('submit', function(event) {
         if($(form).find('.is-invalid').length) {
             $(form).find('.is-invalid').focus();

@@ -9,6 +9,7 @@ use App\Repository\ClienteRepository;
 use App\Repository\DoctorRepository;
 use App\Repository\ObraSocialRepository;
 use App\Repository\UserRepository;
+use DoctrineExtensions\Query\Mysql\Date;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -556,6 +557,37 @@ class DoctorController extends AbstractController
             'obraSocialSelected' => $obraSocialSelected,
             'obrasSociales' => $obrasSocialesArray,
             'paginaImprimible' => true,
+        ]);
+
+    }
+
+    /**
+     * @Route("/doctor/historia/", name="doctor_historia", methods={"GET"})
+     */
+    public function historia(Request $request, BookingRepository $bookingRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository)
+    {
+        $user = $this->getUser();
+        $nombreInput = $request->query->get('nombreInput', '');
+
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        } else if (!in_array('ROLE_STAFF', $user->getRoles())) {
+            return $this->redirectToRoute('dashboard_index');
+        }
+
+        $bookings = $bookingRepository->findBy(['doctor' => $user]);
+        $pacientes = [];
+        foreach ($bookings as $bookin) {
+            $pacientes[] = $bookin->getCliente();
+        }
+
+        $otrosPacientes = $clienteRepository->findActivos(new \DateTime(), $nombreInput, null);
+
+        return $this->render('doctor/historias.html.twig', [
+            'clientes' => $otrosPacientes,
+            'todosClientes' => $otrosPacientes,
+            'paginaImprimible' => true,
+            'nombreInput' => $nombreInput
         ]);
 
     }

@@ -1,0 +1,71 @@
+{{ form_start(form) }}
+<div class="container-fluid">
+    <div class="form-row">
+        <div class="col-sm">
+            {{ form_label(form.antecedentesTexto, 'Antecedentes') }}
+            {{ form_widget(form.antecedentesTexto) }}
+        </div>
+        <div class="col-sm">
+            {{ form_label(form.enfermedadActual, 'Enfermedad Actual') }}
+            {{ form_widget(form.enfermedadActual) }}
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="col-sm">
+            {{ form_label(form.examenFisicoAlIngreso, 'Examen Físico al Ingreso') }}
+            {{ form_widget(form.examenFisicoAlIngreso) }}
+        </div>
+        <div class="col-sm">
+            {{ form_label(form.examenComplementarioDesc, 'Examen Complementario DESCRIPCIÓN') }}
+            {{ form_widget(form.examenComplementarioDesc) }}
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="col-sm">
+            {{ form_label(form.indicaciones, 'Indicaciones') }}
+            {{ form_widget(form.indicaciones) }}
+        </div>
+        <div class="col-sm">
+
+        </div>
+    </div>
+    <br>
+    {% if historia_ingreso.examenesComplementeriosFiles %}
+        <div class="form-row">
+            <div class="col-sm">
+                <h3>Examenes complementarios adjuntos</h3>
+                <table class="table">
+                    {% for examenes in historia_ingreso.examenesComplementeriosFiles %}
+                        <tr>
+                            <td>
+                                {{ examenes }}
+                            </td>
+                            <td>
+                                <a href="#" class="removeAdjunto" data-adjunto-nombre="{{ examenes }}">X</a>
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+                </table>
+            </div>
+            <div class="col-sm"></div>
+        </div>
+        <br><br>
+    {% endif %}
+    <div class="form-row">
+        <div class="col-sm">
+            {{ form_label(form.adjunto, 'Examen Complementario ADJUNTOS') }}&nbsp;&nbsp;&nbsp;&nbsp;
+            {{ form_widget(form.adjunto) }}
+        </div>
+    </div>
+    <br>
+    <div class="form-row">
+        <div class="col-sm">
+            {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary'}}) }}
+            <a class="btn btn-default" href="{{ path('doctor_index') }}">volver</a>
+        </div>
+    </div>
+</div>
+
+
+{{ form_end(form) }}

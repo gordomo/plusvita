@@ -1,0 +1,320 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Pacientes index{% endblock %}
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('assets/css/cliente.css') }}"></script>
+{% endblock %}
+{% block panelTitle %}Pacientes{% endblock %}
+{% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="input-group mb-3">
+                <input id='nombreInput' type="text" value="{{ nombreInput }}" class="form-control" placeholder="Buscar por Nombre" aria-label="Buscar por Nombre" aria-describedby="buscarPorNombre">
+                <div class="input-group-append">
+                    <a class="btn btn-outline-secondary"
+                       data-url="{{ path('doctor_historia') }}"
+                       type="button" id="buscarPorNombre"
+                       style="padding: 10px;">
+                        <i class="fas fa-search"></i>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+<div class="printiable">
+    <table class="table table-responsive table-striped">
+        <thead>
+        <tr>
+            <th class="hClinica">H. Clínica</th>
+            <th class="nombre">Nombre</th>
+            <th class="apellido">Apellido</th>
+            <th class="fNacimiento">F. Nac</th>
+            <th class="edad">Edad</th>
+            <th class="dni">Dni</th>
+            <th class="Email">Email</th>
+            <th class="telefono">Teléfono</th>
+            <th class="fIngreso">Fecha Ingreso</th>
+            <th class="motivoIng">Motivo Ing</th>
+            <th class="motivoIngEspecifico">Motivo Ing Especifico</th>
+            <th class="modalidad">Modalidad</th>
+            <th class="fEgreso">Fecha Egreso</th>
+            <th class="motivoEgr">Motivo Egreso</th>
+            <th class="obraSocial">O. Social</th>
+            <th class="obraSocialAfiliado">N Afiliado OS</th>
+            <th class="tipoDePago">Tipo de Pago</th>
+            <th class="vieneDe">Viene de</th>
+
+            <th class="posicionEnArchivo">Posicion en Archivo</th>
+            <th class="docDerivante">Doc derivante</th>
+            <th class="habitacion">Habitación</th>
+            <th class="nCama">Cama</th>
+            <th class="docReferente">Doc Referente</th>
+
+            <th class="familiarResponsableNombre">familiarResponsableNombre</th>
+            <th class="familiarResponsableTel">familiarResponsableTel</th>
+            <th class="familiarResponsableMail">familiarResponsableMail</th>
+            <th class="familiarResponsableAcompanante">familiarResponsableAcompanante</th>
+            <th class="vinculoResponsable">vinculoResponsable</th>
+            <th class="sistemaDeEmergenciaNombre">sistemaDeEmergenciaNombre</th>
+            <th class="sistemaDeEmergenciaTel">sistemaDeEmergenciaTel</th>
+            <th class="sistemaDeEmergenciaAfiliado">sistemaDeEmergenciaAfiliado</th>
+            <th class="disponibleParaTerapia">disponibleParaTerapia?</th>
+            <th class="derivado">derivado?</th>
+            <th class="derivadoEn">Derivado En</th>
+            <th class="fechaDerivacion">Fecha de Derivacion</th>
+            <th class="motivoDerivacion">Motivo de Derivacion</th>
+            <th class="fechaReingresoDerivacion">Fecha Reingreso Derivacion</th>
+            <th class="empTrasladoDerivacion">Emp de Traslado de Derivacion</th>
+            <th class="motivoReingresoDerivacion">motivoReingresoDerivacion</th>
+            <th class="dePermiso">dePermiso?</th>
+            <th class="fechaBajaPorPermiso">Fecha Baja Por Permiso</th>
+            <th class="fechaAltaPorPermiso">Fecha Alta Por Permiso</th>
+            <th class="terapiasHabilitadas">Terapias Habilitadas</th>
+            <th class="terapiasNoHabilitadas">Terapias No Habilitadas</th>
+            <th class="sesionesDisp">Sesiones Disp</th>
+            <th class="formNum">Numero de Formulario</th>
+            <th class="vtoSesiones">vto Sesiones</th>
+            <th class="mediaSesionView">Media Sesion?</th>
+            <th class="dieta">Media Sesion?</th>
+
+
+            <th class="acciones">Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for cliente in clientes %}
+            <tr class="editarPaciente {{ cliente.disponibleParaTerapia ? '' : 'noDisp' }}" data-toggle="tooltip" data-placement="top" title="{{ cliente.disponibleParaTerapia ? '' : 'NO disponible para alguna terapia' }}" style="line-height: 35px;">
+                <div class="editarPacienteInner">
+                    <td class="hClinica">{{ cliente.hClinica }}</td>
+                    <td class="nombre">{{ cliente.nombre }}</td>
+                    <td class="apellido">{{ cliente.apellido }}</td>
+                    <td class="fNacimiento">{{ cliente.fNacimiento ? cliente.fNacimiento|date('Y-m-d') : '' }}</td>
+                    <td class="edad">{{ cliente.edad }}</td>
+                    <td class="dni">{{ cliente.dni }}</td>
+                    <td class="lowercase email">{{ cliente.email }}</td>
+                    <td class="telefono">{{ cliente.telefono }}</td>
+                    <td class="fIngreso">{{ cliente.fIngreso ? cliente.fIngreso|date('Y-m-d') : '' }}</td>
+                    <td class="motivoIng">
+                        {% if(cliente.motivoIng == 1) %}
+                            Neurologicas
+                        {% elseif(cliente.motivoIng == 2) %}
+                            Traumatológicas
+                        {% elseif(cliente.motivoIng == 3) %}
+                            Respiratorias
+                        {% elseif(cliente.motivoIng == 4) %}
+                            Paliativos
+                        {% elseif(cliente.motivoIng == 5) %}
+                            Patologías laborales
+                        {% endif %}
+                    </td>
+                    <td class="motivoIngEspecifico">{{ cliente.motivoIngEspecifico }}</td>
+                    <td class="modalidad">
+                        {% if(cliente.modalidad == 1) %}
+                            Ambulatorio
+                        {% elseif(cliente.modalidad == 2) %}
+                            Internacion
+                        {% elseif(cliente.modalidad == 3) %}
+                            Hospital de día
+                        {% elseif(cliente.modalidad == 4) %}
+                            ART
+                        {% endif %}
+                    </td>
+                    <td class="fEgreso">{{ cliente.fEgreso ? cliente.fEgreso|date('Y-m-d') : '' }}</td>
+                    <td class="motivoEgr">{{ cliente.motivoEgr }}</td>
+                    <td class="obraSocial">{{ cliente.obraSocial }}</td>
+                    <td class="obraSocialAfiliado">{{ cliente.obraSocialAfiliado }}</td>
+                    <td class="tipoDePago">{{ cliente.tipoDePago }}</td>
+                    <td class="vieneDe">{{ cliente.vieneDe }}</td>
+                    <td class="posicionEnArchivo">{{ cliente.posicionEnArchivo }}</td>
+                    <td class="docDerivante">{{ cliente.docDerivante }}</td>
+                    <td class="habitacion">
+                        {% if habitacionesArray[cliente.habitacion] is defined %}
+                            {{ habitacionesArray[cliente.habitacion] }}
+                        {% endif %}
+                    </td>
+                    <td class="nCama">
+                        {% if cliente.habPrivada %}
+                            privada
+                        {% else %}
+                            {{ cliente.nCama }}
+                        {% endif %}
+                    </td>
+                    <td class="docReferente">
+                        {% for responsable in cliente.docReferente %}
+                            {{ responsable.nombre | lower | capitalize }} {{ responsable.apellido | lower | capitalize }} <br>
+                        {% endfor %}
+                    </td>
+                    <td class="familiarResponsableNombre">{{ cliente.familiarResponsableNombre }} </td>
+                    <td class="familiarResponsableTel">{{ cliente.familiarResponsableTel }} </td>
+                    <td class="familiarResponsableMail">{{ cliente.familiarResponsableMail }} </td>
+                    <td class="familiarResponsableAcompanante">{{ cliente.familiarResponsableAcompanante }} </td>
+                    <td class="vinculoResponsable">{{ cliente.vinculoResponsable }} </td>
+                    <td class="sistemaDeEmergenciaNombre">{{ cliente.sistemaDeEmergenciaNombre }} </td>
+                    <td class="sistemaDeEmergenciaTel">{{ cliente.sistemaDeEmergenciaTel }} </td>
+                    <td class="sistemaDeEmergenciaAfiliado">{{ cliente.sistemaDeEmergenciaAfiliado }} </td>
+                    <td class="disponibleParaTerapia">{{ cliente.disponibleParaTerapia }} </td>
+                    <td class="derivado">{{ cliente.derivado }} </td>
+                    <td class="derivadoEn">{{ cliente.derivadoEn }} </td>
+                    <td class="fechaDerivacion">{{ cliente.fechaDerivacion ? cliente.fechaDerivacion|date('Y-m-d') : ''  }} </td>
+                    <td class="motivoDerivacion">{{ cliente.motivoDerivacion }} </td>
+                    <td class="fechaReingresoDerivacion">{{ cliente.fechaReingresoDerivacion ? cliente.fechaReingresoDerivacion|date('Y-m-d') : '' }} </td>
+                    <td class="empTrasladoDerivacion">{{ cliente.empTrasladoDerivacion }} </td>
+                    <td class="motivoReingresoDerivacion">{{ cliente.motivoReingresoDerivacion }} </td>
+                    <td class="dePermiso">{{ cliente.dePermiso }} </td>
+                    <td class="fechaBajaPorPermiso">{{ cliente.fechaBajaPorPermiso ? cliente.fechaBajaPorPermiso|date('Y-m-d') : '' }} </td>
+                    <td class="fechaAltaPorPermiso">{{ cliente.fechaAltaPorPermiso ? cliente.fechaAltaPorPermiso|date('Y-m-d') : '' }} </td>
+                    <td class="terapiasHabilitadas">{{ cliente.terapiasHabilitadas ? cliente.terapiasHabilitadas|json_encode : '' }} </td>
+                    <td class="terapiasNoHabilitadas">{{ cliente.terapiasNoHabilitadas ? cliente.terapiasNoHabilitadas|json_encode : ''  }} </td>
+                    <td class="sesionesDisp">{{ cliente.sesionesDisp }} </td>
+                    <td class="formNum">{{ cliente.formNum }} </td>
+                    <td class="vtoSesiones">{{ cliente.vtoSesiones ? cliente.vtoSesiones|date('Y-m-d') : ''}} </td>
+                    <td class="mediaSesionView">{{ cliente.mediaSesion }} </td>
+                    <td class="dieta">{{ cliente.dieta }} </td>
+                    <td>
+                        <div class="dropdown show dropleft">
+                            <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Acciones
+                            </a>
+
+                            <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                                <a class="dropdown-item" href="{{ path('cliente_historial', {'id': cliente.id}) }}">
+                                    <i class="far fa-calendar-alt" data-toggle="tooltip" data-placement="top" title="historia"></i> Ver Historia
+                                </a>
+                                <a class="dropdown-item" href="{{ path('historia_ingreso_new', {'cliente': cliente.id}) }}">
+                                    <i class="far fa-calendar-alt" data-toggle="tooltip" data-placement="top" title="historia"></i> Historia de Ingreso
+                                </a>
+                            </div>
+                        </div>
+                    </td>
+                </div>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="15">No existen registros</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="modal fade bd-example-modal-lg camposExtras" id="camposExtras" tabindex="-1" role="dialog" aria-labelledby="camposExtras" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Seleccione los campos a mostrar</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-group columnas-de-dos" id="checkboxesForView">
+                        {% for fiel in [
+                            'hClinica', 'nombre', 'apellido','dni', 'fNacimiento', 'edad', 'telefono', 'legajo','fIngreso',
+                            'obraSocial', 'obraSocialAfiliado', 'tipoDePago',
+                            'fEgreso','motivoIng', 'motivoEgr',
+                            'docReferente', 'Email',
+                            'vieneDe', 'posicionEnArchivo',
+                            'docDerivante',
+                            'modalidad', 'motivoIngEspecifico',
+                            'habitacion', 'nCama', 'habPrivada', 'familiarResponsableNombre','familiarResponsableTel',
+                            'familiarResponsableMail','familiarResponsableAcompanante',
+                            'vinculoResponsable', 'sistemaDeEmergenciaNombre',
+                            'sistemaDeEmergenciaTel', 'sistemaDeEmergenciaAfiliado','fIngreso',
+                            'disponibleParaTerapia', 'derivado', 'dePermiso', 'derivadoEn', 'fechaDerivacion',
+                            'motivoDerivacion', 'empTrasladoDerivacion', 'fechaReingresoDerivacion', 'motivoReingresoDerivacion', 'fechaBajaPorPermiso',
+                            'fechaAltaPorPermiso', 'terapiasHabilitadas', 'terapiasNoHabilitadas', 'sesionesDisp',
+                            'formNum', 'vtoSesiones', 'mediaSesionView', 'dieta'
+                        ] %}
+
+                            <div class="form-check">
+                                <input class="form-check-input checkForView"
+                                        {% if fiel == 'hClinica' %} checked {% endif %}
+                                        {% if fiel == 'nombre' %} checked {% endif %}
+                                        {% if fiel == 'apellido' %} checked {% endif %}
+                                        {% if fiel == 'dni' %} checked {% endif %}
+                                        {% if fiel == 'habitacion' %} checked {% endif %}
+                                        {% if fiel == 'nCama' %} checked {% endif %}
+                                        {% if fiel == 'fIngreso' %} checked {% endif %}
+                                        {% if fiel == 'obraSocial' %} checked {% endif %}
+                                        {% if fiel == 'tipoDePago' %} checked {% endif %}
+                                        {% if fiel == 'motivoIng' %} checked {% endif %}
+                                        {% if fiel == 'docReferente' %} checked {% endif %}
+                                       type="checkbox" value="{{ fiel }}" id="{{ fiel }}"
+                                >
+                                <label class="form-check-label" for="{{ fiel }}" style="text-transform: capitalize">
+                                    {{ fiel }}
+                                </label>
+                            </div>
+                        {% endfor %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="todos" id="todosForView">
+                            <label class="form-check-label" for="todosForView">
+                                Todos
+                            </label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="updateCamposForView">Mostrar</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    {% endblock %}
+    {% block modalImprimir %}
+        {% for fiel in [
+            'hClinica', 'nombre', 'apellido','dni', 'fNacimiento', 'edad', 'telefono', 'legajo','fIngreso',
+            'obraSocial', 'obraSocialAfiliado', 'tipoDePago',
+            'fEgreso','motivoIng', 'motivoEgr',
+            'docReferente', 'Email',
+            'vieneDe', 'posicionEnArchivo',
+            'docDerivante',
+            'modalidad', 'motivoIngEspecifico',
+            'habitacion', 'nCama', 'habPrivada', 'familiarResponsableNombre','familiarResponsableTel',
+            'familiarResponsableMail','familiarResponsableAcompanante',
+            'vinculoResponsable', 'sistemaDeEmergenciaNombre',
+            'sistemaDeEmergenciaTel', 'sistemaDeEmergenciaAfiliado','fIngreso',
+            'disponibleParaTerapia', 'derivado', 'dePermiso', 'derivadoEn', 'fechaDerivacion',
+            'motivoDerivacion', 'empTrasladoDerivacion', 'fechaReingresoDerivacion', 'motivoReingresoDerivacion', 'fechaBajaPorPermiso',
+            'fechaAltaPorPermiso', 'terapiasHabilitadas', 'terapiasNoHabilitadas', 'sesionesDisp',
+            'formNum', 'vtoSesiones', 'mediaSesionView', 'dieta'
+        ] %}
+            <div class="form-check">
+                <input class="form-check-input check" type="checkbox" value="{{ fiel }}" id="{{ fiel }}"
+                        {% if fiel == 'hClinica' %} checked {% endif %}
+                        {% if fiel == 'nombre' %} checked {% endif %}
+                        {% if fiel == 'apellido' %} checked {% endif %}
+                        {% if fiel == 'dni' %} checked {% endif %}
+                        {% if fiel == 'fIngreso' %} checked {% endif %}
+                        {% if fiel == 'obraSocial' %} checked {% endif %}
+                        {% if fiel == 'tipoDePago' %} checked {% endif %}
+                        {% if fiel == 'motivoIng' %} checked {% endif %}
+                        {% if fiel == 'docReferente' %} checked {% endif %}
+                >
+                <label class="form-check-label" for="{{ fiel }}" style="text-transform: capitalize">
+                    {{ fiel }}
+                </label>
+            </div>
+        {% endfor %}
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="todos" id="todos">
+            <label class="form-check-label" for="todos">
+                Todos
+            </label>
+        </div>
+    {% endblock %}
+    {% block javascripts %}
+        {{ parent() }}
+        <script src="{{ asset('assets/js/cliente.js') }}"></script>
+        <script>
+            var tituloExcel = 'clientes.xlsx';
+        </script>
+    {% endblock %}

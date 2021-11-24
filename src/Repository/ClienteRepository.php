@@ -201,4 +201,13 @@ class ClienteRepository extends ServiceEntityRepository
             return null;
         }
     }
+
+    public function findClienteConHabitacion()
+    {
+        return $this
+            ->createQueryBuilder("c")
+            ->where("c.habitacion IS NOT NULL")
+            ->orderBy("c.habitacion", "DESC")
+            ->getQuery()->getResult();
+    }
 }

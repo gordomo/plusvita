@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit NotasHistoriaClinica{% endblock %}
+
+{% block body %}
+    <h1>Edit NotasHistoriaClinica</h1>
+
+    {{ include('notas_historia_clinica/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('notas_historia_clinica_index') }}">back to list</a>
+
+    {{ include('notas_historia_clinica/_delete_form.html.twig') }}
+{% endblock %}

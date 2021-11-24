@@ -2,7 +2,7 @@
 
 {% block title %}Consumibles Imputar{% endblock %}
 {% block panelTitle %}
-    Imputar Consumibles a <b style="text-transform: capitalize"> {{ cliente.nombre }}</b>
+    Imputar Consumibles a <b style="text-transform: capitalize" id="clienteName"> {{ cliente.nombre }} {{ cliente.apellido }}</b>
 {% endblock %}
 {% block titleButtons %}
     <a href="javascript:history.back()" class="btn-danger btn">Volver</a>
@@ -174,12 +174,17 @@
                         alert('error: ' + response.message);
                     } else {
                         let html = '';
+                        let count = 1;
+                        html += '<div class="table-responsive-sm"><table class="table table-striped"><thead><tr><th class="center">#</th><th>Item</th><th class="center">Cantidad</th></tr></thead><tbody>'
                         $.each(response, function (e, v) {
-                            html += '<div class="row">';
-                            html += '<div class="col-sm"><span>'+v.nombre+'</span></div>';
-                            html += '<div class="col-sm-1"><span>'+v.cant+'</span></div>';
-                            html += '</div>';
+                            html += '<tr>';
+                            html += '<td>'+count+'</td>';
+                            html += '<td>'+v.nombre+'</td>';
+                            html += '<td>'+v.cant+'</td>';
+                            html += '</tr>';
+                            count ++;
                         });
+                        html += '</tbody></table>';
 
                         $('#data').html(html);
                     }
@@ -271,10 +276,18 @@
         $('#generarRecibo').click(function () {
             let date = $('#fechaImputaciones').val();
             var html = '<head>' + $('head').html() + '</head>';
-            html += '<div class="container"><div class="row"><div><span>Fecha: '+date+' Insumos no incluidos en modulo</span></div></div><div id="data">'
-            html += '<div class="row"><div><span>Recibo Nº: ###numero###</span></div></div>';
+            html += '<div class="container" style="border: 1px solid;padding-top: 15px;margin-top: 15px;border-radius: 10px;">' +
+                        '<div class="" style="margin-top: 15px; text-align: left">' +
+                        '   <span><b>Recibo Nº: ###numero### </b></b></span>' +
+                        '   <span >Fecha: '+date+' </span><br></b>' +
+                        '   <span>Insumos no incluidos en modulo</span><br></b>' +
+                        '   <span style="text-transform: capitalize;">Nombre: '+ $('#clienteName').html() +'</span><br></b>' +
+                        '   <span>Cuil: ........................................</span></b>' +
+                        '</div>' +
+                        '<div">';
             html += $('#data').html();
-            html += '</div></div>';
+            html +=     '</div>' +
+                    '</div>';
 
             $.ajax({
                 url: '{{ path('guardar_recibo') }}',

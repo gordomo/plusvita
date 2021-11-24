@@ -6,9 +6,12 @@ namespace App\Controller;
 use App\Entity\Cliente;
 use App\Entity\Habitacion;
 use App\Controller\ExportToExcel;
+use App\Entity\HistoriaPaciente;
 use App\Repository\ClienteRepository;
 use App\Repository\DoctorRepository;
 use App\Repository\HabitacionRepository;
+use App\Repository\HistoriaHabitacionesRepository;
+use App\Repository\HistoriaPacienteRepository;
 use App\Repository\ObraSocialRepository;
 use DateTime;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -25,6 +28,11 @@ use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Mime\FileinfoMimeTypeGuesser;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Encoder\XmlEncoder;
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Serializer;
 
 
 /**
@@ -35,9 +43,10 @@ class DashboardController extends AbstractController
     /**
      * @Route("/", name="dashboard_index", methods={"GET"})
      */
-    public function index(HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, DoctorRepository $doctorRepository): Response
+    public function index(Request $request, HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, DoctorRepository $doctorRepository): Response
     {
         $isDoctor = $this->isDoctor();
+
         $habitacionesYpacientes = $this->getHabitacionesYpacientes();
 
         $osArray = $this->getOSarray($obraSocialRepository);
@@ -63,6 +72,42 @@ class DashboardController extends AbstractController
                 'colorCampana' => $colorCampana
             ]);
     }
+
+    /**
+     * @Route("/get/pacientes", name="dashboard_index_filtro_cantidad_pacientes", methods={"POST", "GET"})
+     */
+    public function getPacientesFromTo(Request $request, ObraSocialRepository $obraSocialRepository, HistoriaHabitacionesRepository $historiaHabitacionesRepository, ClienteRepository $clienteRepository) {
+
+        $encoders = [new XmlEncoder(), new JsonEncoder()];
+        $normalizers = [new ObjectNormalizer()];
+
+        $serializer = new Serializer($normalizers, $encoders);
+
+        $from = $request->get('from');
+        $to = $request->get('to');
+
+        $historias = $historiaHabitacionesRepository->findByDate($from,  $to);
+
+        $obrasSociales = $this->getOSarray($obraSocialRepository);
+
+        $arrHistorias = [];
+
+        foreach ( $historias as $historia ) {
+            $cliente = $historia->getCliente();
+            $arrHistorias[] = [
+                'nombreCliente' => $cliente->getNombre() . ' ' . $cliente->getApellido(),
+                'obraSocial' => $obrasSociales[$cliente->getObraSocial()] ?? 'Sin OS',
+                'fecha' => $historia->getFecha(),
+                'habitacion' => $historia->getHabitacion()->getNombre(),
+                'cama' => $historia->getNCama(),
+            ];
+        }
+
+        return new JsonResponse($arrHistorias);
+
+    }
+
+
 
     /**
      * @Route("/excel", name="to_excel", methods={"POST"})

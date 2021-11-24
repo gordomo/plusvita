@@ -41,7 +41,7 @@
 #data .row:last-child {
     border-bottom: 1px solid;
 }
-#loading {
+#loading, #resultado {
     display: none;
 }
 .form-group .control-label.required:after {

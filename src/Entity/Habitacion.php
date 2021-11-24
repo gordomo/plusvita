@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\HabitacionRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -31,6 +33,16 @@ class Habitacion
      * @ORM\Column(type="json")
      */
     private $camasOcupadas = null;
+
+    /**
+     * @ORM\OneToMany(targetEntity=HistoriaHabitaciones::class, mappedBy="habitacion")
+     */
+    private $historiaHabitaciones;
+
+    public function __construct()
+    {
+        $this->historiaHabitaciones = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -69,6 +81,36 @@ class Habitacion
     public function setCamasOcupadas(array $camasOcupadas): self
     {
         $this->camasOcupadas = $camasOcupadas;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|HistoriaHabitaciones[]
+     */
+    public function getHistoriaHabitaciones(): Collection
+    {
+        return $this->historiaHabitaciones;
+    }
+
+    public function addHistoriaHabitacione(HistoriaHabitaciones $historiaHabitacione): self
+    {
+        if (!$this->historiaHabitaciones->contains($historiaHabitacione)) {
+            $this->historiaHabitaciones[] = $historiaHabitacione;
+            $historiaHabitacione->setHabitacion($this);
+        }
+
+        return $this;
+    }
+
+    public function removeHistoriaHabitacione(HistoriaHabitaciones $historiaHabitacione): self
+    {
+        if ($this->historiaHabitaciones->removeElement($historiaHabitacione)) {
+            // set the owning side to null (unless already changed)
+            if ($historiaHabitacione->getHabitacion() === $this) {
+                $historiaHabitacione->setHabitacion(null);
+            }
+        }
 
         return $this;
     }

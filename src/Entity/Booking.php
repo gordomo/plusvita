@@ -238,15 +238,23 @@ class Booking
 
     public function getDesdeEvent()
     {
-        return $this->desde->format('Y-m-d');
+        if (!is_null($this->desde)) {
+            return $this->desde->format('Y-m-d');
+        }
+        return null;
+
     }
 
     public function getHastaEvent()
     {
-        return $this->hasta->modify('+1 day')->format('Y-m-d');
+        if (!is_null($this->desde)) {
+            return $this->hasta->modify('+1 day')->format('Y-m-d');
+        }
+        return null;
     }
     public function getDesdeEventWithHour()
     {
+        if (is_null($this->desde)) return null;
         $desde = $this->desde;
         $beginAt = $this->getBeginAt();
         $horaTurno = $beginAt->format('H');
@@ -259,6 +267,7 @@ class Booking
 
     public function getHastaEventWithHour()
     {
+        if (is_null($this->hasta)) return null;
         $hasta = $this->hasta;
         $endAt = $this->getEndAt();
         $horaTurno = $endAt->format('H');

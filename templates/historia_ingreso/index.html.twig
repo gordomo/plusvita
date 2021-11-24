@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}HistoriaIngreso index{% endblock %}
+
+{% block body %}
+    <h1>HistoriaIngreso index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Paciente</th>
+                <th>AntecedentesTexto</th>
+                <th>EnfermedadActual</th>
+                <th>ExamenFisicoAlIngreso</th>
+                <th>ExamenComplementarioDesc</th>
+                <th>Indicaciones</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for historia_ingreso in historia_ingresos %}
+            <tr>
+                <td>{{ historia_ingreso.cliente.nombre }} {{ historia_ingreso.cliente.apellido }}</td>
+                <td>{{ historia_ingreso.antecedentesTexto }}</td>
+                <td>{{ historia_ingreso.enfermedadActual }}</td>
+                <td>{{ historia_ingreso.examenFisicoAlIngreso }}</td>
+                <td>{{ historia_ingreso.examenComplementarioDesc }}</td>
+                <td>{{ historia_ingreso.indicaciones }}</td>
+                <td>
+                    <a href="{{ path('historia_ingreso_show', {'id': historia_ingreso.id}) }}">show</a>
+                    <a href="{{ path('historia_ingreso_edit', {'id': historia_ingreso.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="7">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+
+{% endblock %}

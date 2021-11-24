@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nueva Historia de Ingreso{% endblock %}
+
+{% block body %}
+    <h1>Nueva Historia de Ingreso de {{ historia_ingreso.cliente.nombre }} {{ historia_ingreso.cliente.apellido }}</h1>
+
+    {{ include('historia_ingreso/_form.html.twig') }}
+
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        $('.removeAdjunto').click(function (e) {
+            e.preventDefault();
+            let nombre = $(this).data('adjunto-nombre');
+            let mensaje = '¿Está seguro que desea borrar este archivo adjunto?' + '\r\n' + nombre;
+            var r = confirm(mensaje);
+            self = $(this);
+            if (r) {
+                $.ajax({
+                    url: '{{ path('borrar_examen_complementerio_file') }}',
+                    method: 'POST',
+                    data: {
+                        'nombre': nombre,
+                        'clienteId': {{ historia_ingreso.cliente.id }},
+                    },
+                    success: function (response) {
+                        if (response.error) {
+                            alert('error: ' + response.message);
+                        } else {
+                            self.parent().parent().remove();
+                        }
+                    },
+                });
+            }
+        });
+    </script>
+{% endblock %}

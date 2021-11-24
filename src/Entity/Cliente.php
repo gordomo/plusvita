@@ -77,11 +77,13 @@ class Cliente
     /**
      * @ORM\ManyToMany(targetEntity=Doctor::class, mappedBy="clientes")
      */
+    #[Ignore]
     private $docReferente;
 
     /**
      * @ORM\OneToMany(targetEntity=Booking::class, mappedBy="cliente")
      */
+    #[Ignore]
     private $bookings;
 
     /**
@@ -304,10 +306,27 @@ class Cliente
      */
     private $fechaReingresoAmbulatorio;
 
+    /**
+     * @ORM\OneToMany(targetEntity=NotasHistoriaClinica::class, mappedBy="cliente", orphanRemoval=true)
+     */
+    private $notasHistoriaClinica;
+
+    /**
+     * @ORM\OneToOne(targetEntity=HistoriaIngreso::class, mappedBy="cliente", cascade={"persist", "remove"})
+     */
+    private $historiaIngreso;
+
+    /**
+     * @ORM\OneToMany(targetEntity=HistoriaHabitaciones::class, mappedBy="cliente")
+     */
+    private $historiaHabitaciones;
+
     public function __construct()
     {
         $this->docReferente = new ArrayCollection();
         $this->bookings = new ArrayCollection();
+        $this->notasHistoriaClinica = new ArrayCollection();
+        $this->historiaHabitaciones = new ArrayCollection();
     }
 
     public function getNombreApellido(): ?string
@@ -761,6 +780,9 @@ class Cliente
         $this->habPrivada = $habPrivada;
     }
 
+    public function getBookings() {
+        return $this->bookings;
+    }
 
     public function addBooking(Booking $booking): self
     {
@@ -1049,6 +1071,84 @@ class Cliente
     public function setFechaReingresoAmbulatorio(?\DateTimeInterface $fechaReingresoAmbulatorio): self
     {
         $this->fechaReingresoAmbulatorio = $fechaReingresoAmbulatorio;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|NotasHistoriaClinica[]
+     */
+    public function getNotasHistoriaClinica(): Collection
+    {
+        return $this->notasHistoriaClinica;
+    }
+
+    public function addNotasHistoriaClinica(NotasHistoriaClinica $notasHistoriaClinica): self
+    {
+        if (!$this->notasHistoriaClinica->contains($notasHistoriaClinica)) {
+            $this->notasHistoriaClinica[] = $notasHistoriaClinica;
+            $notasHistoriaClinica->setClientId($this);
+        }
+
+        return $this;
+    }
+
+    public function removeNotasHistoriaClinica(NotasHistoriaClinica $notasHistoriaClinica): self
+    {
+        if ($this->notasHistoriaClinica->contains($notasHistoriaClinica)) {
+            $this->notasHistoriaClinica->removeElement($notasHistoriaClinica);
+            // set the owning side to null (unless already changed)
+            if ($notasHistoriaClinica->getClientId() === $this) {
+                $notasHistoriaClinica->setClientId(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getHistoriaIngreso(): ?HistoriaIngreso
+    {
+        return $this->historiaIngreso;
+    }
+
+    public function setHistoriaIngreso(HistoriaIngreso $historiaIngreso): self
+    {
+        // set the owning side of the relation if necessary
+        if ($historiaIngreso->getCliente() !== $this) {
+            $historiaIngreso->setCliente($this);
+        }
+
+        $this->historiaIngreso = $historiaIngreso;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|HistoriaHabitaciones[]
+     */
+    public function getHistoriaHabitaciones(): Collection
+    {
+        return $this->historiaHabitaciones;
+    }
+
+    public function addHistoriaHabitacione(HistoriaHabitaciones $historiaHabitacione): self
+    {
+        if (!$this->historiaHabitaciones->contains($historiaHabitacione)) {
+            $this->historiaHabitaciones[] = $historiaHabitacione;
+            $historiaHabitacione->setCliente($this);
+        }
+
+        return $this;
+    }
+
+    public function removeHistoriaHabitacione(HistoriaHabitaciones $historiaHabitacione): self
+    {
+        if ($this->historiaHabitaciones->removeElement($historiaHabitacione)) {
+            // set the owning side to null (unless already changed)
+            if ($historiaHabitacione->getCliente() === $this) {
+                $historiaHabitacione->setCliente(null);
+            }
+        }
 
         return $this;
     }

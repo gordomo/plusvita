@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}NotasHistoriaClinica{% endblock %}
+
+{% block body %}
+    <h1>NotasHistoriaClinica</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ notas_historia_clinica.id }}</td>
+            </tr>
+            <tr>
+                <th>Text</th>
+                <td>{{ notas_historia_clinica.text }}</td>
+            </tr>
+            <tr>
+                <th>Fecha</th>
+                <td>{{ notas_historia_clinica.fecha ? notas_historia_clinica.fecha|date('Y-m-d') : '' }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('notas_historia_clinica_index') }}">back to list</a>
+
+    <a href="{{ path('notas_historia_clinica_edit', {'id': notas_historia_clinica.id}) }}">edit</a>
+
+    {{ include('notas_historia_clinica/_delete_form.html.twig') }}
+{% endblock %}

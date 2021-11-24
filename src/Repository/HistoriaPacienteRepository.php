@@ -22,19 +22,27 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
     // /**
     //  * @return HistoriaPaciente[] Returns an array of HistoriaPaciente objects
     //  */
-    /*
-    public function findByExampleField($value)
+
+    public function getHistorialDesdeHastaOcupandoHabitacion($from, $to)
     {
-        return $this->createQueryBuilder('h')
-            ->andWhere('h.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('h.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
+        $query = $this->createQueryBuilder('h')->select('h.id, h.fecha, identity(h.cliente) as cliente, h.habitacion, h.cama')
+            ->andWhere('h.cliente is not null');
+        if (!empty($from)) {
+            $query->andWhere('h.fecha >= :from')
+                ->setParameter('from', $from);
+        }
+        if (!empty($to)) {
+            $query->andWhere('h.fecha <= :to')
+                ->setParameter('to', $to);
+        }
+        $query->andWhere('h.habitacion IS NOT NULL')
+            ->andWhere("h.habitacion <> ''")
+            ->orderBy('h.fecha, h.habitacion, h.cama, h.cliente', 'ASC')
         ;
+
+        return $query->getQuery()->getResult();
     }
-    */
+
 
     /*
     public function findOneBySomeField($value): ?HistoriaPaciente

@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}HistoriaIngreso{% endblock %}
+
+{% block body %}
+    <h1>HistoriaIngreso</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ historia_ingreso.id }}</td>
+            </tr>
+            <tr>
+                <th>AntecedentesTexto</th>
+                <td>{{ historia_ingreso.antecedentesTexto }}</td>
+            </tr>
+            <tr>
+                <th>EnfermedadActual</th>
+                <td>{{ historia_ingreso.enfermedadActual }}</td>
+            </tr>
+            <tr>
+                <th>ExamenFisicoAlIngreso</th>
+                <td>{{ historia_ingreso.examenFisicoAlIngreso }}</td>
+            </tr>
+            <tr>
+                <th>ExamenComplementarioDesc</th>
+                <td>{{ historia_ingreso.examenComplementarioDesc }}</td>
+            </tr>
+            <tr>
+                <th>Indicaciones</th>
+                <td>{{ historia_ingreso.indicaciones }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('historia_ingreso_index') }}">back to list</a>
+
+    <a href="{{ path('historia_ingreso_edit', {'id': historia_ingreso.id}) }}">edit</a>
+
+    {{ include('historia_ingreso/_delete_form.html.twig') }}
+{% endblock %}

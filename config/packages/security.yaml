@@ -50,7 +50,7 @@ security:
         - { path: ^/dashboard, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/user, roles: [ROLE_ADMIN] }
         - { path: ^/doctor, roles: [ROLE_ADMIN] }
-        - { path: ^/pacientes, roles: [ROLE_ADMIN] }
+        #- { path: ^/pacientes, roles: [ROLE_ADMIN] }
         - { path: ^/obras-sociales, roles: [ROLE_ADMIN] }
         - { path: ^/habitacion, roles: [ROLE_ADMIN] }
         - { path: ^/booking, roles: [ROLE_ADMIN] }
@@ -59,6 +59,8 @@ security:
         - { path: ^/staff/doctor/agenda/semana/, roles: [IS_AUTHENTICATED_FULLY] }
         - { path: ^/staff/doctor/agenda/mes/, roles: [IS_AUTHENTICATED_FULLY] }
         - { path: ^/staff/doctor/agenda/anteriores/, roles: [IS_AUTHENTICATED_FULLY] }
+        - { path: ^/staff/doctor/historia/, roles: [ROLE_STAFF] }
+        - { path: ^/pacientes/^/historia, roles: [ROLE_STAFF] }
         - { path: ^/staff, roles: [ROLE_ADMIN] }
         - { path: ^/liquidaciones, roles: [ROLE_ADMIN] }
         # - { path: ^/profile, roles: ROLE_USER }

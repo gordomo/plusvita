@@ -3,12 +3,62 @@
 {% block title %}Dashboard index{% endblock %}
 {% block panelTitle %}Dashboard{% endblock %}
 {% block titleButtons %}
-    {% if (hayContratosVencidos or hayVencenEsteMes) %}
+    {% if (hayContratosVencidos or hayVencenEsteMes) and is_granted('ROLE_ADMIN') %}
         <a href="{{ path('doctor_index', {'vencidos': (hayContratosVencidos) ? 1 : 2}) }}">
             <i class="bell far fa-bell" style="color: {{ colorCampana }}"></i>
         </a>
     {% endif %}
 {% endblock %}
+
+{% block filtros %}
+    {% if is_granted('ROLE_ADMIN') %}
+
+        {#filtros#}
+        <div class="col-sm" style="align-items: center; justify-content: center; display: flex;">
+            <button class="btn btn-default" data-toggle="modal" data-target="#filtros"><i class="fas fa-filter"></i></button>
+        </div>
+        <div class="modal fade bd-example-modal-lg camposExtras" id="filtros" tabindex="-1" role="dialog" aria-labelledby="filtros" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLongTitle">Filtrar</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="form-group columnas-de-dos">
+                            <label for="contrato">Desde</label>
+                            <input class="form-control" type="date" id="from">
+                            <label for="contrato">Hasta</label>
+                            <input class="form-control" type="date" id="to">
+                        </div>
+                        <div class="form-group text-right">
+                            <button type="button" id="filtrarPorFecha" class="btn btn-primary">Buscar</button>
+                        </div>
+                        <div class="form-group text-center" >
+                            <img id="loading" src="{{ asset('assets/images/loading.gif') }}">
+                            <table class="table table-striped" id="resultados" >
+                                <thead>
+                                    <th>Fecha</th>
+                                    <th>Habitación</th>
+                                    <th>Cama</th>
+                                    <th>Paciente</th>
+                                    <th>Obra Social</th>
+                                </thead>
+                                <tbody id="body"></tbody>
+                                <tfoot id="foot"></tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    {% endif %}
+{% endblock %}
+
 {% block body %}
     {% if not app.user %}
         Por favor, ingrese con su usuario y contraseña
@@ -72,6 +122,16 @@
                             </div>
                         </a>
                     </div>
+                    <div class="col-md-4">
+                        <a href="{{ path('doctor_historia') }}">
+                            <div class="card text-white mb-3 clientesOnDash" style="max-width: 18rem;">
+                                <div class="card-header">Pacientes</div>
+                                <div class="card-body">
+                                    <p class="card-text">Historias Clínicas</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
                 {% endif %}
             </div>
         </div>
@@ -130,5 +190,57 @@
     <script>
         var tituloExcel = 'dashboard.xlsx';
         let printUrl = "{{ path('imprimir') }}";
+
+        $('#filtrarPorFecha').click(function () {
+            $('#loading').show();
+            let from = $('#from').val();
+            let to = $('#to').val();
+            if (from === '' || to === '') {
+                alert('Debe completar las fechas');
+                $('#loading').hide();
+                return 0;
+            }
+
+            $.post({
+                url: "{{ path('dashboard_index_filtro_cantidad_pacientes') }}",
+                data: {
+                    from: from,
+                    to: to,
+                },
+                success: function (response) {
+                    let html = ''
+                    $(response).each(function (e, val) {
+                        let fecha = new Date(val.fecha.date);
+                        html += '<tr>';
+                        html += '<td>';
+                        html += fecha.toLocaleString('es-AR').replace(" 00:00:00", "");
+                        html += '</td>';
+                        html += '<td>';
+                        html += val.habitacion;
+                        html += '</td>';
+                        html += '<td>';
+                        html += val.cama === null ? 'Priv.' : val.cama;
+                        html += '</td>';
+                        html += '<td>';
+                        html += val.nombreCliente;
+                        html += '</td>';
+                        html += '<td>';
+                        html += val.obraSocial;
+                        html += '</td>';
+                        html += '</tr>';
+                    });
+                    $('#body').html(html);
+                    $('#loading').hide();
+                    $('#resultado').show();
+                },
+                error: function(e){
+                    console.log(e);
+                    alert("algo salio mal");
+                    $('#loading').hide();
+                }
+            });
+
+        })
+
     </script>
 {% endblock %}
