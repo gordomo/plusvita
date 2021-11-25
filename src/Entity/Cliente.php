@@ -321,12 +321,18 @@ class Cliente
      */
     private $historiaHabitaciones;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Evolucion::class, mappedBy="paciente", orphanRemoval=true)
+     */
+    private $evolucions;
+
     public function __construct()
     {
         $this->docReferente = new ArrayCollection();
         $this->bookings = new ArrayCollection();
         $this->notasHistoriaClinica = new ArrayCollection();
         $this->historiaHabitaciones = new ArrayCollection();
+        $this->evolucions = new ArrayCollection();
     }
 
     public function getNombreApellido(): ?string
@@ -1147,6 +1153,36 @@ class Cliente
             // set the owning side to null (unless already changed)
             if ($historiaHabitacione->getCliente() === $this) {
                 $historiaHabitacione->setCliente(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Evolucion[]
+     */
+    public function getEvolucions(): Collection
+    {
+        return $this->evolucions;
+    }
+
+    public function addEvolucion(Evolucion $evolucion): self
+    {
+        if (!$this->evolucions->contains($evolucion)) {
+            $this->evolucions[] = $evolucion;
+            $evolucion->setPaciente($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEvolucion(Evolucion $evolucion): self
+    {
+        if ($this->evolucions->removeElement($evolucion)) {
+            // set the owning side to null (unless already changed)
+            if ($evolucion->getPaciente() === $this) {
+                $evolucion->setPaciente(null);
             }
         }
 

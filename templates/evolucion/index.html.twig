@@ -1,0 +1,79 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Evolucion index{% endblock %}
+
+{% block body %}
+    <h1>Evoluciones de {{ nombreCliente }}</h1>
+    <div class="row">
+        <div class="col-8 mb-5 mt-4 text-right"></div>
+        <div class="col-2 mb-5 mt-4 text-right">
+            <span>Filtrar por Tipo:</span>
+            <select class="form-control" id="filtrarPorTipo">
+                <option {% if tipoSeleccionado == ''  %} selected {% endif %} value="0">Todos</option>
+                <option {% if tipoSeleccionado == 'Nutricionista'  %} selected {% endif %} value='Nutricionista'>Nutricionista</option>
+                <option {% if tipoSeleccionado == 'Director medico'  %} selected {% endif %} value='Director medico'>Director medico</option>
+                <option {% if tipoSeleccionado == 'Sub director medico'  %} selected {% endif %} value='Sub director medico'>Sub director medico</option>
+                <option {% if tipoSeleccionado == 'Trabajadora social'  %} selected {% endif %} value='Trabajadora social'>Trabajadora social</option>
+                <option {% if tipoSeleccionado == 'Psiquiatra'  %} selected {% endif %} value='Psiquiatra'>Psiquiatra</option>
+                <option {% if tipoSeleccionado == 'Infectologo'  %} selected {% endif %} value='Infectologo'>Infectologo</option>
+                <option {% if tipoSeleccionado == 'Medico de guardia'  %} selected {% endif %} value='Medico de guardia'>Medico de guardia</option>
+                <option {% if tipoSeleccionado == 'Kinesiologo'  %} selected {% endif %} value='Kinesiologo'>Kinesiologo</option>
+                <option {% if tipoSeleccionado == 'Kinesiologo respiratorio'  %} selected {% endif %} value='Kinesiologo respiratorio'>Kinesiologo respiratorio</option>
+                <option {% if tipoSeleccionado == 'Terapista ocupacional'  %} selected {% endif %} value='Terapista ocupacional'>Terapista ocupacional</option>
+                <option {% if tipoSeleccionado == 'Fonoaudiologo'  %} selected {% endif %} value='Fonoaudiologo'>Fonoaudiologo</option>
+                <option {% if tipoSeleccionado == 'Psicologo'  %} selected {% endif %} value='Psicologo'>Psicologo</option>
+                <option {% if tipoSeleccionado == 'Fisiatra'  %} selected {% endif %} value='Fisiatra'>Fisiatra</option>
+                <option {% if tipoSeleccionado == 'Neurologo'  %} selected {% endif %} value='Neurologo'>Neurologo</option>
+                <option {% if tipoSeleccionado == 'Cardiologo'  %} selected {% endif %} value='Cardiologo'>Cardiologo</option>
+                <option {% if tipoSeleccionado == 'Urologo'  %} selected {% endif %} value='Urologo'>Urologo</option>
+                <option {% if tipoSeleccionado == 'Hematologo'  %} selected {% endif %} value='Hematologo'>Hematologo</option>
+                <option {% if tipoSeleccionado == 'Neumonologo'  %} selected {% endif %} value='Neumonologo'>Neumonologo</option>
+                <option {% if tipoSeleccionado == 'Cirujano'  %} selected {% endif %} value='Cirujano'>Cirujano</option>
+                <option {% if tipoSeleccionado == 'Traumatologo'  %} selected {% endif %} value='Traumatologo'>Traumatologo</option>
+                <option {% if tipoSeleccionado == 'Neumonologo'  %} selected {% endif %} value='Neumonologo'>Neumonologo</option>
+            </select>
+        </div>
+    </div>
+    <table class="table mb-4">
+        <thead>
+        <tr>
+            <th>Tipo</th>
+            <th>Fecha</th>
+            <th>Descripción</th>
+            <th>Adjunto</th>
+            <th>Usuario</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for evolucion in evolucions %}
+            <tr>
+                <td>{{ evolucion.tipo }}</td>
+                <td>{{ evolucion.fecha ? evolucion.fecha|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ evolucion.description|striptags|length > 25 ? evolucion.description|striptags|slice(0, 25) ~ '...' : evolucion.description|striptags }}</td>
+                <td><a href="{{ path('evolucion_get_adjunto',{'clienteId': clienteId, 'pdf': evolucion.adjuntoUrl}) }}" target="_blank"> <i class="far fa-file-pdf" data-toggle="tooltip" data-placement="top" title="adjunto"></i> </a></td>
+                <td>{{ evolucion.user }}</td>
+                <td>
+                    <a href="{{ path('evolucion_show', {'id': evolucion.id}) }}">Ver</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6">Todavía no hay registros</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('evolucion_new',  {'cliente': clienteId}) }}" class="btn btn-primary btn">Agregar Evolución</a>
+    <a href="{{ path('doctor_historia') }}" class="btn btn-secondary btn">Volver</a>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        $('#filtrarPorTipo').click(function() {
+            let path = "{{ path('evolucion_index', {'cliente': clienteId}) }}";
+            location.href =  path + '&tipoSeleccionado=' + $(this).val();
+        });
+    </script>
+{% endblock %}

@@ -598,13 +598,13 @@ class DoctorController extends AbstractController
     public function updateTurno(Request $request, BookingRepository $bookingRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, $periodo, $turnoId, $completado) {
         $user = $this->getUser();
 
-        if($completado || in_array('ROLE_ADMIN', $user->getRoles())) {
+        //if(in_array('ROLE_ADMIN', $user->getRoles())) {
             $book = $bookingRepository->find($turnoId);
             $book->setCompletado($completado);
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($book);
             $entityManager->flush();
-        }
+        //}
 
         return $this->redirectToRoute('doctor_agenda', ['periodo' => $periodo]);
 

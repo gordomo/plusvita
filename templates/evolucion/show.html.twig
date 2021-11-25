@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Evolucion{% endblock %}
+
+{% block body %}
+    <h1>Evolucion</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ evolucion.id }}</td>
+            </tr>
+            <tr>
+                <th>Tipo</th>
+                <td>{{ evolucion.tipo }}</td>
+            </tr>
+            <tr>
+                <th>Fecha</th>
+                <td>{{ evolucion.fecha ? evolucion.fecha|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+            <tr>
+                <th>Description</th>
+                <td>{{ evolucion.description }}</td>
+            </tr>
+            <tr>
+                <th>Adjunto_url</th>
+                <td>{{ evolucion.adjuntoUrl }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('evolucion_index') }}">back to list</a>
+
+    <a href="{{ path('evolucion_edit', {'id': evolucion.id}) }}">edit</a>
+
+    {{ include('evolucion/_delete_form.html.twig') }}
+{% endblock %}

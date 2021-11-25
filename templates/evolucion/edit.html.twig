@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Evolucion{% endblock %}
+
+{% block body %}
+    <h1>Edit Evolucion</h1>
+
+    {{ include('evolucion/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('evolucion_index') }}">back to list</a>
+
+    {{ include('evolucion/_delete_form.html.twig') }}
+{% endblock %}

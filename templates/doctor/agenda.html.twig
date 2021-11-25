@@ -87,7 +87,7 @@
                     <td class="paciente">{{ turno.cliente.nombre }} {{ turno.cliente.apellido }}</td>
                     <td class="obraSocial">{{ obrasSociales[turno.cliente.obraSocial] }} {% if turno.cliente.MediaSesion %} (Media Sesion) {% endif %}</td>
                     <td class="completado">
-                        <input {{ turno.completado ? 'disabled' : '' }} class="completado" data-url="{{ path('doctor_agenda', {'periodo': periodo}) }}" data-turno-id="{{ turno.id }}" type="checkbox" {{ turno.completado ? 'checked' : '' }}>
+                        <input class="completado" data-url="{{ path('doctor_agenda', {'periodo': periodo}) }}" data-turno-id="{{ turno.id }}" type="checkbox" {{ turno.completado ? 'checked' : '' }}>
                     </td>
                     <td class="acciones">
                         <a href="{{ path('nota_para_turno', {'turnoId': turno.id}) }}">
