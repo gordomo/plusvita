@@ -24,7 +24,7 @@ class EvolucionRepository extends ServiceEntityRepository
         $query = $this->createQueryBuilder('e')
             ->andWhere('e.paciente = :paciente')
             ->setParameter('paciente', $cliente);
-        if ( $tipo ) {
+        if ( $tipo !== 0 && $tipo !== 'todos') {
             $query->andWhere('e.tipo = :tipo')
                 ->setParameter('tipo', $tipo);
         }

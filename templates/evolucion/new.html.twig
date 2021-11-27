@@ -20,5 +20,10 @@
         {% if errors is not empty %}
         alert('Asegúrese que ha seleccionado el tipo correcto');
         {% endif %}
+        $('.predeterminada').click(function (e) {
+            let newHtml = $('#evolucion_description').val().length > 0 ? $('#evolucion_description').val() + ' ' + $(this).html() : $(this).html();
+            console.log(newHtml);
+            $('#evolucion_description').val(newHtml);
+        });
     </script>
 {% endblock %}

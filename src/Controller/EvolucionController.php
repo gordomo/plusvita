@@ -26,7 +26,15 @@ class EvolucionController extends AbstractController
      */
     public function index(Request $request, EvolucionRepository $evolucionRepository, ClienteRepository $clienteRepository): Response
     {
+        $user = $this->getUser();
         $tipoSeleccionado = $request->query->get('tipoSeleccionado', 0);
+
+        $modalidades = $user->getModalidad();
+
+        if( count($modalidades) === 1 && $tipoSeleccionado === 0) {
+            $tipoSeleccionado = $modalidades[0];
+        }
+
         $cliente = $clienteRepository->find($request->get('cliente'));
         $evoluciones = $evolucionRepository->findByClienteYTipo($cliente, $tipoSeleccionado);
 
@@ -54,7 +62,13 @@ class EvolucionController extends AbstractController
         $evolucion->setUser($user->getEmail());
         $evolucion->setFecha(new \DateTime());
 
-        $form = $this->createForm(EvolucionType::class, $evolucion);
+        $modalidades = $user->getModalidad();
+        $modalidad = '';
+        if( count($modalidades) === 1 ) {
+            $modalidad = $modalidades[0];
+        }
+
+        $form = $this->createForm(EvolucionType::class, $evolucion, ['modalidad' => $modalidad]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -62,27 +76,31 @@ class EvolucionController extends AbstractController
 
             $adjunto = $form->get('adjunto')->getData();
 
-            $originalFilename = pathinfo($adjunto->getClientOriginalName(), PATHINFO_FILENAME);
-            $safeFilename = $slugger->slug($originalFilename);
-            $newFilename = $safeFilename.'-'.uniqid().'.'.$adjunto->guessExtension();
+            if ($adjunto) {
+                $originalFilename = pathinfo($adjunto->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFilename);
+                $newFilename = $safeFilename.'-'.uniqid().'.'.$adjunto->guessExtension();
 
-            try {
-                $adjunto->move(
-                    $this->getParameter('adjuntos_pacientes_directory') . '/' . $cliente->getId() . '/evoluciones/',
-                    $newFilename
-                );
-            } catch (FileException $e) {
-                dd($e->getMessage());
-                // ... handle exception if something happens during file upload
+                try {
+                    $adjunto->move(
+                        $this->getParameter('adjuntos_pacientes_directory') . '/' . $cliente->getId() . '/evoluciones/',
+                        $newFilename
+                    );
+                } catch (FileException $e) {
+                    dd($e->getMessage());
+                    // ... handle exception if something happens during file upload
+                }
+
+                $evolucion->setAdjuntoUrl($newFilename);
             }
 
-            $evolucion->setAdjuntoUrl($newFilename);
             $entityManager->persist($evolucion);
             $entityManager->flush();
 
             return $this->redirectToRoute('evolucion_index', ['cliente' => $cliente->getId()], Response::HTTP_SEE_OTHER);
         } else {
             $errors = $validator->validate($form);
+
             return $this->render('evolucion/new.html.twig', [
                 'evolucion' => $evolucion,
                 'nombreCliente' => $cliente->getNombre() . ' ' . $cliente->getApellido(),

@@ -17,11 +17,19 @@ class EvolucionType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $modalidad = $options['modalidad'];
+
         $builder
             ->add('tipo', ChoiceType::class, [
                 'required' => true,
-                'choices' =>
-                    $this->getTipos(),
+                'choices' => $this->getTipos(),
+                'choice_attr' => function($choice, $key, $value) use ($modalidad) {
+                    if ($value == $modalidad) {
+                            return ['selected' => 'selected'];
+                        } else {
+                            return [];
+                        }
+                    },
                 ])
             ->add('description')
             ->add('adjunto', FileType::class, [
@@ -48,6 +56,7 @@ class EvolucionType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Evolucion::class,
+            'modalidad' => '',
         ]);
     }
 

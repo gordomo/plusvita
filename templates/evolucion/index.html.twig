@@ -9,7 +9,7 @@
         <div class="col-2 mb-5 mt-4 text-right">
             <span>Filtrar por Tipo:</span>
             <select class="form-control" id="filtrarPorTipo">
-                <option {% if tipoSeleccionado == ''  %} selected {% endif %} value="0">Todos</option>
+                <option {% if tipoSeleccionado == 'todos'  %} selected {% endif %} value="todos">Todos</option>
                 <option {% if tipoSeleccionado == 'Nutricionista'  %} selected {% endif %} value='Nutricionista'>Nutricionista</option>
                 <option {% if tipoSeleccionado == 'Director medico'  %} selected {% endif %} value='Director medico'>Director medico</option>
                 <option {% if tipoSeleccionado == 'Sub director medico'  %} selected {% endif %} value='Sub director medico'>Sub director medico</option>
@@ -51,7 +51,13 @@
                 <td>{{ evolucion.tipo }}</td>
                 <td>{{ evolucion.fecha ? evolucion.fecha|date('Y-m-d H:i:s') : '' }}</td>
                 <td>{{ evolucion.description|striptags|length > 25 ? evolucion.description|striptags|slice(0, 25) ~ '...' : evolucion.description|striptags }}</td>
-                <td><a href="{{ path('evolucion_get_adjunto',{'clienteId': clienteId, 'pdf': evolucion.adjuntoUrl}) }}" target="_blank"> <i class="far fa-file-pdf" data-toggle="tooltip" data-placement="top" title="adjunto"></i> </a></td>
+                <td>
+                    {% if evolucion.adjuntoUrl is not null %}
+                    <a href="{{ path('evolucion_get_adjunto',{'clienteId': clienteId, 'pdf': evolucion.adjuntoUrl}) }}" target="_blank">
+                        <i class="far fa-file-pdf" data-toggle="tooltip" data-placement="top" title="adjunto"></i>
+                    </a>
+                    {% endif %}
+                </td>
                 <td>{{ evolucion.user }}</td>
                 <td>
                     <a href="{{ path('evolucion_show', {'id': evolucion.id}) }}">Ver</a>
@@ -74,6 +80,10 @@
         $('#filtrarPorTipo').click(function() {
             let path = "{{ path('evolucion_index', {'cliente': clienteId}) }}";
             location.href =  path + '&tipoSeleccionado=' + $(this).val();
+        });
+
+        $('.predeterminada').click(function (e) {
+            alert('asdsad');
         });
     </script>
 {% endblock %}

@@ -20,19 +20,13 @@
                 <td>{{ evolucion.fecha ? evolucion.fecha|date('Y-m-d H:i:s') : '' }}</td>
             </tr>
             <tr>
-                <th>Description</th>
+                <th>Descripción</th>
                 <td>{{ evolucion.description }}</td>
             </tr>
             <tr>
-                <th>Adjunto_url</th>
+                <th>Adjunto</th>
                 <td>{{ evolucion.adjuntoUrl }}</td>
             </tr>
         </tbody>
     </table>
-
-    <a href="{{ path('evolucion_index') }}">back to list</a>
-
-    <a href="{{ path('evolucion_edit', {'id': evolucion.id}) }}">edit</a>
-
-    {{ include('evolucion/_delete_form.html.twig') }}
 {% endblock %}
