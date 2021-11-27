@@ -5,8 +5,8 @@
 {% block body %}
     <h1>Evoluciones de {{ nombreCliente }}</h1>
     <div class="row">
-        <div class="col-8 mb-5 mt-4 text-right"></div>
-        <div class="col-2 mb-5 mt-4 text-right">
+        <div class="col-md-8 col-sm-12 mb-5 mt-4 text-right"></div>
+        <div class="col-md-2 col-sm-12 mb-5 mt-4 text-right">
             <span>Filtrar por Tipo:</span>
             <select class="form-control" id="filtrarPorTipo">
                 <option {% if tipoSeleccionado == 'todos'  %} selected {% endif %} value="todos">Todos</option>
@@ -34,7 +34,8 @@
             </select>
         </div>
     </div>
-    <table class="table mb-4">
+    <div class="row" style="overflow-x: auto;">
+        <table class="table mb-4">
         <thead>
         <tr>
             <th>Tipo</th>
@@ -70,20 +71,18 @@
         {% endfor %}
         </tbody>
     </table>
-
-    <a href="{{ path('evolucion_new',  {'cliente': clienteId}) }}" class="btn btn-primary btn">Agregar Evolución</a>
-    <a href="{{ path('doctor_historia') }}" class="btn btn-secondary btn">Volver</a>
+    </div>
+    <div class="row pb-4">
+        <a href="{{ path('evolucion_new',  {'cliente': clienteId}) }}" class="btn btn-primary btn">Agregar Evolución</a>
+        <a href="{{ path('doctor_historia') }}" class="btn btn-secondary btn">Volver</a>
+    </div>
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
     <script>
-        $('#filtrarPorTipo').click(function() {
+        $('#filtrarPorTipo').on('click touch', function() {
             let path = "{{ path('evolucion_index', {'cliente': clienteId}) }}";
             location.href =  path + '&tipoSeleccionado=' + $(this).val();
-        });
-
-        $('.predeterminada').click(function (e) {
-            alert('asdsad');
         });
     </script>
 {% endblock %}

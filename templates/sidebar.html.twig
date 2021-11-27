@@ -47,6 +47,10 @@
                 <i class="far fa-calendar-alt"></i>
                 Agenda
             </a>
+            <a class="list-group-item list-group-item-action bg-light " href="{{ path('doctor_historia') }}">
+                <i class="fas fa-user-injured"></i>
+                Pacientes
+            </a>
         {% endif %}
         {% if app.user %}
             <a class="list-group-item list-group-item-action bg-light " href="{{ path('app_logout') }}">

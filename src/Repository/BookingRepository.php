@@ -22,7 +22,7 @@ class BookingRepository extends ServiceEntityRepository
     /**
      * @return Booking[] Returns an array of Booking objects
      */
-    public function turnosParaAgenda($doctor, $dia, $periodo, $user = [], $desde = '', $hasta = '')
+    public function turnosParaAgenda($doctor, $dia, $periodo, $user = [], $desde = '', $hasta = '', $completado = '')
     {
         if($desde != '') $dia = $desde;
         $midnightyesterday2 = clone $dia;
@@ -57,6 +57,9 @@ class BookingRepository extends ServiceEntityRepository
         }
         if(!empty($user)) {
           $query = $query->andWhere('b.cliente IN (:cliente)')->setParameter('cliente', $user);
+        };
+        if(!empty($completado)) {
+          $query = $query->andWhere('b.completado = :completado')->setParameter('completado', $completado);
         };
         $query = $query->orderBy('b.beginAt', 'asc');
         $query = $query->getQuery();

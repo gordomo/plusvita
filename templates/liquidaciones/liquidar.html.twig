@@ -7,8 +7,8 @@
         <table class="table table-responsive table-striped">
             <thead>
             <tr>
-                <th colspan="2">
-                    <div class="col-md-5" style="float: left;">
+                <th colspan="4">
+                    <div class="col-md-4" style="float: left;">
                         <div class="col-md-2" style="float: left;line-height: 35px;">
                             Desde:
                         </div>
@@ -16,7 +16,7 @@
                             <input id='from' type="date" class="js-datepicker form-control" value="{{ desde }}">
                         </div>
                     </div>
-                    <div class="col-md-5" style="float: left;">
+                    <div class="col-md-4" style="float: left;">
                         <div class="col-md-2" style="float: left;line-height: 35px;">
                             Hasta:
                         </div>
@@ -32,8 +32,14 @@
                             {% endfor %}
                         </select>
                     </div>
+                    <div class="col-md-2" style="float: left;">
+                        <select class="form-control" id="completados">
+                            <option value="1" {% if 1 == completados %} selected="selected" {% endif %}>Si</option>
+                            <option value="0" {% if 0 == completados %} selected="selected" {% endif %}>No</option>
+                        </select>
+                    </div>
                 </th>
-                <th colspan="4">
+                <th colspan="2">
                     <div class="col-md-4">
                         <div class="input-group">
                             <div class="input-group-append">
@@ -132,8 +138,9 @@
             let from = $('#from').val();
             let to = $('#to').val();
             let obraSocial = $('#obraSocial').val();
+            let completados = $('#completados').val();
 
-            url = url + '&desde=' + from + '&hasta=' + to + '&obraSocial=' + obraSocial;
+            url = url + '&desde=' + from + '&hasta=' + to + '&obraSocial=' + obraSocial + '&completados=' + completados;
 
             window.location.href = url;
         })

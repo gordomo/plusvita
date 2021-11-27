@@ -103,6 +103,7 @@ class LiquidacionesController extends AbstractController
         $desde = $request->query->get('desde') ?? '';
         $hasta = $request->query->get('hasta') ?? '';
         $obraSocialSelected = $request->query->get('obraSocial') ?? '';
+        $completados = $request->query->get('completados') ?? 1;
         $from = new \DateTime('2000-01-01');
         $to = new \DateTime();
 
@@ -115,7 +116,7 @@ class LiquidacionesController extends AbstractController
 
         $doctor = $doctorRepository->find($id);
         $clientes = $clienteRepository->findByNombreYobraSocial(null, $obraSocialSelected);
-        $bookings = $bookingRepository->turnosParaAgenda($doctor, $from, '', $clientes, $from, $to);
+        $bookings = $bookingRepository->turnosParaAgenda($doctor, $from, '', $clientes, $from, $to, $completados);
 
 
         $obrasSociales = $obraSocialRepository->findAll();
@@ -134,6 +135,7 @@ class LiquidacionesController extends AbstractController
                 'obrasSociales' => $obrasSocialesArray,
                 'obraSocialSelected' => $obraSocialSelected,
                 'paginaImprimible' => true,
+                'completados' => $completados
             ]);
     }
 }
