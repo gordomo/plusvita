@@ -332,16 +332,18 @@ $('#booking_desde').on('change', function () {
 
 $('#booking_beginAt').on('change', function () {
     var beginAtString = $('#booking_beginAt').val();
+
     var newDateEndAt = new Date(beginAtString);
+
     newDateEndAt.setMinutes(newDateEndAt.getMinutes() + 30);
 
-    var ye = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(newDateEndAt);
-    var mo = new Intl.DateTimeFormat('en', { month: '2-digit' }).format(newDateEndAt);
-    var da = new Intl.DateTimeFormat('en', { day: '2-digit' }).format(newDateEndAt);
-    var hr = new Intl.DateTimeFormat('en', { hour: 'numeric', hour12: false }).format(newDateEndAt);
-    var min = new Intl.DateTimeFormat('en', { minute: '2-digit' }).format(newDateEndAt);
+    var ye = new Intl.DateTimeFormat('es', { year: 'numeric' }).format(newDateEndAt);
+    var mo = new Intl.DateTimeFormat('es', { month: '2-digit' }).format(newDateEndAt);
+    var da = new Intl.DateTimeFormat('es', { day: '2-digit' }).format(newDateEndAt);
+    var hr = new Intl.DateTimeFormat('es', { hour: '2-digit', hour12: false }).format(newDateEndAt);
+    var min = Intl.DateTimeFormat('en-US', { minute: '2-digit', second: '2-digit', hour12: false }).format(newDateEndAt);
 
-    var newDateEndAtString = (`${ye}-${mo}-${da}T${hr}:${min}:00`);
+    var newDateEndAtString = (`${ye}-${mo}-${da}T${hr}:${min}`);
 
     $('#booking_endAt').val(newDateEndAtString);
 
