@@ -35,6 +35,7 @@
                             <input class="form-control" type="date" id="to">
                         </div>
                         <div class="form-group text-right">
+                            <span class="btn bg-secondary text-white" style="cursor: default" id="pacientesCount"></span>
                             <button type="button" id="filtrarPorFecha" class="btn btn-primary">Buscar</button>
                         </div>
                         <div class="form-group text-center" >
@@ -208,12 +209,22 @@
                     to: to,
                 },
                 success: function (response) {
-                    let html = ''
+                    let html = '';
+                    let fechaCheck = '';
+                    let i = 0;
+
                     $(response).each(function (e, val) {
                         let fecha = new Date(val.fecha.date);
+                        let fechaConFormato = fecha.toLocaleString('es-AR').replace(" 00:00:00", "");
+                        if ( val.fecha.date !== fechaCheck ) {
+                            if (i !== 0 ) {
+                                html += '<tr><td colspan="5" style="background: aquamarine;">Total del día: ' + fechaConFormato + '<b> ' + i + ' Pacientes </b></td></tr>';
+                                i = 0;
+                            }
+                        }
                         html += '<tr>';
                         html += '<td>';
-                        html += fecha.toLocaleString('es-AR').replace(" 00:00:00", "");
+                        html += fechaConFormato;
                         html += '</td>';
                         html += '<td>';
                         html += val.habitacion;
@@ -228,10 +239,18 @@
                         html += val.obraSocial;
                         html += '</td>';
                         html += '</tr>';
+
+                        if ( (e+1) === response.length ) {
+                            html += '<tr><td colspan="5" style="background: aquamarine;">Total del día: ' + fechaConFormato + '<b> ' + (i + 1) + '</b> Pacientes </td></tr>';
+                            html += '<tr><td colspan="5" style="background: darkgray;">Total: <b> ' + (e + 1) + '</b> Pacientes </td></tr>';
+                        }
+                        i++;
+                        fechaCheck = val.fecha.date;
                     });
                     $('#body').html(html);
                     $('#loading').hide();
                     $('#resultado').show();
+                    $('#pacientesCount').html(response.length + ' Pacientes en Total');
                 },
                 error: function(e){
                     console.log(e);
