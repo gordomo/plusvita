@@ -24,6 +24,32 @@
 
         </div>
     </div>
+    <div class="row">
+        <div class="col-sm">
+            <div>
+                <ul class="nav nav-tabs justify-content-left">
+                    <li class="nav-item">
+                        <a class="nav-link {{  pestana == 'todos' ? 'active' : ''  }}" href="{{ path('doctor_historia') }}">Todos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{  pestana == 'activos' ? 'active' : ''  }}" href="{{ path('doctor_historia') }}?pestana=activos">Activos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{  pestana == 'inactivos' ? 'active' : ''  }}" href="{{ path('doctor_historia') }}?pestana=inactivos">Inactivos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{  pestana == 'derivados' ? 'active' : ''  }}"  href="{{ path('doctor_historia') }}?pestana=derivados">Derivados</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{  pestana == 'permiso' ? 'active' : ''  }}"  href="{{ path('doctor_historia') }}?pestana=permiso">De Permiso</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{  pestana == 'ambulatorios' ? 'active' : ''  }}"  href="{{ path('doctor_historia') }}?pestana=ambulatorios">Ambulatorios</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
 
 </div>
 <div class="printiable">
@@ -46,7 +72,7 @@
             <th class="motivoEgr">Motivo Egreso</th>
             <th class="obraSocial">O. Social</th>
             <th class="obraSocialAfiliado">N Afiliado OS</th>
-            <th class="tipoDePago">Tipo de Pago</th>
+            {#<th class="tipoDePago">Tipo de Pago</th>#}
             <th class="vieneDe">Viene de</th>
 
             <th class="posicionEnArchivo">Posicion en Archivo</th>
@@ -126,9 +152,13 @@
                     </td>
                     <td class="fEgreso">{{ cliente.fEgreso ? cliente.fEgreso|date('Y-m-d') : '' }}</td>
                     <td class="motivoEgr">{{ cliente.motivoEgr }}</td>
-                    <td class="obraSocial">{{ cliente.obraSocial }}</td>
+                    <td class="obraSocial">
+                        {% if obrasSociales[cliente.obraSocial] is defined %}
+                            {{ obrasSociales[cliente.obraSocial] }}
+                        {% endif %}
+                    </td>
                     <td class="obraSocialAfiliado">{{ cliente.obraSocialAfiliado }}</td>
-                    <td class="tipoDePago">{{ cliente.tipoDePago }}</td>
+                    {#<td class="tipoDePago">{{ cliente.tipoDePago }}</td>#}
                     <td class="vieneDe">{{ cliente.vieneDe }}</td>
                     <td class="posicionEnArchivo">{{ cliente.posicionEnArchivo }}</td>
                     <td class="docDerivante">{{ cliente.docDerivante }}</td>

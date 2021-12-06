@@ -19,7 +19,7 @@ class ClienteRepository extends ServiceEntityRepository
         parent::__construct($registry, Cliente::class);
     }
 
-    public function findActivos($value, $nombre, $hab)
+    public function findActivos($value, $nombre, $hab, $orderBy)
     {
         $query = $this->createQueryBuilder('c')
             ->andWhere('c.fEgreso > :val')->setParameter('val', $value)
@@ -43,12 +43,12 @@ class ClienteRepository extends ServiceEntityRepository
                 $query->andWhere('c.habitacion = :hab')->setParameter('hab',$hab);
             }
 
-        return $query
-            ->orderBy('c.hClinica', 'ASC')
-            //->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-            ;
+        if ( $orderBy ) {
+            $query = $query->orderBy('c.'.$orderBy, 'ASC');
+        } else {
+            $query = $query->orderBy('c.hClinica', 'ASC');
+        }
+        return $query->getQuery()->getResult();
     }
 
     public function findByNombreYobraSocial($nombre = null, $oSocial = null)
@@ -72,7 +72,7 @@ class ClienteRepository extends ServiceEntityRepository
             ;
     }
 
-    public function findDerivados($value, $nombre)
+    public function findDerivados($value, $nombre, $orderBy = null)
     {
         $query = $this->createQueryBuilder('c')
             ->andWhere('c.fEgreso > :val')->setParameter('val', $value)
@@ -85,17 +85,21 @@ class ClienteRepository extends ServiceEntityRepository
                 $query->andWhere("c.nombre like :nombre$i OR c.apellido like :nombre$i")->setParameter("nombre$i",'%'. $nombre .'%');
                 $i ++;
             }
+        }
+
+        if ( $orderBy ) {
+            $query = $query->orderBy('c.'.$orderBy, 'ASC');
+        } else {
+            $query = $query->orderBy('c.hClinica', 'ASC');
         }
 
         return $query->andWhere('c.derivado = 1')
-            ->orderBy('c.hClinica', 'ASC')
-            //->setMaxResults(10)
             ->getQuery()
             ->getResult()
             ;
     }
 
-    public function findDePermiso($value, $nombre)
+    public function findDePermiso($value, $nombre, $orderBy = null)
     {
         $query = $this->createQueryBuilder('c')
             ->andWhere('c.fEgreso > :val')->setParameter('val', $value)
@@ -108,14 +112,14 @@ class ClienteRepository extends ServiceEntityRepository
                 $i ++;
             }
         }
-        return $query->andWhere('c.dePermiso = 1')
-            ->orderBy('c.hClinica', 'ASC')
-            //->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-            ;
+        if ( $orderBy ) {
+            $query = $query->orderBy('c.'.$orderBy, 'ASC');
+        } else {
+            $query = $query->orderBy('c.hClinica', 'ASC');
+        }
+        return $query->andWhere('c.dePermiso = 1')->getQuery()->getResult();
     }
-    public function findAmbulatorios($value, $nombre)
+    public function findAmbulatorios($value, $nombre, $orderBy = null)
     {
         //Esto puede servir para agregar un filtro por fechas
         /*$query = $this->createQueryBuilder('c')
@@ -132,15 +136,15 @@ class ClienteRepository extends ServiceEntityRepository
                 $i ++;
             }
         }
-        return $query->andWhere('c.ambulatorio = 1')
-            ->orderBy('c.hClinica', 'ASC')
-            //->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-            ;
+        if ( $orderBy ) {
+            $query = $query->orderBy('c.'.$orderBy, 'ASC');
+        } else {
+            $query = $query->orderBy('c.hClinica', 'ASC');
+        }
+        return $query->andWhere('c.ambulatorio = 1')->getQuery()->getResult();
     }
 
-    public function findInActivos($value, $nombre)
+    public function findInActivos($value, $nombre, $orderBy = null)
     {
         $query = $this->createQueryBuilder('c')
             ->andWhere('c.fEgreso <= :val')->setParameter('val', $value);
@@ -157,11 +161,14 @@ class ClienteRepository extends ServiceEntityRepository
                     $i ++;
                 }
             }
-            return $query->orderBy('c.hClinica', 'ASC')
-            //->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-            ;
+            if ( $orderBy ) {
+                $query = $query->orderBy('c.'.$orderBy, 'ASC');
+            } else {
+                $query = $query->orderBy('c.hClinica', 'ASC');
+            }
+
+
+            return $query->getQuery()->getResult();
     }
 
     public function findAllInactivos($value)
@@ -209,5 +216,27 @@ class ClienteRepository extends ServiceEntityRepository
             ->where("c.habitacion IS NOT NULL")
             ->orderBy("c.habitacion", "DESC")
             ->getQuery()->getResult();
+    }
+
+    public function findAllByName($nombre, $orderBy = null)
+    {
+        $query = $this->createQueryBuilder('c');
+
+        if ( $nombre != '' ) {
+            $arrayNombres = explode(' ', $nombre);
+            $i = 1;
+            foreach ( $arrayNombres as $nombre ) {
+                $query->andWhere("c.nombre like :nombre$i OR c.apellido like :nombre$i")->setParameter("nombre$i",'%'. $nombre .'%');
+                $i ++;
+            }
+        }
+
+        if ( $orderBy ) {
+            $query = $query->orderBy('c.'.$orderBy, 'ASC');
+        } else {
+            $query = $query->orderBy('c.hClinica', 'ASC');
+        }
+
+        return $query->getQuery()->getResult();
     }
 }

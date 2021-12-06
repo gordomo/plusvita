@@ -7,6 +7,7 @@ use App\Form\DoctorType;
 use App\Repository\BookingRepository;
 use App\Repository\ClienteRepository;
 use App\Repository\DoctorRepository;
+use App\Repository\HabitacionRepository;
 use App\Repository\ObraSocialRepository;
 use App\Repository\UserRepository;
 use DoctrineExtensions\Query\Mysql\Date;
@@ -564,10 +565,18 @@ class DoctorController extends AbstractController
     /**
      * @Route("/doctor/historia/", name="doctor_historia", methods={"GET"})
      */
-    public function historia(Request $request, BookingRepository $bookingRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository)
+    public function historia(Request $request, BookingRepository $bookingRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, HabitacionRepository $habitacionRepository)
     {
         $user = $this->getUser();
         $nombreInput = $request->query->get('nombreInput', '');
+        $pestana = $request->query->get('pestana') ?? 'todos';
+
+        $obrasSociales = $obraSocialRepository->findAll();
+        $obrasSocialesArray = [];
+
+        foreach ($obrasSociales as $obrasSocial) {
+            $obrasSocialesArray[$obrasSocial->getId()] = $obrasSocial->getNombre();
+        }
 
         if (!$user) {
             return $this->redirectToRoute('app_login');
@@ -581,13 +590,44 @@ class DoctorController extends AbstractController
             $pacientes[] = $bookin->getCliente();
         }
 
-        $otrosPacientes = $clienteRepository->findActivos(new \DateTime(), $nombreInput, null);
+        $habitaciones = $habitacionRepository->getHabitacionesConPacientes();
+
+        $habitacionesArray = [];
+        foreach ($habitaciones as $habitacion) {
+            $habitacionesArray[$habitacion->getId()] = $habitacion->getNombre();
+        }
+
+        switch ($pestana) {
+            case 'inactivos':
+                $otrosPacientes = $clienteRepository->findInActivos(new \DateTime(), $nombreInput, 'apellido');
+                break;
+            case 'derivados':
+                $otrosPacientes = $clienteRepository->findDerivados(new \DateTime(), $nombreInput, 'apellido');
+                break;
+            case 'permiso':
+                $otrosPacientes = $clienteRepository->findDePermiso(new \DateTime(), $nombreInput, 'apellido');
+                break;
+            case 'ambulatorios':
+                $otrosPacientes = $clienteRepository->findAmbulatorios(new \DateTime(), $nombreInput, 'apellido');
+                break;
+            case 'activos':
+                $otrosPacientes = $clienteRepository->findActivos(new \DateTime(), $nombreInput, null, 'apellido');
+                break;
+            default:
+                $otrosPacientes = $clienteRepository->findAllByName($nombreInput, 'apellido');
+                break;
+        }
+
 
         return $this->render('doctor/historias.html.twig', [
             'clientes' => $otrosPacientes,
+            'pacientesDelDoctor' => $pacientes,
             'todosClientes' => $otrosPacientes,
             'paginaImprimible' => true,
-            'nombreInput' => $nombreInput
+            'nombreInput' => $nombreInput,
+            'pestana' => $pestana,
+            'obrasSociales' => $obrasSocialesArray,
+            'habitacionesArray' => $habitacionesArray,
         ]);
 
     }
