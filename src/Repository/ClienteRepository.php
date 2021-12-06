@@ -19,7 +19,7 @@ class ClienteRepository extends ServiceEntityRepository
         parent::__construct($registry, Cliente::class);
     }
 
-    public function findActivos($value, $nombre, $hab, $orderBy)
+    public function findActivos($value, $nombre, $hab = null, $orderBy = null)
     {
         $query = $this->createQueryBuilder('c')
             ->andWhere('c.fEgreso > :val')->setParameter('val', $value)
