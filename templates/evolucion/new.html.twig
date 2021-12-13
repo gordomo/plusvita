@@ -17,8 +17,8 @@
 {% block javascripts %}
     {{ parent() }}
     <script>
-        {% if errors is not empty %}
-        alert('Asegúrese que ha seleccionado el tipo correcto');
+        {% if error is not empty %}
+        alert("{{ error }}");
         {% endif %}
         $('.predeterminada').click(function (e) {
             let newHtml = $('#evolucion_description').val().length > 0 ? $('#evolucion_description').val() + ' ' + $(this).html() : $(this).html();

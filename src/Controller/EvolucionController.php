@@ -6,6 +6,7 @@ use App\Entity\Evolucion;
 use App\Form\EvolucionType;
 use App\Repository\ClienteRepository;
 use App\Repository\EvolucionRepository;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use http\Client;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -72,44 +73,57 @@ class EvolucionController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager = $this->getDoctrine()->getManager();
+            try {
+                $entityManager = $this->getDoctrine()->getManager();
 
-            $adjunto = $form->get('adjunto')->getData();
+                $adjunto = $form->get('adjunto')->getData();
 
-            if ($adjunto) {
-                $originalFilename = pathinfo($adjunto->getClientOriginalName(), PATHINFO_FILENAME);
-                $safeFilename = $slugger->slug($originalFilename);
-                $newFilename = $safeFilename.'-'.uniqid().'.'.$adjunto->guessExtension();
+                if ($adjunto) {
+                    $originalFilename = pathinfo($adjunto->getClientOriginalName(), PATHINFO_FILENAME);
+                    $safeFilename = $slugger->slug($originalFilename);
+                    $newFilename = $safeFilename.'-'.uniqid().'.'.$adjunto->guessExtension();
 
-                try {
-                    $adjunto->move(
-                        $this->getParameter('adjuntos_pacientes_directory') . '/' . $cliente->getId() . '/evoluciones/',
-                        $newFilename
-                    );
-                } catch (FileException $e) {
-                    dd($e->getMessage());
-                    // ... handle exception if something happens during file upload
+                    try {
+                        $adjunto->move(
+                            $this->getParameter('adjuntos_pacientes_directory') . '/' . $cliente->getId() . '/evoluciones/',
+                            $newFilename
+                        );
+                    } catch (FileException $e) {
+                        dd($e->getMessage());
+                        // ... handle exception if something happens during file upload
+                    }
+
+                    $evolucion->setAdjuntoUrl($newFilename);
                 }
 
-                $evolucion->setAdjuntoUrl($newFilename);
+                $entityManager->persist($evolucion);
+                $entityManager->flush();
+
+                return $this->redirectToRoute('evolucion_index', ['cliente' => $cliente->getId()], Response::HTTP_SEE_OTHER);
+            } catch (UniqueConstraintViolationException $e) {
+                $error = 'Ya existe un registro para esa fecha';
             }
-
-            $entityManager->persist($evolucion);
-            $entityManager->flush();
-
-            return $this->redirectToRoute('evolucion_index', ['cliente' => $cliente->getId()], Response::HTTP_SEE_OTHER);
         } else {
             $errors = $validator->validate($form);
-
-            return $this->render('evolucion/new.html.twig', [
-                'evolucion' => $evolucion,
-                'nombreCliente' => $cliente->getNombre() . ' ' . $cliente->getApellido(),
-                'form' => $form->createView(),
-                'evolucions' => $evolucionRepository->findAll(),
-                'clienteId' => $cliente->getId(),
-                'errors' => $errors,
-            ]);
+            $error = '';
+            if (!empty($errors[0])) {
+                if (!empty($errors[0]->getConstraint())) {
+                    if (!empty($errors[0]->getConstraint()->message)) {
+                        $error = $errors[0]->getConstraint()->message;
+                    }
+                }
+            }
         }
+
+        return $this->render('evolucion/new.html.twig', [
+            'evolucion' => $evolucion,
+            'nombreCliente' => $cliente->getNombre() . ' ' . $cliente->getApellido(),
+            'form' => $form->createView(),
+            'evolucions' => $evolucionRepository->findAll(),
+            'clienteId' => $cliente->getId(),
+            'error' => $error,
+        ]);
+
 
 
     }
