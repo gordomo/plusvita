@@ -28,13 +28,5 @@ class EvolutionTypeValidator extends ConstraintValidator
                 ->setParameter('{{ value }}', $value)
                 ->addViolation();
         }
-
-        $fecha = $this->context->getRoot()->getData()->getFecha();
-        if(!empty($this->er->findBy(['fecha' => $fecha, 'tipo' => $value]))) {
-            $this->context->buildViolation('Ya existe un registro para este tipo en esa fecha')
-                ->setParameter('{{ value }}', $value)
-                ->addViolation();
-        }
-
     }
 }
