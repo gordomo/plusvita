@@ -136,7 +136,7 @@ class EvolucionController extends AbstractController
     /**
      * @Route("/{id}/edit", name="evolucion_edit", methods={"GET","POST"})
      */
-    public function edit(Request $request, Evolucion $evolucion): Response
+    /*public function edit(Request $request, Evolucion $evolucion): Response
     {
         $form = $this->createForm(EvolucionType::class, $evolucion);
         $form->handleRequest($request);
@@ -151,12 +151,12 @@ class EvolucionController extends AbstractController
             'evolucion' => $evolucion,
             'form' => $form->createView(),
         ]);
-    }
+    }*/
 
     /**
      * @Route("/{id}", name="evolucion_delete", methods={"POST"})
      */
-    public function delete(Request $request, Evolucion $evolucion): Response
+    /*public function delete(Request $request, Evolucion $evolucion): Response
     {
         if ($this->isCsrfTokenValid('delete'.$evolucion->getId(), $request->request->get('_token'))) {
             $entityManager = $this->getDoctrine()->getManager();
@@ -165,7 +165,7 @@ class EvolucionController extends AbstractController
         }
 
         return $this->redirectToRoute('evolucion_index', [], Response::HTTP_SEE_OTHER);
-    }
+    }*/
 
     /**
      * @Route("/get-adjunto/{pdf}/{clienteId}", name="evolucion_get_adjunto", methods={"GET"})
