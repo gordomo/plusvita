@@ -34,7 +34,7 @@ class Evolucion
     private $tipo;
 
     /**
-     * @ORM\Column(type="datetime", unique=true)
+     * @ORM\Column(type="datetime")
      */
     private $fecha;
 
