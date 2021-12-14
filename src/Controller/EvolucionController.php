@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
+use Symfony\Component\Validator\Exception\UnexpectedValueException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
@@ -73,7 +74,7 @@ class EvolucionController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            try {
+
                 $entityManager = $this->getDoctrine()->getManager();
 
                 $adjunto = $form->get('adjunto')->getData();
@@ -100,18 +101,12 @@ class EvolucionController extends AbstractController
                 $entityManager->flush();
 
                 return $this->redirectToRoute('evolucion_index', ['cliente' => $cliente->getId()], Response::HTTP_SEE_OTHER);
-            } catch (UniqueConstraintViolationException $e) {
-                $error = 'Ya existe un registro para esa fecha';
-            }
+
         } else {
-            $errors = $validator->validate($form);
             $error = '';
+            $errors = $validator->validate($form);
             if (!empty($errors[0])) {
-                if (!empty($errors[0]->getConstraint())) {
-                    if (!empty($errors[0]->getConstraint()->message)) {
-                        $error = $errors[0]->getConstraint()->message;
-                    }
-                }
+                $error = $errors[0]->getMessage();
             }
         }
 
