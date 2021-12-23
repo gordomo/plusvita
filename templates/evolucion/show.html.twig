@@ -24,9 +24,21 @@
                 <td>{{ evolucion.description }}</td>
             </tr>
             <tr>
-                <th>Adjunto</th>
-                <td>{{ evolucion.adjuntoUrl }}</td>
+                <th>Adjuntos</th>
+                <td>
+                    {% for url in evolucion.adjuntoUrl %}
+                        <a href="{{ path('evolucion_get_adjunto',{'clienteId': evolucion.paciente.id, 'pdf': url}) }}" target="_blank">
+                            {{ url|split('/')[0] }}
+                        </a>
+                        <br>
+                    {% endfor %}
+                </td>
             </tr>
         </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="2"><a href="javascript:history.back();" class="btn btn-danger">Volver</a></td>
+            </tr>
+        </tfoot>
     </table>
 {% endblock %}

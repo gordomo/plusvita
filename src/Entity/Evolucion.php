@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\EvolucionRepository;
 use Doctrine\ORM\Mapping as ORM;
 use App\Validator as AcmeAssert;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -50,9 +51,14 @@ class Evolucion
     private $description;
 
     /**
-     * @ORM\Column(type="text", nullable=true)
+     * @ORM\Column(type="array", nullable=true)
      */
     private $adjunto_url;
+
+    public function __construct()
+    {
+        $this->adjunto_url = array();
+    }
 
     public function getId(): ?int
     {
@@ -119,14 +125,41 @@ class Evolucion
         return $this;
     }
 
-    public function getAdjuntoUrl(): ?string
+    public function getAdjuntoUrl()
     {
+        if ($this->adjunto_url === null) {
+            $this->adjunto_url = array();
+        }
         return $this->adjunto_url;
     }
 
-    public function setAdjuntoUrl(?string $adjunto_url): self
+    public function setAdjuntoUrl(?array $adjunto_url): self
     {
         $this->adjunto_url = $adjunto_url;
+
+        return $this;
+    }
+
+    public function addAdjuntoUrl(String $path): self
+    {
+        if (!array_search($path, $this->adjunto_url)) {
+            $this->adjunto_url[] = $path;
+        }
+
+        return $this;
+    }
+
+    public function removeAdjuntoUrl(String $nombre, String $path): self
+    {
+        $clave = array_search($nombre, $this->adjunto_url);
+        if ($clave !== false) {
+            unset($this->adjunto_url[$clave]);
+            $filePath = $path . $nombre;
+            $filesystem = new Filesystem();
+            if ($filesystem->exists($filePath)) {
+                $filesystem->remove($filePath);
+            }
+        }
 
         return $this;
     }

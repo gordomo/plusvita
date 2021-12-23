@@ -39,19 +39,31 @@ class EvolucionType extends AbstractType
             ])
             ->add('fecha', DateType::class, ['label' => 'Fecha', 'required' => true, 'widget' => 'single_text', 'html5' => true, 'attr' => ['class' => 'js-datepicker', "max" => $today->format('Y-m-d')]])
             ->add('adjunto', FileType::class, [
-                'label' => 'Adjuntar',
+                'data_class'=>null,
+                'label' => 'Adjunto (PDF)',
+                'multiple' => true,
+                // unmapped means that this field is not associated to any entity property
                 'mapped' => false,
+
+                // make it optional so you don't have to re-upload the PDF file
+                // every time you edit the Product details
                 'required' => false,
+
+                // unmapped fields can't define their validation using annotations
+                // in the associated entity, so you can use the PHP constraint classes
                 'constraints' => [
-                    new File([
-                        'maxSize' => '1024k',
-                        'mimeTypes' => [
-                            'application/pdf',
-                            'application/x-pdf',
-                            'image/*',
+                    new All([
+                        'constraints' => [
+                            new File([
+                                'maxSize' => '1024M',
+                                'mimeTypesMessage' => 'Please upload a valid PDF document',
+                                'mimeTypes' => [
+                                    'application/pdf',
+                                    'application/x-pdf'
+                                ]
+                            ]),
                         ],
-                        'mimeTypesMessage' => 'Solo archivos con formato PDF son permitidos',
-                    ])
+                    ]),
                 ],
             ])
             ->add('save', SubmitType::class, ['label' => 'Guardar', 'attr' => ['class' => 'btn-success']]);

@@ -54,6 +54,7 @@ class EvolucionController extends AbstractController
     public function new(SluggerInterface $slugger, ValidatorInterface $validator, Request $request, ClienteRepository $clienteRepository, EvolucionRepository $evolucionRepository): Response
     {
         $user = $this->getUser();
+        $error = '';
         if (!$user) {
             return $this->redirectToRoute('app_login');
         }
@@ -77,9 +78,8 @@ class EvolucionController extends AbstractController
 
                 $entityManager = $this->getDoctrine()->getManager();
 
-                $adjunto = $form->get('adjunto')->getData();
-
-                if ($adjunto) {
+                $adjuntos = $form->get('adjunto')->getData();
+                foreach($adjuntos as $adjunto) {
                     $originalFilename = pathinfo($adjunto->getClientOriginalName(), PATHINFO_FILENAME);
                     $safeFilename = $slugger->slug($originalFilename);
                     $newFilename = $safeFilename.'-'.uniqid().'.'.$adjunto->guessExtension();
@@ -94,7 +94,7 @@ class EvolucionController extends AbstractController
                         // ... handle exception if something happens during file upload
                     }
 
-                    $evolucion->setAdjuntoUrl($newFilename);
+                    $evolucion->addAdjuntoUrl($newFilename);
                 }
 
                 $entityManager->persist($evolucion);
@@ -103,13 +103,13 @@ class EvolucionController extends AbstractController
                 return $this->redirectToRoute('evolucion_index', ['cliente' => $cliente->getId()], Response::HTTP_SEE_OTHER);
 
         } else {
-            $error = '';
             $errors = $validator->validate($form);
+            //dd($errors);
             if (!empty($errors[0])) {
                 $error = $errors[0]->getMessage();
             }
         }
-
+//dd($error);
         return $this->render('evolucion/new.html.twig', [
             'evolucion' => $evolucion,
             'nombreCliente' => $cliente->getNombre() . ' ' . $cliente->getApellido(),
