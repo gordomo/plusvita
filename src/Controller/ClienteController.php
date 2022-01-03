@@ -660,7 +660,6 @@ class ClienteController extends AbstractController
             }
         }
 
-        $haArray = array_flip($haArray);
         ksort($camasDispArray);
 
         $habPrivada = $cliente->getHabPrivada() ?? false;
@@ -671,7 +670,7 @@ class ClienteController extends AbstractController
             }
         }
 
-        $form = $this->createForm(ClienteType::class, $cliente, ['allow_extra_fields'=>true, 'is_new' => false, 'obrasSociales' => $obArray, 'habitaciones' => $haArray, 'camasDisp' => $camasDispArray, 'bloquearHab' => $puedePasarHabPrivada]);
+        $form = $this->createForm(ClienteType::class, $cliente, ['allow_extra_fields'=>true, 'is_new' => false, 'obrasSociales' => $obArray, 'habitaciones' => array_flip($haArray), 'camasDisp' => $camasDispArray, 'bloquearHab' => $puedePasarHabPrivada]);
 
 
         $form->handleRequest($request);
