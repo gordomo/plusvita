@@ -56,10 +56,11 @@ class EvolucionType extends AbstractType
                         'constraints' => [
                             new File([
                                 'maxSize' => '1024M',
-                                'mimeTypesMessage' => 'Please upload a valid PDF document',
+                                'mimeTypesMessage' => 'Formato de archivo no soportado',
                                 'mimeTypes' => [
                                     'application/pdf',
-                                    'application/x-pdf'
+                                    'application/x-pdf',
+                                    'image/*',
                                 ]
                             ]),
                         ],
