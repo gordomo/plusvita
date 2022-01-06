@@ -68,7 +68,7 @@ class DoctorType extends AbstractType
                 ->add('dni', TextType::class)
                 ->add('telefono', NumberType::class, ['html5' => true])
                 ->add('email', EmailType::class)
-                ->add('legajo', NumberType::class)
+                ->add('legajo', TextType::class)
                 ->add('cbu', TextType::class, ['required' => false])
                 ->add('tipo', ChoiceType::class,
                     [

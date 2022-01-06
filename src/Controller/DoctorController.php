@@ -19,6 +19,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 
 /**
@@ -302,12 +303,12 @@ class DoctorController extends AbstractController
     /**
      * @Route("/new", name="doctor_new", methods={"GET","POST"})
      */
-    public function new(Request $request,  SluggerInterface $slugger, DoctorRepository $doctorRepository): Response
+    public function new(Request $request,  SluggerInterface $slugger, DoctorRepository $doctorRepository, ValidatorInterface $validator): Response
     {
         $doctor = new Doctor();
         $doctor->setRoles([]);
         $doctor->setInicioContrato(new \DateTime());
-        //dd($this->colors);
+        $error = '';
         $coloresEnUso = $doctorRepository->findColoresEnUso();
         foreach($coloresEnUso as $colorUsado) {
             if (($key = array_search($colorUsado['color'], $this->colors)) !== false) {
@@ -365,11 +366,17 @@ class DoctorController extends AbstractController
             $entityManager->flush();
 
             return $this->redirectToRoute('doctor_index');
+        } else {
+            $errors = $validator->validate($form);
+            if (!empty($errors[0])) {
+                $error = $errors[0]->getMessage();
+            }
         }
 
         return $this->render('doctor/new.html.twig', [
             'doctor' => $doctor,
             'form' => $form->createView(),
+            'error' => $error,
 
         ]);
     }

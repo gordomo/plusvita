@@ -104,12 +104,11 @@ class EvolucionController extends AbstractController
 
         } else {
             $errors = $validator->validate($form);
-            //dd($errors);
             if (!empty($errors[0])) {
                 $error = $errors[0]->getMessage();
             }
         }
-//dd($error);
+
         return $this->render('evolucion/new.html.twig', [
             'evolucion' => $evolucion,
             'nombreCliente' => $cliente->getNombre() . ' ' . $cliente->getApellido(),
