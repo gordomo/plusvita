@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Cliente;
 use App\Entity\FamiliarExtra;
 use App\Entity\Habitacion;
+use App\Entity\HistoriaEgreso;
 use App\Entity\HistoriaHabitaciones;
 use App\Entity\HistoriaPaciente;
 use App\Form\ClienteType;
@@ -12,8 +13,10 @@ use App\Form\ReingresoType;
 use App\Repository\AdjuntosPacientesRepository;
 use App\Repository\BookingRepository;
 use App\Repository\ClienteRepository;
+use App\Repository\EvolucionRepository;
 use App\Repository\FamiliarExtraRepository;
 use App\Repository\HabitacionRepository;
+use App\Repository\HistoriaEgresoRepository;
 use App\Repository\HistoriaPacienteRepository;
 use App\Repository\NotasHistoriaClinicaRepository;
 use App\Repository\NotasTurnoRepository;
@@ -49,6 +52,8 @@ class ClienteController extends AbstractController
         $user = $this->getUser();
         if (!$user) {
             return $this->redirectToRoute('app_login');
+        } else if (!in_array('ROLE_ADMIN', $user->getRoles())) {
+            return $this->redirectToRoute('doctor_historia');
         }
 
         $pestana = $request->query->get('pestana') ?? 'activos';
@@ -578,7 +583,7 @@ class ClienteController extends AbstractController
     /**
      * @Route("/{id}/historia", name="cliente_historial", methods={"GET"})
      */
-    public function historia(Cliente $cliente, HistoriaPacienteRepository $historiaPacienteRepository, ObraSocialRepository $obraSocialRepository, NotasTurnoRepository $notasTurnoRepository, BookingRepository $bookingRepository, NotasHistoriaClinicaRepository $notasHistoriaClinicaRepository): Response
+    public function historia(Cliente $cliente, HistoriaPacienteRepository $historiaPacienteRepository, ObraSocialRepository $obraSocialRepository, NotasTurnoRepository $notasTurnoRepository, BookingRepository $bookingRepository, NotasHistoriaClinicaRepository $notasHistoriaClinicaRepository, EvolucionRepository $evolucionRepository, HistoriaEgresoRepository $historiaEgresoRepository): Response
     {
         $historiaPaciente = $historiaPacienteRepository->findBy(['id_paciente' => $cliente->getId()]);
 
@@ -604,6 +609,7 @@ class ClienteController extends AbstractController
         }
 
         $notasHistoria = $notasHistoriaClinicaRepository->findBy(['cliente' => $cliente]);
+        $historiaEgreso = $historiaEgresoRepository->findBy(['cliente' => $cliente]);
 
         return $this->render('cliente/historia.html.twig', [
                 'cliente' => $cliente,
@@ -612,6 +618,10 @@ class ClienteController extends AbstractController
                 'paginaImprimible' => true,
                 'notasTurnos' => $notasTurnos,
                 'notasHistoria' => $notasHistoria,
+                'titulo_solo' => true,
+                'evoluciones' => $cliente->getEvolucions(),
+                'ingreso' => $cliente->getHistoriaIngreso(),
+                'historiaEgreso' => $historiaEgreso,
         ]);
     }
 
@@ -914,7 +924,7 @@ class ClienteController extends AbstractController
         ]);
     }
 
-        /**
+     /**
      * @Route("/{id}", name="cliente_delete", methods={"DELETE"})
      */
     public function delete(Request $request, Cliente $cliente): Response
@@ -928,6 +938,70 @@ class ClienteController extends AbstractController
         }
 
         return $this->redirectToRoute('cliente_index');
+    }
+
+    /**
+     * @Route("/epicrisis/{id}", name="epicrisis", methods={"GET"})
+     */
+    public function epicrisis(Cliente $cliente, HistoriaPacienteRepository $historiaPacienteRepository, ObraSocialRepository $obraSocialRepository, NotasTurnoRepository $notasTurnoRepository, BookingRepository $bookingRepository, NotasHistoriaClinicaRepository $notasHistoriaClinicaRepository, HistoriaEgresoRepository $historiaEgresoRepository): Response
+    {
+        $historiaPaciente = $historiaPacienteRepository->findBy(['id_paciente' => $cliente->getId()]);
+
+        $obrasSociales = $obraSocialRepository->findAll();
+        $obraSocialesArray = [];
+        foreach ($obrasSociales as $obraSocial) {
+            $obraSocialesArray[$obraSocial->getId()] = $obraSocial->getNombre();
+        }
+
+
+        $turnos = $bookingRepository->turnosConFiltro('', $cliente->getId(), '', '', 1);
+        $notasTurnos = [];
+        foreach ($turnos as $turno) {
+            $notas = $notasTurnoRepository->findBy(['turno' => $turno] );
+            if ( !empty($notas) ) {
+                $notasTurnos[$turno->getId()]['fecha'] = $turno->getBeginAt();
+                foreach ($notas as $nota ) {
+                    $notasTurnos[$turno->getId()]['notas'][$nota->getId()] = $nota->getText();
+                }
+
+            }
+
+        }
+
+        $notasHistoria = $notasHistoriaClinicaRepository->findBy(['cliente' => $cliente]);
+        $historiaEgreso = $historiaEgresoRepository->findBy(['cliente' => $cliente]);
+
+        return $this->render('cliente/historia.html.twig', [
+            'cliente' => $cliente,
+            'historiaPaciente' => $historiaPaciente,
+            'obraSociales' => $obraSocialesArray,
+            'paginaImprimible' => true,
+            'notasTurnos' => $notasTurnos,
+            'notasHistoria' => $notasHistoria,
+            'titulo_solo' => true,
+            'evoluciones' => $cliente->getEvolucions(),
+            'ingreso' => $cliente->getHistoriaIngreso(),
+            'historiaEgreso' => $historiaEgreso
+        ]);
+    }
+
+
+    /**
+     * @Route("/guardar/epi/{id}", name="guardar_epi", methods={"POST"})
+     */
+    public function guardarEpi(Cliente $cliente, Request $request)
+    {
+        $epicrisisAlAlta = $request->get('epicrisisAlAlta');
+        $historiaEgreso = new HistoriaEgreso();
+        $historiaEgreso->setEpicrisisAlta($epicrisisAlAlta);
+        $historiaEgreso->setCliente($cliente);
+        $historiaEgreso->setFecha(new \DateTime());
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->persist($historiaEgreso);
+        $entityManager->flush();
+
+        return new JsonResponse(['ok']);
+
     }
 
     /**

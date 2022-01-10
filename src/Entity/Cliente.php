@@ -326,6 +326,11 @@ class Cliente
      */
     private $evolucions;
 
+    /**
+     * @ORM\OneToMany(targetEntity=HistoriaEgreso::class, mappedBy="cliente", orphanRemoval=true)
+     */
+    private $historiaEgresos;
+
     public function __construct()
     {
         $this->docReferente = new ArrayCollection();
@@ -333,6 +338,7 @@ class Cliente
         $this->notasHistoriaClinica = new ArrayCollection();
         $this->historiaHabitaciones = new ArrayCollection();
         $this->evolucions = new ArrayCollection();
+        $this->historiaEgresos = new ArrayCollection();
     }
 
     public function getNombreApellido(): ?string
@@ -1183,6 +1189,36 @@ class Cliente
             // set the owning side to null (unless already changed)
             if ($evolucion->getPaciente() === $this) {
                 $evolucion->setPaciente(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|HistoriaEgreso[]
+     */
+    public function getHistoriaEgresos(): Collection
+    {
+        return $this->historiaEgresos;
+    }
+
+    public function addHistoriaEgreso(HistoriaEgreso $historiaEgreso): self
+    {
+        if (!$this->historiaEgresos->contains($historiaEgreso)) {
+            $this->historiaEgresos[] = $historiaEgreso;
+            $historiaEgreso->setCliente($this);
+        }
+
+        return $this;
+    }
+
+    public function removeHistoriaEgreso(HistoriaEgreso $historiaEgreso): self
+    {
+        if ($this->historiaEgresos->removeElement($historiaEgreso)) {
+            // set the owning side to null (unless already changed)
+            if ($historiaEgreso->getCliente() === $this) {
+                $historiaEgreso->setCliente(null);
             }
         }
 

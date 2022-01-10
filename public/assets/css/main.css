@@ -394,6 +394,23 @@ select:invalid[multiple] {
     display: none;
     padding: 15px 0;
 }
+
+
+.table-wrapper-scroll-y thead {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+.table-wrapper-scroll-y tbody {
+    display: block;
+    max-height: 500px;
+    overflow: auto;
+}
+
+.table-wrapper-scroll-y tr {
+    display: table; width: 100%; table-layout: fixed;
+}
 /*      #60b9b9     #b088be
 table {
     width: 716px; !* 140px * 5 column + 16px scrollbar width *!

@@ -6,10 +6,6 @@
     <table class="table">
         <tbody>
             <tr>
-                <th>Id</th>
-                <td>{{ cliente.id }}</td>
-            </tr>
-            <tr>
                 <th>Número de Historia Clínica</th>
                 <td>{{ cliente.hClinica }}</td>
             </tr>
@@ -43,11 +39,41 @@
             </tr>
             <tr>
                 <th>Motivo de Ingreso</th>
-                <td>{{ cliente.motivoIng }}</td>
+                <td>
+                    {% if(cliente.motivoIng == 1) %}
+                        Neurologicas
+                    {% elseif(cliente.motivoIng == 2) %}
+                        Traumatológicas
+                    {% elseif(cliente.motivoIng == 3) %}
+                        Respiratorias
+                    {% elseif(cliente.motivoIng == 4) %}
+                        Paliativos
+                    {% elseif(cliente.motivoIng == 5) %}
+                        Patologías laborales
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th>Motivo Especifico</th>
+                <td class="motivoIngEspecifico">{{ cliente.motivoIngEspecifico }}</td>
             </tr>
             <tr>
                 <th>Motivo de Egreso</th>
-                <td>{{ cliente.motivoEgr }}</td>
+                <td>
+                    {% if(cliente.motivoEgr == 1) %}
+                        Alta médica
+                    {% elseif(cliente.motivoEgr == 2) %}
+                        Alta voluntaria
+                    {% elseif(cliente.motivoEgr == 3) %}
+                        Obito
+                    {% elseif(cliente.motivoEgr == 4) %}
+                        Traslado
+                    {% elseif(cliente.motivoEgr == 5) %}
+                        Tratamiento inconcluso (no renovado)
+                    {% elseif(cliente.motivoEgr == 6) %}
+                        Tratamiento inconcluso (abandonado)
+                    {% endif %}
+                </td>
             </tr>
             <tr>
                 <th>Activo</th>
@@ -138,6 +164,8 @@
     </table>
 
     <a class="btn btn-default" href="{{ path('cliente_index') }}">Volver</a>
-    <a class="btn btn-success" href="{{ path('cliente_edit', {'id': cliente.id}) }}">Editar</a>
+    {% if epicrisis is not defined %}
+        <a class="btn btn-success" href="{{ path('cliente_edit', {'id': cliente.id}) }}">Editar</a>
+    {% endif %}
     <br><br><br><br><br><br>
 {% endblock %}

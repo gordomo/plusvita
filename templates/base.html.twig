@@ -36,7 +36,7 @@
         {% endif  %}
         <div class="container-fluid">
             <div class="row">
-                <div class="col-sm">
+                <div class="col-sm{{ titulo_solo is defined ? '-8' : '' }}">
                     <h1 class="mt-4 notRemove title">{% block panelTitle %}{% endblock %}</h1>
                 </div>
 

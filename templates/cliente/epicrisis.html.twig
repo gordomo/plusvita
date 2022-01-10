@@ -1,0 +1,143 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Cliente{% endblock %}
+{% block panelTitle %}Datos del Paciente{% endblock %}
+{% block body %}
+    <table class="table">
+        <tbody>
+        <tr>
+            <th>Id</th>
+            <td>{{ cliente.id }}</td>
+        </tr>
+        <tr>
+            <th>Número de Historia Clínica</th>
+            <td>{{ cliente.hClinica }}</td>
+        </tr>
+        <tr>
+            <th>Nombre</th>
+            <td>{{ cliente.nombre }}</td>
+        </tr>
+        <tr>
+            <th>Apellido</th>
+            <td>{{ cliente.apellido }}</td>
+        </tr>
+        <tr>
+            <th>Número de Documento</th>
+            <td>{{ cliente.dni }}</td>
+        </tr>
+        <tr>
+            <th>Email</th>
+            <td class="lowercase">{{ cliente.email }}</td>
+        </tr>
+        <tr>
+            <th>Teléfono</th>
+            <td>{{ cliente.telefono }}</td>
+        </tr>
+        <tr>
+            <th>Fecha de Ingreso</th>
+            <td>{{ cliente.fIngreso ? cliente.fIngreso|date('Y-m-d') : '' }}</td>
+        </tr>
+        <tr>
+            <th>Fecha de Egreso</th>
+            <td>{{ cliente.fEgreso ? cliente.fEgreso|date('Y-m-d') : '' }}</td>
+        </tr>
+        <tr>
+            <th>Motivo de Ingreso</th>
+            <td>{{ cliente.motivoIng }}</td>
+        </tr>
+        <tr>
+            <th>Motivo de Egreso</th>
+            <td>{{ cliente.motivoEgr }}</td>
+        </tr>
+        <tr>
+            <th>Activo</th>
+            <td>{{ cliente.activo ? 'Si' : 'No' }}</td>
+        </tr>
+        <tr>
+            <th>Viene De</th>
+            <td>{{ cliente.vieneDe }}</td>
+        </tr>
+        <tr>
+            <th>Profesional Derivante</th>
+            <td>{{ cliente.docDerivante }}</td>
+        </tr>
+        <tr>
+            <th>Profesional Referente</th>
+            <td>
+                {% for responsable in cliente.docReferente %}
+                    {{ responsable.nombre | lower | capitalize }} {{ responsable.apellido | lower | capitalize }} <br>
+                {% endfor %}
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <br><br>
+    <hr>
+    <h2>Familares Responsables</h2>
+    <table class="table table-responsive">
+        <thead>
+        <tr>
+            <td>Nombre</td>
+            <td>Teléfono</td>
+            <td>Email</td>
+            <td>Vinculo</td>
+            <td>Acompañante</td>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>{{ cliente.familiarResponsableNombre }}</td>
+            <td>{{ cliente.familiarResponsableTel }}</td>
+            <td>{{ cliente.familiarResponsableMail }}</td>
+            <td>{{ cliente.vinculoResponsable }}</td>
+            <td>{% if (cliente.familiarResponsableAcompanante) %} Si {% else %} No {% endif %}</td>
+        </tr>
+        {% for familiarExtra in familiaresExtra%}
+            <tr>
+                <td>{{ familiarExtra.nombre }}</td>
+                <td>{{ familiarExtra.tel }}</td>
+                <td>{{ familiarExtra.mail }}</td>
+                <td>{{ familiarExtra.vinculo }}</td>
+                <td>{% if (familiarExtra.acompanante) %} Si {% else %} No {% endif %}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+
+    </table>
+    <br><br>
+    <table class="table table-responsive">
+        <thead>
+        <th style="width: 100%;">Adjuntos</th>
+        </thead>
+        {% for adjunto in adjuntosActuales %}
+            <tr>
+                <td>
+                    {% if (adjunto[0].tipo == 1) %}
+                        Documentación
+                    {% elseif (adjunto[0].tipo == 2) %}
+                        Fotos Médicas
+                    {% elseif (adjunto[0].tipo == 3) %}
+                        Administración
+                    {% elseif (adjunto[0].tipo == 4) %}
+                        Informes y Recetas
+                    {% elseif (adjunto[0].tipo == 5) %}
+                        Estudios
+                    {% elseif (adjunto[0].tipo == 6) %}
+                        Otros
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                {% for adjuntoInner in adjunto %}
+                    <td>
+                        <a target="_blank" href="{{ asset('uploads/adjuntos/pacientes/') }}{{ cliente.id }}/{{  adjuntoInner.tipo }}/{{  adjuntoInner.url }}" >{{  adjuntoInner.nombre }}</a>
+                    </td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+
+    <a class="btn btn-default" href="{{ path('cliente_index') }}">Volver</a>
+    <a class="btn btn-success" href="{{ path('cliente_edit', {'id': cliente.id}) }}">Editar</a>
+    <br><br><br><br><br><br>
+{% endblock %}
