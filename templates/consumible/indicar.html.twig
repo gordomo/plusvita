@@ -97,8 +97,8 @@
                     </td>
                     <td>
                         <select class="form-control year col-sm-10" id="year-{{ rowCount }}" data-row="{{ rowCount }}" style="display: inline;">
-                            <option value="2021">2021</option>
                             <option value="2022">2022</option>
+                            <option value="2021">2021</option>
                         </select>
                     </td>
                 </tr>
@@ -165,7 +165,7 @@
                 }
             })
             if (todoOK) {
-                //window.location.href = "{{ path('consumible_historico', {'id': cliente.id}) }}";
+                window.location.href = "{{ path('consumible_historico', {'id': cliente.id}) }}";
             }
         } );
     </script>

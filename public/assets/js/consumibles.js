@@ -105,6 +105,9 @@ $('#agregarItem').click(function () {
         html += '<td><select class="form-control" id="mes-'+rowCount+'">';
         html += rowOriginal.find('.mes').html();
         html += '</select></td>';
+        html += '<td><select class="form-control year col-sm-10" id="year-'+rowCount+'" data-row="'+rowCount+'" style="display: inline;">';
+        html += '<option value="2022">2022</option>';
+        html += '<option value="2021">2021</option></select></td>';
 
         $('#tabla-imputar').append(html);
 
