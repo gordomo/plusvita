@@ -122,7 +122,7 @@ class ConsumiblesClientesRepository extends ServiceEntityRepository
         return $query->orderBy('c.consumibleId', 'ASC')->getQuery()->getResult();
     }
 
-    public function findByAccionAndClientId($id, $mes, $fecha, $accion = null)
+    public function findByAccionAndClientId($id, $mes, $fecha, $accion = null, $year = '')
     {
         $query = $this->createQueryBuilder('c')
             ->andWhere('c.clienteId = :id')
@@ -136,6 +136,9 @@ class ConsumiblesClientesRepository extends ServiceEntityRepository
         }
         if ($fecha) {
             $query->andWhere('c.fecha = :fecha')->setParameter('fecha', $fecha);
+        }
+        if ($year != '') {
+            $query->andWhere('c.year = :year')->setParameter('year', $year);
         }
 
 

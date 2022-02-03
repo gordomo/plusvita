@@ -444,8 +444,9 @@ class ConsumibleController extends AbstractController
         }
 
         $fecha = $request->query->get('imputacion', '');
+        $year = $request->query->get('year', '');
 
-        $consumiblesClientes = $consumiblesClientesRepository->findByAccionAndClientId($id, $mes, $fecha, $accion);
+        $consumiblesClientes = $consumiblesClientesRepository->findByAccionAndClientId($id, $mes, $fecha, $accion, $year);
 
         return $this->render('consumible/historico.html.twig', [
             'cliente' => $cliente,

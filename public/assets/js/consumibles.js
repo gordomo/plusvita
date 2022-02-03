@@ -64,9 +64,10 @@ $('#buscar').click(function () {
     let tipo = $("#tipo").val();
     let mes = $("#mes").val();
     let imputacion = $("#imputacion").val();
+    let year = $("#year").val();
     let url = $(this).data('url');
 
-    url += "&tipoSeleccionado=" + tipo + "&mes=" + mes + "&imputacion=" + imputacion;
+    url += "&tipoSeleccionado=" + tipo + "&mes=" + mes + "&imputacion=" + imputacion + "&year="+year;
     location.href = url;
 });
 
