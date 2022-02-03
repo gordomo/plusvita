@@ -25,6 +25,9 @@
                     <th>
                         Mes
                     </th>
+                    <th>
+                        Año
+                    </th>
                 </tr>
                     <td>
                         <button class="btn btn-info" id="verIndMesAnt">Ver Indicaciones mes anterior</button>
@@ -56,12 +59,18 @@
                         <td class="mes">
                             <select class="form-control mes col-sm-10" id="mes-{{ rowCount }}" data-row="{{ rowCount }}" style="display: inline;">
                             {% for nombre, num in meses %}
-                                <option {%  if num == mes %} selected {% endif %} value="{{ num }}">{{ nombre }}</option>
+                                <option {% if num == indicacionCargada.mes %} selected {% endif %} value="{{ num }}">{{ nombre }}</option>
                             {% endfor %}
                             </select>
                             <a href="#" class="borrar-row col-sm-2" data-row="{{ rowCount }}">
                                 <i class="fas fa-trash" title="borrar"></i>
                             </a>
+                        </td>
+                        <td>
+                            <select class="form-control year col-sm-10" id="year-{{ rowCount }}" data-row="{{ rowCount }}" style="display: inline;">
+                                <option {% if 2021 == indicacionCargada.year %} selected {% endif %} value="2021">2021</option>
+                                <option {% if 2022 == indicacionCargada.year %} selected {% endif %} value="2022">2022</option>
+                            </select>
                         </td>
                     </tr>
                     {% set rowCount = rowCount + 1 %}
@@ -84,6 +93,12 @@
                             {% for nombre, num in meses %}
                                 <option {%  if num == mes %} selected {% endif %} value="{{ num }}">{{ nombre }}</option>
                             {% endfor %}
+                        </select>
+                    </td>
+                    <td>
+                        <select class="form-control year col-sm-10" id="year-{{ rowCount }}" data-row="{{ rowCount }}" style="display: inline;">
+                            <option value="2021">2021</option>
+                            <option value="2022">2022</option>
                         </select>
                     </td>
                 </tr>
@@ -120,6 +135,7 @@
                 let newRowCount = $(this).data('row');
                 let cantidad = $('#cantidad-' + newRowCount).val();
                 let mes = $('#mes-' + newRowCount).val();
+                let year = $('#year-' + newRowCount).val();
                 let consumible = $('#consumible-' + newRowCount).val();
 
                 if (!isNaN(cantidad) && cantidad > 0 && consumible !== '') {
@@ -130,6 +146,7 @@
                             'consumibleId': consumible,
                             'cantidad': $('#cantidad-' + newRowCount).val(),
                             'mes': mes,
+                            'year': year,
                             'accion': 0,
                             'isAjax': true,
                         },
@@ -148,7 +165,7 @@
                 }
             })
             if (todoOK) {
-                window.location.href = "{{ path('consumible_historico', {'id': cliente.id}) }}";
+                //window.location.href = "{{ path('consumible_historico', {'id': cliente.id}) }}";
             }
         } );
     </script>

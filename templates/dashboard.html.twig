@@ -87,7 +87,7 @@
                                         {% endif %}
                                     </td>
                                     <td class="paciente {{ (habitacion.cliente | length > 1 and key != 0) ? '' : 'border-0' }}" >
-                                        {{ paciente.nombre }} {{ paciente.apellido }}
+                                         <a href="{{ path('cliente_show', {id: paciente.id}) }}">{{ paciente.nombre }} {{ paciente.apellido }}</a>
                                     </td>
                                     <td class="obraSocial {{ (habitacion.cliente | length > 1 and key != 0) ? '' : 'border-0' }}">
                                         {{ obrasSociales[paciente.obraSocial] }}

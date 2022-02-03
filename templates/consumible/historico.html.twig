@@ -11,6 +11,49 @@
 {% endblock %}
 {% block body %}
     <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-6 text-right">
+                <div class="form-row">
+                    <div class="col-sm-6">
+                        <label class="control-label">Imputación:</label>
+                        <input type="date" name="imputacion" id="imputacion" style="padding: 4px;border: 1px #ced4da solid;" {% if(imputacion) %} value={{ imputacion }} {% endif %}>
+                    </div>
+                    <div class="col-sm-3">
+                        <select class="form-control" name="mes" id="mes">
+                            <option value="0"> Mes </option>
+                            {% for nombre, num in meses %}
+                                <option {%  if num == mes %} selected {% endif %} value="{{ num }}">{{ nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-sm-3">
+                        <select class="form-control" name="year" id="year">
+                            <option value=""> Año </option>
+                            <option value="2021">2021</option>
+                            <option value="2022">2022</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-2 text-right">
+                <select class="form-control" id="tipo">
+                    <option value="0">Filtrar por Tipo</option>
+                    {% for tipo in tipos %}
+                        <option value="{{ tipo.id }}" {% if tipoSeleccionado == tipo.id %} selected {% endif %} >
+                            {{ tipo.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-sm-2 text-left">
+                <a class="btn btn-outline-secondary" data-url="{{ path('consumible_historico', {'id': cliente.id}) }}?pestana={{ pestana }}" data-todos="{{ pestana == 'todos' }}" type="button" id="buscar" style="padding: 10px;">
+                    <i class="fas fa-search"></i>
+                </a>
+                <a class="btn btn-outline-secondary" href="{{ path('consumible_historico', {'id': cliente.id}) }}" type="button" style="padding: 6px 10px;">
+                    Todos
+                </a>
+            </div>
+        </div>
         <div class="row mb-4">
             <div class="col-sm-3">
                 <div>
@@ -27,40 +70,6 @@
                     </ul>
                 </div>
             </div>
-            <div class="col-sm-5 text-right">
-                <div class="form-row">
-                    <div class="col-sm">
-                        <label class="control-label">Imputación:</label>
-                        <input type="date" name="imputacion" id="imputacion" style="padding: 4px;border: 1px #ced4da solid;" {% if(imputacion) %} value={{ imputacion }} {% endif %}>
-                    </div>
-                    <div class="col-sm">
-                        <select class="form-control" name="mes" id="mes">
-                            <option value="0"> Todos </option>
-                            {% for nombre, num in meses %}
-                                <option {%  if num == mes %} selected {% endif %} value="{{ num }}">{{ nombre }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-2 text-right">
-                <select class="form-control" id="tipo">
-                    <option value="0">Filtrar por Tipo</option>
-                    {% for tipo in tipos %}
-                        <option value="{{ tipo.id }}" {% if tipoSeleccionado == tipo.id %} selected {% endif %} >
-                           {{ tipo.nombre }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-sm-2 text-left">
-                <a class="btn btn-outline-secondary" data-url="{{ path('consumible_historico', {'id': cliente.id}) }}?pestana={{ pestana }}" data-todos="{{ pestana == 'todos' }}" type="button" id="buscar" style="padding: 10px;">
-                    <i class="fas fa-search"></i>
-                </a>
-                <a class="btn btn-outline-secondary" href="{{ path('consumible_historico', {'id': cliente.id}) }}" type="button" style="padding: 6px 10px;">
-                    Todos
-                </a>
-            </div>
             <br>
         </div>
     </div>
@@ -73,6 +82,7 @@
                 <th class="tipo col-sm-2">Tipo</th>
                 <th class="fecha col-sm-2">Fecha</th>
                 <th class="mes col-sm-2">Mes</th>
+                <th class="mes col-sm-2">Año</th>
                 <th class="cantidad col-sm-1">Cantidad</th>
                 <th class="accion col-sm-1">Accion</th>
             </tr>
@@ -139,8 +149,11 @@
                             </td>
                             <td class="mes">
                                 {% for nombre, num in meses %}
-                                {%  if num == mes %} {{ nombre }} {% endif %}
+                                {%  if num == dato.mes %} {{ nombre }} {% endif %}
                                 {% endfor %}
+                            </td>
+                            <td class="year">
+                                {{ dato.year }}
                             </td>
                             <td class="{{ dato.accion ? 'ingreso' : 'egreso' }} cantidad">
                                 {{ dato.cantidad }}

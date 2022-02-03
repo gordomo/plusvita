@@ -177,14 +177,21 @@ class Booking
     public function getClienteName(): ?string
     {
         $clienteName = !empty($this->cliente) ? $this->cliente->getNombre() : '';
-        $doctoreName = !empty($this->cliente) ? $this->cliente->getApellido() : '';
-        return $clienteName . ' ' . $doctoreName;
+        $clienteApellido = !empty($this->cliente) ? $this->cliente->getApellido() : '';
+        return $clienteName . ' ' . $clienteApellido;
     }
 
     public function getDoctorName(): ?string
     {
-        $doctorName = !empty($this->doctor) ? $this->doctor->getApellido() : '';
-        return $doctorName;
+        $doctorName = !empty($this->doctor) ? $this->doctor->getNombre(): '';
+        $doctorApellido = !empty($this->doctor) ? $this->doctor->getApellido() : '';
+        return $doctorName . ' ' . $doctorApellido;
+    }
+
+    public function getDoctorModalidad(): ?string
+    {
+        $doctorModalidad = !empty($this->doctor) ? $this->doctor->getModalidad()[0]: '';
+        return $doctorModalidad;
     }
 
     /**

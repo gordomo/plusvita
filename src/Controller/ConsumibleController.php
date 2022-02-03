@@ -196,16 +196,17 @@ class ConsumibleController extends AbstractController
     public function imputarView(Request $request, Cliente $cliente, ConsumibleRepository $consumibleRepository, ConsumiblesClientesRepository $consumiblesClientesRepository): Response
     {
         $consumibles = $consumibleRepository->findBy([], ['nombre' => 'ASC']);
-        $indicacionesCargadas = $consumiblesClientesRepository->findIndicacionesParaElCliente($cliente->getId());
 
-        $now = new \DateTime();
-        $mes = $now->modify("+1 month")->format('m');
+        $year = $request->get('year', '');
+        $mes = $request->get('mes', '');
+        $indicacionesCargadas = $consumiblesClientesRepository->findIndicacionesParaElCliente($cliente->getId(), $year, $mes);
 
         return $this->render('consumible/imputar.html.twig', [
             'cliente' => $cliente,
             'consumibles' => $consumibles,
             'indicacionesCargadas' => $indicacionesCargadas,
             'mes' => $mes,
+            'year' => $year,
             'meses' => ['Enero' => '01', 'Febrero' => '02', 'Marzo' => '03', 'Abril' => 04, 'Mayo' => '05', 'Junio' => '06', 'Julio' => '07', 'Agosto' => '08', 'Septiembre' => '09', 'Octubre' => '10', 'Noviembre' => '11', 'Diciembre' => '12', ]
         ]);
     }
@@ -216,10 +217,11 @@ class ConsumibleController extends AbstractController
     public function imputarViewGetImputaciones(Request $request, ConsumiblesClientesRepository $consumiblesClientesRepository): Response
     {
         $mes = $request->query->get('mes');
+        $year = $request->query->get('year', '');
         $consumibleId = $request->query->get('consumibleId');
         $cid = $request->query->get('cid');
 
-        $indicacionesCargadas = $consumiblesClientesRepository->findImputacionesMesConsumibleCliente($mes, $consumibleId, $cid);
+        $indicacionesCargadas = $consumiblesClientesRepository->findImputacionesMesConsumibleCliente($mes, $consumibleId, $cid, $year);
 
         $cant = 0;
         foreach ($indicacionesCargadas as $indicacion) {
@@ -325,6 +327,7 @@ class ConsumibleController extends AbstractController
         $cantidad = $request->get('cantidad');
         $accion = $request->get('accion');
         $mes = $request->get('mes', '');
+        $year = $request->get('year', '');
         $isAjax = $request->get('isAjax', false);
         $error = false;
         $message = 'ok';
@@ -344,6 +347,7 @@ class ConsumibleController extends AbstractController
             $consumiblesClientesHistorico = new ConsumiblesClientes();
             $consumiblesClientesHistorico->setFecha(new \DateTime);
             $consumiblesClientesHistorico->setMes($mes);
+            $consumiblesClientesHistorico->setYear($year);
             $consumiblesClientesHistorico->setAccion($accion);
             $consumiblesClientesHistorico->setCantidad($cantidad);
             $consumiblesClientesHistorico->setClienteId($clienteId);
@@ -351,7 +355,6 @@ class ConsumibleController extends AbstractController
 
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($consumiblesClientesHistorico);
-            $entityManager->persist($consumible);
             $entityManager->flush();
 
         } catch (\Exception $e) {

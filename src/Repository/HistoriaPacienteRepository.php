@@ -43,6 +43,28 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
         return $query->getQuery()->getResult();
     }
 
+    public function getHistorialDesdeHasta($cliente, $from, $to)
+    {
+        $query = $this->createQueryBuilder('h')
+            ->andWhere('h.cliente = :cliente')
+            ->setParameter('cliente', $cliente);
+        if (!empty($from)) {
+            $from = new \DateTime($from);
+            $from->setTime(0,0,0);
+            $query->andWhere('h.fecha >= :from')
+                ->setParameter('from', $from);
+        }
+        if (!empty($to)) {
+            $to = new \DateTime($to);
+            $to->setTime(23,59,59);
+            $query->andWhere('h.fecha <= :to')
+                ->setParameter('to', $to);
+        }
+        $query->orderBy('h.fecha', 'ASC');
+
+        return $query->getQuery()->getResult();
+    }
+
 
     /*
     public function findOneBySomeField($value): ?HistoriaPaciente

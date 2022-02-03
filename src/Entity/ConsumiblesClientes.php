@@ -48,6 +48,11 @@ class ConsumiblesClientes
     private $accion;
 
     /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $year;
+
+    /**
      * @return mixed
      */
     public function getId()
@@ -157,5 +162,17 @@ class ConsumiblesClientes
     public function setMes($mes): void
     {
         $this->mes = $mes;
+    }
+
+    public function getYear(): ?int
+    {
+        return $this->year;
+    }
+
+    public function setYear(?int $year): self
+    {
+        $this->year = $year;
+
+        return $this;
     }
 }

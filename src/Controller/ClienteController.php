@@ -13,6 +13,7 @@ use App\Form\ReingresoType;
 use App\Repository\AdjuntosPacientesRepository;
 use App\Repository\BookingRepository;
 use App\Repository\ClienteRepository;
+use App\Repository\DoctorRepository;
 use App\Repository\EvolucionRepository;
 use App\Repository\FamiliarExtraRepository;
 use App\Repository\HabitacionRepository;
@@ -24,9 +25,11 @@ use App\Repository\ObraSocialRepository;
 use Doctrine\ORM\EntityManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Security;
 
@@ -583,9 +586,59 @@ class ClienteController extends AbstractController
     /**
      * @Route("/{id}/historia", name="cliente_historial", methods={"GET"})
      */
-    public function historia(Cliente $cliente, HistoriaPacienteRepository $historiaPacienteRepository, ObraSocialRepository $obraSocialRepository, NotasTurnoRepository $notasTurnoRepository, BookingRepository $bookingRepository, NotasHistoriaClinicaRepository $notasHistoriaClinicaRepository, EvolucionRepository $evolucionRepository, HistoriaEgresoRepository $historiaEgresoRepository): Response
+    public function historia(Cliente $cliente, HistoriaPacienteRepository $historiaPacienteRepository, ObraSocialRepository $obraSocialRepository, NotasTurnoRepository $notasTurnoRepository, BookingRepository $bookingRepository, NotasHistoriaClinicaRepository $notasHistoriaClinicaRepository, EvolucionRepository $evolucionRepository, HistoriaEgresoRepository $historiaEgresoRepository, Request $request, DoctorRepository $doctorRepository): Response
     {
-        $historiaPaciente = $historiaPacienteRepository->findBy(['id_paciente' => $cliente->getId()]);
+        $directo = [
+            'Nutricionista',
+            'Director medico',
+            'Sub director medico',
+            'Trabajadora social',
+            'Psiquiatra',
+            'Infectologo',
+            'Contador',
+            'Abogado',
+            'Estudio contable',
+            'Directivo',
+            'Programador',
+        ];
+        $prestacion = [
+            'Profesional por prestacion',
+            'Medico de guardia',
+            'Kinesiologo motora ',
+            'Kinesiologo respiratorio',
+            'Terapista ocupacional',
+            'Fonoaudiologo',
+            'Psicologo',
+            'Fisiatra',
+            'Neurologo',
+            'Cardiologo',
+            'Urologo',
+            'Hematologo',
+            'Neumonologo',
+        ];
+        $sinContrato = [
+            'Cirujano',
+            'Traumatologo',
+            'Neumonologo',
+        ];
+
+        $contratosParaVista = ['directo' => $directo, 'prestacion' => $prestacion, 'sinContrato' => $sinContrato];
+
+        $notasDesde = $request->query->get('notasDesde') ?? '';
+        $notasHasta = $request->query->get('notasHasta') ?? '';
+        $notasTipo = $request->query->get('notasTipo') ?? '';
+        $section = $request->query->get('section') ?? '';
+
+        $evolucionesDesde = $request->query->get('evolucionesDesde') ?? '';
+        $evolucionesHasta = $request->query->get('evolucionesHasta') ?? '';
+
+        $evoluciones = $evolucionRepository->findByFechaYCliente($cliente, $evolucionesDesde, $evolucionesHasta);
+
+        $novedadesDesde = $request->query->get('novedadesDesde') ?? '';
+        $novedadesHasta = $request->query->get('novedadesHasta') ?? '';
+
+
+        $historiaPaciente = $historiaPacienteRepository->getHistorialDesdeHasta($cliente, $novedadesDesde, $novedadesHasta);
 
         $obrasSociales = $obraSocialRepository->findAll();
         $obraSocialesArray = [];
@@ -593,21 +646,41 @@ class ClienteController extends AbstractController
             $obraSocialesArray[$obraSocial->getId()] = $obraSocial->getNombre();
         }
 
-
-        $turnos = $bookingRepository->turnosConFiltro('', $cliente->getId(), '', '', 1);
+        $turnos = [];
+        $doctores = "";
         $notasTurnos = [];
-        foreach ($turnos as $turno) {
-            $notas = $notasTurnoRepository->findBy(['turno' => $turno] );
-            if ( !empty($notas) ) {
-                $notasTurnos[$turno->getId()]['fecha'] = $turno->getBeginAt();
-                foreach ($notas as $nota ) {
-                    $notasTurnos[$turno->getId()]['notas'][$nota->getId()] = $nota->getText();
+        if($notasTipo) {
+            $arrTipo = [$notasTipo];
+            $doctores = $doctorRepository->findByContratos($arrTipo, null);
+            foreach ($doctores as $doctor) {
+                $turnos[] = $bookingRepository->turnosConFiltro($doctor, $cliente->getId(), $notasDesde, $notasHasta, 1);
+                foreach ($turnos as $turno) {
+                    $notas = $notasTurnoRepository->findBy(['turno' => $turno] );
+                    if ( !empty($notas) ) {
+                        $notasTurnos[$turno->getId()]['fecha'] = $turno->getBeginAt();
+                        $notasTurnos[$turno->getId()]['doctor'] = $turno->getDoctorName();
+                        $notasTurnos[$turno->getId()]['modalidad'] = $turno->getDoctorModalidad();
+                        foreach ($notas as $nota ) {
+                            $notasTurnos[$turno->getId()]['notas'][$nota->getId()] = $nota->getText();
+                        }
+                    }
                 }
-
             }
-
+            dd($turnos);
+        } else {
+            $turnos = $bookingRepository->turnosConFiltro('', $cliente->getId(), $notasDesde, $notasHasta, 1);
+            foreach ($turnos as $turno) {
+                $notas = $notasTurnoRepository->findBy(['turno' => $turno] );
+                if ( !empty($notas) ) {
+                    $notasTurnos[$turno->getId()]['fecha'] = $turno->getBeginAt();
+                    $notasTurnos[$turno->getId()]['doctor'] = $turno->getDoctorName();
+                    $notasTurnos[$turno->getId()]['modalidad'] = $turno->getDoctorModalidad();
+                    foreach ($notas as $nota ) {
+                        $notasTurnos[$turno->getId()]['notas'][$nota->getId()] = $nota->getText();
+                    }
+                }
+            }
         }
-
         $notasHistoria = $notasHistoriaClinicaRepository->findBy(['cliente' => $cliente]);
         $historiaEgreso = $historiaEgresoRepository->findBy(['cliente' => $cliente]);
 
@@ -619,9 +692,17 @@ class ClienteController extends AbstractController
                 'notasTurnos' => $notasTurnos,
                 'notasHistoria' => $notasHistoria,
                 'titulo_solo' => true,
-                'evoluciones' => $cliente->getEvolucions(),
+                'evoluciones' => $evoluciones,
                 'ingreso' => $cliente->getHistoriaIngreso(),
                 'historiaEgreso' => $historiaEgreso,
+                'tipoSeleccionado' => '',
+                'notasDesde' => $notasDesde,
+                'notasHasta' => $notasHasta,
+                'notasTipo' => $notasTipo,
+                'section' => $section,
+                'contratos' => $contratosParaVista,
+                'evolucionesDesde' => $evolucionesDesde,
+                'evolucionesHasta' => $evolucionesHasta,
         ]);
     }
 
@@ -1024,6 +1105,15 @@ class ClienteController extends AbstractController
 
         return new JsonResponse(['libre' => $libre, 'message' => $message]);
 
+    }
+
+    /**
+     * @Route("/download/pdf/adjunto/", name="download_pdf_adjunto")
+     **/
+    public function downloadFileAction(Request $request){
+        $response = new BinaryFileResponse($request->get('path'));
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT,$request->get('nombre'));
+        return $response;
     }
 
     public function acomodarHabitacion($habitacionNueva, int $nuevaCamaId, $habVieja, int $camaActualId, int $habPrivada, int $habPrivadaNueva, EntityManager $entityManager)

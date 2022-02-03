@@ -47,8 +47,27 @@
     <table class="table table-striped" id="rowContainer">
         <thead>
             <tr>
-                <th colspan="4">
+                <th colspan="1">
                     Indicaciones Cargadas
+                </th>
+                <th colspan="1">
+                    <select class="form-control" name="yearFilter" id="yearFilter">
+                        <option value="">Año</option>
+                        <option value="2021" {%  if year == 2021 %} selected {% endif %}>2021</option>
+                        <option value="2022" {%  if year == 2021 %} selected {% endif %}>2022</option>
+                    </select>
+                </th>
+                <th colspan="1">
+                    <select class="form-control" name="mesFilter" id="mesFilter">
+                        <option value="">Mes</option>
+                        {% for nombre, num in meses %}
+                            <option value="{{ num }}" {%  if num == mes %} selected {% endif %}>{{ nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </th>
+                <th colspan="4">
+                    <button class="btn btn-default" id="filtrar">Filtrar</button>
+                    <a class="btn btn-default" href="{{ path('consumible_imputar_view', {'id': cliente.id}) }}">Limpiar</a>
                 </th>
             </tr>
             <tr>
@@ -60,6 +79,9 @@
                 </th>
                 <th>
                     Mes
+                </th>
+                <th>
+                    Año
                 </th>
                 <th>
                     Ya Imputadas
@@ -85,6 +107,7 @@
                 <tr class="consumibles row-{{ rowCount }}"
                     data-row="{{ rowCount }}"
                     data-mes="{{ indicacionCargada.mes }}"
+                    data-year="{{ indicacionCargada.year }}"
                     data-consumible-id="{{ indicacionCargada.consumibleId }}"
                     style="line-height: 30px;">
                     <td>
@@ -99,9 +122,11 @@
                         {% for nombre, num in meses %}
                             {%  if num == indicacionCargada.mes %} {{ nombre }} {% endif %}
                         {% endfor %}
-
                     </td>
-                    <td style="text-align: center" class="yaImputadas" id="imputadas-{{ indicacionCargada.id }}" data-row-id="{{ rowCount }}" data-cantidad="{{ indicacionCargada.cantidad }}" data-id="{{ indicacionCargada.id }}" data-mes="{{ indicacionCargada.mes }}" data-consumible="{{ indicacionCargada.consumibleId }}" data-cliente="{{ indicacionCargada.clienteId }}">
+                    <td>
+                        <input value="{{ indicacionCargada.year }}" type="number" class="year"/>
+                    </td>
+                    <td style="text-align: center" class="yaImputadas" id="imputadas-{{ indicacionCargada.id }}" data-row-id="{{ rowCount }}" data-cantidad="{{ indicacionCargada.cantidad }}" data-id="{{ indicacionCargada.id }}" data-mes="{{ indicacionCargada.mes }}" data-year="{{ indicacionCargada.year }}" data-consumible="{{ indicacionCargada.consumibleId }}" data-cliente="{{ indicacionCargada.clienteId }}">
                         <img src="{{ asset('assets/images/loading.gif') }}" style="width: 35px;">
                     </td>
                     <td style="text-align: center" class="total" id="total-{{ indicacionCargada.id }}">
@@ -212,6 +237,7 @@
                             'consumibleId': $(this).data('consumible-id'),
                             'cantidad': $('#cantidad-' + rowCount).val(),
                             'mes': $(this).data('mes'),
+                            'year': $(this).data('year'),
                             'accion': 1,
                             'isAjax': true,
                         },
@@ -224,7 +250,8 @@
                             }
                         },
                         finally: function () {
-                            self.prop("disabled", false)
+                            self.prop("disabled", false);
+                            window.scrollTo({ top: 0, behavior: "smooth" });
                         }
                     });
                 } else {
@@ -239,6 +266,7 @@
             $('.yaImputadas').each(function () {
                 var rowId = $(this).data('row-id');
                 var mes = $(this).data('mes');
+                var year = $(this).data('year');
                 var consumibleId = $(this).data('consumible');
                 var cid = $(this).data('cliente');
                 var id = $(this).data('id');
@@ -250,6 +278,7 @@
                         'cid': cid,
                         'consumibleId': consumibleId,
                         'mes': mes,
+                        'year': year,
                     },
                     success: function (response) {
                         if (response.error) {
@@ -314,6 +343,15 @@
                     $('#loading').hide();
                 }
             });
+        });
+
+        $("#filtrar").click(function() {
+            let year = $("#yearFilter").val();
+            let mes = $("#mesFilter").val();
+
+            if (year !== '' || mes !== '') {
+                location.href = "{{ path('consumible_imputar_view', {'id': cliente.id}) }}" + "?year="+year+"&mes="+mes;
+            }
         });
 
 

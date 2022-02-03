@@ -54,10 +54,12 @@ class ConsumiblesClientesRepository extends ServiceEntityRepository
     {
         $now = new \DateTime();
         $mes = $now->modify("-1 month")->format('m');
-
+        $year = $now->format('Y');
         $query = $this->createQueryBuilder('c')
             ->andWhere('c.mes = :mes')
             ->setParameter('mes', $mes)
+            ->andWhere('c.year = :year')
+            ->setParameter('year', $year)
             ->andWhere('c.clienteId = :cid')
             ->setParameter('cid', $id);
 
@@ -68,23 +70,35 @@ class ConsumiblesClientesRepository extends ServiceEntityRepository
             return $query->orderBy('c.consumibleId', 'ASC')->getQuery()->getResult();
     }
 
-    public function findIndicacionesParaElCliente($id)
+    public function findIndicacionesParaElCliente($id, $year = '', $mes = '')
     {
         $query = $this->createQueryBuilder('c')
             ->where('c.mes is not null')
             ->andWhere('c.clienteId = :cid')
             ->setParameter('cid', $id);
+
+        if (!empty($year)) {
+            $query->andWhere('c.year = :year')
+                ->setParameter('year', $year);
+        }
+        if (!empty($mes)) {
+            $query->andWhere('c.mes = :mes')
+                ->setParameter('mes', $mes);
+        }
+
         $query->andWhere('c.accion = :accion')
                 ->setParameter('accion', '0');
 
-        return $query->orderBy('c.mes, c.consumibleId', 'ASC')->getQuery()->getResult();
+        return $query->orderBy('c.year', 'DESC')->getQuery()->getResult();
     }
 
-    public function findImputacionesMesConsumibleCliente($mes, $consumibleId, $cid)
+    public function findImputacionesMesConsumibleCliente($mes, $consumibleId, $cid, $year)
     {
         $query = $this->createQueryBuilder('c')
             ->andWhere('c.mes = :mes')
             ->setParameter('mes', $mes)
+            ->andWhere('c.year = :year')
+            ->setParameter('year', $year)
             ->andWhere('c.clienteId = :cid')
             ->setParameter('cid', $cid)
             ->andWhere('c.consumibleId = :consumibleId')

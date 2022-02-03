@@ -411,6 +411,17 @@ select:invalid[multiple] {
 .table-wrapper-scroll-y tr {
     display: table; width: 100%; table-layout: fixed;
 }
+
+.history-col-12 {
+    border-top: 1px solid;
+    padding-top: 10px;
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: 15px;
+    padding-left: 0;
+}
+
 /*      #60b9b9     #b088be
 table {
     width: 716px; !* 140px * 5 column + 16px scrollbar width *!
