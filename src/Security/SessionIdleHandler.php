@@ -34,17 +34,24 @@ class SessionIdleHandler
         }
 
         if ($this->maxIdleTime > 0) {
-
             $this->session->start();
             $lapse = time() - $this->session->getMetadataBag()->getLastUsed();
 
             if ($lapse > $this->maxIdleTime) {
+                setcookie('timeout', true);
+                return;
 
+            } else {
+                setcookie('timeout', null);
+                unset($_COOKIE['timeout']);
+            }
+
+            if (isset($_COOKIE['keepLogin']) && $_COOKIE['keepLogin'] == 0) {
                 $this->securityToken->setToken(null);
                 $this->session->getFlashBag()->set('info', 'You have been logged out due to inactivity.');
-
                 // logout is defined in security.yaml.  See 'Logging Out' section here:
                 $event->setResponse(new RedirectResponse($this->router->generate('app_logout')));
+                setcookie('keepLogin', null);
             }
         }
     }

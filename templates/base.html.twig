@@ -105,7 +105,17 @@
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.2.0/main.min.js'></script>
 <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/rrule@5.2.0/main.global.min.js'></script>
 <script type="text/javascript">
-
+    let timeout = getCookie('timeout');
+    if (timeout) {
+        let text;
+        if (window.confirm('La sesión se ha terminado por inactividad. Continuar usando el sistema?') === true) {
+            set_cookie('keepLogin', '1');
+        } else {
+            set_cookie('keepLogin', '0');
+        }
+        set_cookie('timeout', '0');
+        location.reload();
+    }
 </script>
 {% endblock %}
 

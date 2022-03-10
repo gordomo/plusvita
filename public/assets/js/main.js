@@ -210,3 +210,19 @@ $("#updateCamposForView").on('click', function () {
 function file_get_contents(uri, callback) {
     return(fetch(uri));
 }
+
+function getCookie(name){
+    var pattern = RegExp(name + "=.[^;]*")
+    var matched = document.cookie.match(pattern)
+    if(matched){
+        var cookie = matched[0].split('=')
+        return cookie[1]
+    }
+    return false
+}
+function set_cookie(name, value) {
+    document.cookie = name +'='+ value;
+}
+function delete_cookie(name) {
+    document.cookie = name +'=;';
+}
