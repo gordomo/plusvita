@@ -1,4 +1,4 @@
-$('#form_email').on('keyup', function () {
+$('#form_email').not('.not-check').on('keyup', function () {
     let emailField = $(this);
     let id = (emailField.data('doc-id')) ? emailField.data('doc-id') : 0;
     if(emailField.val().length > 4 && validateEmail(emailField.val())) {
@@ -27,7 +27,7 @@ $('#form_email').on('keyup', function () {
 });
 
 document.addEventListener("DOMContentLoaded", function() {
-    let emailField = $('#form_email');
+    let emailField = $('#form_email').not('.not-check');
     let id = (emailField.data('doc-id')) ? emailField.data('doc-id') : 0;
     if(emailField.val().length > 4 && validateEmail(emailField.val())) {
         $.ajax({
