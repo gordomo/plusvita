@@ -206,8 +206,10 @@
                 $('#loading').hide();
                 return 0;
             }
+            let needOneMore = true;
             if (headerTo.toLocaleDateString() === headerFrom.toLocaleDateString()) {
                 headerTo.setDate(headerTo.getDate()+1);
+                needOneMore = false;
             }
 
             let html_header = '<th>Cliente</th><th style="min-width: 100px;">O. Social</th>';
@@ -219,8 +221,10 @@
                 dateIndex ++;
             }
 
-            headerFrom.setDate(headerFrom.getDate()+1);
-            html_header += '<th>' + headerFrom.toLocaleDateString(); + '</th>';
+            if (needOneMore) {
+                headerFrom.setDate(headerFrom.getDate()+1);
+                html_header += '<th>' + headerFrom.toLocaleDateString(); + '</th>';
+            }
 
             $("#head").html(html_header);
 
