@@ -262,7 +262,10 @@ if(!window.location.href.includes('edit') && !window.location.href.includes('new
         if(typeof($params.ctr) != "undefined") {
             var id = '#' + $params.ctr.replaceAll(' ', '');
             $(id).prop('selected', true);
-            $('.filtros').modal('show');
+            if(typeof($params.cli_id) !== "undefined" && typeof($params.doc_id) == "undefined") {
+                $('.filtros').modal('show');
+            }
+
         }
     });
 }
@@ -276,6 +279,7 @@ $('#limpiar').click(function () {
 $('#filtrar').click(function () {
     var doctoresId = $('#doctores').val();
     var clientesId = $('#cliente').val();
+    var contrato = $('#contrato').val();
 
     var url = 'calendar?'
     if (doctoresId.length > 0) {
@@ -286,6 +290,18 @@ $('#filtrar').click(function () {
             url += '&';
         }
         url += 'cli_id=['+clientesId+']';
+    }
+    if ( contrato.length > 0 ) {
+        if (url.includes('doc_id') || url.includes('cli_id')) {
+            url += '&';
+        }
+        url += 'ctr='+contrato+'';
+    }
+
+    if(doctoresId.length > 0 || clientesId.length > 0) {
+        set_cookie('doctoresId', doctoresId);
+        set_cookie('clientesId', clientesId);
+        set_cookie('contrato', contrato);
     }
     if(url.includes('doc_id') || url.includes('cli_id')) {
         location.href = url;

@@ -169,6 +169,8 @@ class BookingController extends AbstractController
         $booking = new Booking();
 
         $contrato = $request->query->get('ctr');
+        $docIdArrFiler = $request->query->get('doc_id');
+        $cliFilter = $request->query->get('cli_id');
         $ctrsArray = [0 => $contrato];
 
         if(!empty($contrato)) {
@@ -223,8 +225,11 @@ class BookingController extends AbstractController
             'clientes' => $clientes,
             'doctores' => $doctores,
             'contratos' => $contratos,
+            'contratoFiltro' => $contrato,
             'ctrsArray' => $ctrsArray,
-            'businessHours' => $businessHours
+            'businessHours' => $businessHours,
+            'docIdArrFiler' => $docIdArrFiler,
+            'cliFilter' => $cliFilter
         ]);
     }
 
@@ -359,7 +364,7 @@ class BookingController extends AbstractController
                     $entityManager->persist($book);
                     $entityManager->flush();
                 }
-                return $this->redirectToRoute('booking_calendar');
+                return $this->redirectToRoute('booking_calendar', ['doc_id' => [$doctor->getId()], 'cli_id' => $booking->getCliente()->getId(), 'ctr' => $doctor->getModalidad()[0]]);
             } else {
                     if($yaTieneTurno) {
                         $stringError = "Los siguientes turnos no pueden ser agendados, porque el paciente ya tiene un turno asignado en ese día y horario con ese profesional <br>" ;
