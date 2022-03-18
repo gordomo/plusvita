@@ -30,7 +30,7 @@ class HistoriaHabitacionesRepository extends ServiceEntityRepository
             $query->andWhere('h.fecha <= :to')
                 ->setParameter('to', $to);
         }
-        $query->orderBy('h.fecha, h.habitacion, h.nCama, h.cliente', 'ASC');
+        $query->orderBy('h.cliente, h.fecha, h.habitacion, h.nCama', 'ASC');
 
         return $query->getQuery()->getResult();
     }

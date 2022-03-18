@@ -76,15 +76,10 @@ class DashboardController extends AbstractController
     /**
      * @Route("/get/pacientes", name="dashboard_index_filtro_cantidad_pacientes", methods={"POST", "GET"})
      */
-    public function getPacientesFromTo(Request $request, ObraSocialRepository $obraSocialRepository, HistoriaHabitacionesRepository $historiaHabitacionesRepository, ClienteRepository $clienteRepository) {
+    public function getPacientesFromTo(Request $request, ObraSocialRepository $obraSocialRepository, HistoriaHabitacionesRepository $historiaHabitacionesRepository) {
 
-        $encoders = [new XmlEncoder(), new JsonEncoder()];
-        $normalizers = [new ObjectNormalizer()];
-
-        $serializer = new Serializer($normalizers, $encoders);
-
-        $from = $request->get('from');
-        $to = $request->get('to');
+        $from = $request->get('from', '2021-12-01');
+        $to = $request->get('to', '2021-12-01');
 
         $historias = $historiaHabitacionesRepository->findByDate($from,  $to);
 
@@ -92,16 +87,27 @@ class DashboardController extends AbstractController
 
         $arrHistorias = [];
 
-        foreach ( $historias as $historia ) {
-            $cliente = $historia->getCliente();
-            $arrHistorias[] = [
-                'nombreCliente' => $cliente->getNombre() . ' ' . $cliente->getApellido(),
-                'obraSocial' => $obrasSociales[$cliente->getObraSocial()] ?? 'Sin OS',
-                'fecha' => $historia->getFecha(),
-                'habitacion' => $historia->getHabitacion()->getNombre(),
-                'cama' => $historia->getNCama(),
-            ];
-        }
+        $dateFrom = new \DateTime($from);
+        $dateTo = new \DateTime($to);
+        $dateTo->modify('+1 day');
+
+        do {
+            foreach ( $historias as $historia ) {
+                $cliente = $historia->getCliente();
+                $arrHistoria = ['habitacion' => $historia->getHabitacion()->getNombre(), 'cama' => $historia->getNCama()];
+                if ($historia->getFecha()->format("Y-m-d") !== $dateFrom->format("Y-m-d") && empty($arrHistorias[$cliente->getNombre() . ' ' . $cliente->getApellido()][$obrasSociales[$cliente->getObraSocial()] ?? 'Sin OS'][$dateFrom->format("Y-m-d")])) {
+                    $arrHistoria = [];
+                }
+
+                $arrHistorias[$cliente->getNombre() . ' ' . $cliente->getApellido()][$obrasSociales[$cliente->getObraSocial()] ?? 'Sin OS'][$dateFrom->format("Y-m-d")] = $arrHistoria;
+
+            }
+
+            $dateFrom->modify('+1 day');
+
+
+        } while ($dateFrom->format("Y-m-d") !== $dateTo->format("Y-m-d"));
+
 
         return new JsonResponse($arrHistorias);
 

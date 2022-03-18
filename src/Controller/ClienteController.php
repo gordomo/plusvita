@@ -887,6 +887,7 @@ class ClienteController extends AbstractController
      */
     public function egreso(Request $request, Cliente $cliente, HistoriaPacienteRepository $historiaPacienteRepository, HabitacionRepository $habitacionRepository, BookingRepository $bookingRepository): Response
     {
+        //TODO liberar cama al momento del egreso (cron job)
         $form = $this->createForm(ClienteType::class, $cliente, ['egreso' => true]);
 
         $form->handleRequest($request);

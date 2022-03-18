@@ -34,8 +34,8 @@ class HistoriaHabitaciones
     private $fecha;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Habitacion::class, inversedBy="historiaHabitaciones")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\ManyToOne(targetEntity=Habitacion::class, inversedBy="historiaHabitaciones", cascade={"remove"})
+     * @ORM\JoinColumn(nullable=false,  onDelete="CASCADE")
      */
     private $habitacion;
 

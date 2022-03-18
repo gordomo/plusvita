@@ -260,6 +260,9 @@
                                         <a class="dropdown-item" href="{{ path('cliente_reingresar', {'id': cliente.id, 'tipo': pestana}) }}">
                                             <i class="far fa-calendar-times" data-toggle="tooltip" data-placement="top" title="Reingresar"></i> Reingresar
                                         </a>
+                                        <a class="dropdown-item" href="{{ path('cliente_egreso', {'id': cliente.id}) }}">
+                                            <i class="far fa-calendar-times" data-toggle="tooltip" data-placement="top" title="Egresar"></i> Egresar
+                                        </a>
                                         {#<a class="dropdown-item" href="{{ path('cliente_reingreso_permiso', {'id': cliente.id}) }}">
                                             <i class="fas fa-arrow-left" data-toggle="tooltip" data-placement="top" title="reingresar de permiso"></i> Reingresar
                                         </a>#}
