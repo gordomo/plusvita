@@ -22,6 +22,7 @@ use App\Repository\HistoriaPacienteRepository;
 use App\Repository\NotasHistoriaClinicaRepository;
 use App\Repository\NotasTurnoRepository;
 use App\Repository\ObraSocialRepository;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
@@ -586,7 +587,7 @@ class ClienteController extends AbstractController
     /**
      * @Route("/{id}/historia", name="cliente_historial", methods={"GET"})
      */
-    public function historia(Cliente $cliente, HistoriaPacienteRepository $historiaPacienteRepository, ObraSocialRepository $obraSocialRepository, NotasTurnoRepository $notasTurnoRepository, BookingRepository $bookingRepository, NotasHistoriaClinicaRepository $notasHistoriaClinicaRepository, EvolucionRepository $evolucionRepository, HistoriaEgresoRepository $historiaEgresoRepository, Request $request, DoctorRepository $doctorRepository): Response
+    public function historia(Cliente $cliente, HistoriaPacienteRepository $historiaPacienteRepository, ObraSocialRepository $obraSocialRepository, NotasTurnoRepository $notasTurnoRepository, BookingRepository $bookingRepository, NotasHistoriaClinicaRepository $notasHistoriaClinicaRepository, EvolucionRepository $evolucionRepository, HistoriaEgresoRepository $historiaEgresoRepository, Request $request, DoctorRepository $doctorRepository, UserRepository $userRepository): Response
     {
         $directo = [
             'Nutricionista',
@@ -633,7 +634,22 @@ class ClienteController extends AbstractController
         $evolucionesHasta = $request->query->get('evolucionesHasta') ?? '';
 
         $evoluciones = $evolucionRepository->findByFechaYCliente($cliente, $evolucionesDesde, $evolucionesHasta);
+        $evArray = [];
 
+        foreach ($evoluciones as $evolucion) {
+            $doctor = $doctorRepository->findBy(['email' => $evolucion->getUser()]);
+            if (count($doctor) == 0) {
+                $doctor = $userRepository->findBy(['email' => $evolucion->getUser()]);
+            }
+            if (count($doctor) == 0) {
+                $doctor = $userRepository->findBy(['user' => $evolucion->getUser()]);
+            }
+            $firma = '';
+            if (count($doctor) > 0) {
+                $firma = $doctor[0]->getFirma();
+            }
+            $evArray[] = ['evolucion' => $evolucion, 'firma' => $firma];
+        }
         $novedadesDesde = $request->query->get('novedadesDesde') ?? '';
         $novedadesHasta = $request->query->get('novedadesHasta') ?? '';
 
@@ -688,11 +704,11 @@ class ClienteController extends AbstractController
                 'cliente' => $cliente,
                 'historiaPaciente' => $historiaPaciente,
                 'obraSociales' => $obraSocialesArray,
-                'paginaImprimible' => true,
+                'paginaImprimible' => false,//local
                 'notasTurnos' => $notasTurnos,
                 'notasHistoria' => $notasHistoria,
                 'titulo_solo' => true,
-                'evoluciones' => $evoluciones,
+                'evoluciones' => $evArray,
                 'ingreso' => $cliente->getHistoriaIngreso(),
                 'historiaEgreso' => $historiaEgreso,
                 'tipoSeleccionado' => '',

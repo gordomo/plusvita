@@ -339,6 +339,7 @@ class DoctorController extends AbstractController
                     );
                 } catch (FileException $e) {
                     // ... handle exception if something happens during file upload
+                    dd($e);
                 }
 
                 // updates the 'brochureFilename' property to store the PDF file name
@@ -425,6 +426,7 @@ class DoctorController extends AbstractController
                     );
                 } catch (FileException $e) {
                     // ... handle exception if something happens during file upload
+                    dd($e);
                 }
 
                 // updates the 'brochureFilename' property to store the PDF file name
@@ -656,4 +658,20 @@ class DoctorController extends AbstractController
         return $this->redirectToRoute('doctor_agenda', ['periodo' => $periodo]);
 
     }
+
+    /**
+     * @Route("/doctor/firma/get_by_email", name="doctor_get_by_email", methods={"GET", "POST"})
+     */
+    public function getFirmaByEmail(Request $request, DoctorRepository $doctorRepository) {
+        if ($request->isMethod('post')) {
+            $email = $request->get('email', '');
+        } else {
+            $email = $request->query->get('email', '');
+        }
+
+        $doctor = $doctorRepository->findBy(['email' => $email])[0];
+
+        return new JsonResponse($doctor->getFirma());
+    }
+
 }

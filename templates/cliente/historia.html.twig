@@ -8,74 +8,116 @@
         Obra social: <small>{{ obraSociales[cliente.obraSocial] is defined ? obraSociales[cliente.obraSocial] : '' }}</small><br>
         Fecha de Ingreso: <small>{{ historiaPaciente[0].fechaIngreso ? historiaPaciente[0].fechaIngreso|date('Y-m-d') : ''}}</small><br>
         {% if historiaPaciente[0].fechaEngreso %}
-        Fecha de Egreso: <small>{{ historiaPaciente[0].fechaEngreso ? historiaPaciente[0].fechaEngreso|date('Y-m-d') : '' }}</small>
+            Fecha de Egreso: <small>{{ historiaPaciente[0].fechaEngreso ? historiaPaciente[0].fechaEngreso|date('Y-m-d') : '' }}</small>
         {% endif %}
     </div>
 {% endblock %}
 {% block body %}
+    <!-- modal imprimir local inicio -->
+    <div class="modal fade bd-example-modal-lg filtrosPlanillaLocal" tabindex="-1" role="dialog" aria-labelledby="filtros" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Seleccione los campos a imprimir</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-group columnas-de-dos" id="checkboxes">
+                        {% for fiel in [
+                            'ingreso', 'notas', 'notas-en-turnos', 'evoluciones-imprimir', 'novedades', 'epicrisis-al-alta',
+                        ] %}
+                            <div class="form-check">
+                                <input class="form-check-input check" type="checkbox" value="{{ fiel | lower }}" id="{{ fiel }}"
+                                        {% if fiel == 'evoluciones-imprimir' %} checked {% endif %}
+                                >
+                                <label class="form-check-label" for="{{ fiel }}" style="text-transform: capitalize">
+                                    {{ fiel }}
+                                </label>
+                            </div>
+                        {% endfor %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="todos" id="todos">
+                            <label class="form-check-label" for="todos">
+                                Todos
+                            </label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="updateLocal">Imprimir</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <!-- modal imprimir local inicio -->
+
     <div class="row">
         <div class="col-4">
             <h2>Historia Clínica</h2>
         </div>
     </div>
     <div class="row">
-        <div class="col-12">
+        <div class="col-12 historia-al-ingreso" >
             <h4 style="border-top: 1px solid; padding-top: 10px">Ingreso</h4>
             <table class="table table-responsive table-striped">
                 {% if ingreso is not empty %}
-                <tr>
-                    <th>Antecedentes:</th>
-                </tr>
-                <tr>
-                    <td>{{ ingreso.antecedentesTexto }}</td>
-                </tr>
-                <tr>
-                    <th>Enfermedad Actual:</th>
-                </tr>
-                <tr>
-                    <td>{{ ingreso.enfermedadActual }}</td>
-                </tr>
-                <tr>
-                    <th>Exámen Físico al ingreso:</th>
-                </tr>
-                <tr>
-                    <td>{{ ingreso.examenFisicoAlIngreso }}</td>
-                </tr>
-                <tr>
-                    <th>Exámen Complementario:</th>
-                </tr>
-                <tr>
-                    <td>{{ ingreso.examenComplementarioDesc }}</td>
-                </tr>
-                <tr>
-                    <th>Indicaciones:</th>
-                </tr>
-                <tr>
-                    <td>{{ ingreso.indicaciones }}</td>
-                </tr>
-                <tr>
-                    <th>Adjuntos:</th>
-                </tr>
-                <tr>
-                    <td>
-                        {% if ingreso.examenesComplementeriosFiles is not empty %}
+                    <tr>
+                        <th>Antecedentes:</th>
+                    </tr>
+                    <tr>
+                        <td>{{ ingreso.antecedentesTexto }}</td>
+                    </tr>
+                    <tr>
+                        <th>Enfermedad Actual:</th>
+                    </tr>
+                    <tr>
+                        <td>{{ ingreso.enfermedadActual }}</td>
+                    </tr>
+                    <tr>
+                        <th>Exámen Físico al ingreso:</th>
+                    </tr>
+                    <tr>
+                        <td>{{ ingreso.examenFisicoAlIngreso }}</td>
+                    </tr>
+                    <tr>
+                        <th>Exámen Complementario:</th>
+                    </tr>
+                    <tr>
+                        <td>{{ ingreso.examenComplementarioDesc }}</td>
+                    </tr>
+                    <tr>
+                        <th>Indicaciones:</th>
+                    </tr>
+                    <tr>
+                        <td>{{ ingreso.indicaciones }}</td>
+                    </tr>
+                    <tr>
+                        <th>Adjuntos:</th>
+                    </tr>
+                    <tr>
+                        <td>
+                            {% if ingreso.examenesComplementeriosFiles is not empty %}
                             {% for examenes in ingreso.examenesComplementeriosFiles %}
-                                {% set url = 'uploads/adjuntos/pacientes/' ~ cliente.id ~ "/complementerios/" ~ examenes %}
-                                <a href={{ path('download_pdf_adjunto', {'path': url, 'nombre': examenes}) }} >{{ examenes }}<br>
-                            {% endfor %}
-                        {% else %}
-                            No tiene
-                        {% endif %}
-                    </td>
-                </tr>
+                            {% set url = 'uploads/adjuntos/pacientes/' ~ cliente.id ~ "/complementerios/" ~ examenes %}
+                            <a href={{ path('download_pdf_adjunto', {'path': url, 'nombre': examenes}) }} >{{ examenes }}<br>
+                                {% endfor %}
+                                {% else %}
+                                    No tiene
+                                {% endif %}
+                        </td>
+                    </tr>
                 {% else %}
-                <tr>
-                    No existen registros
-                </tr>
+                    <tr>
+                        No existen registros
+                    </tr>
                 {% endif %}
             </table>
         </div>
-        <div class="col-12 mb-4 history-col-12">
+        <div class="col-12 mb-4 history-col-12 notas">
             <div class="col-4">
                 <h4>Notas</h4>
             </div>
@@ -101,34 +143,34 @@
                 {% endif %}
             </div>
         </div>
-        <div id="accordion" style="width: 100%;">
+        <div id="accordion" style="width: 100%;" class="notas-en-turnos">
             <div class="col-12 mb-4 history-col-12" id="notasTurnosScroll">
                 <div class="col-lg-2 col-sm-12 col-md-2">
-                        <h4>Notas en Turnos</h4>
-                    </div>
+                    <h4>Notas en Turnos</h4>
+                </div>
                 <div class="col-lg-1 col-sm-12 col-md-1">
                     <a href class="btn btn-link abrir" aria-expanded="true" aria-controls="collapseOne" data-toogle="cerrado" data-seccion="notasTurnos">
                         <i class="fas fa-chevron-down"></i>
                     </a>
                 </div>
                 <div class="col-lg-9 col-sm-12 col-md-9">
-                        <form method="get" action="{{ path('cliente_historial', {'id': cliente.id}) }}#notasTurnosScroll">
-                            <input type="hidden" name="section" value="notasTurnos">
-                            <div class="form-group">
-                                <div class="form-row">
-                                    <div class="col-xl-1 col-md-6 col-lg-6 col-sm-12 text-right" style="line-height: 40px;height: 35px;">
-                                        <label class="control-label">desde:</label>
-                                    </div>
-                                    <div class="col-xl-2 col-md-6 col-lg-6 col-sm-12 text-left">
-                                        <input class="form-control" type="date" name="notasDesde" required value="{{ notasDesde }}">
-                                    </div>
-                                    <div class="col-xl-1 col-md-6 col-lg-6 col-sm-12 text-right" style="line-height: 40px;height: 35px;">
-                                        <label class="control-label">hasta:</label>
-                                    </div>
-                                    <div class="col-xl-2 col-md-6 col-lg-6 col-sm-12 text-left">
-                                        <input class="form-control" type="date" name="notasHasta" required value="{{ notasHasta }}">
-                                    </div>
-                                    {#<div class="col-xl-4 col-md-6 col-lg-6 col-sm-12">
+                    <form method="get" action="{{ path('cliente_historial', {'id': cliente.id}) }}#notasTurnosScroll" class="remover">
+                        <input type="hidden" name="section" value="notasTurnos">
+                        <div class="form-group">
+                            <div class="form-row">
+                                <div class="col-xl-1 col-md-6 col-lg-6 col-sm-12 text-right" style="line-height: 40px;height: 35px;">
+                                    <label class="control-label">desde:</label>
+                                </div>
+                                <div class="col-xl-2 col-md-6 col-lg-6 col-sm-12 text-left">
+                                    <input class="form-control" type="date" name="notasDesde" required value="{{ notasDesde }}">
+                                </div>
+                                <div class="col-xl-1 col-md-6 col-lg-6 col-sm-12 text-right" style="line-height: 40px;height: 35px;">
+                                    <label class="control-label">hasta:</label>
+                                </div>
+                                <div class="col-xl-2 col-md-6 col-lg-6 col-sm-12 text-left">
+                                    <input class="form-control" type="date" name="notasHasta" required value="{{ notasHasta }}">
+                                </div>
+                                {#<div class="col-xl-4 col-md-6 col-lg-6 col-sm-12">
                                         <select class="form-control" id="filtrarPorTipo" name="notasTipo">
                                             <option value="0">Todos</option>
                                             <optgroup label="Directo">
@@ -148,16 +190,16 @@
                                             </optgroup>
                                         </select>
                                     </div>#}
-                                    <div class="col-xl-1 col-md-6 col-lg-3 col-sm-6">
-                                        <button type="submit" class="btn btn-default" style="width: 100%;">filtrar</button>
-                                    </div>
-                                    <div class="col-xl-1 col-md-6 col-lg-3 col-sm-6">
-                                        <a class="btn btn-default" href="{{ path('cliente_historial', {'id': cliente.id}) }}#notasTurnosScroll" style="width: 100%;">limpiar</a>
-                                    </div>
+                                <div class="col-xl-1 col-md-6 col-lg-3 col-sm-6">
+                                    <button type="submit" class="btn btn-default" style="width: 100%;">filtrar</button>
+                                </div>
+                                <div class="col-xl-1 col-md-6 col-lg-3 col-sm-6">
+                                    <a class="btn btn-default" href="{{ path('cliente_historial', {'id': cliente.id}) }}#notasTurnosScroll" style="width: 100%;">limpiar</a>
                                 </div>
                             </div>
-                        </form>
-                    </div>
+                        </div>
+                    </form>
+                </div>
                 <div class="col-12">
                     <div id="notasTurnos" class="collapse {% if section == 'notasTurnos' %} show {% endif %}" aria-labelledby="headingOne" data-parent="#accordion">
                         {% if notasTurnos is not empty %}
@@ -182,7 +224,7 @@
                 </div>
             </div>
         </div>
-        <div id="accordion" style="width: 100%;">
+        <div id="accordion" style="width: 100%;" class="evoluciones-imprimir">
             <div class="col-12 mb-4 history-col-12" id="evolucionesScroll">
                 <div class="col-lg-2 col-sm-12 col-md-2">
                     <h4>Evoluciones</h4>
@@ -193,7 +235,7 @@
                     </a>
                 </div>
                 <div class="col-lg-9 col-sm-12 col-md-9">
-                    <form method="get" action="{{ path('cliente_historial', {'id': cliente.id}) }}#evolucionesScroll">
+                    <form method="get" action="{{ path('cliente_historial', {'id': cliente.id}) }}#evolucionesScroll" class="remover">
                         <input type="hidden" name="section" value="evoluciones">
                         <div class="form-group">
                             <div class="form-row">
@@ -246,11 +288,20 @@
                                 <tbody>
                                 {% for evolucion in evoluciones %}
                                     <tr style="background-color: #dee2e6; display: table; width: 100%; table-layout: fixed;">
-                                        <td>{{ evolucion.fecha ? evolucion.fecha|date('Y-m-d') : ''}} - {{ evolucion.tipo }}</td>
+                                        <td>{{ evolucion['evolucion'].fecha ? evolucion['evolucion'].fecha|date('Y-m-d') : ''}} - {{ evolucion['evolucion'].tipo }} - {{ evolucion['evolucion'].user }}</td>
                                     </tr>
                                     <tr>
-                                        <td>{{ evolucion.description }}</td>
+                                        <td>{{ evolucion['evolucion'].description }}</td>
                                     </tr>
+                                    {% if evolucion['firma'] is not empty %}
+                                        <tr>
+                                            <td><img src="{{ asset('uploads/firmas/') }}{{ evolucion['firma'] }}" style="max-width: 150px;"/></td>
+                                        </tr>
+                                    {% else %}
+                                        <tr>
+                                            <td><i>sin firma</i></td>
+                                        </tr>
+                                    {% endif %}
                                 {% endfor %}
                                 </tbody>
                             </table>
@@ -261,8 +312,7 @@
                 </div>
             </div>
         </div>
-
-        <div id="accordion" style="width: 100%;">
+        <div id="accordion" style="width: 100%;" class="novedades">
             <div class="col-12 mb-4 history-col-12" id="novedadesScroll">
                 <div class="col-lg-2 col-sm-12 col-md-2">
                     <h4>Novedades</h4>
@@ -273,7 +323,7 @@
                     </a>
                 </div>
                 <div class="col-lg-9 col-sm-12 col-md-9">
-                    <form method="get" action="{{ path('cliente_historial', {'id': cliente.id}) }}#novedadesScroll">
+                    <form method="get" action="{{ path('cliente_historial', {'id': cliente.id}) }}#novedadesScroll" class="remover">
                         <input type="hidden" name="section" value="novedades">
                         <div class="form-group">
                             <div class="form-row">
@@ -529,7 +579,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-12 mb-4 history-col-12">
+        <div class="col-12 mb-4 history-col-12 epicrisis-al-alta" >
             {% if historiaEgreso is not empty %}
                 <div class="col-4">
                     <h4>Epicrisis al Alta</h4>
@@ -558,9 +608,13 @@
 {% endblock %}
 
 {% block titleButtons %}
-    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalEpi">
-        Epicrisis
-    </button>
+
+    <div class="col-sm" style="align-items: center; justify-content: center; display: flex;">
+        <button class="btn btn-default" id="imprimirLocal" style="font-size: 2rem; padding: 1rem 2rem"><i class="fas fa-print"></i></button>
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalEpi" style="margin-left: 15px;">
+            Epicrisis
+        </button>
+    </div>
 
     <div class="modal fade bd-example-modal-lg" id="modalEpi" tabindex="-1" role="dialog" aria-labelledby="epicrisis" aria-hidden="true">
         <div class="modal-dialog modal-lg">
@@ -600,6 +654,7 @@
                 success: function (response) {
                     $('body').find('.container-fluid').find('a').remove();
                     $('body').find('.container-fluid').find('button').remove();
+                    $('body').find('.remover').remove();
                     $('.modal').remove();
                     let tables = $('body').find('.container-fluid').find('.table-wrapper-scroll-y');
                     tables.removeClass('table-wrapper-scroll-y');
@@ -628,6 +683,42 @@
                 $('#'+seccion).collapse('hide');
                 $(this).data('toogle', 'cerrado');
                 $(this).html('<i class="fas fa-chevron-down"></i>');
+            }
+        });
+
+        $("#imprimirLocal").on('click', function () {
+            $('.filtrosPlanillaLocal').modal('show');
+        });
+
+        $("#updateLocal").on('click', function () {
+            let checkboxes = GetSelected('checkboxes');
+            if (checkboxes.length < 1) {
+                alert('seleccione al menos un campo')
+            } else {
+                let seccionesSelected = checkboxes;
+                let secciones = ['ingreso', 'notas', 'notas-en-turnos', 'evoluciones-imprimir', 'novedades', 'epicrisis-al-alta'];
+
+                secciones.forEach((seccion) => {
+                    if (!seccionesSelected.includes(seccion)) {
+                        $('.'+seccion).remove();
+                    } else {
+                        $('.'+seccion).find('.btn.btn-link.abrir .fas.fa-chevron-down').click();
+                    }
+                });
+
+                $('body').find('.container-fluid').find('a').remove();
+                $('body').find('.container-fluid').find('button').remove();
+                $('body').find('.remover').remove();
+                $('.modal').remove();
+                let tables = $('body').find('.container-fluid').find('.table-wrapper-scroll-y');
+                tables.removeClass('table-wrapper-scroll-y');
+                setTimeout(() => {
+                    let html = '<head>' + $('head').html() + '</head>';
+                    html += $('body').find('.container-fluid').html();
+                    imprimirElemento(html);
+                    location.reload();
+                }, 1000);
+
             }
         });
     </script>
