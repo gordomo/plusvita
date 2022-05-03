@@ -449,6 +449,7 @@ class DoctorType extends AbstractType
         ];
         $prestacion = [
             'Profesional por prestacion',
+            'Medico Clínico',
             'Medico de guardia',
             'Kinesiologo motora',
             'Kinesiología respiratoria',

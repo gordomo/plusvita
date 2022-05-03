@@ -174,6 +174,7 @@ class DashboardController extends AbstractController
         ];
         $prestacion = [
             'Profesional por prestacion',
+            'Medico Clínico',
             'Medico de guardia',
             'Kinesiologo motora',
             'Kinesiología respiratoria',

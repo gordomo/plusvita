@@ -604,6 +604,7 @@ class ClienteController extends AbstractController
         ];
         $prestacion = [
             'Profesional por prestacion',
+            'Medico Clínico',
             'Medico de guardia',
             'Kinesiologo motora ',
             'Kinesiologo respiratorio',
