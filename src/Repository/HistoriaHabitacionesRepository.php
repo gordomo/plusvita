@@ -34,6 +34,15 @@ class HistoriaHabitacionesRepository extends ServiceEntityRepository
 
         return $query->getQuery()->getResult();
     }
+    public function countByDate($date)
+    {
+        $query = $this->createQueryBuilder('h');
+        $query->select('count(h.id)')
+                ->andWhere('h.fecha = :date')
+                ->setParameter('date', $date);
+
+        return $query->getQuery()->getSingleScalarResult();
+    }
 
     // /**
     //  * @return HistoriaHabitaciones[] Returns an array of HistoriaHabitaciones objects

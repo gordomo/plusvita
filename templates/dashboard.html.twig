@@ -35,7 +35,6 @@
                             <input class="form-control" type="date" id="to">
                         </div>
                         <div class="form-group text-right">
-                            <span class="btn bg-secondary text-white" style="cursor: default" id="pacientesCount"></span>
                             <button type="button" id="filtrarPorFecha" class="btn btn-primary">Buscar</button>
                         </div>
                         <div class="form-group text-center" style="overflow: auto;">
@@ -217,13 +216,13 @@
 
             while (headerFrom.toLocaleDateString() !== headerTo.toLocaleDateString()) {
                 headerFrom.setDate(headerFrom.getDate()+1);
-                html_header += '<th id="date-index-'+dateIndex+'">' + headerFrom.toLocaleDateString(); + '</th>';
+                html_header += '<th>' + headerFrom.toLocaleDateString() + '<br><span id=totales-'+dateIndex+' class="small"></span></th>';
                 dateIndex ++;
             }
 
             if (needOneMore) {
                 headerFrom.setDate(headerFrom.getDate()+1);
-                html_header += '<th>' + headerFrom.toLocaleDateString(); + '</th>';
+                html_header += '<th>' + headerFrom.toLocaleDateString() + '<br><span id=totales-'+dateIndex+' class="small"></span></th>';
             }
 
             $("#head").html(html_header);
@@ -239,18 +238,18 @@
                     let fechaCheck = '';
                     let i = 0;
 
-                    Object.keys(response).forEach(function(k, v) {
+                    Object.keys(response.clientes).forEach(function(k, v) {
                         html += '<tr><td>'+ k +'</td>';
 
-                        Object.keys(response[k]).forEach(function(i) {
+                        Object.keys(response.clientes[k]).forEach(function(i) {
                             html += '<td>'+ i +'</td>';
 
-                            Object.keys(response[k][i]).forEach(function(e) {
+                            Object.keys(response.clientes[k][i]).forEach(function(e) {
                                 html += '<td>';
-                                if (response[k][i][e].habitacion !== undefined) {
-                                    html += 'hab: '+response[k][i][e].habitacion;
-                                    if (response[k][i][e].cama !== undefined) {
-                                        html += ' <br> cama: '+ response[k][i][e].cama;
+                                if (response.clientes[k][i][e].habitacion !== undefined) {
+                                    html += 'hab: '+response.clientes[k][i][e].habitacion;
+                                    if (response.clientes[k][i][e].cama !== undefined) {
+                                        html += ' <br> cama: '+ response.clientes[k][i][e].cama;
                                     }
                                 } else {
                                     html += " - ";
@@ -261,10 +260,16 @@
                         html += '</tr>';
                     });
 
+                    let dateIndex = 0;
+                    for (const key in response.totales) {
+                        $('#totales-' + dateIndex).text(response.totales[key]);
+                        dateIndex ++;
+                    }
+
                     $('#body').html(html);
                     $('#loading').hide();
                     $('#resultado').show();
-                    $('#pacientesCount').html(response.length + ' Pacientes en Total');
+
                 },
                 error: function(e){
                     console.log(e);

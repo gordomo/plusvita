@@ -79,7 +79,7 @@ class DashboardController extends AbstractController
     public function getPacientesFromTo(Request $request, ObraSocialRepository $obraSocialRepository, HistoriaHabitacionesRepository $historiaHabitacionesRepository) {
 
         $from = $request->get('from', '2021-12-01');
-        $to = $request->get('to', '2021-12-01');
+        $to = $request->get('to', '2021-12-31');
 
         $historias = $historiaHabitacionesRepository->findByDate($from,  $to);
 
@@ -95,13 +95,15 @@ class DashboardController extends AbstractController
             foreach ( $historias as $historia ) {
                 $cliente = $historia->getCliente();
                 $arrHistoria = ['habitacion' => $historia->getHabitacion()->getNombre(), 'cama' => $historia->getNCama()];
-                if ($historia->getFecha()->format("Y-m-d") !== $dateFrom->format("Y-m-d") && empty($arrHistorias[$cliente->getNombre() . ' ' . $cliente->getApellido()][$obrasSociales[$cliente->getObraSocial()] ?? 'Sin OS'][$dateFrom->format("Y-m-d")])) {
+                if ($historia->getFecha()->format("Y-m-d") !== $dateFrom->format("Y-m-d") && empty($arrHistorias['clientes'][$cliente->getNombre() . ' ' . $cliente->getApellido()][$obrasSociales[$cliente->getObraSocial()] ?? 'Sin OS'][$dateFrom->format("Y-m-d")])) {
                     $arrHistoria = [];
                 }
 
-                $arrHistorias[$cliente->getNombre() . ' ' . $cliente->getApellido()][$obrasSociales[$cliente->getObraSocial()] ?? 'Sin OS'][$dateFrom->format("Y-m-d")] = $arrHistoria;
+                $arrHistorias['clientes'][$cliente->getNombre() . ' ' . $cliente->getApellido()][$obrasSociales[$cliente->getObraSocial()] ?? 'Sin OS'][$dateFrom->format("Y-m-d")] = $arrHistoria;
 
             }
+
+            $arrHistorias['totales'][$dateFrom->format("Y-m-d")] = $historiaHabitacionesRepository->countByDate($dateFrom->format("Y-m-d"));
 
             $dateFrom->modify('+1 day');
 
