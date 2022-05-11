@@ -17,6 +17,7 @@
                 <option {% if tipoSeleccionado == 'Psiquiatra'  %} selected {% endif %} value='Psiquiatra'>Psiquiatra</option>
                 <option {% if tipoSeleccionado == 'Infectologo'  %} selected {% endif %} value='Infectologo'>Infectologo</option>
                 <option {% if tipoSeleccionado == 'Medico de guardia'  %} selected {% endif %} value='Medico de guardia'>Medico de guardia</option>
+                <option {% if tipoSeleccionado == 'Medico Clínico'  %} selected {% endif %} value='Medico Clínico'>Medico Clínico</option>
                 <option {% if tipoSeleccionado == 'Kinesiologo'  %} selected {% endif %} value='Kinesiologo'>Kinesiologo</option>
                 <option {% if tipoSeleccionado == 'Kinesiologo respiratorio'  %} selected {% endif %} value='Kinesiologo respiratorio'>Kinesiologo respiratorio</option>
                 <option {% if tipoSeleccionado == 'Terapista ocupacional'  %} selected {% endif %} value='Terapista ocupacional'>Terapista ocupacional</option>
@@ -80,7 +81,7 @@
 {% block javascripts %}
     {{ parent() }}
     <script>
-        $('#filtrarPorTipo').on('click touch', function() {
+        $('#filtrarPorTipo').on('change', function() {
             let path = "{{ path('evolucion_index', {'cliente': clienteId}) }}";
             location.href =  path + '&tipoSeleccionado=' + $(this).val();
         });

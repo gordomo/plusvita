@@ -82,6 +82,7 @@ class BookingController extends AbstractController
         $prestacion = [
             'Profesional por prestacion',
             'Medico de guardia',
+            'Medico Clínico',
             'Kinesiologo',
             'Kinesiologo respiratorio',
             'Terapista ocupacional',
@@ -196,6 +197,7 @@ class BookingController extends AbstractController
         $prestacion = [
             'Profesional por prestacion',
             'Medico de guardia',
+            'Medico Clínico',
             'Kinesiologo',
             'Kinesiologo respiratorio',
             'Terapista ocupacional',

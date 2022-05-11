@@ -95,6 +95,7 @@ class EvolucionType extends AbstractType
             'Directivo',
             'Profesional por prestacion',
             'Medico de guardia',
+            'Medico Clínico',
             'Kinesiologo',
             'Kinesiologo respiratorio',
             'Terapista ocupacional',
