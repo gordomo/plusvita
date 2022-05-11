@@ -34,22 +34,6 @@ class HistoriaIngresoType extends AbstractType
                 // every time you edit the Product details
                 'required' => false,
 
-                // unmapped fields can't define their validation using annotations
-                // in the associated entity, so you can use the PHP constraint classes
-                'constraints' => [
-                    new All([
-                        'constraints' => [
-                            new File([
-                                'maxSize' => '1024M',
-                                'mimeTypesMessage' => 'Please upload a valid PDF document',
-                                'mimeTypes' => [
-                                    'application/pdf',
-                                    'application/x-pdf'
-                                ]
-                            ]),
-                        ],
-                    ]),
-                ],
             ])
             ->add('indicaciones', TextareaType::class)
             ->add('save', SubmitType::class, ['label' => 'Guardar'])
