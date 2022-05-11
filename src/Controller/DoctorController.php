@@ -214,6 +214,7 @@ class DoctorController extends AbstractController
             'Profesional por prestacion',
             'Medico de guardia',
             'Medico Clínico',
+            'HidroTerapia motora',
             'Kinesiologo',
             'Kinesiologo respiratorio',
             'Terapista ocupacional',

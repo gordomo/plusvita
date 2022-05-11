@@ -606,6 +606,7 @@ class ClienteController extends AbstractController
             'Profesional por prestacion',
             'Medico de guardia',
             'Medico Clínico',
+            'HidroTerapia motora',
             'Kinesiologo motora ',
             'Kinesiologo respiratorio',
             'Terapista ocupacional',
