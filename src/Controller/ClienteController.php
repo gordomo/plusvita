@@ -490,7 +490,7 @@ class ClienteController extends AbstractController
                 }
                 $parametros = [
                     'dePermiso' => false,
-                    'habitacion' => $habitacion->getId(),
+                    'habitacion' => $habitacion->getId() ?? null,
                     'cama' => $ncama,
                 ];
 
