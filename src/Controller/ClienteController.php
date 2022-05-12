@@ -487,13 +487,15 @@ class ClienteController extends AbstractController
                     }
                     $habitacion->setCamasOcupadas($camasOcupadas);
                     $entityManager->persist($habitacion);
+                    $parametros['habitacion'] = $habitacion->getId();
+                } else {
+                    $cliente->setAmbulatorio(true);
+                    $cliente->setFechaAmbulatorio(new \DateTime());
+                    $parametros['ambulatorio'] = true;
                 }
-                $parametros = [
-                    'dePermiso' => false,
-                    'habitacion' => $habitacion->getId() ?? null,
-                    'cama' => $ncama,
-                ];
 
+                $parametros['dePermiso'] = false;
+                $parametros['cama'] = $ncama;
 
                 $cliente->setNCama($ncama);
             }
@@ -510,7 +512,7 @@ class ClienteController extends AbstractController
                 $cliente->setDerivado(false);
             }
 
-            if($cliente->getAmbulatorio()) {
+            if($cliente->getAmbulatorio() && $cliente->getHabitacion() != null ) {
                 $parametros['derivadoEn'] = null;
                 $parametros['ambulatorio'] = false;
 
@@ -522,9 +524,7 @@ class ClienteController extends AbstractController
             }
 
             if ($tipo == 'inactivos') {
-                $parametros = [
-                    'fechaIngreso' => new \DateTime(),
-                ];
+                $parametros['fechaIngreso'] = new \DateTime();
                 $cliente->setFEgreso(null);
             }
 
