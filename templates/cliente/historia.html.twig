@@ -251,26 +251,14 @@
                                 <div class="col-xl-2 col-md-6 col-lg-6 col-sm-12 text-left">
                                     <input class="form-control" type="date" name="evolucionesHasta" value="{{ evolucionesHasta }}">
                                 </div>
-                                {#<div class="col-xl-4 col-md-6 col-lg-6 col-sm-12">
-                                    <select class="form-control" id="filtrarPorTipo" name="notasTipo">
+                                <div class="col-xl-4 col-md-6 col-lg-6 col-sm-12">
+                                    <select class="form-control" id="filtrarPorTipo" name="filtrarPorTipo">
                                         <option value="0">Todos</option>
-                                        <optgroup label="Directo">
-                                            {% for contratoDirecto in contratos['directo'] %}
-                                                <option id='{{ contratoDirecto|replace({' ': ''}) }}' value="{{ contratoDirecto }}" {% if contratoDirecto == notasTipo %} selected {% endif %}>{{ contratoDirecto }}</option>
+                                            {% for contrato in contratos %}
+                                                <option id='{{ contrato|replace({' ': ''}) }}' value="{{ contrato }}" {% if contrato == tipoEvolucion %} selected {% endif %}>{{ contrato }}</option>
                                             {% endfor %}
-                                        </optgroup>
-                                        <optgroup label="Prestacion">
-                                            {% for contratoPrestacion in contratos['prestacion'] %}
-                                                <option id='{{ contratoPrestacion|replace({' ': ''}) }}' value="{{ contratoPrestacion }}" {% if contratoPrestacion == notasTipo %} selected {% endif %}>{{ contratoPrestacion }}</option>
-                                            {% endfor %}
-                                        </optgroup>
-                                        <optgroup label="Sin Contrato">
-                                            {% for contratoSinContrato in contratos['sinContrato'] %}
-                                                <option id='{{ contratoSinContrato|replace({' ': ''}) }}' value="{{ contratoSinContrato }}" {% if contratoSinContrato == notasTipo %} selected {% endif %}>{{ contratoSinContrato }}</option>
-                                            {% endfor %}
-                                        </optgroup>
                                     </select>
-                                </div>#}
+                                </div>
                                 <div class="col-xl-1 col-md-6 col-lg-3 col-sm-6">
                                     <button type="submit" class="btn btn-default" style="width: 100%;">filtrar</button>
                                 </div>

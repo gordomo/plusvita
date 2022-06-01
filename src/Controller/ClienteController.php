@@ -589,7 +589,8 @@ class ClienteController extends AbstractController
      */
     public function historia(Cliente $cliente, HistoriaPacienteRepository $historiaPacienteRepository, ObraSocialRepository $obraSocialRepository, NotasTurnoRepository $notasTurnoRepository, BookingRepository $bookingRepository, NotasHistoriaClinicaRepository $notasHistoriaClinicaRepository, EvolucionRepository $evolucionRepository, HistoriaEgresoRepository $historiaEgresoRepository, Request $request, DoctorRepository $doctorRepository, UserRepository $userRepository): Response
     {
-        $directo = [
+        $tipos = [
+            'Seleccione una Opción',
             'Nutricionista',
             'Director medico',
             'Sub director medico',
@@ -600,14 +601,11 @@ class ClienteController extends AbstractController
             'Abogado',
             'Estudio contable',
             'Directivo',
-            'Programador',
-        ];
-        $prestacion = [
             'Profesional por prestacion',
             'Medico de guardia',
             'Medico Clínico',
             'HidroTerapia motora',
-            'Kinesiologo motora ',
+            'Kinesiologo',
             'Kinesiologo respiratorio',
             'Terapista ocupacional',
             'Fonoaudiologo',
@@ -618,14 +616,10 @@ class ClienteController extends AbstractController
             'Urologo',
             'Hematologo',
             'Neumonologo',
-        ];
-        $sinContrato = [
             'Cirujano',
             'Traumatologo',
             'Neumonologo',
         ];
-
-        $contratosParaVista = ['directo' => $directo, 'prestacion' => $prestacion, 'sinContrato' => $sinContrato];
 
         $notasDesde = $request->query->get('notasDesde') ?? '';
         $notasHasta = $request->query->get('notasHasta') ?? '';
@@ -635,7 +629,9 @@ class ClienteController extends AbstractController
         $evolucionesDesde = $request->query->get('evolucionesDesde') ?? '';
         $evolucionesHasta = $request->query->get('evolucionesHasta') ?? '';
 
-        $evoluciones = $evolucionRepository->findByFechaYCliente($cliente, $evolucionesDesde, $evolucionesHasta);
+        $tipoEvolucion = $request->query->get('filtrarPorTipo') ?? '';
+
+        $evoluciones = $evolucionRepository->findByFechaClienteYtipo($cliente, $evolucionesDesde, $evolucionesHasta, $tipoEvolucion);
         $evArray = [];
 
         foreach ($evoluciones as $evolucion) {
@@ -718,7 +714,8 @@ class ClienteController extends AbstractController
                 'notasHasta' => $notasHasta,
                 'notasTipo' => $notasTipo,
                 'section' => $section,
-                'contratos' => $contratosParaVista,
+                'contratos' => $tipos,
+                'tipoEvolucion' => $tipoEvolucion,
                 'evolucionesDesde' => $evolucionesDesde,
                 'evolucionesHasta' => $evolucionesHasta,
         ]);

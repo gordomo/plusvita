@@ -67,6 +67,29 @@ class EvolucionRepository extends ServiceEntityRepository
 
     }
 
+    public function findByFechaClienteYtipo($cliente, $fechaDesde, $fechaHasta, $tipo = 'todos')
+    {
+        $query = $this->createQueryBuilder('e')->where('e.paciente = :cliente')->setParameter('cliente', $cliente);
+
+
+        if (!empty($fechaDesde)) {
+            $fechaDesde = new \DateTime($fechaDesde);
+            $fechaDesde->setTime(0,0,0);
+            $query->andWhere('e.fecha >= :fechaDesde')->setParameter('fechaDesde', $fechaDesde);
+        }
+        if (!empty($fechaHasta)) {
+            $fechaHasta = new \DateTime($fechaHasta);
+            $fechaHasta->setTime(23,59,59);
+            $query->andWhere('e.fecha <= :fechaHasta')->setParameter('fechaHasta', $fechaHasta);
+        }
+        if ( $tipo !== 0 && $tipo !== 'todos') {
+            $query->andWhere('e.tipo = :tipo')->setParameter('tipo', $tipo);
+        }
+
+        return $query->orderBy('e.fecha', 'ASC')->getQuery()->getResult();
+
+    }
+
     // /**
     //  * @return Evolucion[] Returns an array of Evolucion objects
     //  */
