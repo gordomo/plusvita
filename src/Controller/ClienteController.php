@@ -629,7 +629,7 @@ class ClienteController extends AbstractController
         $evolucionesDesde = $request->query->get('evolucionesDesde') ?? '';
         $evolucionesHasta = $request->query->get('evolucionesHasta') ?? '';
 
-        $tipoEvolucion = $request->query->get('filtrarPorTipo') ?? '';
+        $tipoEvolucion = $request->query->get('filtrarPorTipo') ?? 'todos';
 
         $evoluciones = $evolucionRepository->findByFechaClienteYtipo($cliente, $evolucionesDesde, $evolucionesHasta, $tipoEvolucion);
         $evArray = [];
