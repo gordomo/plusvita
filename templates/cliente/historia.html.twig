@@ -252,10 +252,9 @@
                                     <input class="form-control" type="date" name="evolucionesHasta" value="{{ evolucionesHasta }}">
                                 </div>
                                 <div class="col-xl-4 col-md-6 col-lg-6 col-sm-12">
-                                    <select class="form-control" id="filtrarPorTipo" name="filtrarPorTipo">
-                                        <option value="0">Todos</option>
+                                    <select class="form-control" id="filtrarPorTipo" name="filtrarPorTipo[]" multiple>
                                             {% for contrato in contratos %}
-                                                <option id='{{ contrato|replace({' ': ''}) }}' value="{{ contrato }}" {% if contrato == tipoEvolucion %} selected {% endif %}>{{ contrato }}</option>
+                                                <option id='{{ contrato|replace({' ': ''}) }}' value="{{ contrato }}" {% if contrato in tipoEvolucion %} selected {% endif %}>{{ contrato }}</option>
                                             {% endfor %}
                                     </select>
                                 </div>
@@ -709,6 +708,9 @@
 
             }
         });
+
+        $('#filtrarPorTipo').chosen()
+
     </script>
 {% endblock %}
 
