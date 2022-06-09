@@ -252,7 +252,7 @@
                                     <input class="form-control" type="date" name="evolucionesHasta" value="{{ evolucionesHasta }}">
                                 </div>
                                 <div class="col-xl-4 col-md-6 col-lg-6 col-sm-12">
-                                    <select class="form-control" id="filtrarPorTipo" name="filtrarPorTipo[]" multiple>
+                                    <select class="form-control" id="filtrarPorTipo" name="filtrarPorTipo[]" multiple data-placeholder="Especialidad">
                                             {% for contrato in contratos %}
                                                 <option id='{{ contrato|replace({' ': ''}) }}' value="{{ contrato }}" {% if contrato in tipoEvolucion %} selected {% endif %}>{{ contrato }}</option>
                                             {% endfor %}
