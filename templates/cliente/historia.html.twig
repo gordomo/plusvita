@@ -6,9 +6,9 @@
         Nombre y Apellido: <small>{{ cliente.nombre }} {{ cliente.apellido }}</small><br>
         DNI: <small>{{ cliente.dni }}</small><br>
         Obra social: <small>{{ obraSociales[cliente.obraSocial] is defined ? obraSociales[cliente.obraSocial] : '' }}</small><br>
-        Fecha de Ingreso: <small>{{ historiaPaciente[0].fechaIngreso ? historiaPaciente[0].fechaIngreso|date('Y-m-d') : ''}}</small><br>
-        {% if historiaPaciente[0].fechaEngreso %}
-            Fecha de Egreso: <small>{{ historiaPaciente[0].fechaEngreso ? historiaPaciente[0].fechaEngreso|date('Y-m-d') : '' }}</small>
+        Fecha de Ingreso: <small>{{ historiaPaciente[0] is defined and historiaPaciente[0].fechaIngreso ? historiaPaciente[0].fechaIngreso|date('Y-m-d') : cliente.fingreso|date('Y-m-d')}}</small><br>
+        {% if historiaPaciente[0] is defined and historiaPaciente[0].fechaEngreso %}
+            Fecha de Egreso: <small>{{ historiaPaciente[0] and  historiaPaciente[0].fechaEngreso ? historiaPaciente[0].fechaEngreso|date('Y-m-d') : cliente.fegreso|date('Y-m-d') }}</small>
         {% endif %}
     </div>
 {% endblock %}
