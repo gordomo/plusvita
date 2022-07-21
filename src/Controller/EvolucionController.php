@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Doctor;
 use App\Entity\Evolucion;
 use App\Form\EvolucionType;
 use App\Repository\ClienteRepository;
@@ -31,7 +32,10 @@ class EvolucionController extends AbstractController
         $user = $this->getUser();
         $tipoSeleccionado = $request->query->get('tipoSeleccionado', 0);
 
-        $modalidades = $user->getModalidad();
+        $modalidades = [];
+        if($user instanceOf Doctor) {
+            $modalidades = $user->getModalidad();
+        }
 
         if( count($modalidades) === 1 && $tipoSeleccionado === 0) {
             $tipoSeleccionado = $modalidades[0];
@@ -135,22 +139,35 @@ class EvolucionController extends AbstractController
     /**
      * @Route("/{id}/edit", name="evolucion_edit", methods={"GET","POST"})
      */
-    /*public function edit(Request $request, Evolucion $evolucion): Response
+    public function edit(Request $request, Evolucion $evolucion): Response
     {
-        $form = $this->createForm(EvolucionType::class, $evolucion);
-        $form->handleRequest($request);
+        $userName = $this->getUser()->getUsername();
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $this->getDoctrine()->getManager()->flush();
+        $puedenEditarEvoluciones = [
+            'martin',
+            'cpveronicabonamigo@gmail.com'
+        ];
 
-            return $this->redirectToRoute('evolucion_index', [], Response::HTTP_SEE_OTHER);
+        if(in_array($userName, $puedenEditarEvoluciones)) {
+            $form = $this->createForm(EvolucionType::class, $evolucion);
+            $form->handleRequest($request);
+
+            if ($form->isSubmitted() && $form->isValid()) {
+                $this->getDoctrine()->getManager()->flush();
+
+                return $this->redirectToRoute('cliente_historial', ['id' => $evolucion->getPaciente()->getId()], Response::HTTP_SEE_OTHER);
+            }
+
+            return $this->render('evolucion/edit.html.twig', [
+                'evolucion' => $evolucion,
+                'clienteId' => $evolucion->getPaciente()->getId(),
+                'form' => $form->createView(),
+            ]);
+        } else {
+            return $this->redirectToRoute('cliente_historial', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->render('evolucion/edit.html.twig', [
-            'evolucion' => $evolucion,
-            'form' => $form->createView(),
-        ]);
-    }*/
+    }
 
     /**
      * @Route("/{id}", name="evolucion_delete", methods={"POST"})

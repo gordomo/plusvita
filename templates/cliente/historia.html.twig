@@ -275,7 +275,19 @@
                                 <tbody>
                                 {% for evolucion in evoluciones %}
                                     <tr style="background-color: #dee2e6; display: table; width: 100%; table-layout: fixed;">
-                                        <td>{{ evolucion['evolucion'].fecha ? evolucion['evolucion'].fecha|date('Y-m-d') : ''}} - {{ evolucion['evolucion'].tipo }} - {{ evolucion['evolucion'].user }}</td>
+                                        <td>
+                                            <span {% if puedeEditarEvolucion %} class="col-9"  {% endif %}>
+                                                {{ evolucion['evolucion'].fecha ? evolucion['evolucion'].fecha|date('Y-m-d') : ''}} - {{ evolucion['evolucion'].tipo }} - {{ evolucion['evolucion'].user }}
+                                            </span>
+                                            {% if puedeEditarEvolucion %}
+                                                <span class="col-3">
+                                                    {% set evolucionId = evolucion['evolucion'].id %}
+                                                    <a href="{{ path('evolucion_edit', { 'id': evolucionId}) }}">
+                                                        <i class="fas fa-pencil-alt"></i>
+                                                    </a>
+                                                </span>
+                                            {% endif %}
+                                        </td>
                                     </tr>
                                     <tr>
                                         <td>{{ evolucion['evolucion'].description }}</td>

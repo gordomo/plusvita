@@ -589,6 +589,13 @@ class ClienteController extends AbstractController
      */
     public function historia(Cliente $cliente, HistoriaPacienteRepository $historiaPacienteRepository, ObraSocialRepository $obraSocialRepository, NotasTurnoRepository $notasTurnoRepository, BookingRepository $bookingRepository, NotasHistoriaClinicaRepository $notasHistoriaClinicaRepository, EvolucionRepository $evolucionRepository, HistoriaEgresoRepository $historiaEgresoRepository, Request $request, DoctorRepository $doctorRepository, UserRepository $userRepository): Response
     {
+        $userName = $this->getUser()->getUsername();
+
+        $puedenEditarEvoluciones = [
+            'martin',
+            'cpveronicabonamigo@gmail.com'
+        ];
+
         $tipos = [
             'Nutricionista',
             'Director medico',
@@ -718,6 +725,7 @@ class ClienteController extends AbstractController
                 'tipoEvolucion' => $tiposEvolucion,
                 'evolucionesDesde' => $evolucionesDesde,
                 'evolucionesHasta' => $evolucionesHasta,
+                'puedeEditarEvolucion' => in_array($userName, $puedenEditarEvoluciones),
         ]);
     }
 
