@@ -2,13 +2,13 @@
 
 {% block title %}Pacientes{% endblock %}
 {% block panelTitle %}
-    <div class="small">
-        Nombre y Apellido: <small>{{ cliente.nombre }} {{ cliente.apellido }}</small><br>
-        DNI: <small>{{ cliente.dni }}</small><br>
-        Obra social: <small>{{ obraSociales[cliente.obraSocial] is defined ? obraSociales[cliente.obraSocial] : '' }}</small><br>
-        Fecha de Ingreso: <small>{{ historiaPaciente[0] is defined and historiaPaciente[0].fechaIngreso ? historiaPaciente[0].fechaIngreso|date('Y-m-d') : cliente.fingreso|date('Y-m-d')}}</small><br>
+    <div class="small" id="head">
+        Nombre y Apellido: <span class="small">{{ cliente.nombre }} {{ cliente.apellido }}</span><br>
+        DNI: <span class="small">{{ cliente.dni }}</span><br>
+        Obra social: <span class="small">{{ obraSociales[cliente.obraSocial] is defined ? obraSociales[cliente.obraSocial] : '' }}</span><br>
+        Fecha de Ingreso: <span class="small">{{ historiaPaciente[0] is defined and historiaPaciente[0].fechaIngreso ? historiaPaciente[0].fechaIngreso|date('Y-m-d') : cliente.fingreso|date('Y-m-d')}}</span><br>
         {% if historiaPaciente[0] is defined and historiaPaciente[0].fechaEngreso %}
-            Fecha de Egreso: <small>{{ historiaPaciente[0] and  historiaPaciente[0].fechaEngreso ? historiaPaciente[0].fechaEngreso|date('Y-m-d') : cliente.fegreso|date('Y-m-d') }}</small>
+            Fecha de Egreso: <span class="small">{{ historiaPaciente[0] and  historiaPaciente[0].fechaEngreso ? historiaPaciente[0].fechaEngreso|date('Y-m-d') : cliente.fegreso|date('Y-m-d') }}</span>
         {% endif %}
     </div>
 {% endblock %}
@@ -27,7 +27,7 @@
                 <div class="modal-body">
                     <div class="form-group columnas-de-dos" id="checkboxes">
                         {% for fiel in [
-                            'ingreso', 'notas', 'notas-en-turnos', 'evoluciones-imprimir', 'novedades', 'epicrisis-al-alta',
+                            'historia-al-ingreso', 'notas', 'notas-en-turnos', 'evoluciones-imprimir', 'novedades', 'epicrisis-al-alta',
                         ] %}
                             <div class="form-check">
                                 <input class="form-check-input check" type="checkbox" value="{{ fiel | lower }}" id="{{ fiel }}"
@@ -55,9 +55,9 @@
     </div>
     <!-- modal imprimir local inicio -->
 
-    <div class="row">
+    <div class="row tituloHistoria">
         <div class="col-4">
-            <h2>Historia Clínica</h2>
+            <h3>Historia Clinica: {{ cliente.hClinica }}</h3>
         </div>
     </div>
     <div class="row">
@@ -103,7 +103,7 @@
                             {% if ingreso.examenesComplementeriosFiles is not empty %}
                             {% for examenes in ingreso.examenesComplementeriosFiles %}
                             {% set url = 'uploads/adjuntos/pacientes/' ~ cliente.id ~ "/complementerios/" ~ examenes %}
-                            <a href={{ path('download_pdf_adjunto', {'path': url, 'nombre': examenes}) }} >{{ examenes }}<br>
+                                <a href={{ path('download_pdf_adjunto', {'path': url, 'nombre': examenes}) }} >{{ examenes }}</a><br>
                                 {% endfor %}
                                 {% else %}
                                     No tiene
@@ -695,7 +695,7 @@
                 alert('seleccione al menos un campo')
             } else {
                 let seccionesSelected = checkboxes;
-                let secciones = ['ingreso', 'notas', 'notas-en-turnos', 'evoluciones-imprimir', 'novedades', 'epicrisis-al-alta'];
+                let secciones = ['historia-al-ingreso', 'notas', 'notas-en-turnos', 'evoluciones-imprimir', 'novedades', 'epicrisis-al-alta'];
 
                 secciones.forEach((seccion) => {
                     if (!seccionesSelected.includes(seccion)) {
@@ -709,14 +709,50 @@
                 $('body').find('.container-fluid').find('button').remove();
                 $('body').find('.remover').remove();
                 $('.modal').remove();
-                let tables = $('body').find('.container-fluid').find('.table-wrapper-scroll-y');
-                tables.removeClass('table-wrapper-scroll-y');
                 setTimeout(() => {
+                    let tables = $('body').find('.container-fluid').find('.table-wrapper-scroll-y');
+                    tables.removeClass('table-wrapper-scroll-y');
+                    $('#head').css('font-size', '15px')
+                    let headers = $('#head').parent().parent();
+                    headers.addClass('repetedHeader');
+                    let newHeader = '<div class="row"><div class="col-sm-8">' + headers.html() + '</div>';
+                    newHeader += '<div id="logos" class="col-sm-4"><img style="max-width:100px; float:right;" src="{{ absolute_url(asset('assets/images/plusVitaLogo.png')) }}"></div></div>';
+                    newHeader += '<div class="row>' + $('.tituloHistoria').html() + '</div>';
+                    headers.remove();
+                    $('#logos').remove();
+                    $('.tituloHistoria').remove();
+
+                    /*setTimeout(() => {
+                        let html = '<head>' + $('head').html() + '</head>';
+                        html += $('body').find('.container-fluid').html();
+                        imprimirElemento(newHeader);
+                        location.reload();
+                    }, 1000);*/
+
+
                     let html = '<head>' + $('head').html() + '</head>';
+                    let headStyles = '<head>' + $('head').html() + '</head>';
                     html += $('body').find('.container-fluid').html();
-                    imprimirElemento(html);
-                    location.reload();
+
+                    $('.filtrosPlanillaLocal').modal('hide');
+
+                    $.form("{{ path('imprimir_pdf') }}", { 'header': newHeader, 'html': html, 'headStyles': headStyles }).submit();
+
+                    $.ajax({
+                        url: "{{ path('imprimir_pdf') }}",
+                        data: {
+                            'header': newHeader, 'html': html, 'headStyles': headStyles
+                        },
+                        method: 'POST',
+                        success: function (response) {
+                            setTimeout(() => location.reload(), 10000);
+
+                        }
+                    });
+
+
                 }, 1000);
+
 
             }
         });

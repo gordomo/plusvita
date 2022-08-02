@@ -172,16 +172,29 @@ class EvolucionController extends AbstractController
     /**
      * @Route("/{id}", name="evolucion_delete", methods={"POST"})
      */
-    /*public function delete(Request $request, Evolucion $evolucion): Response
+    public function delete(Request $request, Evolucion $evolucion): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$evolucion->getId(), $request->request->get('_token'))) {
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->remove($evolucion);
-            $entityManager->flush();
-        }
+        $userName = $this->getUser()->getUsername();
 
-        return $this->redirectToRoute('evolucion_index', [], Response::HTTP_SEE_OTHER);
-    }*/
+        $puedenEditarEvoluciones = [
+            'martin',
+            'cpveronicabonamigo@gmail.com'
+        ];
+
+        if(in_array($userName, $puedenEditarEvoluciones)) {
+
+            if ($this->isCsrfTokenValid('delete'.$evolucion->getId(), $request->request->get('_token'))) {
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->remove($evolucion);
+                $entityManager->flush();
+            }
+
+            return $this->redirectToRoute('evolucion_index', [], Response::HTTP_SEE_OTHER);
+
+        } else {
+            return $this->redirectToRoute('evolucion_index', [], Response::HTTP_SEE_OTHER);
+        }
+    }
 
     /**
      * @Route("/get-adjunto/{pdf}/{clienteId}", name="evolucion_get_adjunto", methods={"GET"})
