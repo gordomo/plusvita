@@ -294,11 +294,11 @@
                                     </tr>
                                     {% if evolucion['firma'] is not empty %}
                                         <tr>
-                                            <td><img src="{{ asset('uploads/firmas/') }}{{ evolucion['firma'] }}" style="max-width: 150px;"/></td>
+                                            <td><img src="{{ absolute_url(asset('uploads/firmas/')) }}{{ evolucion['firma'] }}" style="max-width: 140px;"/></td>
                                         </tr>
                                     {% else %}
                                         <tr>
-                                            <td><i>sin firma</i></td>
+                                            <td><i>Firma no registrada</i></td>
                                         </tr>
                                     {% endif %}
                                 {% endfor %}
