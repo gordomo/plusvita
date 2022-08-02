@@ -57,7 +57,7 @@
 
     <div class="row tituloHistoria">
         <div class="col-4">
-            <h3>Historia Clinica: {{ cliente.hClinica }}</h3>
+            <h3>Historia Clínica: {{ cliente.hClinica }}</h3>
         </div>
     </div>
     <div class="row">
@@ -715,7 +715,7 @@
                     $('#head').css('font-size', '15px')
                     let headers = $('#head').parent().parent();
                     headers.addClass('repetedHeader');
-                    let newHeader = '<div class="row"><div class="col-sm-8">' + headers.html() + '</div>';
+                    let newHeader = '<div class="row"><div class="col-sm-8">' + $('#head').html() + '</div>';
                     newHeader += '<div id="logos" class="col-sm-4"><img style="max-width:100px; float:right;" src="{{ absolute_url(asset('assets/images/plusVitaLogo.png')) }}"></div></div>';
                     newHeader += '<div class="row>' + $('.tituloHistoria').html() + '</div>';
                     headers.remove();
@@ -730,13 +730,13 @@
                     }, 1000);*/
 
 
-                    let html = '<head>' + $('head').html() + '</head>';
-                    let headStyles = '<head>' + $('head').html() + '</head>';
+                    let html = '';//'<head>' + $('head').html() + '</head>';
+                    let headStyles = '';//'<head>' + $('head').html() + '</head>';
                     html += $('body').find('.container-fluid').html();
 
                     $('.filtrosPlanillaLocal').modal('hide');
 
-                    $.form("{{ path('imprimir_pdf') }}", { 'header': newHeader, 'html': html, 'headStyles': headStyles }).submit();
+                    /*$.form("{{ path('imprimir_pdf') }}", { 'header': newHeader, 'html': html, 'headStyles': headStyles }).submit();*/
 
                     $.ajax({
                         url: "{{ path('imprimir_pdf') }}",
@@ -745,8 +745,12 @@
                         },
                         method: 'POST',
                         success: function (response) {
-                            setTimeout(() => location.reload(), 10000);
-
+                            if (response.error) {
+                                alert('hubo un error. Imposible pasar a pdf');
+                            } else {
+                                window.open(response.url);
+                            }
+                            location.reload();
                         }
                     });
 

@@ -6,6 +6,7 @@ namespace App\Controller;
 use Knp\Snappy\Pdf;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -49,7 +50,7 @@ class ImprimirController extends AbstractController
 <!DOCTYPE html>
 <html>
   $headStyles
-  <body>
+  <body style="margin-bottom: 5px">
     $head
   </body>
 </html>
@@ -102,14 +103,21 @@ HTML;
             'page-size' => 'A4',
             'margin-bottom' => '5',
             'no-custom-header-propagation' => true,
+            'encoding' => 'utf-8'
         ];
 
-        //$knpSnappyPdf->generateFromHtml($html, '/var/www/html/var/cache/dev/snappy/bill-123.pdf', $options, true);
+        $knpSnappyPdf->generateFromHtml($html, '/var/www/html/var/cache/dev/snappy/bill-123.pdf', $options, true);
 
-        return new PdfResponse(
-            $knpSnappyPdf->setTimeout(60000000)->getOutputFromHtml($html_to_print, $options),
-            'clinica.pdf'
-        );
+        $error = false;
+
+        if(file_exists('/var/www/html/var/cache/dev/snappy/bill-123.pdf')) {
+            copy('/var/www/html/var/cache/dev/snappy/bill-123.pdf', '/var/www/html/public/uploads/snappy/bill-123.pdf');
+            unlink('/var/www/html/var/cache/dev/snappy/bill-123.pdf');
+        } else {
+            $error = true;
+        }
+
+        return new JsonResponse(['url' => '/uploads/snappy/bill-123.pdf', 'error' => $error]);
 
     }
 
