@@ -111,7 +111,7 @@ HTML;
         $error = false;
 
         if(file_exists('/var/www/html/var/cache/dev/snappy/bill-123.pdf')) {
-            copy('/var/www/html/var/cache/dev/snappy/bill-123.pdf', '/public/uploads/snappy/bill-123.pdf');
+            copy('/var/www/html/var/cache/dev/snappy/bill-123.pdf', '/var/www/symfony/public/uploads/snappy/historia' . date('d-m-y-h-i-s') . '.pdf');
             unlink('/var/www/html/var/cache/dev/snappy/bill-123.pdf');
         } else {
             $error = true;
