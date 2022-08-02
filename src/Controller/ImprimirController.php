@@ -107,7 +107,7 @@ HTML;
         //$knpSnappyPdf->generateFromHtml($html, '/var/www/html/var/cache/dev/snappy/bill-123.pdf', $options, true);
 
         return new PdfResponse(
-            $knpSnappyPdf->getOutputFromHtml($html_to_print, $options),
+            $knpSnappyPdf->setTimeout(60000000)->getOutputFromHtml($html_to_print, $options),
             'clinica.pdf'
         );
 
