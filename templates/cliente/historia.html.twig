@@ -26,15 +26,17 @@
 
                 <div class="modal-body">
                     <div class="form-group columnas-de-dos" id="checkboxes">
-                        {% for fiel in [
-                            'historia-al-ingreso', 'notas', 'notas-en-turnos', 'evoluciones-imprimir', 'novedades', 'epicrisis-al-alta',
-                        ] %}
+                        {% set campos = {
+                            'historia-al-ingreso': 'Ingreso', 'notas': 'Notas', 'notas-en-turnos': 'Notas en Turno', 'evoluciones-imprimir': 'Evoluciones', 'novedades': 'Novedades', 'epicrisis-al-alta': 'Epicrisis'
+                        }%}
+
+                        {% for fiel, key in campos %}
                             <div class="form-check">
                                 <input class="form-check-input check" type="checkbox" value="{{ fiel | lower }}" id="{{ fiel }}"
                                         {% if fiel == 'evoluciones-imprimir' %} checked {% endif %}
                                 >
                                 <label class="form-check-label" for="{{ fiel }}" style="text-transform: capitalize">
-                                    {{ fiel }}
+                                    {{ key }}
                                 </label>
                             </div>
                         {% endfor %}
@@ -57,7 +59,7 @@
 
     <div class="row tituloHistoria">
         <div class="col-4">
-            <h3>Historia Clínica: {{ cliente.hClinica }}</h3>
+            <h3>Historia Clinica: {{ cliente.hClinica }}</h3>
         </div>
     </div>
     <div class="row">
@@ -694,22 +696,42 @@
             if (checkboxes.length < 1) {
                 alert('seleccione al menos un campo')
             } else {
-                let seccionesSelected = checkboxes;
-                let secciones = ['historia-al-ingreso', 'notas', 'notas-en-turnos', 'evoluciones-imprimir', 'novedades', 'epicrisis-al-alta'];
+                /*$.form("{{ path('imprimir_pdf') }}", { 'seccionesSelected': checkboxes, 'clientId': {{ cliente.id }} }).submit();*/
 
-                secciones.forEach((seccion) => {
+                $.ajax({
+                    url: "{{ path('imprimir_pdf2') }}",
+                    data: {
+                        'seccionesSelected': checkboxes,
+                        'clientId': {{ cliente.id }}
+                    },
+                    method: 'POST',
+                    success: function (response) {
+                        console.log(response);
+                        if (response.error) {
+                            alert('hubo un error. Imposible pasar a pdf');
+                        } else {
+                            //window.open(response.url);
+                        }
+                        //location.reload();
+                    }
+                });
+
+
+                //let secciones = ['historia-al-ingreso', 'notas', 'notas-en-turnos', 'evoluciones-imprimir', 'novedades', 'epicrisis-al-alta'];
+
+                /*secciones.forEach((seccion) => {
                     if (!seccionesSelected.includes(seccion)) {
                         $('.'+seccion).remove();
                     } else {
                         $('.'+seccion).find('.btn.btn-link.abrir .fas.fa-chevron-down').click();
                     }
-                });
+                });*/
 
-                $('body').find('.container-fluid').find('a').remove();
+                /*$('body').find('.container-fluid').find('a').remove();
                 $('body').find('.container-fluid').find('button').remove();
                 $('body').find('.remover').remove();
-                $('.modal').remove();
-                setTimeout(() => {
+                $('.modal').remove();*/
+                /*setTimeout(() => {
                     let tables = $('body').find('.container-fluid').find('.table-wrapper-scroll-y');
                     tables.removeClass('table-wrapper-scroll-y');
                     $('#head').css('font-size', '15px')
@@ -722,12 +744,12 @@
                     $('#logos').remove();
                     $('.tituloHistoria').remove();
 
-                    /*setTimeout(() => {
+                    /!*setTimeout(() => {
                         let html = '<head>' + $('head').html() + '</head>';
                         html += $('body').find('.container-fluid').html();
                         imprimirElemento(newHeader);
                         location.reload();
-                    }, 1000);*/
+                    }, 1000);*!/
 
 
                     let html = '';//'<head>' + $('head').html() + '</head>';
@@ -736,7 +758,7 @@
 
                     $('.filtrosPlanillaLocal').modal('hide');
 
-                    /*$.form("{{ path('imprimir_pdf') }}", { 'header': newHeader, 'html': html, 'headStyles': headStyles }).submit();*/
+                    /!*$.form("{{ path('imprimir_pdf') }}", { 'header': newHeader, 'html': html, 'headStyles': headStyles }).submit();*!/
 
                     $.ajax({
                         url: "{{ path('imprimir_pdf') }}",
@@ -755,7 +777,7 @@
                     });
 
 
-                }, 1000);
+                }, 1000);*/
 
 
             }
