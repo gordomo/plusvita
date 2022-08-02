@@ -106,7 +106,7 @@ HTML;
             'encoding' => 'utf-8'
         ];
 
-        $knpSnappyPdf->generateFromHtml($html, '/var/www/html/var/cache/dev/snappy/bill-123.pdf', $options, true);
+        $knpSnappyPdf->setTimeout(60000000000)->generateFromHtml($html, '/var/www/html/var/cache/dev/snappy/bill-123.pdf', $options, true);
 
         $error = false;
 
