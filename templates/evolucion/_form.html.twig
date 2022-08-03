@@ -34,7 +34,7 @@
 <br>
 <div class="form-group">
     {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary'}}) }}
-    <a class="btn btn-default" href="{{ path('evolucion_index', {'cliente': clienteId}) }}">volver</a>
+    <a class="btn btn-default" href="{{ app.request.headers.get('referer') }}">volver</a>
 </div>
 <br>
 

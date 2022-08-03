@@ -129,8 +129,9 @@ class EvolucionController extends AbstractController
     /**
      * @Route("/{id}", name="evolucion_show", methods={"GET"})
      */
-    public function show(Evolucion $evolucion): Response
+    public function show($id, EvolucionRepository $evolucionRepository): Response
     {
+        $evolucion = $evolucionRepository->find($id);
         return $this->render('evolucion/show.html.twig', [
             'evolucion' => $evolucion,
         ]);
@@ -142,6 +143,7 @@ class EvolucionController extends AbstractController
     public function edit(Request $request, Evolucion $evolucion): Response
     {
         $userName = $this->getUser()->getUsername();
+        $redirect = $request->get('redirect', '');
 
         $puedenEditarEvoluciones = [
             'martin',
@@ -155,7 +157,11 @@ class EvolucionController extends AbstractController
             if ($form->isSubmitted() && $form->isValid()) {
                 $this->getDoctrine()->getManager()->flush();
 
-                return $this->redirectToRoute('cliente_historial', ['id' => $evolucion->getPaciente()->getId()], Response::HTTP_SEE_OTHER);
+                if($redirect !== '') {
+                    return $this->redirect($redirect);
+                } else {
+                    return $this->redirectToRoute('cliente_historial', ['id' => $evolucion->getPaciente()->getId()], Response::HTTP_SEE_OTHER);
+                }
             }
 
             return $this->render('evolucion/edit.html.twig', [
@@ -164,7 +170,7 @@ class EvolucionController extends AbstractController
                 'form' => $form->createView(),
             ]);
         } else {
-            return $this->redirectToRoute('cliente_historial', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('cliente_historial', ['id' => $evolucion->getPaciente()->getId()], Response::HTTP_SEE_OTHER);
         }
 
     }
@@ -175,6 +181,8 @@ class EvolucionController extends AbstractController
     public function delete(Request $request, Evolucion $evolucion): Response
     {
         $userName = $this->getUser()->getUsername();
+        $clienteId = $evolucion->getPaciente()->getId();
+        $redirect = $request->get('redirect', '');
 
         $puedenEditarEvoluciones = [
             'martin',
@@ -182,17 +190,16 @@ class EvolucionController extends AbstractController
         ];
 
         if(in_array($userName, $puedenEditarEvoluciones)) {
-
             if ($this->isCsrfTokenValid('delete'.$evolucion->getId(), $request->request->get('_token'))) {
                 $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->remove($evolucion);
                 $entityManager->flush();
             }
-
-            return $this->redirectToRoute('evolucion_index', [], Response::HTTP_SEE_OTHER);
-
+        }
+        if($redirect !== '') {
+            return $this->redirect($redirect);
         } else {
-            return $this->redirectToRoute('evolucion_index', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('evolucion_index', ['cliente' => $clienteId], Response::HTTP_SEE_OTHER);
         }
     }
 

@@ -152,7 +152,60 @@ HTML;
             }
         }
 
+
+        $header = <<<HTML
+<!DOCTYPE html>
+<html>
+  <body style="margin-bottom: 5px">
+    
+  </body>
+</html>
+HTML;
+
+        $footer = <<<HTML
+<!DOCTYPE html>
+<html>
+  <head>
+  <style type="text/css">
+    div { float: right; font-size: 10px; width: 125px; }
+  </style>
+  <script>
+  function subst() {
+      var vars = {};
+      var query_strings_from_url = document.location.search.substring(1).split('&');
+      for (var query_string in query_strings_from_url) {
+          if (query_strings_from_url.hasOwnProperty(query_string)) {
+              var temp_var = query_strings_from_url[query_string].split('=', 2);
+              vars[temp_var[0]] = decodeURI(temp_var[1]);
+          }
+      }
+      var css_selector_classes = ['page', 'frompage', 'topage', 'webpage', 'section', 'subsection', 'date', 'isodate', 'time', 'title', 'doctitle', 'sitepage', 'sitepages'];
+      for (var css_class in css_selector_classes) {
+          if (css_selector_classes.hasOwnProperty(css_class)) {
+              var element = document.getElementsByClassName(css_selector_classes[css_class]);
+              for (var j = 0; j < element.length; ++j) {
+                  element[j].textContent = vars[css_selector_classes[css_class]];
+              }
+          }
+      }
+  }
+  </script>
+  </head>
+  <body onload="subst()">
+    <table style="border-bottom: 1px solid black; width: 100%">
+        <tr>
+          <td style="text-align:right">
+            Pagina <span class="page"></span> de <span class="topage"></span>
+          </td>
+        </tr>
+    </table>
+  </body>
+</html>
+HTML;
+
         $options = [
+            'header-html' => $header,
+            'footer-html' => $footer,
             'page-size' => 'A4',
             'margin-bottom' => '5',
             'no-custom-header-propagation' => true,
@@ -169,15 +222,15 @@ HTML;
     private function getIngresoHtml($cliente) {
         $ingreso = $cliente->getHistoriaIngreso();
         $ingresoHtml = '';
+        $linksComplementarios = 'No tiene';
         if (!empty($ingreso)) {
             if (!empty($ingreso->getExamenesComplementeriosFiles())) {
+                $linksComplementarios = '';
                 foreach ($ingreso->getExamenesComplementeriosFiles() as $examenes) {
                     $url = 'uploads/adjuntos/pacientes/' . $cliente->getId() . "/complementerios/" . $examenes;
                     $link = $this->generateUrl('download_pdf_adjunto', ['path'=> $url, 'nombre'=> $examenes]);
-                    $linksComplementarios = "<a href='$link'>$examenes</a><br>";
+                    $linksComplementarios .= "<a href='$link'>$examenes</a><br>";
                 }
-            } else {
-                $linksComplementarios = 'No tiene';
             }
 
             $antecedentesTexto = $ingreso->getAntecedentesTexto();
@@ -220,6 +273,8 @@ HTML;
                 </tr>
                 <tr>
                     <th>Adjuntos:</th>
+                </tr>
+                <tr>
                     <td>$linksComplementarios</td>
                 </tr>
 HTML;
@@ -231,7 +286,7 @@ HTML;
 <div class="row">
         <div class="col-12 historia-al-ingreso" >
             <h4 style="border-top: 1px solid; padding-top: 10px">Ingreso</h4>
-            <table class="table table-responsive table-striped">
+            <table class="table table-responsive table-striped" style="text-align: left">
                 $ingresoHtml
             </table>
         </div>
