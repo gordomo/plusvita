@@ -47,6 +47,23 @@
                             </label>
                         </div>
                     </div>
+                    <hr>
+                    <div class="form-group">
+                        <div class="form-row">
+                            <div class="col-1 text-right" style="line-height: 40px;height: 35px;">
+                                <label class="control-label">desde:</label>
+                            </div>
+                            <div class="col-4 text-left">
+                                <input class="form-control" type="date" id="imprimirDesde" >
+                            </div>
+                            <div class="col-3 text-right" style="line-height: 40px;height: 35px;">
+                                <label class="control-label">hasta:</label>
+                            </div>
+                            <div class="col-4 text-left">
+                                <input class="form-control" type="date" id="imprimirHasta">
+                            </div>
+                        </div>
+                    </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-primary" id="updateLocal">Imprimir</button>
                     </div>
@@ -692,17 +709,27 @@
         });
 
         $("#updateLocal").on('click', function () {
+            $("#updateLocal").prop('disabled', true);
             let checkboxes = GetSelected('checkboxes');
             if (checkboxes.length < 1) {
                 alert('seleccione al menos un campo')
             } else {
-                /*$.form("{{ path('imprimir_pdf') }}", { 'seccionesSelected': checkboxes, 'clientId': {{ cliente.id }} }).submit();*/
+                /*$.form("{{ path('imprimir_pdf2') }}", {
+                    'seccionesSelected': checkboxes,
+                    'clientId': {{ cliente.id }},
+                    'desde': $('#imprimirDesde').val(),
+                    'hasta': $('#imprimirHasta').val(),
+                    'filtrarPorTipo': $('#filtrarPorTipo').val(),
+                }).submit();*/
 
                 $.ajax({
                     url: "{{ path('imprimir_pdf2') }}",
                     data: {
                         'seccionesSelected': checkboxes,
-                        'clientId': {{ cliente.id }}
+                        'clientId': {{ cliente.id }},
+                        'desde': $('#imprimirDesde').val(),
+                        'hasta': $('#imprimirHasta').val(),
+                        'filtrarPorTipo': $('#filtrarPorTipo').val(),
                     },
                     method: 'POST',
                     success: function (response) {
@@ -710,9 +737,9 @@
                         if (response.error) {
                             alert('hubo un error. Imposible pasar a pdf');
                         } else {
-                            //window.open(response.url);
+                            window.open(response.url);
                         }
-                        //location.reload();
+                        location.reload();
                     }
                 });
 
@@ -758,10 +785,10 @@
 
                     $('.filtrosPlanillaLocal').modal('hide');
 
-                    /!*$.form("{{ path('imprimir_pdf') }}", { 'header': newHeader, 'html': html, 'headStyles': headStyles }).submit();*!/
+                    /!*$.form("{{ path('imprimir_pdf2') }}", { 'header': newHeader, 'html': html, 'headStyles': headStyles }).submit();*!/
 
                     $.ajax({
-                        url: "{{ path('imprimir_pdf') }}",
+                        url: "{{ path('imprimir_pdf2') }}",
                         data: {
                             'header': newHeader, 'html': html, 'headStyles': headStyles
                         },
