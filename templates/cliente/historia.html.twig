@@ -313,7 +313,7 @@
                                     </tr>
                                     {% if evolucion['firma'] is not empty %}
                                         <tr>
-                                            <td><img src="{{ absolute_url(asset('uploads/firmas/')) }}{{ evolucion['firma'] }}" style="max-width: 140px;"/></td>
+                                            <td><img src="{{ asset('uploads/firmas/') }}{{ evolucion['firma'] }}" style="max-width: 140px;"/></td>
                                         </tr>
                                     {% else %}
                                         <tr>
@@ -710,6 +710,7 @@
 
         $("#updateLocal").on('click', function () {
             $("#updateLocal").prop('disabled', true);
+            $(".modal-footer").html('<img src="{{ asset('assets/images/loading.gif') }}" style="max-height: 80px;">');
             let checkboxes = GetSelected('checkboxes');
             if (checkboxes.length < 1) {
                 alert('seleccione al menos un campo')

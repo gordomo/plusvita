@@ -9,6 +9,8 @@ use App\Repository\EvolucionRepository;
 use App\Repository\HistoriaPacienteRepository;
 use App\Repository\ObraSocialRepository;
 use App\Repository\UserRepository;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 use Knp\Snappy\Pdf;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\File;
@@ -40,7 +42,7 @@ class ImprimirController extends AbstractController
     /**
      * @Route("/pdf2", name="imprimir_pdf2", methods={"POST", "GET"})
      */
-    public function pdf2(Request $request, Pdf $knpSnappyPdf, ClienteRepository $clienteRepository, HistoriaPacienteRepository $historiaPacienteRepository, ObraSocialRepository $obraSocialRepository, EvolucionRepository $evolucionRepository, DoctorRepository $doctorRepository, UserRepository $userRepository): Response
+    public function pdf2(Request $request, ClienteRepository $clienteRepository, HistoriaPacienteRepository $historiaPacienteRepository, ObraSocialRepository $obraSocialRepository, EvolucionRepository $evolucionRepository, DoctorRepository $doctorRepository, UserRepository $userRepository): Response
     {
         $seccionesSelected = $request->get('seccionesSelected');
         $tiposEvolucion = $request->get('filtrarPorTipo');
@@ -91,11 +93,39 @@ class ImprimirController extends AbstractController
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Historia</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
-    <link rel="stylesheet" href="http://plusvita.creandosoluciones.com.ar/assets/css/main.css">    
+    <link rel="stylesheet" href="http://plusvita.creandosoluciones.com.ar/assets/css/main.css">
+    
+    <style>
+        @page{
+            margin-top: 140px; /* create space for header */
+            margin-bottom: 10px; /* create space for footer */
+            margin-right: 35px;
+            margin-left: 10px;
+            font-size: 12px;
+        }
+        header, footer{
+            position: fixed;
+            left: 0px;
+            right: 0px;
+        }
+        header{
+            height: 140px;
+            margin-top: -140px;
+        }
+        footer{
+            bottom: 0;
+        }
+        #footer .page:after { content: counter(page, decimal); }
+    </style>
+      
 </head>
-<body class="mt-1 mb-2">
+<body>
+    $header
+    <main>
 HTML;
         $fin = <<<HTML
+</main>
+$footer
 </body>
 </html>
 HTML;
@@ -106,18 +136,28 @@ HTML;
             'html'  => $html_to_print,
         ]);*/
 
-        $options = [
-            'header-html' => $header,
-            'footer-html' => $footer,
-            'page-size' => 'A4',
-            'margin-bottom' => '5',
-            'no-custom-header-propagation' => true,
-            'encoding' => 'UTF-8'
-        ];
-
         $fileName = 'historia-' . $cliente->getApellido() . '.pdf';
 
-        $knpSnappyPdf->generateFromHtml($html_to_print . $notas, '/var/www/html/public/uploads/snappy/'.$fileName, $options, true);
+        $pdfOptions = new Options();
+        $pdfOptions->set('defaultFont', 'Arial');
+        $pdfOptions->set('isRemoteEnabled', 'true');
+        $pdfOptions->set("isPhpEnabled", true);
+
+        $dompdf = new Dompdf($pdfOptions);
+
+        $dompdf->loadHtml($html_to_print);
+        $dompdf->setPaper('A4', 'portrait');
+
+        $dompdf->render();
+        $output = $dompdf->output();
+
+        // In this case, we want to write the file in the public directory
+        $publicDirectory = '/var/www/html/public/uploads/snappy/';
+        // e.g /var/www/project/public/mypdf.pdf
+        $pdfFilepath =  $publicDirectory . $fileName;
+
+        // Write file to the desired path
+        file_put_contents($pdfFilepath, $output);
 
         return new JsonResponse(['url' => '/uploads/snappy/'.$fileName]);
     }
@@ -217,29 +257,14 @@ HTML;
         }
 
         $header = <<<HTML
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Historia</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
-    <link rel="stylesheet" href="http://plusvita.creandosoluciones.com.ar/assets/css/main.css">
-    <style>
-        .header td {
-            padding: 1px !important;
-            border: 0 !important;
-        }
-    </style>
-</head>
-  <body class="mt-1 mb-2">
+<header class="">
     <table class="table header">
         <tr>
             <td colspan="">
                 Nº Historia: <span class="small">$nHistoria</span>
             </td>
             <td>
-                <img style="max-width:100px;" src="http://plusvita.creandosoluciones.com.ar/assets/images/plusVitaLogo.png">
+                <img style="max-width:80px;" src="http://plusvita.creandosoluciones.com.ar/assets/images/plusVitaLogo.png">
             </td>
         </tr>
         <tr>
@@ -257,52 +282,22 @@ HTML;
             </td>
         </tr>
     </table>
-  </body>
-</html>
+  </header>
 HTML;
         return $header;
     }
 
     private function getFooter() {
         $footer = <<<HTML
-<!DOCTYPE html>
-<html>
-  <head>
-  <style type="text/css">
-    div { float: right; font-size: 10px; width: 125px; }
-  </style>
-  <script>
-  function subst() {
-      var vars = {};
-      var query_strings_from_url = document.location.search.substring(1).split('&');
-      for (var query_string in query_strings_from_url) {
-          if (query_strings_from_url.hasOwnProperty(query_string)) {
-              var temp_var = query_strings_from_url[query_string].split('=', 2);
-              vars[temp_var[0]] = decodeURI(temp_var[1]);
-          }
-      }
-      var css_selector_classes = ['page', 'frompage', 'topage', 'webpage', 'section', 'subsection', 'date', 'isodate', 'time', 'title', 'doctitle', 'sitepage', 'sitepages'];
-      for (var css_class in css_selector_classes) {
-          if (css_selector_classes.hasOwnProperty(css_class)) {
-              var element = document.getElementsByClassName(css_selector_classes[css_class]);
-              for (var j = 0; j < element.length; ++j) {
-                  element[j].textContent = vars[css_selector_classes[css_class]];
-              }
-          }
-      }
-  }
-  </script>
-  </head>
-  <body onload="subst()">
+<footer id="footer">
     <table style="border-bottom: 1px solid black; width: 100%">
         <tr>
           <td style="text-align:right">
-            Pagina <span class="page"></span> de <span class="topage"></span>
+            Pagina <span class="page"></span>
           </td>
         </tr>
     </table>
-  </body>
-</html>
+</footer>
 HTML;
         return $footer;
     }
