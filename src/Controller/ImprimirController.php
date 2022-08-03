@@ -91,7 +91,7 @@ class ImprimirController extends AbstractController
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Historia</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
-    <link rel="stylesheet" href="http://localhost/assets/css/main.css">    
+    <link rel="stylesheet" href="http://plusvita.creandosoluciones.com.ar/assets/css/main.css">    
 </head>
 <body class="mt-1 mb-2">
 HTML;
@@ -224,7 +224,7 @@ HTML;
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Historia</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
-    <link rel="stylesheet" href="http://localhost/assets/css/main.css">
+    <link rel="stylesheet" href="http://plusvita.creandosoluciones.com.ar/assets/css/main.css">
     <style>
         .header td {
             padding: 1px !important;
@@ -239,7 +239,7 @@ HTML;
                 Nº Historia: <span class="small">$nHistoria</span>
             </td>
             <td>
-                <img style="max-width:100px;" src="http://localhost/assets/images/plusVitaLogo.png">
+                <img style="max-width:100px;" src="http://plusvita.creandosoluciones.com.ar/assets/images/plusVitaLogo.png">
             </td>
         </tr>
         <tr>
@@ -374,7 +374,7 @@ HTML;
             $evolucionesHTML .= "</tr>";
             $evolucionesHTML .= "<tr>";
             if (!empty($evolucion['firma'])) {
-                $evolucionesHTML .= "<td colspan='3'><img style='max-width: 140px;' src='http://localhost/uploads/firmas/". $evolucion['firma'] ."'></td>";
+                $evolucionesHTML .= "<td colspan='3'><img style='max-width: 140px;' src='http://plusvita.creandosoluciones.com.ar/uploads/firmas/". $evolucion['firma'] ."'></td>";
             } else {
                 $evolucionesHTML .= "<td colspan='3'>Firma no Registrada</td>";
             }
