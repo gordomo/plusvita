@@ -293,8 +293,9 @@
                             <table class="table table-responsive table-wrapper-scroll-y" >
                                 <tbody>
                                 {% for evolucion in evoluciones %}
-                                    <tr style="background-color: #dee2e6; display: table; width: 100%; table-layout: fixed;">
-                                        <td>
+                                    <div class="mb-2">
+                                    <tr>
+                                        <td style="border-bottom: 1px solid grey">
                                             <span {% if puedeEditarEvolucion %} class="col-9"  {% endif %}>
                                                 {{ evolucion['evolucion'].fecha ? evolucion['evolucion'].fecha|date('Y-m-d') : ''}} - {{ evolucion['evolucion'].tipo }} - {{ evolucion['evolucion'].user }}
                                             </span>
@@ -312,14 +313,15 @@
                                         <td>{{ evolucion['evolucion'].description }}</td>
                                     </tr>
                                     {% if evolucion['firma'] is not empty %}
-                                        <tr>
+                                        <tr style="text-align: right" class="firma">
                                             <td><img src="{{ asset('uploads/firmas/') }}{{ evolucion['firma'] }}" style="max-width: 140px;"/></td>
                                         </tr>
                                     {% else %}
-                                        <tr>
+                                        <tr style="text-align: right" class="firma">
                                             <td><i>Firma no registrada</i></td>
                                         </tr>
                                     {% endif %}
+                                    </div>
                                 {% endfor %}
                                 </tbody>
                             </table>
@@ -765,15 +767,15 @@
                     $('#head').css('font-size', '15px')
                     let headers = $('#head').parent().parent();
                     headers.addClass('repetedHeader');
-                    let newHeader = '<header><div class="row"><div class="col-sm-8">' + $('#head').html() + '</div>';
-                    newHeader += '<div id="logos" class="col-sm-4"><img style="max-width:100px; float:right;" src="{{ absolute_url(asset('assets/images/plusVitaLogo.png')) }}"></div></div>';
+                    let newHeader = '<header><div class="row"><div class="col-sm-8"><img style="max-width:300px; float:right;" src="{{ absolute_url(asset('assets/images/plusVitaLogo.png')) }}">' + $('#head').html() + '</div>';
+
                     newHeader += '<div class="row>' + $('.tituloHistoria').html() + '</div></header>';
                     headers.remove();
                     $('#logos').remove();
                     $('.tituloHistoria').remove();
 
                     setTimeout(() => {
-                        let html = "<head><style>.table.table-responsive.table-striped th{text-align: left;}.table.table-responsive.table-striped td{text-align: left;padding-bottom: 15px;}.h4, h4 {font-size: 1.5rem;border-top: 1px solid;padding-top: 10px;}body {font-family: '-apple-system','BlinkMacSystemFont','Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji'};table.report-container {page-break-after:always;text-align: left}thead.report-header {display:table-header-group;text-align: left;}tfoot.report-footer {display:table-footer-group;table.report-container div.article {page-break-inside: avoid;}} </style></head>";
+                        let html = "<head><title>test</title><style>@media print {@page {margin-top: 10px;}@media print {-webkit-print-color-adjust: exact;}.table.table-responsive.table-striped th{text-align: left;}.table.table-responsive.table-striped td{text-align: left;padding-bottom: 15px;}.h4, h4 {font-size: 1.5rem;border-top: 1px solid;padding-top: 10px;}body {font-family: '-apple-system','BlinkMacSystemFont','Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji'};table.report-container {page-break-after:always;text-align: left}thead.report-header {display:table-header-group;text-align: left;}tfoot.report-footer {display:table-footer-group;table.report-container div.article {page-break-inside: avoid;}} </style></head>";
                         //html += newHeader;
                         //html += $('body').find('.container-fluid').html();
                         $('body').find('.container-fluid').find('.buttons').remove();
@@ -790,9 +792,7 @@
                         html += '<tfoot class="report-footer">' +
                                     '<tr>' +
                                         '<td class="report-footer-cell">' +
-                                            '<div class="footer-info">' +
-                                                'Footer' +
-                                            '</div>' +
+                                            '<div class="footer-info" id="pageFooter"></div>' +
                                         '</td>' +
                                     '</tr>' +
                                 '</tfoot>';
