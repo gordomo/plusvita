@@ -723,7 +723,7 @@
                     'filtrarPorTipo': $('#filtrarPorTipo').val(),
                 }).submit();*/
 
-                $.ajax({
+                /*$.ajax({
                     url: "{{ path('imprimir_pdf2') }}",
                     data: {
                         'seccionesSelected': checkboxes,
@@ -742,51 +742,88 @@
                         }
                         location.reload();
                     }
-                });
+                });*/
 
 
-                //let secciones = ['historia-al-ingreso', 'notas', 'notas-en-turnos', 'evoluciones-imprimir', 'novedades', 'epicrisis-al-alta'];
+                let secciones = ['historia-al-ingreso', 'notas', 'notas-en-turnos', 'evoluciones-imprimir', 'novedades', 'epicrisis-al-alta'];
 
-                /*secciones.forEach((seccion) => {
-                    if (!seccionesSelected.includes(seccion)) {
+                secciones.forEach((seccion) => {
+                    if (!checkboxes.includes(seccion)) {
                         $('.'+seccion).remove();
                     } else {
                         $('.'+seccion).find('.btn.btn-link.abrir .fas.fa-chevron-down').click();
                     }
-                });*/
+                });
 
-                /*$('body').find('.container-fluid').find('a').remove();
+                $('body').find('.container-fluid').find('a').remove();
                 $('body').find('.container-fluid').find('button').remove();
                 $('body').find('.remover').remove();
-                $('.modal').remove();*/
-                /*setTimeout(() => {
+                $('.modal').remove();
+                setTimeout(() => {
                     let tables = $('body').find('.container-fluid').find('.table-wrapper-scroll-y');
                     tables.removeClass('table-wrapper-scroll-y');
                     $('#head').css('font-size', '15px')
                     let headers = $('#head').parent().parent();
                     headers.addClass('repetedHeader');
-                    let newHeader = '<div class="row"><div class="col-sm-8">' + $('#head').html() + '</div>';
+                    let newHeader = '<header><div class="row"><div class="col-sm-8">' + $('#head').html() + '</div>';
                     newHeader += '<div id="logos" class="col-sm-4"><img style="max-width:100px; float:right;" src="{{ absolute_url(asset('assets/images/plusVitaLogo.png')) }}"></div></div>';
-                    newHeader += '<div class="row>' + $('.tituloHistoria').html() + '</div>';
+                    newHeader += '<div class="row>' + $('.tituloHistoria').html() + '</div></header>';
                     headers.remove();
                     $('#logos').remove();
                     $('.tituloHistoria').remove();
 
-                    /!*setTimeout(() => {
-                        let html = '<head>' + $('head').html() + '</head>';
-                        html += $('body').find('.container-fluid').html();
-                        imprimirElemento(newHeader);
+                    setTimeout(() => {
+                        let html = "<head><style>.table.table-responsive.table-striped th{text-align: left;}.table.table-responsive.table-striped td{text-align: left;padding-bottom: 15px;}.h4, h4 {font-size: 1.5rem;border-top: 1px solid;padding-top: 10px;}body {font-family: '-apple-system','BlinkMacSystemFont','Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji'};table.report-container {page-break-after:always;text-align: left}thead.report-header {display:table-header-group;text-align: left;}tfoot.report-footer {display:table-footer-group;table.report-container div.article {page-break-inside: avoid;}} </style></head>";
+                        //html += newHeader;
+                        //html += $('body').find('.container-fluid').html();
+                        $('body').find('.container-fluid').find('.buttons').remove();
+                        html += '<table class="report-container">';
+                        html += '<thead class="report-header">' +
+                                    '<tr>' +
+                                        '<th class="report-header-cell">' +
+                                            '<div class="header-info">' +
+                                                newHeader +
+                            '               </div>' +
+                                        '</th>' +
+                                    '</tr>' +
+                                '</thead>';
+                        html += '<tfoot class="report-footer">' +
+                                    '<tr>' +
+                                        '<td class="report-footer-cell">' +
+                                            '<div class="footer-info">' +
+                                                'Footer' +
+                                            '</div>' +
+                                        '</td>' +
+                                    '</tr>' +
+                                '</tfoot>';
+                        html += '<tbody class="report-content">' +
+                                    '<tr>' +
+                                        '<td class="report-content-cell">' +
+                                            '<div class="main">' +
+                                                $('body').find('.container-fluid').html(); +
+                                            '</div>' +
+                                        '</td>' +
+                                    '</tr>' +
+                                '</tbody></table>';
+                        imprimirElemento(html);
                         location.reload();
-                    }, 1000);*!/
+                    }, 1000);
 
 
-                    let html = '';//'<head>' + $('head').html() + '</head>';
-                    let headStyles = '';//'<head>' + $('head').html() + '</head>';
-                    html += $('body').find('.container-fluid').html();
+                   /* let html = '<head>' + $('head').html() + '</head>';
+                    let headStyles = '<head>' + $('head').html() + '</head>';
+                    html += $('body').find('.container-fluid').html();*/
 
-                    $('.filtrosPlanillaLocal').modal('hide');
+                    /*$('.filtrosPlanillaLocal').modal('hide');*/
 
-                    /!*$.form("{{ path('imprimir_pdf2') }}", { 'header': newHeader, 'html': html, 'headStyles': headStyles }).submit();*!/
+                    /*setTimeout(() => {
+                        let html = newHeader;
+                        html += $('body').find('.container-fluid').html();
+                        imprimirElemento(html);
+                        location.reload();
+                    }, 1000);*/
+
+                    /*/!*$.form("{{ path('imprimir_pdf2') }}", { 'header': newHeader, 'html': html, 'headStyles': headStyles }).submit();*!/
 
                     $.ajax({
                         url: "{{ path('imprimir_pdf2') }}",
@@ -802,12 +839,10 @@
                             }
                             location.reload();
                         }
-                    });
+                    });*/
 
 
-                }, 1000);*/
-
-
+                }, 1000);
             }
         });
 
