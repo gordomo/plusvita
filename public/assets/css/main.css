@@ -421,6 +421,13 @@ select:invalid[multiple] {
     margin-left: 15px;
     padding-left: 0;
 }
+.ultimaEvolucion i {
+    color: red;
+    margin: 0;
+    padding: 10px 2px;
+    font-size: 28px;
+    float: right;
+}
 
 /*      #60b9b9     #b088be
 table {

@@ -323,6 +323,7 @@ class Cliente
 
     /**
      * @ORM\OneToMany(targetEntity=Evolucion::class, mappedBy="paciente", orphanRemoval=true)
+     * @ORM\OrderBy({"fecha" = "asc"})
      */
     private $evolucions;
 
@@ -1223,6 +1224,20 @@ class Cliente
         }
 
         return $this;
+    }
+
+    public function getLastEvolution() {
+        $fecha = '1900-01-01';
+        $evoluciones = $this->getEvolucions();
+        $array = $evoluciones->getValues();
+
+        if (!empty($array)) {
+            $ultima = end($array);
+            $fecha = $ultima->getFecha()->format('Y-m-d');
+        }
+
+        return $fecha;
+
     }
 
 

@@ -62,6 +62,7 @@
             <th class="fNacimiento">F. Nac</th>
             <th class="edad">Edad</th>
             <th class="dni">Dni</th>
+            <th class="ultimaEvolucion">Ultima Evolución</th>
             <th class="Email">Email</th>
             <th class="telefono">Teléfono</th>
             <th class="fIngreso">Fecha Ingreso</th>
@@ -122,6 +123,7 @@
                     <td class="fNacimiento">{{ cliente.fNacimiento ? cliente.fNacimiento|date('Y-m-d') : '' }}</td>
                     <td class="edad">{{ cliente.edad }}</td>
                     <td class="dni">{{ cliente.dni }}</td>
+                    <td class="ultimaEvolucion">{{ cliente.lastEvolution }} {{ cliente.lastEvolution | date("Y-m-d") < "now"|date("Y-m-d") ? '<i class="bell far fa-bell" style="color: red"></i>' : '' }}</td>
                     <td class="lowercase email">{{ cliente.email }}</td>
                     <td class="telefono">{{ cliente.telefono }}</td>
                     <td class="fIngreso">{{ cliente.fIngreso ? cliente.fIngreso|date('Y-m-d') : '' }}</td>
