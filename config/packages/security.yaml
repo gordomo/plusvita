@@ -54,7 +54,7 @@ security:
         - { path: ^/obras-sociales, roles: [ROLE_ADMIN] }
         - { path: ^/habitacion, roles: [ROLE_ADMIN] }
         - { path: ^/booking, roles: [ROLE_ADMIN] }
-        - { path: ^/consumible, roles: [ROLE_ADMIN] }
+        - { path: ^/consumible, roles: [IS_AUTHENTICATED_FULLY] }
         - { path: ^/staff/doctor/agenda/dia/, roles: [IS_AUTHENTICATED_FULLY] }
         - { path: ^/staff/doctor/agenda/semana/, roles: [IS_AUTHENTICATED_FULLY] }
         - { path: ^/staff/doctor/agenda/mes/, roles: [IS_AUTHENTICATED_FULLY] }

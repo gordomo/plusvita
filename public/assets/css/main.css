@@ -428,6 +428,15 @@ select:invalid[multiple] {
     font-size: 28px;
     float: right;
 }
+.tr-link {
+    cursor: pointer;
+    background-color: #d1d1d1;
+}
+
+#head {
+    font-size: 50%;
+    font-weight: 300;
+}
 
 /*      #60b9b9     #b088be
 table {

@@ -223,6 +223,9 @@
                                 <a class="dropdown-item" href="{{ path('evolucion_index', {'cliente': cliente.id}) }}">
                                     <i class="far fa-eye" data-toggle="tooltip" data-placement="top" title="evoluciones"></i> Evoluciones
                                 </a>
+                                <a class="dropdown-item" href="{{ path('consumible_indicar_view', {'id': cliente.id}) }}">
+                                    <i class="fas fa-band-aid" data-toggle="tooltip" data-placement="top" title="evoluciones"></i> Cargar Indicación
+                                </a>
                             </div>
                         </div>
                     </td>

@@ -41,29 +41,25 @@
         <tr>
             <th>Tipo</th>
             <th>Fecha</th>
-            <th>Descripción</th>
             <th>Tiene adjuntos?</th>
             <th>Usuario</th>
-            <th></th>
         </tr>
         </thead>
         <tbody>
         {% for evolucion in evolucions %}
-            <tr>
-                <td>{{ evolucion.tipo }}</td>
-                <td>{{ evolucion.fecha ? evolucion.fecha|date('Y-m-d H:i:s') : '' }}</td>
-                <td>{{ evolucion.description|striptags|length > 25 ? evolucion.description|striptags|slice(0, 25) ~ '...' : evolucion.description|striptags }}</td>
+            <tr class="tr-link" data-link="{{ path('evolucion_show', {'id': evolucion.id}) }}">
+                <th>{{ evolucion.tipo }}</th>
+                <th>{{ evolucion.fecha ? evolucion.fecha|date('Y-m-d') : '' }}</th>
+                {#<td>{{ evolucion.description|striptags|length > 25 ? evolucion.description|striptags|slice(0, 25) ~ '...' : evolucion.description|striptags }}</td>#}
                 <td>
                     {% if evolucion.adjuntoUrl is not empty %}
                         <i class="fas fa-check"></i>
-                        {% else %}
-                        <i class="fas fa-times"></i>
                     {% endif %}
                 </td>
-                <td>{{ evolucion.user }}</td>
-                <td>
-                    <a href="{{ path('evolucion_show', {'id': evolucion.id}) }}">Ver</a>
-                </td>
+                <th>{{ evolucion.user }}</th>
+            </tr>
+            <tr>
+                <td colspan="3">{{ evolucion.description | raw }}</td>
             </tr>
         {% else %}
             <tr>
@@ -84,6 +80,11 @@
         $('#filtrarPorTipo').on('change', function() {
             let path = "{{ path('evolucion_index', {'cliente': clienteId}) }}";
             location.href =  path + '&tipoSeleccionado=' + $(this).val();
+        });
+
+        $('.tr-link').click(function() {
+            let url = $(this).data('link');
+            window.location = url;
         });
     </script>
 {% endblock %}

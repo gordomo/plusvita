@@ -2,13 +2,14 @@
 
 {% block title %}Pacientes{% endblock %}
 {% block panelTitle %}
-    <div class="small" id="head">
-        Nombre y Apellido: <span class="small">{{ cliente.nombre }} {{ cliente.apellido }}</span><br>
-        DNI: <span class="small">{{ cliente.dni }}</span><br>
-        Obra social: <span class="small">{{ obraSociales[cliente.obraSocial] is defined ? obraSociales[cliente.obraSocial] : '' }}</span><br>
-        Fecha de Ingreso: <span class="small">{{ historiaPaciente[0] is defined and historiaPaciente[0].fechaIngreso ? historiaPaciente[0].fechaIngreso|date('Y-m-d') : cliente.fingreso|date('Y-m-d')}}</span><br>
+    <div id="head">
+        Nombre y Apellido: <strong>{{ cliente.nombre }} {{ cliente.apellido }}</strong><br>
+        DNI: <strong>{{ cliente.dni }}</strong> - Fecha de nacimiento: <strong>{{ cliente.fNacimiento | date('m/d/Y') }}</strong><br>
+        Obra social: <strong>{{ obraSociales[cliente.obraSocial] is defined ? obraSociales[cliente.obraSocial] : '' }}</strong> - Nº Afiliado: <strong>{{ cliente.obraSocialAfiliado }}</strong><br>
+        Fecha de Ingreso: <strong>{{ historiaPaciente[0] is defined and historiaPaciente[0].fechaIngreso ? historiaPaciente[0].fechaIngreso|date('m/d/Y') : cliente.fingreso|date('m/d/Y')}}</strong>
+        {% if historiaPaciente | last.habitacion ?? null %} Habitación: <strong> {{ historiaPaciente | last.habitacion }} {% endif %}</strong><br>
         {% if historiaPaciente[0] is defined and historiaPaciente[0].fechaEngreso %}
-            Fecha de Egreso: <span class="small">{{ historiaPaciente[0] and  historiaPaciente[0].fechaEngreso ? historiaPaciente[0].fechaEngreso|date('Y-m-d') : cliente.fegreso|date('Y-m-d') }}</span>
+            Fecha de Egreso: <strong>{{ historiaPaciente[0] and  historiaPaciente[0].fechaEngreso ? historiaPaciente[0].fechaEngreso|date('m/d/Y') : cliente.fegreso|date('m/d/Y') }}</strong>
         {% endif %}
     </div>
 {% endblock %}
@@ -149,7 +150,7 @@
                         <tbody>
                         {% for nota in notasHistoria %}
                             <tr style="background-color: #dee2e6">
-                                <td>{{ nota.fecha ? nota.fecha|date('Y-m-d') : ''}}</td>
+                                <td>{{ nota.fecha ? nota.fecha|date('m/d/Y') : ''}}</td>
                             </tr>
                             <tr>
                                 <td>{{ nota.text }}</td>
@@ -226,7 +227,7 @@
                                 <tbody>
                                 {% for turno in notasTurnos %}
                                     <tr style="background-color: #dee2e6">
-                                        <td>{{ turno.fecha ? turno.fecha|date('Y-m-d') : ''}}</td>
+                                        <td>{{ turno.fecha ? turno.fecha|date('m/d/Y') : ''}}</td>
                                         <td>{{ turno.doctor ? turno.doctor : ''}}</td>
                                         <td>{{ turno.modalidad ? turno.modalidad : ''}}</td>
                                     </tr>
@@ -297,7 +298,7 @@
                                     <tr>
                                         <td style="border-bottom: 1px solid grey">
                                             <span {% if puedeEditarEvolucion %} class="col-9"  {% endif %}>
-                                                {{ evolucion['evolucion'].fecha ? evolucion['evolucion'].fecha|date('Y-m-d') : ''}} - {{ evolucion['evolucion'].tipo }} - {{ evolucion['evolucion'].user }}
+                                                {{ evolucion['evolucion'].fecha ? evolucion['evolucion'].fecha|date('m/d/Y') : ''}} - {{ evolucion['evolucion'].tipo }} - {{ evolucion['evolucion'].user }}
                                             </span>
                                             {% if puedeEditarEvolucion %}
                                                 <span class="col-3">
@@ -310,7 +311,7 @@
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>{{ evolucion['evolucion'].description }}</td>
+                                        <td>{{ evolucion['evolucion'].description | raw }}</td>
                                     </tr>
                                     {% if evolucion['firma'] is not empty %}
                                         <tr style="text-align: right" class="firma">
@@ -384,7 +385,7 @@
                                 {% for key, historia in historiaPaciente %}
                                     <tr>
                                         {% if key > 0 %}
-                                            <td>{{ historia.fecha ? historia.fecha|date('Y-m-d') : ''}}</td>
+                                            <td>{{ historia.fecha ? historia.fecha|date('m/d/Y') : ''}}</td>
                                             <td class="lowercase">
                                                 {% if historia.modalidad != historiaPaciente[key - 1].modalidad %}
                                                     <b class="text-capitalize">modalidad:</b> de <b class="text-capitalize">
@@ -503,25 +504,25 @@
                                                 {% if historia.fechaIngreso != historiaPaciente[key - 1].fechaIngreso %}
                                                     <b class="text-capitalize">Fecha de Ingreso:</b>
                                                     de
-                                                    <b class="text-capitalize">{{ historiaPaciente[key - 1].fechaIngreso | date('Y-m-d') }}</b>
+                                                    <b class="text-capitalize">{{ historiaPaciente[key - 1].fechaIngreso | date('m/d/Y') }}</b>
                                                     a
-                                                    <b class="text-capitalize">{{ historia.fechaIngreso | date('Y-m-d') }}</b>
+                                                    <b class="text-capitalize">{{ historia.fechaIngreso | date('m/d/Y') }}</b>
                                                     <br>
                                                 {% endif %}
                                                 {% if historia.fechaDerivacion != historiaPaciente[key - 1].fechaDerivacion %}
                                                     <b class="text-capitalize">Fecha de Derivacion:</b>
                                                     de
-                                                    <b class="text-capitalize">{{ historiaPaciente[key - 1].fechaDerivacion is not empty ? historiaPaciente[key - 1].fechaDerivacion | date('Y-m-d') : 'Vacío' }}</b>
+                                                    <b class="text-capitalize">{{ historiaPaciente[key - 1].fechaDerivacion is not empty ? historiaPaciente[key - 1].fechaDerivacion | date('m/d/Y') : 'Vacío' }}</b>
                                                     a
-                                                    <b class="text-capitalize">{{ historia.fechaDerivacion is not empty ? historia.fechaDerivacion | date('Y-m-d') : 'Vacio' }}</b>
+                                                    <b class="text-capitalize">{{ historia.fechaDerivacion is not empty ? historia.fechaDerivacion | date('m/d/Y') : 'Vacio' }}</b>
                                                     <br>
                                                 {% endif %}
                                                 {% if historia.fechaReingresoDerivacion != historiaPaciente[key - 1].fechaReingresoDerivacion %}
                                                     <b class="text-capitalize">Fecha de reingreso de Derivacion:</b>
                                                     de
-                                                    <b class="text-capitalize">{{ historiaPaciente[key - 1].fechaReingresoDerivacion is not empty ? historiaPaciente[key - 1].fechaReingresoDerivacion | date('Y-m-d') : 'Vacío' }}</b>
+                                                    <b class="text-capitalize">{{ historiaPaciente[key - 1].fechaReingresoDerivacion is not empty ? historiaPaciente[key - 1].fechaReingresoDerivacion | date('m/d/Y') : 'Vacío' }}</b>
                                                     a
-                                                    <b class="text-capitalize">{{ historia.fechaReingresoDerivacion is not empty ? historia.fechaReingresoDerivacion | date('Y-m-d') : 'Vacio' }}</b>
+                                                    <b class="text-capitalize">{{ historia.fechaReingresoDerivacion is not empty ? historia.fechaReingresoDerivacion | date('m/d/Y') : 'Vacio' }}</b>
                                                     <br>
                                                 {% endif %}
                                                 {% if historia.motivoDerivacion != historiaPaciente[key - 1].motivoDerivacion %}
@@ -551,17 +552,17 @@
                                                 {% if historia.fechaAltaPorPermiso != historiaPaciente[key - 1].fechaAltaPorPermiso %}
                                                     <b class="text-capitalize">Fecha de Alta Por Permiso:</b>
                                                     de
-                                                    <b class="text-capitalize">{{ historiaPaciente[key - 1].fechaAltaPorPermiso is not empty ? historiaPaciente[key - 1].fechaAltaPorPermiso | date('Y-m-d') : 'vacio'}}</b>
+                                                    <b class="text-capitalize">{{ historiaPaciente[key - 1].fechaAltaPorPermiso is not empty ? historiaPaciente[key - 1].fechaAltaPorPermiso | date('m/d/Y') : 'vacio'}}</b>
                                                     a
-                                                    <b class="text-capitalize">{{ historia.fechaAltaPorPermiso is not empty ? historia.fechaAltaPorPermiso | date('Y-m-d') : 'vacio'}}</b>
+                                                    <b class="text-capitalize">{{ historia.fechaAltaPorPermiso is not empty ? historia.fechaAltaPorPermiso | date('m/d/Y') : 'vacio'}}</b>
                                                     <br>
                                                 {% endif %}
                                                 {% if historia.fechaBajaPorPermiso != historiaPaciente[key - 1].fechaBajaPorPermiso %}
                                                     <b class="text-capitalize">Fecha de Baja Por Permiso:</b>
                                                     de
-                                                    <b class="text-capitalize">{{ historiaPaciente[key - 1].fechaBajaPorPermiso is not empty ? historiaPaciente[key - 1].fechaBajaPorPermiso | date('Y-m-d') : 'vacio'}}</b>
+                                                    <b class="text-capitalize">{{ historiaPaciente[key - 1].fechaBajaPorPermiso is not empty ? historiaPaciente[key - 1].fechaBajaPorPermiso | date('m/d/Y') : 'vacio'}}</b>
                                                     a
-                                                    <b class="text-capitalize">{{ historia.fechaBajaPorPermiso is not empty ? historia.fechaBajaPorPermiso | date('Y-m-d') : 'vacio'}}</b>
+                                                    <b class="text-capitalize">{{ historia.fechaBajaPorPermiso is not empty ? historia.fechaBajaPorPermiso | date('m/d/Y') : 'vacio'}}</b>
                                                     <br>
                                                 {% endif %}
                                                 {% if historia.dePermiso != historiaPaciente[key - 1].dePermiso %}
@@ -612,10 +613,10 @@
                         <tbody>
                         {% for hist in historiaEgreso %}
                             <tr style="background-color: #dee2e6">
-                                <td>{{ hist.fecha ? hist.fecha|date('Y-m-d') : ''}}</td>
+                                <td>{{ hist.fecha ? hist.fecha|date('m/d/Y') : ''}}</td>
                             </tr>
                             <tr>
-                                <td>{{ hist.epicrisisAlta }}</td>
+                                <td>{{ hist.epicrisisAlta | raw }}</td>
                             </tr>
                         {% endfor %}
                         </tbody>
@@ -647,12 +648,12 @@
                 </div>
 
                 <div class="modal-body">
-                    <form method="get" id="epiform" action="{{ path('epicrisis', {'id': cliente.id}) }}">
+                    <form method="post" id="epiform" action="{{ path('guardar_epi', {'id': cliente.id}) }}">
                         <div class="form-group">
                             <label for="exampleInputEmail1">Epicrisis al Alta</label>
-                            <textarea class="form-control" name="epicrisisAlAlta" id="epicrisisAlAlta" rows="3"></textarea>
+                            <textarea class="form-control ckeditor" name="epicrisisAlAlta" id="epicrisisAlAlta" rows="3"></textarea>
                         </div>
-                        <button type="submit" class="btn btn-primary">Imprimir</button>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
                     </form>
                 </div>
             </div>
@@ -662,7 +663,7 @@
 {% block javascripts %}
     {{ parent() }}
     <script>
-        function onsubmited(event) {
+        /*function onsubmited(event) {
             event.preventDefault();
             let epicrisisAlAltaText = $('#epicrisisAlAlta').val();
             $.ajax({
@@ -672,6 +673,10 @@
                 },
                 method: 'POST',
                 success: function (response) {
+                    alert('Epicrisis guardada correctamente');
+                    location.reload();
+                    /!*
+                    Esto era cuando se imprimía directamente
                     $('body').find('.container-fluid').find('a').remove();
                     $('body').find('.container-fluid').find('button').remove();
                     $('body').find('.remover').remove();
@@ -683,13 +688,13 @@
                     html += '<div class="col-sm-12"><h4>Epicrisis al Alta</h4></div>';
                     html += '<div class="col-sm-12"><p>'+ epicrisisAlAltaText +'</p></div>';
                     imprimirElemento(html);
-                    location.reload();
+                    location.reload();*!/
                 }
             });
-        }
+        }*/
 
-        const epicForm = document.getElementById('epiform');
-        epicForm.addEventListener('submit', onsubmited);
+        /*const epicForm = document.getElementById('epiform');
+        epicForm.addEventListener('submit', onsubmited);*/
 
 
         $('.abrir').click(function (e) {
@@ -764,18 +769,17 @@
                 setTimeout(() => {
                     let tables = $('body').find('.container-fluid').find('.table-wrapper-scroll-y');
                     tables.removeClass('table-wrapper-scroll-y');
-                    $('#head').css('font-size', '15px')
                     let headers = $('#head').parent().parent();
                     headers.addClass('repetedHeader');
-                    let newHeader = '<header><div class="row"><div class="col-sm-8"><img style="max-width:300px; float:right;" src="{{ absolute_url(asset('assets/images/plusVitaLogo.png')) }}">' + $('#head').html() + '</div>';
+                    let newHeader = '<header><div class="row"><div class="col-sm-8"><img style="max-width:200px; float:right;" src="{{ absolute_url(asset('assets/images/plusVitaLogo.png')) }}"><div style="font-size:12px">' + $('#head').html() + '</div></div>';
 
-                    newHeader += '<div class="row>' + $('.tituloHistoria').html() + '</div></header>';
+                    newHeader += '<div class="row" style="font-size:10px">' + $('.tituloHistoria').html() + '</div></header>';
                     headers.remove();
                     $('#logos').remove();
                     $('.tituloHistoria').remove();
 
                     setTimeout(() => {
-                        let html = "<head><title>test</title><style>@media print {@page {margin-top: 10px;}@media print {-webkit-print-color-adjust: exact;}.table.table-responsive.table-striped th{text-align: left;}.table.table-responsive.table-striped td{text-align: left;padding-bottom: 15px;}.h4, h4 {font-size: 1.5rem;border-top: 1px solid;padding-top: 10px;}body {font-family: '-apple-system','BlinkMacSystemFont','Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji'};table.report-container {page-break-after:always;text-align: left}thead.report-header {display:table-header-group;text-align: left;}tfoot.report-footer {display:table-footer-group;table.report-container div.article {page-break-inside: avoid;}} </style></head>";
+                        let html = "<head><title>Historia</title><style>@media print {@page {margin-top: 10px;}@media print {-webkit-print-color-adjust: exact;}.table.table-responsive.table-striped th{text-align: left;}.table.table-responsive.table-striped td{text-align: left;padding-bottom: 15px;}.h4, h4 {font-size: 1.5rem;border-top: 1px solid;padding-top: 10px;}body {font-family: '-apple-system','BlinkMacSystemFont','Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji'};table.report-container {page-break-after:always;text-align: left}thead.report-header {display:table-header-group;text-align: left;}tfoot.report-footer {display:table-footer-group;table.report-container div.article {page-break-inside: avoid;}} </style></head>";
                         //html += newHeader;
                         //html += $('body').find('.container-fluid').html();
                         $('body').find('.container-fluid').find('.buttons').remove();
@@ -807,7 +811,7 @@
                                 '</tbody></table>';
                         imprimirElemento(html);
                         location.reload();
-                    }, 1000);
+                    }, 2000);
 
 
                    /* let html = '<head>' + $('head').html() + '</head>';
