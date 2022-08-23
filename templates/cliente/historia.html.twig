@@ -651,7 +651,7 @@
                     <form method="post" id="epiform" action="{{ path('guardar_epi', {'id': cliente.id}) }}">
                         <div class="form-group">
                             <label for="exampleInputEmail1">Epicrisis al Alta</label>
-                            <textarea class="form-control ckeditor" name="epicrisisAlAlta" id="epicrisisAlAlta" rows="3"></textarea>
+                            <textarea class="form-control ckeditor" name="epicrisisAlAlta" id="epicrisisAlAlta" rows="3" required></textarea>
                         </div>
                         <button type="submit" class="btn btn-primary">Guardar</button>
                     </form>
@@ -850,7 +850,18 @@
             }
         });
 
-        $('#filtrarPorTipo').chosen()
+        $('#filtrarPorTipo').chosen();
+
+        $( document ).ready(function () {
+            var editor = CKEDITOR.instances['epicrisisAlAlta'];
+
+            editor.on( 'required', function( evt ) {
+                editor.showNotification( 'La epicrisis no puede estar vacía.', 'warning' );
+                evt.cancel();
+            } );
+        });
+
+
 
     </script>
 {% endblock %}
