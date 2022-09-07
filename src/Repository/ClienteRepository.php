@@ -119,6 +119,7 @@ class ClienteRepository extends ServiceEntityRepository
         }
         return $query->andWhere('c.dePermiso = 1')->getQuery()->getResult();
     }
+
     public function findAmbulatorios($value, $nombre, $orderBy = null)
     {
         //Esto puede servir para agregar un filtro por fechas
