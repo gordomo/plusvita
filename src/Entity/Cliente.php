@@ -1227,16 +1227,19 @@ class Cliente
     }
 
     public function getLastEvolution() {
-        $fecha = '1900-01-01';
         $evoluciones = $this->getEvolucions();
-        $array = $evoluciones->getValues();
 
-        if (!empty($array)) {
-            $ultima = end($array);
-            $fecha = $ultima->getFecha()->format('Y-m-d');
+        $array = [];
+
+        for ($i = count($evoluciones); $i > 1; $i --) {
+            $evo = $evoluciones[$i - 1];
+            if ($evo and !array_key_exists($evo->getTipo(), $array)) {
+                $array[$evo->getTipo()] = $evo->getFecha()->format('Y-m-d');
+            }
+
         }
 
-        return $fecha;
+        return $array;
 
     }
 

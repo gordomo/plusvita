@@ -113,6 +113,7 @@ function GetSelected(id) {
 
 function getHtmlToPrint(checkboxes, conHead) {
     $(checkboxes).each(function (e, a) {
+        $('.'+a).css('display', 'table-cell');
         $('.'+a).addClass('notRemove');
     });
     $('.table td').not('.notRemove').remove();

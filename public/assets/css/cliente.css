@@ -8,6 +8,13 @@
 .disponibleParaTerapia, .derivado, .dePermiso, .derivadoEn, .fechaDerivacion,
 .motivoDerivacion, .empTrasladoDerivacion, .fechaReingresoDerivacion, .motivoReingresoDerivacion, .fechaBajaPorPermiso,
 .fechaAltaPorPermiso, .terapiasHabilitadas, .terapiasNoHabilitadas, .sesionesDisp,
-.formNum, .vtoSesiones, .mediaSesionView, .dieta, .loading {
+.formNum, .vtoSesiones, .mediaSesionView, .dieta, .loading, .obraSocial, .dni {
     display: none;
+}
+
+.tooltip-inner {
+    margin-left: 50%;
+    max-width: 50%;
+    width: 50%;
+    min-width: 300px;
 }

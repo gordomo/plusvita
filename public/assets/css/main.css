@@ -426,7 +426,6 @@ select:invalid[multiple] {
     margin: 0;
     padding: 10px 2px;
     font-size: 28px;
-    float: right;
 }
 .tr-link {
     cursor: pointer;

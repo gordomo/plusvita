@@ -139,10 +139,17 @@
                         <td class="fNacimiento">{{ cliente.fNacimiento ? cliente.fNacimiento|date('Y-m-d') : '' }}</td>
                         <td class="edad">{{ cliente.edad }}</td>
                         <td class="dni">{{ cliente.dni }}</td>
-                        <td class="ultimaEvolucion">
-                            {{ cliente.lastEvolution }}
+                        <td class="ultimaEvolucion" style="text-align: center">
                             {% if (pestana == 'activos') %}
-                                {{ cliente.lastEvolution | date("Y-m-d") < "now"|date("Y-m-d") ? '<i class="bell far fa-bell" style="color: red"></i>' : '' }}
+                                {% set nombres = '' %}
+                                {% set mostrarCampana = false %}
+                                {% for tipo, fecha in cliente.lastEvolution %}
+                                    {% if fecha | date("Y-m-d") < "now"|date("Y-m-d") %}
+                                        {% set mostrarCampana = true %}
+                                        {% set nombres = nombres ~ tipo ~ ': ' ~ fecha ~ '<br>' %}
+                                    {% endif %}
+                                {% endfor %}
+                                <i class="bell far fa-bell" style="color: red" data-html="true" data-toggle="tooltip" data-bs-placement="right" title="{{ nombres | raw }}"></i>
                             {% endif %}
                         </td>
                         <td class="lowercase email">{{ cliente.email }}</td>
@@ -385,9 +392,7 @@
                             {% if fiel == 'hClinica' %} checked {% endif %}
                             {% if fiel == 'nombre' %} checked {% endif %}
                             {% if fiel == 'apellido' %} checked {% endif %}
-                            {% if fiel == 'dni' %} checked {% endif %}
                             {% if fiel == 'fIngreso' %} checked {% endif %}
-                            {% if fiel == 'obraSocial' %} checked {% endif %}
                             {% if fiel == 'tipoDePago' %} checked {% endif %}
                             {% if fiel == 'motivoIng' %} checked {% endif %}
                             {% if fiel == 'docReferente' %} checked {% endif %}
