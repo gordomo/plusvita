@@ -1,13 +1,16 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}Liquidaciones Profesionales{% endblock %}
-{% block panelTitle %}Liquidación de: <span style="text-transform: capitalize">{{ doctor.nombre }} {{ doctor.apellido }}</span><a class="btn btn-success" style="padding: 2px 16px;float: right;" href="{{ path('profesionales_index') }}">Volver</a>{% endblock %}
+{% block panelTitle %}
+    Liquidación de: <span style="text-transform: capitalize">{{ doctor.nombre }} {{ doctor.apellido }}</span>
+    <a class="btn btn-success" style="padding: 2px 16px;float: right;" href="{{ path('profesionales_index') }}">Volver</a>
+{% endblock %}
 {% block body %}
     <div class="container-fluid printiable">
         <table class="table table-responsive table-striped">
             <thead>
             <tr>
-                <th colspan="4">
+                <th colspan="3">
                     <div class="col-md-4" style="float: left;">
                         <div class="col-md-2" style="float: left;line-height: 35px;">
                             Desde:
@@ -24,27 +27,27 @@
                             <input id='to' type="date" class="js-datepicker form-control" value="{{ hasta }}">
                         </div>
                     </div>
-                    <div class="col-md-2" style="float: left;">
+                    {#<div class="col-md-2" style="float: left;">
                         <select class="form-control" id="obraSocial">
                             <option value="0">Obra Social</option>
                             {% for key, obrasSocial in obrasSociales %}
                                 <option value="{{ key }}" {% if key == obraSocialSelected %} selected="selected" {% endif %}>{{ obrasSocial }}</option>
                             {% endfor %}
                         </select>
-                    </div>
-                    <div class="col-md-2" style="float: left;">
+                    </div>#}
+                    {#<div class="col-md-2" style="float: left;">
                         <select class="form-control" id="completados">
                             <option value="1" {% if 1 == completados %} selected="selected" {% endif %}>Si</option>
                             <option value="0" {% if 0 == completados %} selected="selected" {% endif %}>No</option>
                         </select>
-                    </div>
+                    </div>#}
                 </th>
                 <th colspan="2">
-                    <div class="col-md-4">
+                    <div class="col-md-8">
                         <div class="input-group">
                             <div class="input-group-append">
-                                <a class="btn btn-outline-secondary" data-inactivo="false" data-url="{{ path('liquidar', {'periodo': 'mes', 'id': doctor.id}) }}" type="button" id="buscarPorFechas" style="padding: 10px;">
-                                    <i class="fas fa-search"></i>
+                                <a class="btn btn-success" data-inactivo="false" data-url="{{ path('liquidar', {'periodo': 'mes', 'id': doctor.id}) }}" type="button" id="buscarPorFechas" style="color:white; padding: 10px;">
+                                    <i class="fas fa-search"></i> Buscar
                                 </a>
                                 <a class="btn btn-outline-secondary" data-inactivo="false" type="button" href="{{ path('liquidar', {'periodo': 'mes', 'id': doctor.id}) }}" style="padding: 10px;">
                                     Limpiar
@@ -56,17 +59,29 @@
                 </th>
             </tr>
             <tr>
-                <th scope="col" class="titulo">Titulo</th>
+{#                <th scope="col" class="titulo">Titulo</th>#}
                 <th scope="col" class="paciente">Paciente</th>
                 <th scope="col" class="obraSocial">O. Social</th>
-                <th scope="col" class="comenzo">Comenzó</th>
+                <th scope="col" class="fecha">Fecha</th>
+                <th scope="col" class="desc">Desc</th>
+                <th scope="col" class="accion"></th>
+                {#<th scope="col" class="comenzo">Comenzó</th>
                 <th scope="col" class="finalizo">Finalizó</th>
                 <th scope="col" class="completado">Completado</th>
-                <th scope="col">Notas</th>
+                <th scope="col">Notas</th>#}
             </tr>
             </thead>
             <tbody>
-            {% set cantMediaSesiones = 0 %}
+            {% for evolucion in evoluciones %}
+                <tr>
+                    <td class="paciente">{{ evolucion.paciente.nombre }} {{ evolucion.paciente.apellido }}</td>
+                    <td class="fecha">{{ obrasSociales[evolucion.paciente.obraSocial] }}</td>
+                    <td class="fecha">{{ evolucion.fecha | date('m/d/Y') }}</td>
+                    <td class="desc">{{ (evolucion.description|length > 50 ? evolucion.description|slice(0, 50) ~ '…' : evolucion.description)  }}</td>
+                    <td><a href="{{ path('evolucion_show', {'id': evolucion.id}) }}">ver</a> </td>
+                </tr>
+            {% endfor %}
+            {#{% set cantMediaSesiones = 0 %}
             {% for booking in bookings %}
                 {% if booking.cliente.MediaSesion %}
                     {% set cantMediaSesiones = cantMediaSesiones + 1 %}
@@ -94,24 +109,20 @@
                 <td class="totales" >{{ cantMediaSesiones }}</td>
                 <td class="totales" style="text-align: right">Total:</td>
                 <td class="totales" >{{ bookings|length }}</td>
-            </tr>
+            </tr>#}
             </tbody>
         </table>
     </div>
 {% endblock %}
 {% block modalImprimir %}
     {% for fiel in [
-        'titulo', 'paciente', 'obraSocial', 'comenzo', 'finalizo', 'completado', 'totales',
+        'paciente', 'fecha', 'desc',
     ] %}
         <div class="form-check">
             <input class="form-check-input check" type="checkbox" value="{{ fiel }}" id="{{ fiel }}"
-                    {% if fiel == 'titulo' %} checked {% endif %}
                     {% if fiel == 'paciente' %} checked {% endif %}
-                    {% if fiel == 'obraSocial' %} checked {% endif %}
-                    {% if fiel == 'comenzo' %} checked {% endif %}
-                    {% if fiel == 'finalizo' %} checked {% endif %}
-                    {% if fiel == 'totales' %} checked {% endif %}
-                    {% if fiel == 'completado' %} checked {% endif %}
+                    {% if fiel == 'fecha' %} checked {% endif %}
+                    {% if fiel == 'desc' %} checked {% endif %}
             >
             <label class="form-check-label" for="{{ fiel }}" style="text-transform: capitalize">
                 {{ fiel }}

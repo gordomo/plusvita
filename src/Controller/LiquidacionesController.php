@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Repository\BookingRepository;
 use App\Repository\ClienteRepository;
 use App\Repository\DoctorRepository;
+use App\Repository\EvolucionRepository;
 use App\Repository\ObraSocialRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -95,7 +96,7 @@ class LiquidacionesController extends AbstractController
      * @return Response
      * @throws \Exception
      */
-    public function liquidar($id, DoctorRepository $doctorRepository, BookingRepository $bookingRepository, ObraSocialRepository $obraSocialRepository, ClienteRepository $clienteRepository, Request $request): Response
+    public function liquidar($id, DoctorRepository $doctorRepository, BookingRepository $bookingRepository, ObraSocialRepository $obraSocialRepository, ClienteRepository $clienteRepository, Request $request, EvolucionRepository $evolucionRepository): Response
     {
         $user = $this->getUser();
         if (!$user) {
@@ -120,6 +121,7 @@ class LiquidacionesController extends AbstractController
         $clientes = $clienteRepository->findByNombreYobraSocial(null, $obraSocialSelected);
         $bookings = $bookingRepository->turnosParaAgenda($doctor, $from, '', $clientes, $from, $to, $completados);
 
+        $evoluciones = $evolucionRepository->findByFechaYDoctor($doctor->getEmail(), $from, $to);
 
         $obrasSociales = $obraSocialRepository->findAll();
         $obrasSocialesArray = [];
@@ -137,7 +139,8 @@ class LiquidacionesController extends AbstractController
                 'obrasSociales' => $obrasSocialesArray,
                 'obraSocialSelected' => $obraSocialSelected,
                 'paginaImprimible' => true,
-                'completados' => $completados
+                'completados' => $completados,
+                'evoluciones' => $evoluciones
             ]);
     }
 }
