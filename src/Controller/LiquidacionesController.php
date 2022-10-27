@@ -49,7 +49,7 @@ class LiquidacionesController extends AbstractController
             'Medico Clínico',
             'HidroTerapia motora',
             'Kinesiologo motora ',
-            'Kinesiologo respiratorio',
+            'Kinesiología respiratoria',
             'Terapista ocupacional',
             'Fonoaudiologo',
             'Psicologo',
