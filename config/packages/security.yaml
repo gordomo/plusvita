@@ -62,5 +62,6 @@ security:
         - { path: ^/staff/doctor/historia/, roles: [ROLE_STAFF] }
         - { path: ^/pacientes/^/historia, roles: [ROLE_STAFF] }
         - { path: ^/staff, roles: [ROLE_ADMIN] }
-        - { path: ^/liquidaciones, roles: [ROLE_ADMIN] }
+        - { path: ^/liquidaciones/profesionales, roles: [ROLE_ADMIN] }
+        - { path: ^/liquidaciones/profesional, roles: [IS_AUTHENTICATED_FULLY] }
         # - { path: ^/profile, roles: ROLE_USER }
