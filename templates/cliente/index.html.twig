@@ -270,6 +270,9 @@
                                         <a class="dropdown-item" href="{{ path('cliente_ambulatorio', {'id': cliente.id}) }}">
                                             <i class="fas fa-arrow-right" data-toggle="tooltip" data-placement="top" title="ambulatorio"></i> Ambulatorio
                                         </a>
+                                        <a class="dropdown-item" href="{{ path('prescripcion_new', {'id': cliente.id}) }}">
+                                            <i class="fas fa-user-nurse" data-toggle="tooltip" data-placement="top" title="Prescripciones"></i> Prescripciones
+                                        </a>
                                     {% else %}
                                         <a class="dropdown-item" href="{{ path('cliente_reingresar', {'id': cliente.id, 'tipo': pestana}) }}">
                                             <i class="far fa-calendar-times" data-toggle="tooltip" data-placement="top" title="Reingresar"></i> Reingresar

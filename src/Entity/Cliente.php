@@ -332,6 +332,11 @@ class Cliente
      */
     private $historiaEgresos;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Prescripcion::class, mappedBy="cliente")
+     */
+    private $cliente;
+
     public function __construct()
     {
         $this->docReferente = new ArrayCollection();
@@ -340,6 +345,7 @@ class Cliente
         $this->historiaHabitaciones = new ArrayCollection();
         $this->evolucions = new ArrayCollection();
         $this->historiaEgresos = new ArrayCollection();
+        $this->cliente = new ArrayCollection();
     }
 
     public function getNombreApellido(): ?string
@@ -1241,6 +1247,36 @@ class Cliente
 
         return $array;
 
+    }
+
+    /**
+     * @return Collection|Prescripcion[]
+     */
+    public function getCliente(): Collection
+    {
+        return $this->cliente;
+    }
+
+    public function addCliente(Prescripcion $cliente): self
+    {
+        if (!$this->cliente->contains($cliente)) {
+            $this->cliente[] = $cliente;
+            $cliente->setCliente($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCliente(Prescripcion $cliente): self
+    {
+        if ($this->cliente->removeElement($cliente)) {
+            // set the owning side to null (unless already changed)
+            if ($cliente->getCliente() === $this) {
+                $cliente->setCliente(null);
+            }
+        }
+
+        return $this;
     }
 
 

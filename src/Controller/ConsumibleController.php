@@ -464,6 +464,42 @@ class ConsumibleController extends AbstractController
     }
 
     /**
+     * @Route("/historico/enfermeria/{id}", name="consumible_enfermeria", methods={"GET"})
+     */
+    /*public function enfermeria($id, ClienteRepository $clienteRepository, ConsumibleRepository $consumibleRepository, ConsumiblesClientesRepository $consumiblesClientesRepository, TipoConsumibleRepository $tipoConsumibleRepository, Request $request): Response
+    {
+
+        $consumibles = $consumibleRepository->findBy([], ['tipo'=>'DESC']);
+
+        $consumibleArray = [];
+        foreach ($consumibles as $consumible) {
+            $consumibleArray[$consumible->getId()] = $consumible;
+        }
+
+        $mes = $request->get('mes', '');
+
+        if ($mes == '') {
+            $now = new \DateTime();
+            $mes = $now->modify("+1 month")->format('m');
+        }
+
+        $year = $request->query->get('year', '2022');
+
+        $consumiblesClientes = $consumiblesClientesRepository->findBy(['clienteId' => $id, 'mes' => $mes, 'year' => $year, 'accion' => 0]);
+        $cliente = $clienteRepository->find($id);
+
+        return $this->render('consumible/enfermeria_planilla.html.twig', [
+            'cliente' => $cliente,
+            'consumibles' => $consumibleArray,
+            'consumiblesClientes' => $consumiblesClientes,
+            'mes' => $mes,
+            'meses' => ['Enero' => '01', 'Febrero' => '02', 'Marzo' => '03', 'Abril' => 04, 'Mayo' => '05', 'Junio' => '06', 'Julio' => '07', 'Agosto' => '08', 'Septiembre' => '09', 'Octubre' => '10', 'Noviembre' => '11', 'Diciembre' => '12', ],
+            'paginaImprimible' => true,
+        ]);
+
+    }*/
+
+    /**
      * @Route("/borrar/{id}", name="borrar_consumible", methods={"GET"})
      */
     public function borrarConsumible(ConsumiblesClientes $consumibleCliente, Request $request): Response

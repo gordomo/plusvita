@@ -176,6 +176,11 @@ class Doctor implements UserInterface
     private $fNac;
 
     /**
+     * @ORM\OneToMany(targetEntity=Prescripcion::class, mappedBy="user")
+     */
+    private $doctor;
+
+    /**
      * @return mixed
      */
     public function getMaxCliTurno()
@@ -195,6 +200,7 @@ class Doctor implements UserInterface
     {
         $this->clientes = new ArrayCollection();
         $this->bookings = new ArrayCollection();
+        $this->doctor = new ArrayCollection();
     }
 
     public function getNombreApellido(): ?string
@@ -627,6 +633,36 @@ class Doctor implements UserInterface
     public function setFNac(?\DateTimeInterface $fNac): self
     {
         $this->fNac = $fNac;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Prescripcion[]
+     */
+    public function getDoctor(): Collection
+    {
+        return $this->doctor;
+    }
+
+    public function addDoctor(Prescripcion $doctor): self
+    {
+        if (!$this->doctor->contains($doctor)) {
+            $this->doctor[] = $doctor;
+            $doctor->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDoctor(Prescripcion $doctor): self
+    {
+        if ($this->doctor->removeElement($doctor)) {
+            // set the owning side to null (unless already changed)
+            if ($doctor->getUser() === $this) {
+                $doctor->setUser(null);
+            }
+        }
 
         return $this;
     }
