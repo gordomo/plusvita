@@ -1,0 +1,37 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Prescripcion index{% endblock %}
+
+{% block body %}
+    <h1>Prescripcion index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Descripcion</th>
+                <th>Fecha</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for prescripcion in prescripcions %}
+            <tr>
+                <td>{{ prescripcion.id }}</td>
+                <td>{{ prescripcion.descripcion }}</td>
+                <td>{{ prescripcion.fecha ? prescripcion.fecha|date('Y-m-d') : '' }}</td>
+                <td>
+                    <a href="{{ path('prescripcion_show', {'id': prescripcion.id}) }}">show</a>
+                    <a href="{{ path('prescripcion_edit', {'id': prescripcion.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="4">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('prescripcion_new') }}">Create new</a>
+{% endblock %}

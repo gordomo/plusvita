@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Prescripcion{% endblock %}
+
+{% block body %}
+    <h1>Prescripcion</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ prescripcion.id }}</td>
+            </tr>
+            <tr>
+                <th>Descripcion</th>
+                <td>{{ prescripcion.descripcion }}</td>
+            </tr>
+            <tr>
+                <th>Fecha</th>
+                <td>{{ prescripcion.fecha ? prescripcion.fecha|date('Y-m-d') : '' }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('prescripcion_index') }}">back to list</a>
+
+    <a href="{{ path('prescripcion_edit', {'id': prescripcion.id}) }}">edit</a>
+
+    {{ include('prescripcion/_delete_form.html.twig') }}
+{% endblock %}

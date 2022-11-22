@@ -1,0 +1,287 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Enfermería{% endblock %}
+{% block panelTitle %}Planilla de Enfermería de  {{ cliente.nombre }} {{ cliente.apellido }}{% endblock %}
+{% block titleButtons %}
+    <a href="javascript:history.back();" class="btn btn-danger">Volver</a>
+    <a href="{{ path('consumible_new') }}" class="btn-success btn">Nuevo Consumible</a>
+{% endblock %}
+{% block body %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-6 text-right">
+                <form action="{{ path('consumible_enfermeria', {'id': cliente.id}) }}" method="get">
+                    <div class="form-row">
+                        <div class="col-md-3">
+                            <select class="form-control" name="mes" id="mes">
+                                <option value="0"> Mes </option>
+                                {% for nombre, num in meses %}
+                                    <option {%  if num == mes %} selected {% endif %} value="{{ num }}">{{ nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-control" name="year" id="year">
+                                <option value=""> Año </option>
+                                <option value="2021">2021</option>
+                                <option value="2022">2022</option>
+                                <option value="2023">2023</option>
+                                <option value="2024">2024</option>
+                                <option value="2025">2025</option>
+                                <option value="2026">2026</option>
+                                <option value="2027">2027</option>
+                                <option value="2028">2028</option>
+                                <option value="2029">2029</option>
+                                <option value="2030">2030</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-outline-secondary" type="submit" style="padding: 10px;">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="printiable">
+        <table class="table">
+            <thead>
+            <tr>
+                <th class="consumo col-sm-2">Consumible</th>
+                <th class="accion col-sm-2">Acción</th>
+                <th class="tipo col-sm-2">Tipo</th>
+                <th class="fecha col-sm-2">Fecha</th>
+                <th class="mes col-sm-2">Mes</th>
+                <th class="mes col-sm-2">Año</th>
+                <th class="cantidad col-sm-1">Cantidad</th>
+                <th class="accion col-sm-1">Accion</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for key, dato in consumiblesClientes %}
+                {% if consumibles[dato.consumibleId] is defined %}
+                    <tr class="consumible-{{ key }} editar consumible ">
+                        <td >
+                            <select class="form-control" id="consumible-{{ key }}">
+                                {% for consumible in consumibles %}
+                                    <option {%  if consumible.id == dato.consumibleId %} selected {% endif %} value="{{ consumible.id }}">{{ consumible.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td >
+                            <select class="form-control" id="accion-{{ key }}">
+                                {% for accion in ['0', '1'] %}
+                                    <option {%  if accion == dato.accion %} selected {% endif %} value="{{ accion }}">{{ accion ? 'Inputación' : 'Indicacion' }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        {#<td >
+                            <select class="form-control" id="tipo-{{ key }}" readonly="true" disabled>
+                                {% for tipo in tipos %}
+                                    <option {%  if ((consumibles[dato.consumibleId].tipo) and (tipo.id == consumibles[dato.consumibleId].tipo.id)) %} selected {% endif %} value="{{ tipo.id }}">{{ tipo.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>#}
+                        <td >
+                            <input class="form-control" id='fecha-{{ key }}' type="date" value="{{ dato.fecha ? dato.fecha|date('Y-m-d') : ''}}">
+                        </td>
+                        <td >
+                            <select class="form-control" id="mes-{{ key }}">
+                                {% for nombre, num in meses %}
+                                    <option {%  if num == mes %} selected {% endif %} value="{{ num }}">{{ nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td >
+                            <input class="form-control" id='cantidad-{{ key }}' type="number" value="{{ dato.cantidad }}">
+                        </td>
+                        <td style="vertical-align: middle;" >
+                            <a href="#" class="editar" data-id="{{ key }}">
+                                <i class="fas fa-edit" title="editar"></i>
+                            </a>
+                            <a href="#" class="guardar" data-id="{{ key }}" data-cid="{{ dato.id }}" style="margin: 0 5px;">
+                                <i class="fas fa-save" title="guardar"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <tr class="consumible-{{ key }} dato consumible {%  if dato.accion == 1 %} imputacion {% endif %} " data-consumible-nombre="{{ consumibles[dato.consumibleId].nombre }}">
+                        <td class="consumo">
+                            {{ consumibles[dato.consumibleId].nombre }}
+                        </td>
+                        <td class="accion">
+                            {{ dato.accion ? 'imputacion' : 'indicacion' }}
+                        </td>
+                        <td class="tipo">
+                            {{ consumibles[dato.consumibleId].tipo ? consumibles[dato.consumibleId].tipo.nombre }}
+                        </td>
+                        <td class="fecha">
+                            {{ dato.fecha ? dato.fecha|date('Y-m-d') : ''}}
+                        </td>
+                        <td class="mes">
+                            {% for nombre, num in meses %}
+                                {%  if num == dato.mes %} {{ nombre }} {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td class="year">
+                            {{ dato.year }}
+                        </td>
+                        <td class="{{ dato.accion ? 'ingreso' : 'egreso' }} cantidad">
+                            {{ dato.cantidad }}
+                        </td>
+                        <td class="acciones">
+
+                        </td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+{% block modalImprimir %}
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="consumo" id="consumo">
+        <label class="form-check-label" for="consumo">
+            Consumo
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="accion" id="accion">
+        <label class="form-check-label" for="accion">
+            Acción
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="tipo" id="tipo">
+        <label class="form-check-label" for="tipo">
+            Tipo
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="fecha" id="fecha">
+        <label class="form-check-label" for="fecha">
+            Fecha
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="mes" id="mes">
+        <label class="form-check-label" for="mes">
+            Mes
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="cantidad" id="cantidad">
+        <label class="form-check-label" for="cantidad">
+            Cantidad
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="totales" id="totales">
+        <label class="form-check-label" for="totales">
+            Totales
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="todos" id="todos">
+        <label class="form-check-label" for="todos">
+            Todos
+        </label>
+    </div>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('assets/js/consumibles.js') }}"></script>
+
+    <script>
+        var tituloExcel = 'consumibles.xlsx';
+        $( document ).ready(function () {
+            let row = $('tbody tr.dato');
+            clases = [];
+            row.each(function() {
+                if (!clases.includes($(this).data('consumible-nombre'))) {
+                    clases.push($(this).data('consumible-nombre'));
+                }
+            })
+            clases.forEach(element => {
+                let subtotal = 0;
+                let fila = $('tbody tr.dato[data-consumible-nombre="'+element+'"]');
+
+                fila.each(function() {
+                    if($(this).find('.cantidad').hasClass('egreso')) {
+                        subtotal -= parseFloat($(this).find('.cantidad').html());
+                    } else if ($(this).find('.cantidad').hasClass('ingreso')) {
+                        subtotal += parseFloat($(this).find('.cantidad').html());
+                    }
+                })
+                fila.last().after('<tr class="totales"><td colspan="7" class="totales" style="text-align: right; border-top: 1px solid black; border-bottom: 1px solid black;">Total: '+subtotal+'</td></tr>');
+            });
+        });
+
+        $('.editar').click(function () {
+            let id = $(this).data('id');
+            $('.editar.consumible-'+id).toggle();
+            $('.dato.consumible-'+id).toggle();
+        });
+
+        $(".guardar").on( 'click', function() {
+
+            $(this).removeClass('error');
+
+            let cid = $(this).data('cid');
+            let id = $(this).data('id');
+            let cantidad = $('#cantidad-' + id).val();
+            let fecha = $('#fecha-' + id).val();
+            let mes = $('#mes-' + id).val();
+            let consumible = $('#consumible-' + id).val();
+            let accion = $('#accion-' + id).val();
+            let tipo = $('#tipo-' + id).val();
+
+            if (!isNaN(cantidad) && cantidad > 0 && consumible !== '' && tipo !== '') {
+                $.ajax({
+                    url: '{{ path('update_consumible_cliente') }}',
+                    data: {
+                        'cid': cid,
+                        'cantidad': cantidad,
+                        'consumible': consumible,
+                        'mes': mes,
+                        'accion': accion,
+                        'fecha': fecha,
+                        'tipo': tipo,
+                    },
+                    success: function (response) {
+                        if (response.error) {
+                            alert('error: ' + response.message);
+                            $(this).addClass('error');
+                        } else {
+                            var row = $('.dato.consumible-'+id);
+                            row.find('.consumo').html($('#consumible-'+id+' option:selected').text())
+                            row.find('.accion').html($('#accion-'+id+' option:selected').text())
+                            row.find('.fecha').html($('#fecha-'+id).val())
+                            row.find('.mes').html($('#mes-'+id+' option:selected').text())
+                            row.find('.cantidad').html($('#cantidad-'+id).val())
+                            row.removeClass('imputacion');
+                            row.find('.cantidad').removeClass('ingreso');
+                            row.find('.cantidad').removeClass('egreso');
+
+                            if( accion == 1) {
+                                row.addClass('imputacion');
+                                row.find('.cantidad').addClass('ingreso');
+                            } else {
+                                row.find('.cantidad').addClass('egreso');
+                            }
+                            $('.editar.consumible-'+id).toggle();
+                            row.toggle();
+                        }
+                    }
+                });
+            } else if (!$(this).hasClass('rowOriginal')) {
+                $(this).addClass('error');
+                alert("Existe un error en la linea con fondo rojo");
+            }
+        } );
+    </script>
+
+
+{% endblock %}

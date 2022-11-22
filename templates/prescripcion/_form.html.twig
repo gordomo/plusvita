@@ -1,0 +1,48 @@
+{{ form_start(form) }}
+<br>
+<div class="form-row mb-4">
+    <div class="col-sm">
+        {{ form_label(form.descripcion, 'Descripcion') }}
+        {{ form_widget(form.descripcion) }}
+    </div>
+    <div class="col-sm">
+        {{ form_label(form.fecha, 'Fecha') }}
+        {{ form_widget(form.fecha) }}
+    </div>
+
+</div>
+<div class="form-row mb-4">
+    <h4>Prescripciones</h4>
+    <table class="table table-responsive table-striped">
+        <thead>
+            <tr>
+                <th>Descripción</th>
+                <th>Fecha</th>
+                <th>Activa?</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for prescripcion in prescripcionesAnteriores %}
+                <tr>
+                    <td>{{ prescripcion.descripcion }}</td>
+                    <td>{{ prescripcion.fecha | date('d/m/Y') }}</td>
+                    <td>
+                        <a href="{{ path('prescripcion_edit', {id: prescripcion.id, clienteId: prescripcion.cliente.id}) }}">
+                            {% if prescripcion.activa %} Si {% else %} No {% endif %}
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+
+    </table>
+</div>
+<br>
+<br>
+<div class="form-group">
+    {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary'}}) }}
+    <a class="btn btn-default" href="{{ app.request.headers.get('referer') }}">volver</a>
+</div>
+<br>
+
+{{ form_end(form) }}

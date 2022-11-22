@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nueva Prescripción{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <div class="">
+            <h1>Nueva Prescripción médica para {{ nombreCliente }}</h1>
+
+            {{ include('prescripcion/_form.html.twig') }}
+
+        </div>
+
+    </div>
+{% endblock %}

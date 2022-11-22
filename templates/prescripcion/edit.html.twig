@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Prescripcion{% endblock %}
+
+{% block body %}
+    <h1>Edit Prescripcion</h1>
+
+    {{ include('prescripcion/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('prescripcion_index') }}">back to list</a>
+
+    {{ include('prescripcion/_delete_form.html.twig') }}
+{% endblock %}
