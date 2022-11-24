@@ -42,6 +42,11 @@ class Prescripcion
      */
     private $activa;
 
+    /**
+     * @ORM\Column(type="json", nullable=true)
+     */
+    private $hecho = [];
+
     public function getId(): ?int
     {
         return $this->id;
@@ -103,6 +108,19 @@ class Prescripcion
     public function setActiva(bool $activa): self
     {
         $this->activa = $activa;
+
+        return $this;
+    }
+
+    public function getHecho(): ?array
+    {
+        if (!$this->hecho) return [];
+        return $this->hecho;
+    }
+
+    public function setHecho(?array $hecho): self
+    {
+        $this->hecho = $hecho;
 
         return $this;
     }

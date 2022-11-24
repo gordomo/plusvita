@@ -43,18 +43,25 @@
                 Consumibles
             </a>
         {% elseif  is_granted('ROLE_STAFF')%}
-            <a class="list-group-item list-group-item-action bg-light " href="{{ path('doctor_agenda', {'periodo': 'dia'}) }}">
-                <i class="far fa-calendar-alt"></i>
-                Agenda
-            </a>
-            <a class="list-group-item list-group-item-action bg-light " href="{{ path('doctor_historia') }}">
-                <i class="fas fa-user-injured"></i>
-                Pacientes
-            </a>
-            <a class="list-group-item list-group-item-action bg-light " href="{{ path('liquidar', {'id': app.user.id}) }}">
-                <i class="fas fa-money-check-alt"></i>
-                Liquidaciones
-            </a>
+            {% if isDoctor is defined and isDoctor %}
+                <a class="list-group-item list-group-item-action bg-light " href="{{ path('doctor_agenda', {'periodo': 'dia'}) }}">
+                    <i class="far fa-calendar-alt"></i>
+                    Agenda
+                </a>
+                <a class="list-group-item list-group-item-action bg-light " href="{{ path('doctor_historia') }}">
+                    <i class="fas fa-user-injured"></i>
+                    Pacientes
+                </a>
+                <a class="list-group-item list-group-item-action bg-light " href="{{ path('liquidar', {'id': app.user.id}) }}">
+                    <i class="fas fa-money-check-alt"></i>
+                    Liquidaciones
+                </a>
+            {% elseif isEnfermero is defined and isEnfermero %}
+                <a class="list-group-item list-group-item-action bg-light " href="{{ path('prescripcion_index', {'id': app.user.id}) }}">
+                    <i class="fas fa-user-nurse"></i>
+                    Prescripciones Médicas
+                </a>
+            {% endif %}
         {% endif %}
         {% if app.user %}
             <a class="list-group-item list-group-item-action bg-light " href="{{ path('app_logout') }}">

@@ -437,6 +437,36 @@ select:invalid[multiple] {
     font-weight: 300;
 }
 
+.prescripciones-table {
+    margin-top: 15px;
+}
+.prescripciones-table a {
+    color: black;
+    text-decoration: none;
+}
+.pacientes-prescripciones-head {
+    border-bottom: 1px solid grey;
+}
+.pacientes-prescripciones, .pacientes-prescripciones-head {
+    margin: 5px 0 15px 0;
+}
+.pacientes-prescripciones {
+    display: none;
+    margin-bottom: 25px;
+    overflow-x: auto;
+}
+.pacientes-prescripciones-head:hover {
+    background-color: #f5f5f5;
+    cursor: pointer;
+}
+.pacientes-prescripciones-row {
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+    margin: 20px 0;
+}
+#prescripcion_loading {
+    display: none;
+}
 /*      #60b9b9     #b088be
 table {
     width: 716px; !* 140px * 5 column + 16px scrollbar width *!

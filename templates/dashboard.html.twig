@@ -138,6 +138,18 @@
                         </a>
                     </div>
                 {% endif %}
+                {% if isEnfermero %}
+                    <div class="col-md-4">
+                        <a href="{{ path('prescripcion_index', {'id': app.user.id}) }}">
+                            <div class="card text-white mb-3 staffOnDash" style="max-width: 18rem;">
+                                <div class="card-header">Prescripciones</div>
+                                <div class="card-body">
+                                    <p class="card-text">Prescripciones Médicas por pacientes</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                {% endif %}
             </div>
         </div>
     {% endif %}

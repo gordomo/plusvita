@@ -46,7 +46,7 @@ class DashboardController extends AbstractController
     public function index(Request $request, HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, DoctorRepository $doctorRepository): Response
     {
         $isDoctor = $this->isDoctor();
-
+        $isEnfermero = $this->isEnfermero();
         $habitacionesYpacientes = $this->getHabitacionesYpacientes();
 
         $osArray = $this->getOSarray($obraSocialRepository);
@@ -64,9 +64,10 @@ class DashboardController extends AbstractController
             [
                 'dashboardActive' => 'active',
                 'isDoctor' => $isDoctor,
+                'isEnfermero' => $isEnfermero,
                 'habitacionesYpacientes' => $habitacionesYpacientes,
                 'obrasSociales' => $osArray,
-                'paginaImprimible' => !$isDoctor,
+                'paginaImprimible' => !$isDoctor && !$isEnfermero,
                 'hayContratosVencidos' => $isContratosVencidos,
                 'hayVencenEsteMes' => $vencenEsteMes,
                 'colorCampana' => $colorCampana
@@ -115,8 +116,6 @@ class DashboardController extends AbstractController
 
     }
 
-
-
     /**
      * @Route("/excel", name="to_excel", methods={"POST"})
      */
@@ -143,6 +142,29 @@ class DashboardController extends AbstractController
 
         return $isDoctor;
 
+    }
+
+    private function isEnfermero()
+    {
+        $isEnfermero = false;
+        $user = $this->getUser();
+
+        $modalidad = 'sinModalidad';
+        if (is_callable([$user, 'getModalidad'])) {
+            $modalidad = $user->getModalidad()[0];
+        }
+
+        if( in_array($modalidad, $this->getModalidadesEnfermeria())) {
+
+            $isEnfermero = true;
+        }
+
+        return $isEnfermero;
+
+    }
+
+    private function getModalidadesEnfermeria() {
+        return ['Enfermero/a', 'Auxiliar de enfermeria', 'Asistente de enfermeria'];
     }
 
     private function getModalidades(int $contrato)

@@ -4,34 +4,105 @@
 
 {% block body %}
     <h1>Prescripcion index</h1>
+    <div class="row" id="prescripcion_loading">
+        <div class="col-12" id="data">
+            <div class="text-center">
+                <img src="{{ asset('assets/images/loading.gif') }}">
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid prescripciones-table" id="content">
+        {% for cliente in clientes %}
+            <div class="row pacientes-prescripciones-head">
+                <div class="col-4">
+                    <span>{{ cliente.nombre }}</span>
+                    <span>{{ cliente.apellido }}</span>
+                    <span>{{ cliente.id }}</span>
+                </div>
+                <div class="col-8 text-right">
+                    <i class="fas fa-caret-down"></i>
+                </div>
+            </div>
+            <div class="row pacientes-prescripciones">
+                {% if prescripciones[cliente.id] is defined %}
+                        <table class="table table-striped table-responsive">
+                            <thead>
+                                <tr>
+                                    <th>descripcion</th>
+                                    {% set start_date = 'first day of this month' %}
+                                    {% set end_date = 'last day of this month' %}
+                                    {% set i = 0 %}
+                                    {% for x in range(start_date|date('U'), end_date|date('U'), 86400 ) %}
+                                        {% set i = i + 1 %}
+                                        <th id="{{ i }}-fecha">{{ x|date('d/m/Y') }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for prescripcion in prescripciones[cliente.id] %}
+                                    <tr>
+                                        <td>{{ prescripcion.descripcion }}</td>
+                                        {% set i = 0 %}
+                                        {% for x in range(start_date|date('U'), end_date|date('U'), 86400 ) %}
+                                            {% set i = i + 1 %}
+                                            <td>
+                                                <input type="checkbox"
+                                                       class="setHecho"
+                                                       data-fecha="{{ i }}-fecha"
+                                                       data-pre_id="{{ prescripcion.id }}"
+                                                       {% if  x|date('d/m/Y') in prescripcion.hecho %}
+                                                           checked
+                                                       {% endif %}
+                                                />
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Descripcion</th>
-                <th>Fecha</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for prescripcion in prescripcions %}
-            <tr>
-                <td>{{ prescripcion.id }}</td>
-                <td>{{ prescripcion.descripcion }}</td>
-                <td>{{ prescripcion.fecha ? prescripcion.fecha|date('Y-m-d') : '' }}</td>
-                <td>
-                    <a href="{{ path('prescripcion_show', {'id': prescripcion.id}) }}">show</a>
-                    <a href="{{ path('prescripcion_edit', {'id': prescripcion.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="4">no records found</td>
-            </tr>
+                {% endif %}
+            </div>
         {% endfor %}
-        </tbody>
-    </table>
+    </div>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        $('.setHecho').click(
+            function () {
+                $('.prescripciones-table').hide();
+                $('#prescripcion_loading').show();
+                let fecha = $("#"+$(this).data('fecha')).html();
+                let id = $(this).data('pre_id');
+                let path = "{{ path("prescripcion_hecho", {id: 'replace'}) }}";
+                let url = path.replace("replace", id);
 
-    <a href="{{ path('prescripcion_new') }}">Create new</a>
+                $.ajax({
+                    url: url,
+                    data: {
+                        'fecha': fecha,
+                    },
+                    success: function (response) {
+                        $('#prescripcion_loading').hide();
+                        $('.prescripciones-table').show();
+                    },
+                    error: function (err) {
+                        alert(err);
+                    }
+                });
+
+            }
+        );
+
+        $('.pacientes-prescripciones-head').click(
+            function() {
+                let comoEstaba = $(this).next('.pacientes-prescripciones').is(":hidden");
+                $('.pacientes-prescripciones').hide();
+                if (comoEstaba) {
+                    $(this).next('.pacientes-prescripciones').show();
+                }
+            }
+        );
+    </script>
 {% endblock %}
