@@ -1,0 +1,154 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liquidaciones Profesionales{% endblock %}
+
+{% block body %}
+    <div class="container-fluid printiable">
+        <table class="table table-responsive table-striped">
+            <thead>
+            <tr>
+                <th colspan="3">
+                    <div class="col-md-4" style="float: left;">
+                        <div class="col-md-2" style="float: left;line-height: 35px;">
+                            Desde:
+                        </div>
+                        <div class="col-md-10" style="float: left;">
+                            <input id='from' type="date" class="js-datepicker form-control" value="{{ desde }}">
+                        </div>
+                    </div>
+                    <div class="col-md-4" style="float: left;">
+                        <div class="col-md-2" style="float: left;line-height: 35px;">
+                            Hasta:
+                        </div>
+                        <div class="col-md-10" style="float: left;">
+                            <input id='to' type="date" class="js-datepicker form-control" value="{{ hasta }}">
+                        </div>
+                    </div>
+                </th>
+                <th colspan="2">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <div class="input-group-append">
+                                <a class="btn btn-success" data-inactivo="false" data-url="{{ path('liquidar', {'periodo': 'mes', 'id': doctor.id}) }}" type="button" id="buscarPorFechas" style="color:white; padding: 10px;">
+                                    <i class="fas fa-search"></i> Buscar
+                                </a>
+                                <a class="btn btn-outline-secondary" data-inactivo="false" type="button" href="{{ path('liquidar', {'periodo': 'mes', 'id': doctor.id}) }}" style="padding: 10px;">
+                                    Limpiar
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+                </th>
+            </tr>
+            <tr>
+{#                <th scope="col" class="titulo">Titulo</th>#}
+                <th scope="col" class="paciente">Paciente</th>
+                <th scope="col" class="obraSocial">O. Social</th>
+                <th scope="col" class="fecha">Fecha</th>
+                <th scope="col" class="desc">Desc</th>
+                <th scope="col" class="accion"></th>
+                {#<th scope="col" class="comenzo">Comenzó</th>
+                <th scope="col" class="finalizo">Finalizó</th>
+                <th scope="col" class="completado">Completado</th>
+                <th scope="col">Notas</th>#}
+            </tr>
+            </thead>
+            <tbody>
+            {% for evoluciones_de in evoluciones %}
+                <tr>
+                    <th class="titulo">
+                        Evoluciones de:
+                    </th>
+                    <th class="titulo" colspan="4">
+                        {{ evoluciones_de[0].user }}
+                    </th>
+                </tr>
+                {% for evolucion in evoluciones_de %}
+                    <tr>
+                        <td class="paciente">{{ evolucion.paciente.nombre }} {{ evolucion.paciente.apellido }}</td>
+                        <td class="fecha">{{ obrasSociales[evolucion.paciente.obraSocial] }}</td>
+                        <td class="fecha">{{ evolucion.fecha | date('m/d/Y') }}</td>
+                        <td class="desc">{{ (evolucion.description|length > 50 ? evolucion.description|slice(0, 50) ~ '…' : evolucion.description)  }}</td>
+                        <td><a href="{{ path('evolucion_show', {'id': evolucion.id}) }}">ver</a> </td>
+                    </tr>
+                {% endfor %}
+            {% endfor %}
+            {#{% set cantMediaSesiones = 0 %}
+            {% for booking in bookings %}
+                {% if booking.cliente.MediaSesion %}
+                    {% set cantMediaSesiones = cantMediaSesiones + 1 %}
+                {% endif %}
+                <tr class="{% if booking.cliente.MediaSesion %} mediaSesion {% endif %}">
+                    <td class="titulo">{{ booking.title }}</td>
+                    <td class="paciente" style="text-transform: capitalize">{{ booking.cliente.nombre }} {{ booking.cliente.apellido }}</td>
+                    <td class="obraSocial">{{ obrasSociales[booking.cliente.obraSocial] }}{% if booking.cliente.MediaSesion %} (Media Sesion) {% endif %}</td>
+                    <td class="comenzo">{{ booking.beginAt | date('Y-m-d H:i:s') }}</td>
+                    <td class="finalizo">{{ booking.endAt | date('Y-m-d H:i:s') }}</td>
+                    <td class="titulo">{{ booking.completado ? 'si' : 'no' }}</td>
+                    <td>
+                        {% if booking.notas | length > 0 %}
+                            <a href="{{ path('notas_turno_list', {'id': booking.id}) }}">ver notas</a>
+                        {% else %}
+                            No tiene
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr id="notas-{{ booking.id }}" class="notas">
+                </tr>
+            {% endfor %}
+            <tr >
+                <td class="totales" colspan="4" style="text-align: right">Medias Sesiones:</td>
+                <td class="totales" >{{ cantMediaSesiones }}</td>
+                <td class="totales" style="text-align: right">Total:</td>
+                <td class="totales" >{{ bookings|length }}</td>
+            </tr>#}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+{% block modalImprimir %}
+    {% for fiel in [
+        'paciente', 'fecha', 'desc', 'titulo'
+    ] %}
+        <div class="form-check">
+            <input class="form-check-input check" type="checkbox" value="{{ fiel }}" id="{{ fiel }}"
+                    {% if fiel == 'titulo' %} checked {% endif %}
+                    {% if fiel == 'paciente' %} checked {% endif %}
+                    {% if fiel == 'fecha' %} checked {% endif %}
+                    {% if fiel == 'desc' %} checked {% endif %}
+            >
+            <label class="form-check-label" for="{{ fiel }}" style="text-transform: capitalize">
+                {{ fiel }}
+            </label>
+        </div>
+    {% endfor %}
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="todos" id="todos">
+        <label class="form-check-label" for="todos">
+            Todos
+        </label>
+    </div>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        var tituloExcel = 'liquidaciones.xlsx';
+        $('#from').on('change', function () {
+            $('#to').attr("min", $('#from').val());
+            $('#to').val($('#from').val());
+        })
+        $('#buscarPorFechas').on('click', function () {
+            let url = $(this).data('url');
+            let from = $('#from').val();
+            let to = $('#to').val();
+            let obraSocial = $('#obraSocial').val();
+            let completados = $('#completados').val();
+
+            url = url + '&desde=' + from + '&hasta=' + to + '&obraSocial=' + obraSocial + '&completados=' + completados;
+
+            window.location.href = url;
+        })
+    </script>
+
+{% endblock %}

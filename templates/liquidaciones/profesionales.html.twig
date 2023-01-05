@@ -29,6 +29,7 @@
                 <button class="btn btn-default" id="buscarContrato"><i class="fas fa-search" aria-hidden="true"></i></button>
                 <button class="btn btn-default" id="limpiarContratos" style="padding: 2px 16px;">Limpiar</button>
                 <a class="btn btn-success" style="padding: 2px 16px;" href="{{ path('liquidaciones_index') }}">Volver</a>
+                <button class="btn btn-action" id="liquidarVarios" style="padding: 2px 16px;">Liquidar Varios</button>
             </div>
         </div>
     </div>
@@ -44,6 +45,7 @@
             <th scope="col">Vto Contrato</th>
             <th scope="col">CBU</th>
             <th scope="col">Liquidar</th>
+            <th scope="col">Seleccionar</th>
         </tr>
         </thead>
         <tbody>
@@ -70,6 +72,9 @@
                 <td>
                     <a href="{{ path('liquidar', {'id': doctor.id}) }}"><i class="fas fa-money-check-alt"></i></a>
                 </td>
+                <td>
+                    <input type="checkbox" value="{{ doctor.id }}">
+                </td>
             </tr>
         {% else %}
             <tr>
@@ -84,4 +89,19 @@
 {% block javascripts %}
     {{ parent() }}
     <script src="{{ asset('assets/js/staff.js') }}"></script>
+    <script>
+        $("#liquidarVarios").click(function() {
+            let checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            if ([...checkboxes].some(checkbox => checkbox.checked)) {
+                let values = [...checkboxes].filter(checkbox => checkbox.checked).map(checkbox => checkbox.value);
+                let queryString = values.map(value => `ids[]=${value}`).join('&');
+                window.location.href = "{{ path('liquidar_varios') }}?" + queryString;
+
+            } else {
+                alert('seleccione al menos un elemento');
+                return false;
+            }
+
+        });
+    </script>
 {% endblock %}

@@ -87,6 +87,69 @@ class LiquidacionesController extends AbstractController
     }
 
     /**
+     * @Route("/profesional/varios", name="liquidar_varios", methods={"GET"})
+     * @param DoctorRepository $doctorRepository
+     * @param BookingRepository $bookingRepository
+     * @param ObraSocialRepository $obraSocialRepository
+     * @param Request $request
+     * @return Response
+     * @throws \Exception
+     */
+    public function liquidarVarios(DoctorRepository $doctorRepository, BookingRepository $bookingRepository, ObraSocialRepository $obraSocialRepository, ClienteRepository $clienteRepository, Request $request, EvolucionRepository $evolucionRepository): Response
+    {
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $desde = $request->query->get('desde') ?? '';
+        $hasta = $request->query->get('hasta') ?? '';
+        $obraSocialSelected = $request->query->get('obraSocial') ?? '';
+        $completados = $request->query->get('completados') ?? 1;
+        $from = new \DateTime('2000-01-01');
+        $to = new \DateTime();
+
+        if($desde != '') {
+            $from = (new \DateTime($desde));
+        }
+        if($hasta != '') {
+            $to = (new \DateTime($hasta));
+        }
+
+        $ids = $request->query->get('ids');
+
+        $doctores = $doctorRepository->findBy(['id' => $ids]);
+
+        $clientes = $clienteRepository->findByNombreYobraSocial(null, $obraSocialSelected);
+
+        foreach ($doctores as $doctor) {
+            $bookings[] = $bookingRepository->turnosParaAgenda($doctor, $from, '', $clientes, $from, $to, $completados);
+            $evoluciones[] = $evolucionRepository->findByFechaYDoctor($doctor->getEmail(), $from, $to);
+
+        }
+
+        $obrasSociales = $obraSocialRepository->findAll();
+        $obrasSocialesArray = [];
+
+        foreach ($obrasSociales as $obrasSocial) {
+            $obrasSocialesArray[$obrasSocial->getId()] = $obrasSocial->getNombre();
+        }
+
+        return $this->render('liquidaciones/liquidar_varios.html.twig',
+            [
+                'bookings' => $bookings,
+                'doctor' => $doctor,
+                'desde' => $desde,
+                'hasta' => $hasta,
+                'obrasSociales' => $obrasSocialesArray,
+                'obraSocialSelected' => $obraSocialSelected,
+                'paginaImprimible' => true,
+                'completados' => $completados,
+                'evoluciones' => $evoluciones
+            ]);
+    }
+
+    /**
      * @Route("/profesional/{id}", name="liquidar", methods={"GET"})
      * @param $id
      * @param DoctorRepository $doctorRepository
