@@ -122,12 +122,9 @@ class ClienteRepository extends ServiceEntityRepository
 
     public function findAmbulatorios($value, $nombre, $orderBy = null)
     {
-        //Esto puede servir para agregar un filtro por fechas
-        /*$query = $this->createQueryBuilder('c')
-            ->andWhere('c.fechaAmbulatorio > :val')->setParameter('val', $value)
-            ->orWhere('c.fechaAmbulatorio IS NULL');*/
-
-        $query = $this->createQueryBuilder('c');
+        $query = $this->createQueryBuilder('c')
+            ->andWhere('c.fEgreso > :val')->setParameter('val', $value)
+            ->orWhere('c.fEgreso IS NULL');
 
         if ( $nombre != '' ) {
             $arrayNombres = explode(' ', $nombre);
