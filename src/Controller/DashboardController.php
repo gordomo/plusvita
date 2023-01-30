@@ -49,6 +49,14 @@ class DashboardController extends AbstractController
         $isEnfermero = $this->isEnfermero();
         $habitacionesYpacientes = $this->getHabitacionesYpacientes();
 
+        $pacientesCount = 0;
+
+        foreach ($habitacionesYpacientes as $habitacionesYpaciente) {
+            $pacientesCount += count($habitacionesYpaciente['cliente']);
+        }
+
+        $pacientesAmbulatorios = $clienteRepository->findAmbulatorios(new \DateTime(), '');
+
         $osArray = $this->getOSarray($obraSocialRepository);
 
         $isContratosVencidos = $this->hayContratosVencidos($doctorRepository);
@@ -70,7 +78,10 @@ class DashboardController extends AbstractController
                 'paginaImprimible' => !$isDoctor && !$isEnfermero,
                 'hayContratosVencidos' => $isContratosVencidos,
                 'hayVencenEsteMes' => $vencenEsteMes,
-                'colorCampana' => $colorCampana
+                'colorCampana' => $colorCampana,
+                'pacientesAmbulatorios' => $pacientesAmbulatorios,
+                'pacientesCount' => $pacientesCount,
+                'ambulatoriosCount' => count($pacientesAmbulatorios),
             ]);
     }
 
@@ -235,13 +246,15 @@ class DashboardController extends AbstractController
         $habitaciones = $habitacionRepository->findAllInNameOrder();
         $arrayClienteHabitaciones = [];
         foreach ($habitaciones as $habitacion) {
-            $cliente = $clienteRepository->findActivos(new \DateTime(), '', $habitacion);
+            $cliente = $clienteRepository->findActivos(new \DateTime(), '', $habitacion->getId());
             $data = [
                 'cliente' => $cliente,
                 'ocupadas' => count($habitacion->getCamasOcupadas()),
                 'disponibles' => $habitacion->getCamasDisponibles(),
             ];
-            if ($cliente) $arrayClienteHabitaciones['habitación ' . $habitacion->getNombre()] = $data;
+            if ($cliente) {
+                $arrayClienteHabitaciones['habitación ' . $habitacion->getNombre()] = $data;
+            }
         }
 
         return $arrayClienteHabitaciones;

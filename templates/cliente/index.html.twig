@@ -8,6 +8,29 @@
 {% block panelTitle %}Pacientes{% endblock %}
 {% block body %}
     <div class="container-fluid">
+        <div class="row mb-4 ml-3">
+            <div class="col-5">
+                <div class="row">
+                    <div class="col-1" style="display: flex;align-items: center;justify-content: flex-end;">
+                        Desde:
+                    </div>
+                    <div class="col-5">
+                        <input name='from' type="date" class="form-control desde desdeHasta" value="{{ desde }}">
+                    </div>
+                    <div class="col-1" style="display: flex;align-items: center;justify-content: flex-end;">
+                        Hasta:
+                    </div>
+                    <div class="col-5">
+                        <input name='to' type="date" class="form-control hasta desdeHasta" value="{{ hasta }}">
+                    </div>
+                </div>
+            </div>
+            <div class="col-7">
+                <div class="btn btn-primary">
+                    <strong>{{ clientesCount }}</strong> Pacientes <strong class="text-uppercase">{{ pestana }}</strong> en las fechas seleccionadas
+                </div>
+            </div>
+        </div>
         <div class="row">
             <div class="col-sm">
                 <div>
@@ -51,7 +74,7 @@
                     <div class="input-group-append">
                         <a class="btn btn-outline-secondary"
                            data-inactivo="{{ pestana != 'activos' }}"
-                           data-url="{{ path('cliente_index') }}{{  pestana != 'activos' ? '?pestana=' ~ pestana : ''  }}"
+                           data-url="{{ path('cliente_index') }}?pestana={{ pestana }}&desde={{ desde }}&hasta={{ hasta }}"
                            type="button" id="buscarPorNombre"
                            style="padding: 10px;">
                             <i class="fas fa-search"></i>
@@ -417,5 +440,12 @@
     <script src="{{ asset('assets/js/cliente.js') }}"></script>
     <script>
         var tituloExcel = 'clientes.xlsx';
+
+        $('.desdeHasta').change(function () {
+            if($('.desde').val() <= $('.hasta').val()) {
+                window.location.href = '{{ path('cliente_index') }}?pestana={{ pestana }}&desde='+$('.desde').val()+'&hasta='+$('.hasta').val()+'';
+            }
+        });
+
     </script>
 {% endblock %}

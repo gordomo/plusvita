@@ -19,11 +19,18 @@ class ClienteRepository extends ServiceEntityRepository
         parent::__construct($registry, Cliente::class);
     }
 
-    public function findActivos($value, $nombre, $hab = null, $orderBy = null)
+    public function findActivos($value, $nombre, $hab = null, $orderBy = null, $desde = null, $hasta = null)
     {
-        $query = $this->createQueryBuilder('c')
-            ->andWhere('c.fEgreso > :val')->setParameter('val', $value)
-            ->orWhere('c.fEgreso IS NULL');
+        $query = $this->createQueryBuilder('c');
+            /*->andWhere('c.fEgreso > :val')->setParameter('val', $value)
+            ->orWhere('c.fEgreso IS NULL');*/
+
+        if($desde && $hasta) {
+            $query->andWhere('c.fIngreso >= :desde')->setParameter('desde', $desde)->andWhere('c.fEgreso <= :hasta')->setParameter('hasta', $hasta);
+        } else {
+            $query->andWhere('c.fEgreso > :val OR c.fEgreso IS NULL')->setParameter('val', $value);
+        }
+
         if ( $nombre != '' ) {
             $arrayNombres = explode(' ', $nombre);
             $i = 1;
@@ -48,6 +55,7 @@ class ClienteRepository extends ServiceEntityRepository
         } else {
             $query = $query->orderBy('c.hClinica', 'ASC');
         }
+
         return $query->getQuery()->getResult();
     }
 
@@ -139,13 +147,13 @@ class ClienteRepository extends ServiceEntityRepository
         } else {
             $query = $query->orderBy('c.hClinica', 'ASC');
         }
-        return $query->andWhere('c.ambulatorio = 1')->getQuery()->getResult();
+        return $query->andWhere('c.ambulatorio = 1 or c.habitacion is null')->getQuery()->getResult();
     }
 
-    public function findInActivos($value, $nombre, $orderBy = null)
+    public function findInActivos($value, $nombre, $orderBy = null, $desde = null, $hasta = null)
     {
-        $query = $this->createQueryBuilder('c')
-            ->andWhere('c.fEgreso <= :val')->setParameter('val', $value);
+        $query = $this->createQueryBuilder('c');
+            //->andWhere('c.fEgreso <= :val')->setParameter('val', $value);
             if ( $nombre != '' ) {
                 $arrayNombres = explode(' ', $nombre);
                 $i = 1;
@@ -159,11 +167,20 @@ class ClienteRepository extends ServiceEntityRepository
                     $i ++;
                 }
             }
+
+            if($desde && $hasta) {
+                $query->andWhere('c.fEgreso >= :desde')->setParameter('desde', $desde)->andWhere('c.fEgreso <= :hasta')->setParameter('hasta', $hasta);
+            } else {
+                $query->andWhere('c.fEgreso > :val')->setParameter('val', $value)
+                    ->orWhere('c.fEgreso IS NULL');
+            }
+
             if ( $orderBy ) {
                 $query = $query->orderBy('c.'.$orderBy, 'ASC');
             } else {
                 $query = $query->orderBy('c.hClinica', 'ASC');
             }
+
 
 
             return $query->getQuery()->getResult();

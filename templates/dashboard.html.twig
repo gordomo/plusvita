@@ -71,6 +71,9 @@
                         <th class="dieta">Dieta</th>
                     </thead>
                     <tbody>
+                    <tr class="table-primary">
+                        <td class="text-center text-uppercase" colspan="6"><strong>Pacientes Internados {{ pacientesCount }}</strong></td>
+                    </tr>
                         {% for nombre, habitacion in habitacionesYpacientes %}
                             {% set nombreHabitacionAnterior = "nuevo"  %}
                             {% for key, paciente in habitacion.cliente %}
@@ -100,6 +103,23 @@
                             {% endfor %}
                         {% endfor %}
                     </tbody>
+                    <tfoot>
+                        <tr class="table-primary">
+                            <td class="text-center text-uppercase" colspan="6"><strong>Pacientes Ambulatorios {{ ambulatoriosCount }}</strong></td>
+                        </tr>
+                    {% for paciente in pacientesAmbulatorios %}
+                        <tr>
+                            <td class="habitacion"></td>
+                            <td class="paciente text-uppercase">
+                                <a href="{{ path('cliente_show', {id: paciente.id}) }}">{{ paciente.nombre }} {{ paciente.apellido }}</a>
+                            </td>
+                            <td class="obraSocial">{{ obrasSociales[paciente.obraSocial] }}</td>
+                            <td class="patología">{{ paciente.motivoIngEspecifico }}</td>
+                            <td class="edad">{{ paciente.edad }}</td>
+                            <td class="dieta">{{ paciente.dieta }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tfoot>
                 </table>
             </div>
         </div>

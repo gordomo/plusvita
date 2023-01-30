@@ -64,8 +64,16 @@ class ClienteController extends AbstractController
         $nombreInput = $request->query->get('nombreInput');
         $hab = $request->query->get('hab') ?? null;
 
+        $f = new \DateTime();
+        $l = new \DateTime();
+        $f->modify('-1 year');
+
+
+        $desde = $request->query->get('desde') ?? $f->format('Y-m-d');
+        $hasta = $request->query->get('hasta') ?? $l->format('Y-m-d');
+
         if ($pestana == 'inactivos') {
-            $clientes = $clienteRepository->findInActivos(new \DateTime(), $nombreInput);
+            $clientes = $clienteRepository->findInActivos(new \DateTime(), $nombreInput, null, new \DateTime($desde), new \DateTime($hasta));
         } else if ( $pestana == 'derivados') {
             $clientes = $clienteRepository->findDerivados(new \DateTime(), $nombreInput);
         } else if ( $pestana == 'permiso') {
@@ -73,7 +81,7 @@ class ClienteController extends AbstractController
         } else if ( $pestana == 'ambulatorios') {
             $clientes = $clienteRepository->findAmbulatorios(new \DateTime(), $nombreInput);
         } else {
-            $clientes = $clienteRepository->findActivos(new \DateTime(), $nombreInput, $hab);
+            $clientes = $clienteRepository->findActivos(new \DateTime(), $nombreInput, $hab, null, new \DateTime($desde), new \DateTime($hasta));
         }
 
         $habitaciones = $habitacionRepository->getHabitacionesConPacientes();
@@ -85,10 +93,13 @@ class ClienteController extends AbstractController
 
         return $this->render('cliente/index.html.twig', [
             'clientes' => $clientes,
+            'clientesCount' => count($clientes),
             'pestana' => $pestana,
             'nombreInput' => $nombreInput,
             'habitacionesArray'=>$habitacionesArray,
             'paginaImprimible' => true,
+            'desde' => $desde,
+            'hasta' => $hasta,
         ]);
     }
 
@@ -568,7 +579,7 @@ class ClienteController extends AbstractController
     /**
      * @Route("/{id}", name="cliente_show", methods={"GET"})
      */
-    public function show(Cliente $cliente, AdjuntosPacientesRepository $adjuntosPacientesRepository, FamiliarExtraRepository $familiarExtraRepository): Response
+    public function show(Cliente $cliente, AdjuntosPacientesRepository $adjuntosPacientesRepository, FamiliarExtraRepository $familiarExtraRepository, HabitacionRepository $habitacionRepository): Response
     {
         $familiaresExtra = $familiarExtraRepository->findBy(['cliente_id' => $cliente->getId()]);
         $adjuntosActuales = $adjuntosPacientesRepository->findBy(array('id_paciente' => $cliente->getId()), array('tipo' => 'ASC'));
@@ -577,17 +588,24 @@ class ClienteController extends AbstractController
             $adjuntosArray[$adjunto->getTipo()][] = $adjunto;
         }
 
+        $habitaciones = $habitacionRepository->findAll();
+        $habitacionesArray = [];
+        foreach ($habitaciones as $habitacion) {
+            $habitacionesArray[$habitacion->getId()] = $habitacion->getNombre();
+        }
+
         return $this->render('cliente/show.html.twig', [
             'cliente' => $cliente,
             'adjuntosActuales' => $adjuntosArray,
-            'familiaresExtra' => $familiaresExtra
+            'familiaresExtra' => $familiaresExtra,
+            'habitacionArray' => $habitacionesArray
         ]);
     }
 
     /**
      * @Route("/{id}/historia", name="cliente_historial", methods={"GET"})
      */
-    public function historia(Cliente $cliente, HistoriaPacienteRepository $historiaPacienteRepository, ObraSocialRepository $obraSocialRepository, NotasTurnoRepository $notasTurnoRepository, BookingRepository $bookingRepository, NotasHistoriaClinicaRepository $notasHistoriaClinicaRepository, EvolucionRepository $evolucionRepository, HistoriaEgresoRepository $historiaEgresoRepository, Request $request, DoctorRepository $doctorRepository, UserRepository $userRepository): Response
+    public function historia(Cliente $cliente, HistoriaPacienteRepository $historiaPacienteRepository, ObraSocialRepository $obraSocialRepository, NotasTurnoRepository $notasTurnoRepository, BookingRepository $bookingRepository, NotasHistoriaClinicaRepository $notasHistoriaClinicaRepository, EvolucionRepository $evolucionRepository, HistoriaEgresoRepository $historiaEgresoRepository, Request $request, DoctorRepository $doctorRepository, UserRepository $userRepository, HabitacionRepository $habitacionRepository): Response
     {
         $userName = $this->getUser()->getUsername();
 
@@ -661,10 +679,18 @@ class ClienteController extends AbstractController
 
         $historiaPaciente = $historiaPacienteRepository->getHistorialDesdeHasta($cliente, $novedadesDesde, $novedadesHasta);
 
+        //dd($historiaPaciente);
+
         $obrasSociales = $obraSocialRepository->findAll();
         $obraSocialesArray = [];
         foreach ($obrasSociales as $obraSocial) {
             $obraSocialesArray[$obraSocial->getId()] = $obraSocial->getNombre();
+        }
+
+        $habitaciones = $habitacionRepository->findAll();
+        $habitacionesArray = [];
+        foreach ($habitaciones as $habitacion) {
+            $habitacionesArray[$habitacion->getId()] = $habitacion->getNombre();
         }
 
         $turnos = [];
@@ -687,7 +713,7 @@ class ClienteController extends AbstractController
                     }
                 }
             }
-            dd($turnos);
+            //TODO: que quise hacer acá! dd($turnos);
         } else {
             $turnos = $bookingRepository->turnosConFiltro('', $cliente->getId(), $notasDesde, $notasHasta, 1);
             foreach ($turnos as $turno) {
@@ -726,6 +752,7 @@ class ClienteController extends AbstractController
                 'evolucionesDesde' => $evolucionesDesde,
                 'evolucionesHasta' => $evolucionesHasta,
                 'puedeEditarEvolucion' => in_array($userName, $puedenEditarEvoluciones),
+                'habitacionesArray' => $habitacionesArray,
         ]);
     }
 

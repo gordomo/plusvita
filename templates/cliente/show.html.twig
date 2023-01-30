@@ -18,6 +18,14 @@
                 <td>{{ cliente.apellido }}</td>
             </tr>
             <tr>
+                <th>Habitación</th>
+                <td>{{ habitacionArray[cliente.habitacion] ?? '' }}</td>
+            </tr>
+            <tr>
+                <th>Cama</th>
+                <td>{{ cliente.nCama }}</td>
+            </tr>
+            <tr>
                 <th>Número de Documento</th>
                 <td>{{ cliente.dni }}</td>
             </tr>
