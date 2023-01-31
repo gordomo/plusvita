@@ -503,17 +503,17 @@
                                                 {% if historia.habitacion != historiaPaciente[key - 1].habitacion %}
                                                     <b class="text-capitalize">habitacion:</b>
                                                     de
-                                                    <b class="text-capitalize">{{ historiaPaciente[key - 1].habitacion }}</b>
+                                                    <b class="text-capitalize">{{ historiaPaciente[key - 1].habitacion ? habitacionesArray[historiaPaciente[key - 1].habitacion] : 'ninguna' }}</b>
                                                     a
-                                                    <b class="text-capitalize">{{ historia.habitacion }}</b>
+                                                    <b class="text-capitalize">{{ historia.habitacion ? habitacionesArray[historia.habitacion] : 'ninguna'}}</b>
                                                     <br>
                                                 {% endif %}
                                                 {% if historia.cama != historiaPaciente[key - 1].cama %}
                                                     <b class="text-capitalize">cama:</b>
                                                     de
-                                                    <b class="text-capitalize">{{ historiaPaciente[key - 1].cama }}</b>
+                                                    <b class="text-capitalize">{{ historiaPaciente[key - 1].cama ?? 'ninguna' }}</b>
                                                     a
-                                                    <b class="text-capitalize">{{ historia.cama }}</b>
+                                                    <b class="text-capitalize">{{ historia.cama ?? 'ninguna'}}</b>
                                                     <br>
                                                 {% endif %}
                                                 {% if historia.fechaIngreso != historiaPaciente[key - 1].fechaIngreso %}

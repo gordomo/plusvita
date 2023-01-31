@@ -698,8 +698,6 @@ class ClienteController extends AbstractController
 
         $historiaPaciente = $historiaPacienteRepository->getHistorialDesdeHasta($cliente, $novedadesDesde, $novedadesHasta);
 
-        //dd($historiaPaciente);
-
         $obrasSociales = $obraSocialRepository->findAll();
         $obraSocialesArray = [];
         foreach ($obrasSociales as $obraSocial) {
