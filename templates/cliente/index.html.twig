@@ -25,9 +25,21 @@
                     </div>
                 </div>
             </div>
-            <div class="col-7">
+            <div class="col-4">
                 <div class="btn btn-primary">
                     <strong>{{ clientesCount }}</strong> Pacientes <strong class="text-uppercase">{{ pestana }}</strong> en las fechas seleccionadas
+                </div>
+            </div>
+            <div class="col-3">
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        {{ idObraSelected is not null ? oSociales[idObraSelected] : 'Filtrar por O. Sociales' }}
+                    </button>
+                    <div class="dropdown-menu " aria-labelledby="dropdownMenuButton">
+                        {% for idObra, obra in oSociales %}
+                            <a class="dropdown-item text-white" href="{{ path('cliente_index') }}{{  pestana != 'activos' ? '?pestana=' ~ pestana ~ '&idObra=' ~ idObra : '?idObra=' ~ idObra }}">{{ obra }}</a>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>
@@ -106,6 +118,8 @@
                     <th class="telefono">Teléfono</th>
                     <th class="fIngreso">Fecha Ingreso</th>
                     <th class="motivoIng">Motivo Ing</th>
+                    <th class="diasInternado">Días Internado</th>
+                    <th class="diasAmbulatorio">Días Ambulatorio</th>
                     <th class="motivoIngEspecifico">Motivo Ing Especifico</th>
                     <th class="modalidad">Modalidad</th>
                     <th class="fEgreso">Fecha Egreso</th>
@@ -191,6 +205,8 @@
                                 Patologías laborales
                             {% endif %}
                         </td>
+                        <td class="diasInternado">{{ diasInternado[cliente.id] }}</td>
+                        <td class="diasAmbulatorio">{{ diasAmbulatorio[cliente.id] }}</td>
                         <td class="motivoIngEspecifico">{{ cliente.motivoIngEspecifico }}</td>
                         <td class="modalidad">
                             {% if(cliente.modalidad == 1) %}
@@ -205,7 +221,7 @@
                         </td>
                         <td class="fEgreso">{{ cliente.fEgreso ? cliente.fEgreso|date('Y-m-d') : '' }}</td>
                         <td class="motivoEgr">{{ cliente.motivoEgr }}</td>
-                        <td class="obraSocial">{{ cliente.obraSocial }}</td>
+                        <td class="obraSocial">{{ oSociales[cliente.obraSocial] }}</td>
                         <td class="obraSocialAfiliado">{{ cliente.obraSocialAfiliado }}</td>
                         <td class="tipoDePago">{{ cliente.tipoDePago }}</td>
                         <td class="vieneDe">{{ cliente.vieneDe }}</td>
@@ -346,7 +362,7 @@
                                 'docReferente', 'Email',
                                 'vieneDe', 'posicionEnArchivo',
                                 'docDerivante',
-                                'modalidad', 'motivoIngEspecifico',
+                                'modalidad', 'motivoIngEspecifico', 'diasInternado', 'diasAmbulatorio',
                                 'habitacion', 'nCama', 'habPrivada', 'familiarResponsableNombre','familiarResponsableTel',
                                 'familiarResponsableMail','familiarResponsableAcompanante',
                                 'vinculoResponsable', 'sistemaDeEmergenciaNombre',
@@ -366,7 +382,6 @@
                                             {% if fiel == 'habitacion' %} checked {% endif %}
                                             {% if fiel == 'nCama' %} checked {% endif %}
                                             {% if fiel == 'fIngreso' %} checked {% endif %}
-                                            {% if fiel == 'obraSocial' %} checked {% endif %}
                                             {% if fiel == 'tipoDePago' %} checked {% endif %}
                                             {% if fiel == 'motivoIng' %} checked {% endif %}
                                             {% if fiel == 'docReferente' %} checked {% endif %}
@@ -403,7 +418,7 @@
                 'docReferente', 'Email',
                 'vieneDe', 'posicionEnArchivo',
                 'docDerivante',
-                'modalidad', 'motivoIngEspecifico',
+                'modalidad', 'motivoIngEspecifico', 'diasInternado', 'diasInternado',
                 'habitacion', 'nCama', 'habPrivada', 'familiarResponsableNombre','familiarResponsableTel',
                 'familiarResponsableMail','familiarResponsableAcompanante',
                 'vinculoResponsable', 'sistemaDeEmergenciaNombre',

@@ -33,8 +33,8 @@ if(typeof (form) != "undefined" && form != null && form.name != 'booking' && for
 $('#buscarPorNombre').click( function () {
     var nombreInput = $('#nombreInput').val();
     var url = $(this).data('url');
-    var inactivo = $(this).data('inactivo');
-    if (inactivo) {
+
+    if (url.includes('?')) {
         url += '&nombreInput=';
     } else {
         url += '?nombreInput=';

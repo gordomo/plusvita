@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Form\UserType;
 use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -62,11 +63,15 @@ class UserController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $roles = $form->get('roles')->getData() ?? ['ROLE_USER'];
+            $rol = $form->get('roles')->getData();
+            $roles = empty($rol) ? ['ROLE_USER'] : $rol;
             $password = $form->get('password')->getData() ?? '';
             $user->setRoles($roles);
             $encodePass = $passwordEncoder->encodePassword($user, $password);
             $user->setPassword($encodePass);
+            $email = $form->get('email')->getData() ?? '';
+            $parts = explode("@", $email);
+            $user->setUsername($parts[0]);
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($user);
             $entityManager->flush();
@@ -95,30 +100,15 @@ class UserController extends AbstractController
     /**
      * @Route("/{id}/edit", name="user_edit", methods={"GET","POST"})
      */
-    public function edit(Request $request, User $user): Response
+    public function edit(Request $request, User $user, UserPasswordEncoderInterface $passwordEncoder): Response
     {
-        $form = $this->createFormBuilder($user)
-            ->add('username', TextType::class, ['required' => false])
-            ->add('roles', ChoiceType::class, ['choices'  => [
-                'Administrador' => "ROLE_ADMIN",
-                'Operador' => "ROLE_USER",
-            ],
-                'multiple'=>true,
-                'expanded'=>true,
-            ])
-            ->add('legajo', TextType::class, ['required' => false])
-            ->add('password', PasswordType::class)
-            ->add('email', EmailType::class, ['required' => false])
-            ->add('telefono', TelType::class, ['required' => false])
-            ->add('save', SubmitType::class, ['label' => 'Guardar'])
-            ->getForm();
+        $form = $this->createForm(UserType::class, $user, ['allow_extra_fields' => true]);
 
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $roles = $form->get('roles')->getData() ?? ['ROLE_USER'];
             $user->setRoles($roles);
-
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($user);
             $entityManager->flush();

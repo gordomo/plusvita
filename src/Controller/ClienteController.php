@@ -51,7 +51,7 @@ class ClienteController extends AbstractController
     /**
      * @Route("/", name="cliente_index", methods={"GET"})
      */
-    public function index(Request $request, ClienteRepository $clienteRepository, HabitacionRepository $habitacionRepository): Response
+    public function index(Request $request, ClienteRepository $clienteRepository, HabitacionRepository $habitacionRepository, ObraSocialRepository $obraSocialRepository): Response
     {
         $user = $this->getUser();
         if (!$user) {
@@ -61,6 +61,7 @@ class ClienteController extends AbstractController
         }
 
         $pestana = $request->query->get('pestana') ?? 'activos';
+        $idObra = $request->query->get('idObra') ?? null;
         $nombreInput = $request->query->get('nombreInput');
         $hab = $request->query->get('hab') ?? null;
 
@@ -72,17 +73,25 @@ class ClienteController extends AbstractController
         $desde = $request->query->get('desde') ?? $f->format('Y-m-d');
         $hasta = $request->query->get('hasta') ?? $l->format('Y-m-d');
 
+        $desdeDateTime = new \DateTime($desde);
+        $hastaDateTime = new \DateTime($hasta);
+
         if ($pestana == 'inactivos') {
-            $clientes = $clienteRepository->findInActivos(new \DateTime(), $nombreInput, null, new \DateTime($desde), new \DateTime($hasta));
+            $clientes = $clienteRepository->findInActivos(new \DateTime(), $nombreInput, null, $desdeDateTime, $hastaDateTime, $idObra);
         } else if ( $pestana == 'derivados') {
-            $clientes = $clienteRepository->findDerivados(new \DateTime(), $nombreInput);
+            $clientes = $clienteRepository->findDerivados(new \DateTime(), $nombreInput, null, $desdeDateTime, $hastaDateTime, $idObra);
         } else if ( $pestana == 'permiso') {
-            $clientes = $clienteRepository->findDePermiso(new \DateTime(), $nombreInput);
+            $clientes = $clienteRepository->findDePermiso(new \DateTime(), $nombreInput, null, $desdeDateTime, $hastaDateTime, $idObra);
         } else if ( $pestana == 'ambulatorios') {
-            $clientes = $clienteRepository->findAmbulatorios(new \DateTime(), $nombreInput);
+            $clientes = $clienteRepository->findAmbulatorios(new \DateTime(), $nombreInput, null, $desdeDateTime, $hastaDateTime, $idObra);
         } else {
-            $clientes = $clienteRepository->findActivos(new \DateTime(), $nombreInput, $hab, null, new \DateTime($desde), new \DateTime($hasta));
+            $clientes = $clienteRepository->findActivos(new \DateTime(), $nombreInput, $hab, 'id', $desdeDateTime, $hastaDateTime, $idObra);
         }
+
+        $internadoAmbulatorioClientes = $this->getDiasInternadoAmbulatorioClientes($clientes, $desdeDateTime, $hastaDateTime, $pestana);
+        $clientsArray = $internadoAmbulatorioClientes['clientes'];
+        $diasInternado = $internadoAmbulatorioClientes['diasInternado'];
+        $diasAmbulatorio = $internadoAmbulatorioClientes['diasAmbulatorio'];
 
         $habitaciones = $habitacionRepository->getHabitacionesConPacientes();
 
@@ -91,15 +100,25 @@ class ClienteController extends AbstractController
             $habitacionesArray[$habitacion->getId()] = $habitacion->getNombre();
         }
 
+        $obrasSociales = $obraSocialRepository->createQueryBuilder('o')->addOrderBy('o.nombre', 'ASC')->getQuery()->getResult();
+        $obArray = [];
+        foreach ( $obrasSociales as $ob ) {
+            $obArray[$ob->getId()] = $ob->getNombre();
+        }
+
         return $this->render('cliente/index.html.twig', [
-            'clientes' => $clientes,
-            'clientesCount' => count($clientes),
+            'clientes' => $clientsArray,
+            'clientesCount' => count($clientsArray),
             'pestana' => $pestana,
             'nombreInput' => $nombreInput,
             'habitacionesArray'=>$habitacionesArray,
             'paginaImprimible' => true,
             'desde' => $desde,
             'hasta' => $hasta,
+            'diasInternado' => $diasInternado,
+            'diasAmbulatorio' => $diasAmbulatorio,
+            'oSociales' => $obArray,
+            'idObraSelected' => $idObra,
         ]);
     }
 
@@ -1276,5 +1295,77 @@ class ClienteController extends AbstractController
         $historial->setAmbulatorio($ambulatorio);
 
         return $historial;
+    }
+
+    private function getDiasInternadoAmbulatorioClientes($clientes, $desdeDateTime, $hastaDateTime, $pestana) {
+        $diasInternado = [];
+        $diasAmbulatorio = [];
+        $clientsArray = [];
+        foreach ($clientes as $cliente) {
+            $clientsArray[$cliente->getId()] = $cliente;
+            $historial = $cliente->getHistoria();
+            $interval = new \DateInterval('P1D');
+            $daterange = new \DatePeriod($desdeDateTime, $interval, $hastaDateTime);
+            $modalidadActual = 0;
+
+            $diasInternado[$cliente->getId()] = 0;
+            $diasAmbulatorio[$cliente->getId()] = 0;
+
+            foreach ($historial as $key => $hist) {
+                $modalidadActual = $hist->getModalidad();
+
+                if($key === 0) {
+                    $fechaIngreso = $hist->getFechaIngreso();
+                    if ($fechaIngreso == null) {
+                        $fechaIngreso = $hist->getFecha();
+                    }
+                    $interval = $fechaIngreso->diff($hist->getFecha());
+                    $differenceInDays = $interval->format('%a');
+                    if($modalidadActual == 2) {
+                        $diasInternado[$cliente->getId()] = $differenceInDays;
+                    } else if($modalidadActual == 1) {
+                        $diasAmbulatorio[$cliente->getId()] = $differenceInDays;
+                    }
+                } else {
+                    $interval = $historial[$key - 1]->getFecha()->diff($hist->getFecha());
+                    $differenceInDays = $interval->format('%a');
+
+                    if($historial[$key - 1]->getModalidad() == 2) {
+                        $diasInternado[$cliente->getId()] += $differenceInDays;
+                    } else if($historial[$key - 1]->getModalidad() == 1) {
+                        $diasAmbulatorio[$cliente->getId()] += $differenceInDays;
+                    }
+                }
+            }
+            $lastHistorial = $historial[count($historial) - 1];
+
+            if ($lastHistorial != null) {
+                $lastHistorialDate = $lastHistorial->getFecha();
+                $interval = $lastHistorialDate->diff($hastaDateTime);
+                $differenceInDays = $interval->format('%a');
+
+                if($lastHistorial->getModalidad() == 1) {
+                    $diasInternado[$cliente->getId()] += $differenceInDays;
+                } else {
+                    $diasAmbulatorio[$cliente->getId()] += $differenceInDays;
+                }
+            }
+        }
+
+        if ($pestana == 'activos') {
+            foreach ($diasInternado as $key => $inter) {
+                if ($inter == 0) {
+                    unset($clientsArray[$key]);
+                }
+            }
+        } else {
+            foreach ($diasAmbulatorio as $key => $inter) {
+                if ($inter == 0) {
+                    unset($clientsArray[$key]);
+                }
+            }
+        }
+
+        return ['diasInternado' => $diasInternado, 'diasAmbulatorio' => $diasAmbulatorio, 'clientes' => $clientsArray];
     }
 }

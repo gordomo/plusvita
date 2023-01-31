@@ -5,18 +5,18 @@
         {{ form_label(form.username, 'Nombre de Usuario') }}
         {{ form_widget(form.username) }}
     </div>
-    <div class="col-sm">
+    {#<div class="col-sm">
         {{ form_label(form.password, 'Password') }}
         {{ form_widget(form.password) }}
-    </div>
-</div>
-<br>
-<div class="form-row">
+    </div>#}
     <div class="col-sm">
         {{ form_label(form.email, 'Email') }}
         {#{{ form_widget(form.email, {'attr': { 'data-staff_check_email-url' : path('staff_check_email'), 'data-user-id' : user.id }}) }}#}
         {{ form_widget(form.email, {'attr': { 'class' : 'not-check' }}) }}
     </div>
+</div>
+<br>
+<div class="form-row">
     <div class="col-sm">
         {{ form_label(form.telefono, 'Teléfono') }}
         {{ form_widget(form.telefono) }}
