@@ -141,7 +141,7 @@ class ClienteRepository extends ServiceEntityRepository
         $query = $this->createQueryBuilder('c');
 
         if($desde && $hasta) {
-            $query->andWhere('c.fIngreso >= :desde')->setParameter('desde', $desde)->andWhere('c.fEgreso <= :hasta')->setParameter('hasta', $hasta);
+            $query->andWhere('c.fIngreso >= :desde')->setParameter('desde', $desde)->andWhere('c.fEgreso <= :hasta or c.fEgreso IS NULL')->setParameter('hasta', $hasta);
         } else {
             $query->andWhere('c.fEgreso > :val OR c.fEgreso IS NULL')->setParameter('val', $value);
         }

@@ -458,6 +458,17 @@
 
         $('.desdeHasta').change(function () {
             if($('.desde').val() <= $('.hasta').val()) {
+                const buttons = document.querySelectorAll("button");
+                const links = document.querySelectorAll("a");
+
+                buttons.forEach(function(button) {
+                    button.disabled = true;
+                });
+                links.forEach(function(link) {
+                    link.style.pointerEvents = "none";
+                });
+
+
                 window.location.href = '{{ path('cliente_index') }}?pestana={{ pestana }}&desde='+$('.desde').val()+'&hasta='+$('.hasta').val()+'';
             }
         });
