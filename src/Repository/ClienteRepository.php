@@ -63,7 +63,6 @@ class ClienteRepository extends ServiceEntityRepository
     }
 
 
-
     public function findDerivados($value, $nombre, $orderBy = null, $desde = null, $hasta = null, $idObra = null)
     {
         $query = $this->createQueryBuilder('c');
@@ -71,7 +70,7 @@ class ClienteRepository extends ServiceEntityRepository
         ->orWhere('c.fEgreso IS NULL');*/
 
         if($desde && $hasta) {
-            $query->andWhere('c.fIngreso >= :desde')->setParameter('desde', $desde)->andWhere('c.fEgreso <= :hasta')->setParameter('hasta', $hasta);
+            $query->andWhere('c.fIngreso >= :desde')->setParameter('desde', $desde)->andWhere('c.fEgreso <= :hasta or c.fEgreso is null')->setParameter('hasta', $hasta);
         } else {
             $query->andWhere('c.fEgreso > :val OR c.fEgreso IS NULL')->setParameter('val', $value);
         }
@@ -102,16 +101,17 @@ class ClienteRepository extends ServiceEntityRepository
     }
 
 
-
     public function findDePermiso($value, $nombre, $orderBy = null, $desde = null, $hasta = null, $idObra = null)
     {
         $query = $this->createQueryBuilder('c');
 
-        /*if($desde && $hasta) {
+        if($desde && $hasta) {
             $query->andWhere('c.fechaAltaPorPermiso >= :desde')->setParameter('desde', $desde)->andWhere('c.fechaBajaPorPermiso <= :hasta or c.fechaBajaPorPermiso is null')->setParameter('hasta', $hasta);
         } else {
             $query->andWhere('c.fechaAltaPorPermiso > :val OR c.fechaBajaPorPermiso IS NULL')->setParameter('val', $value);
-        }*/
+        }
+
+        $query->andWhere('c.fEgreso > :val')->setParameter('val', $value);
 
         if ( $nombre != '' ) {
             $arrayNombres = explode(' ', $nombre);
@@ -133,7 +133,6 @@ class ClienteRepository extends ServiceEntityRepository
 
         return $query->andWhere('c.dePermiso = 1')->getQuery()->getResult();
     }
-
 
 
     public function findAmbulatorios($value, $nombre, $orderBy = null, $desde = null, $hasta = null, $idObra = null)
@@ -166,7 +165,6 @@ class ClienteRepository extends ServiceEntityRepository
 
         return $query->andWhere('c.ambulatorio = 1 or c.habitacion is null')->getQuery()->getResult();
     }
-
 
 
     public function findInActivos($value, $nombre, $orderBy = null, $desde = null, $hasta = null, $idObra = null)
@@ -204,7 +202,6 @@ class ClienteRepository extends ServiceEntityRepository
 
         return $query->getQuery()->getResult();
     }
-
 
 
     public function findByNombreYobraSocial($nombre = null, $oSocial = null)
