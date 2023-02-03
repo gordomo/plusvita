@@ -19,7 +19,7 @@ class ClienteRepository extends ServiceEntityRepository
         parent::__construct($registry, Cliente::class);
     }
 
-    public function findActivos($value, $nombre, $hab = null, $orderBy = null)
+    public function findActivos($value, $nombre, $hab = null, $orderBy = null, $os = null)
     {
         $query = $this->createQueryBuilder('c')
             ->andWhere('c.fEgreso > :val')->setParameter('val', $value)
@@ -48,6 +48,11 @@ class ClienteRepository extends ServiceEntityRepository
         } else {
             $query = $query->orderBy('c.hClinica', 'ASC');
         }
+
+        if ( $os ) {
+            $query->andWhere('c.obraSocial = :os')->setParameter("os", $os);
+        }
+
         return $query->getQuery()->getResult();
     }
 
@@ -72,7 +77,7 @@ class ClienteRepository extends ServiceEntityRepository
             ;
     }
 
-    public function findDerivados($value, $nombre, $orderBy = null)
+    public function findDerivados($value, $nombre, $orderBy = null, $os = null)
     {
         $query = $this->createQueryBuilder('c')
             ->andWhere('c.fEgreso > :val')->setParameter('val', $value)
@@ -91,6 +96,10 @@ class ClienteRepository extends ServiceEntityRepository
             $query = $query->orderBy('c.'.$orderBy, 'ASC');
         } else {
             $query = $query->orderBy('c.hClinica', 'ASC');
+        }
+
+        if ( $os ) {
+            $query->orWhere('c.obraSocial = :os')->setParameter("os", $os);
         }
 
         return $query->andWhere('c.derivado = 1')
@@ -99,7 +108,7 @@ class ClienteRepository extends ServiceEntityRepository
             ;
     }
 
-    public function findDePermiso($value, $nombre, $orderBy = null)
+    public function findDePermiso($value, $nombre, $orderBy = null, $os = null)
     {
         $query = $this->createQueryBuilder('c')
             ->andWhere('c.fEgreso > :val')->setParameter('val', $value)
@@ -116,11 +125,14 @@ class ClienteRepository extends ServiceEntityRepository
             $query = $query->orderBy('c.'.$orderBy, 'ASC');
         } else {
             $query = $query->orderBy('c.hClinica', 'ASC');
+        }
+        if ( $os ) {
+            $query->orWhere('c.obraSocial = :os')->setParameter("os", $os);
         }
         return $query->andWhere('c.dePermiso = 1')->getQuery()->getResult();
     }
 
-    public function findAmbulatorios($value, $nombre, $orderBy = null)
+    public function findAmbulatorios($value, $nombre, $orderBy = null, $os = null)
     {
         $query = $this->createQueryBuilder('c')
             ->andWhere('c.fEgreso > :val')->setParameter('val', $value)
@@ -139,10 +151,13 @@ class ClienteRepository extends ServiceEntityRepository
         } else {
             $query = $query->orderBy('c.hClinica', 'ASC');
         }
+        if ( $os ) {
+            $query->orWhere('c.obraSocial = :os')->setParameter("os", $os);
+        }
         return $query->andWhere('c.ambulatorio = 1')->getQuery()->getResult();
     }
 
-    public function findInActivos($value, $nombre, $orderBy = null)
+    public function findInActivos($value, $nombre, $orderBy = null, $os = null)
     {
         $query = $this->createQueryBuilder('c')
             ->andWhere('c.fEgreso <= :val')->setParameter('val', $value);
@@ -163,6 +178,10 @@ class ClienteRepository extends ServiceEntityRepository
                 $query = $query->orderBy('c.'.$orderBy, 'ASC');
             } else {
                 $query = $query->orderBy('c.hClinica', 'ASC');
+            }
+
+            if ( $os ) {
+                $query->orWhere('c.obraSocial = :os')->setParameter("os", $os);
             }
 
 

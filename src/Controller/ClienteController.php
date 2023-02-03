@@ -51,7 +51,7 @@ class ClienteController extends AbstractController
     /**
      * @Route("/", name="cliente_index", methods={"GET"})
      */
-    public function index(Request $request, ClienteRepository $clienteRepository, HabitacionRepository $habitacionRepository): Response
+    public function index(Request $request, ClienteRepository $clienteRepository, HabitacionRepository $habitacionRepository, ObraSocialRepository $obraSocialRepository): Response
     {
         $user = $this->getUser();
         if (!$user) {
@@ -63,17 +63,24 @@ class ClienteController extends AbstractController
         $pestana = $request->query->get('pestana') ?? 'activos';
         $nombreInput = $request->query->get('nombreInput');
         $hab = $request->query->get('hab') ?? null;
+        $idObra = $request->query->get('idObra') ?? null;
+
+        $obrasSociales = $obraSocialRepository->findAll();
+        $obArray = [];
+        foreach ( $obrasSociales as $ob ) {
+            $obArray[$ob->getId()] = $ob->getNombre();
+        }
 
         if ($pestana == 'inactivos') {
-            $clientes = $clienteRepository->findInActivos(new \DateTime(), $nombreInput);
+            $clientes = $clienteRepository->findInActivos(new \DateTime(), $nombreInput, null, $idObra);
         } else if ( $pestana == 'derivados') {
-            $clientes = $clienteRepository->findDerivados(new \DateTime(), $nombreInput);
+            $clientes = $clienteRepository->findDerivados(new \DateTime(), $nombreInput, null, $idObra);
         } else if ( $pestana == 'permiso') {
-            $clientes = $clienteRepository->findDePermiso(new \DateTime(), $nombreInput);
+            $clientes = $clienteRepository->findDePermiso(new \DateTime(), $nombreInput, null, $idObra);
         } else if ( $pestana == 'ambulatorios') {
-            $clientes = $clienteRepository->findAmbulatorios(new \DateTime(), $nombreInput);
+            $clientes = $clienteRepository->findAmbulatorios(new \DateTime(), $nombreInput, null, $idObra);
         } else {
-            $clientes = $clienteRepository->findActivos(new \DateTime(), $nombreInput, $hab);
+            $clientes = $clienteRepository->findActivos(new \DateTime(), $nombreInput, $hab, null, $idObra);
         }
 
         $habitaciones = $habitacionRepository->getHabitacionesConPacientes();
@@ -89,6 +96,8 @@ class ClienteController extends AbstractController
             'nombreInput' => $nombreInput,
             'habitacionesArray'=>$habitacionesArray,
             'paginaImprimible' => true,
+            'oSociales' => $obArray,
+            'idObraSelected' => $idObra,
         ]);
     }
 

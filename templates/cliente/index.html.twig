@@ -9,7 +9,7 @@
 {% block body %}
     <div class="container-fluid">
         <div class="row">
-            <div class="col-sm">
+            <div class="col-5">
                 <div>
                     <ul class="nav nav-tabs justify-content-center">
                         <li class="nav-item">
@@ -30,11 +30,23 @@
                     </ul>
                 </div>
             </div>
-            {% if (pestana == 'activos') %}
-            <div>
+            <div class="{% if (pestana == 'activos') %} col-1 {% else %} col-3 {% endif %}">
                 <div class="dropdown">
-                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Filtrar por Habitación
+                    <button class="btn btn-secondary dropdown-toggle w-100" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        {{ idObraSelected is not null ? oSociales[idObraSelected] : 'O. Sociales' }}
+                    </button>
+                    <div class="dropdown-menu " aria-labelledby="dropdownMenuButton">
+                        {% for idObra, obra in oSociales %}
+                            <a class="dropdown-item text-white" href="{{ path('cliente_index') }}{{  pestana != 'activos' ? '?pestana=' ~ pestana ~ '&idObra=' ~ idObra : '?idObra=' ~ idObra }}">{{ obra }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% if (pestana == 'activos') %}
+            <div class="col-1">
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle w-100" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Habitación
                     </button>
                     <div class="dropdown-menu " aria-labelledby="dropdownMenuButton">
                         <a class="dropdown-item text-white" href="{{ path('cliente_index') }}{{  pestana != 'activos' ? '?pestana=' ~ pestana : '' }}">Todas</a>
@@ -45,7 +57,7 @@
                 </div>
             </div>
             {% endif %}
-            <div class="col-sm">
+            <div class="col-5">
                 <div class="input-group mb-3">
                     <input id='nombreInput' type="text" value="{{ nombreInput }}" class="form-control" placeholder="Buscar por Nombre" aria-label="Buscar por Nombre" aria-describedby="buscarPorNombre">
                     <div class="input-group-append">
@@ -182,7 +194,7 @@
                         </td>
                         <td class="fEgreso">{{ cliente.fEgreso ? cliente.fEgreso|date('Y-m-d') : '' }}</td>
                         <td class="motivoEgr">{{ cliente.motivoEgr }}</td>
-                        <td class="obraSocial">{{ cliente.obraSocial }}</td>
+                        <td class="obraSocial">{{ oSociales[cliente.obraSocial] }}</td>
                         <td class="obraSocialAfiliado">{{ cliente.obraSocialAfiliado }}</td>
                         <td class="tipoDePago">{{ cliente.tipoDePago }}</td>
                         <td class="vieneDe">{{ cliente.vieneDe }}</td>
