@@ -181,6 +181,11 @@ class Doctor implements UserInterface
     private $doctor;
 
     /**
+     * @ORM\Column(type="boolean")
+     */
+    private $habilitado;
+
+    /**
      * @return mixed
      */
     public function getMaxCliTurno()
@@ -663,6 +668,18 @@ class Doctor implements UserInterface
                 $doctor->setUser(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getHabilitado(): ?bool
+    {
+        return $this->habilitado;
+    }
+
+    public function setHabilitado(bool $habilitado): self
+    {
+        $this->habilitado = $habilitado;
 
         return $this;
     }
