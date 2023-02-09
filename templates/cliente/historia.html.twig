@@ -77,8 +77,8 @@
     <!-- modal imprimir local inicio -->
 
     <div class="row tituloHistoria">
-        <div class="col-4">
-            <h3>Historia Clinica: {{ cliente.hClinica }}</h3>
+        <div class="col-12">
+            <h3>Historia Clinica: {{ cliente.hClinica }} {% if cliente.posicionEnArchivo %} - Posición en el Archivo: {{ cliente.posicionEnArchivo }} {% endif %}</h3>
         </div>
     </div>
     <div class="row">
