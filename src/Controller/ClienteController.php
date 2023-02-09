@@ -65,7 +65,7 @@ class ClienteController extends AbstractController
         $hab = $request->query->get('hab') ?? null;
         $idObra = $request->query->get('idObra') ?? null;
 
-        $obrasSociales = $obraSocialRepository->findAll();
+        $obrasSociales = $obraSocialRepository->findBy(array(), array('nombre' => 'ASC'));
         $obArray = [];
         foreach ( $obrasSociales as $ob ) {
             $obArray[$ob->getId()] = $ob->getNombre();
