@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Form\UserType;
 use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -96,9 +97,10 @@ class UserController extends AbstractController
     /**
      * @Route("/{id}/edit", name="user_edit", methods={"GET","POST"})
      */
-    public function edit(Request $request, User $user): Response
+    public function edit(Request $request, User $user, UserPasswordEncoderInterface $passwordEncoder): Response
     {
-        $form = $this->createFormBuilder($user)
+        $oldPassword = $user->getPassword();
+        /*$form = $this->createFormBuilder($user)
             ->add('username', TextType::class, ['required' => false])
             ->add('roles', ChoiceType::class, ['choices'  => [
                 'Administrador' => "ROLE_ADMIN",
@@ -109,17 +111,27 @@ class UserController extends AbstractController
                 'expanded'=>true,
             ])
             ->add('legajo', TextType::class, ['required' => false])
-            ->add('password', PasswordType::class)
+            ->add('password', PasswordType::class, ['required' => false])
             ->add('email', EmailType::class, ['required' => false])
             ->add('telefono', TelType::class, ['required' => false])
             ->add('save', SubmitType::class, ['label' => 'Guardar'])
-            ->getForm();
+            ->getForm();*/
+
+        $form = $this->createForm(UserType::class, $user);
 
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $roles = $form->get('roles')->getData() ?? ['ROLE_USER'];
             $user->setRoles($roles);
+
+            if ($form->get('password')->getData() == 'noPass') {
+                $user->setPassword($oldPassword);
+            } else {
+                $password = $form->get('password')->getData() ?? '';
+                $encodePass = $passwordEncoder->encodePassword($user, $password);
+                $user->setPassword($encodePass);
+            }
 
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($user);
