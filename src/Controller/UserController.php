@@ -44,22 +44,7 @@ class UserController extends AbstractController
     public function new(Request $request, UserPasswordEncoderInterface $passwordEncoder): Response
     {
         $user = new User();
-        $form = $this->createFormBuilder($user)
-            //->add('username', TextType::class, ['required' => true])
-            ->add('roles', ChoiceType::class, ['choices'  => [
-                                                            'Administrador' => "ROLE_ADMIN",
-                                                            'Operador' => "ROLE_USER",
-                                                            'Editar HC' => "ROLE_EDIT_HC",
-                                                            ],
-                                                          'multiple'=>true,
-                                                          'expanded'=>true,
-                                                        ])
-            ->add('legajo', TextType::class, ['required' => false])
-            ->add('password', PasswordType::class)
-            ->add('email', EmailType::class, ['attr' => ['autocomplete' => 'off', 'value'=>""]])
-            //->add('telefono', TelType::class, ['required' => false])
-            ->add('save', SubmitType::class, ['label' => 'Guardar'])
-            ->getForm();
+        $form = $this->createForm(UserType::class, $user);
 
         $form->handleRequest($request);
 
@@ -100,22 +85,6 @@ class UserController extends AbstractController
     public function edit(Request $request, User $user, UserPasswordEncoderInterface $passwordEncoder): Response
     {
         $oldPassword = $user->getPassword();
-        /*$form = $this->createFormBuilder($user)
-            ->add('username', TextType::class, ['required' => false])
-            ->add('roles', ChoiceType::class, ['choices'  => [
-                'Administrador' => "ROLE_ADMIN",
-                'Operador' => "ROLE_USER",
-                'Editar HC' => "ROLE_EDIT_HC",
-            ],
-                'multiple'=>true,
-                'expanded'=>true,
-            ])
-            ->add('legajo', TextType::class, ['required' => false])
-            ->add('password', PasswordType::class, ['required' => false])
-            ->add('email', EmailType::class, ['required' => false])
-            ->add('telefono', TelType::class, ['required' => false])
-            ->add('save', SubmitType::class, ['label' => 'Guardar'])
-            ->getForm();*/
 
         $form = $this->createForm(UserType::class, $user);
 
@@ -154,7 +123,7 @@ class UserController extends AbstractController
     {
         if ($this->isCsrfTokenValid('delete'.$user->getId(), $request->request->get('_token'))) {
             $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->remove($user);
+            $user->setHabilitado(false);
             $entityManager->flush();
         }
 

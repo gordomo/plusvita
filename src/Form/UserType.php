@@ -31,6 +31,10 @@ class UserType extends AbstractType
             ->add('password', PasswordType::class, ['required' => false, 'empty_data' => 'noPass'])
             ->add('email', EmailType::class, ['required' => false])
             ->add('telefono', TelType::class, ['required' => false])
+            ->add('habilitado', ChoiceType::class, ['required' => false, 'choices' => [
+                'Si' => 1,
+                'No' => 0
+            ]])
             ->add('save', SubmitType::class, ['label' => 'Guardar'])
         ;
     }

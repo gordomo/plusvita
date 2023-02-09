@@ -17,7 +17,7 @@
             </thead>
             <tbody>
             {% for user in users %}
-                <tr>
+                <tr class="{% if user.habilitado %} bg-info {% else %} bg-light {% endif %}">
                     <td class="id">{{ user.id }}</td>
                     <td class="user">{{ user.username }}</td>
                     <td class="roles">
@@ -32,7 +32,7 @@
                     <td class="lowercase email">{{ user.email }}</td>
                     <td class="telefono">{{ user.telefono }}</td>
                     <td>
-                        <a href="{{ path('user_edit', {'id': user.id}) }}">Editar</a>
+                        <a class="text-bold text-dark" href="{{ path('user_edit', {'id': user.id}) }}">Editar</a>
                     </td>
                 </tr>
             {% else %}

@@ -56,6 +56,11 @@ class User implements UserInterface
      */
     private $bookings;
 
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $habilitado;
+
     public function __construct()
     {
         $this->bookings = new ArrayCollection();
@@ -196,6 +201,18 @@ class User implements UserInterface
                 $booking->setUser(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getHabilitado(): ?bool
+    {
+        return $this->habilitado;
+    }
+
+    public function setHabilitado(bool $habilitado): self
+    {
+        $this->habilitado = $habilitado;
 
         return $this;
     }

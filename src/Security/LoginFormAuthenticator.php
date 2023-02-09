@@ -83,6 +83,7 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator implements P
 
     public function checkCredentials($credentials, UserInterface $user)
     {
+        if(!$user->getHabilitado()) return false;
         return $this->passwordEncoder->isPasswordValid($user, $credentials['password']);
     }
 
