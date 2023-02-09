@@ -489,9 +489,9 @@
                                                 {% if historia.habitacion != historiaPaciente[key - 1].habitacion %}
                                                     <b class="text-capitalize">habitacion:</b>
                                                     de
-                                                    <b class="text-capitalize">{{ historiaPaciente[key - 1].habitacion ? habitacionesArray[historiaPaciente[key - 1].habitacion] : 'ninguna' }}</b>
+                                                    <b class="text-capitalize">{{ (historiaPaciente[key - 1].habitacion and historiaPaciente[key - 1].habitacion in habitacionesArray|keys) ? habitacionesArray[historiaPaciente[key - 1].habitacion] : 'ninguna' }}</b>
                                                     a
-                                                    <b class="text-capitalize">{{ historia.habitacion ? habitacionesArray[historia.habitacion] : 'ninguna'}}</b>
+                                                    <b class="text-capitalize">{{ (historia.habitacion and historia.habitacion in habitacionesArray|keys) ? habitacionesArray[historia.habitacion] : 'ninguna'}}</b>
                                                     <br>
                                                 {% endif %}
                                                 {% if historia.cama != historiaPaciente[key - 1].cama %}
