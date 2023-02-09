@@ -48,6 +48,7 @@ class UserController extends AbstractController
             ->add('roles', ChoiceType::class, ['choices'  => [
                                                             'Administrador' => "ROLE_ADMIN",
                                                             'Operador' => "ROLE_USER",
+                                                            'Editar HC' => "ROLE_EDIT_HC",
                                                             ],
                                                           'multiple'=>true,
                                                           'expanded'=>true,
@@ -102,6 +103,7 @@ class UserController extends AbstractController
             ->add('roles', ChoiceType::class, ['choices'  => [
                 'Administrador' => "ROLE_ADMIN",
                 'Operador' => "ROLE_USER",
+                'Editar HC' => "ROLE_EDIT_HC",
             ],
                 'multiple'=>true,
                 'expanded'=>true,

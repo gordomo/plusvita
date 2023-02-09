@@ -145,12 +145,9 @@ class EvolucionController extends AbstractController
         $userName = $this->getUser()->getUsername();
         $redirect = $request->get('redirect', '');
 
-        $puedenEditarEvoluciones = [
-            'martin',
-            'cpveronicabonamigo@gmail.com'
-        ];
+        $puedenEditarEvoluciones = in_array('ROLE_EDIT_HC', $this->getUser()->getRoles());
 
-        if(in_array($userName, $puedenEditarEvoluciones)) {
+        if ( $puedenEditarEvoluciones ) {
             $form = $this->createForm(EvolucionType::class, $evolucion);
             $form->handleRequest($request);
 
@@ -180,16 +177,12 @@ class EvolucionController extends AbstractController
      */
     public function delete(Request $request, Evolucion $evolucion): Response
     {
-        $userName = $this->getUser()->getUsername();
         $clienteId = $evolucion->getPaciente()->getId();
         $redirect = $request->get('redirect', '');
 
-        $puedenEditarEvoluciones = [
-            'martin',
-            'cpveronicabonamigo@gmail.com'
-        ];
+        $puedenEditarEvoluciones = in_array('ROLE_EDIT_HC', $this->getUser()->getRoles());
 
-        if(in_array($userName, $puedenEditarEvoluciones)) {
+        if( $puedenEditarEvoluciones ) {
             if ($this->isCsrfTokenValid('delete'.$evolucion->getId(), $request->request->get('_token'))) {
                 $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->remove($evolucion);

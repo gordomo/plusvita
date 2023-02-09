@@ -596,14 +596,9 @@ class ClienteController extends AbstractController
     /**
      * @Route("/{id}/historia", name="cliente_historial", methods={"GET"})
      */
-    public function historia(Cliente $cliente, HistoriaPacienteRepository $historiaPacienteRepository, ObraSocialRepository $obraSocialRepository, NotasTurnoRepository $notasTurnoRepository, BookingRepository $bookingRepository, NotasHistoriaClinicaRepository $notasHistoriaClinicaRepository, EvolucionRepository $evolucionRepository, HistoriaEgresoRepository $historiaEgresoRepository, Request $request, DoctorRepository $doctorRepository, UserRepository $userRepository): Response
+    public function historia(Cliente $cliente, HistoriaPacienteRepository $historiaPacienteRepository, ObraSocialRepository $obraSocialRepository, NotasTurnoRepository $notasTurnoRepository, BookingRepository $bookingRepository, NotasHistoriaClinicaRepository $notasHistoriaClinicaRepository, EvolucionRepository $evolucionRepository, HistoriaEgresoRepository $historiaEgresoRepository, Request $request, DoctorRepository $doctorRepository, UserRepository $userRepository, HabitacionRepository $habitacionRepository): Response
     {
-        $userName = $this->getUser()->getUsername();
-
-        $puedenEditarEvoluciones = [
-            'martin',
-            'cpveronicabonamigo@gmail.com'
-        ];
+        $puedenEditarEvoluciones = in_array('ROLE_EDIT_HC', $this->getUser()->getRoles());
 
         $tipos = [
             'Nutricionista',
@@ -714,6 +709,12 @@ class ClienteController extends AbstractController
         $notasHistoria = $notasHistoriaClinicaRepository->findBy(['cliente' => $cliente]);
         $historiaEgreso = $historiaEgresoRepository->findBy(['cliente' => $cliente]);
 
+        $habitaciones = $habitacionRepository->findAll();
+        $habitacionesArray = [];
+        foreach ($habitaciones as $habitacion) {
+            $habitacionesArray[$habitacion->getId()] = $habitacion->getNombre();
+        }
+
         return $this->render('cliente/historia.html.twig', [
                 'cliente' => $cliente,
                 'historiaPaciente' => $historiaPaciente,
@@ -734,7 +735,8 @@ class ClienteController extends AbstractController
                 'tipoEvolucion' => $tiposEvolucion,
                 'evolucionesDesde' => $evolucionesDesde,
                 'evolucionesHasta' => $evolucionesHasta,
-                'puedeEditarEvolucion' => in_array($userName, $puedenEditarEvoluciones),
+                'puedeEditarEvolucion' => $puedenEditarEvoluciones,
+                'habitacionesArray' => $habitacionesArray,
         ]);
     }
 

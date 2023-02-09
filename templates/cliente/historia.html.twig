@@ -3,11 +3,12 @@
 {% block title %}Pacientes{% endblock %}
 {% block panelTitle %}
     <div id="head">
-        Nombre y Apellido: <strong>{{ cliente.nombre }} {{ cliente.apellido }}</strong><br>
+        Nombre y Apellido: <strong class="text-capitalize">{{ cliente.nombre }} {{ cliente.apellido }}</strong><br>
         DNI: <strong>{{ cliente.dni }}</strong> - Fecha de nacimiento: <strong>{{ cliente.fNacimiento | date('m/d/Y') }}</strong><br>
         Obra social: <strong>{{ obraSociales[cliente.obraSocial] is defined ? obraSociales[cliente.obraSocial] : '' }}</strong> - Nº Afiliado: <strong>{{ cliente.obraSocialAfiliado }}</strong><br>
         Fecha de Ingreso: <strong>{{ historiaPaciente[0] is defined and historiaPaciente[0].fechaIngreso ? historiaPaciente[0].fechaIngreso|date('m/d/Y') : cliente.fingreso|date('m/d/Y')}}</strong>
-        {% if historiaPaciente | last.habitacion ?? null %} Habitación: <strong> {{ historiaPaciente | last.habitacion }} {% endif %}</strong><br>
+        {% if historiaPaciente | last.habitacion ?? null %} Habitación: <strong> {{ habitacionesArray[historiaPaciente | last.habitacion] }} {% endif %}</strong>
+        {% if historiaPaciente | last.cama ?? null %} Cama: <strong> {{ historiaPaciente | last.cama }} {% endif %}</strong><br>
         {% if historiaPaciente[0] is defined and historiaPaciente[0].fechaEngreso %}
             Fecha de Egreso: <strong>{{ historiaPaciente[0] and  historiaPaciente[0].fechaEngreso ? historiaPaciente[0].fechaEngreso|date('m/d/Y') : cliente.fegreso|date('m/d/Y') }}</strong>
         {% endif %}
@@ -339,7 +340,7 @@
                     <h4>Novedades</h4>
                 </div>
                 <div class="col-lg-1 col-sm-12 col-md-1">
-                    <a href class="btn btn-link abrir" aria-expanded="true" aria-controls="collapseOne" data-toogle="cerrado" data-seccion="novedades">
+                    <a href class="btn btn-link abrir" aria-expanded="true" aria-controls="collapseOne" data-toogle="cerrado" data-seccion="novedades-section">
                         <i class="fas fa-chevron-down"></i>
                     </a>
                 </div>
@@ -371,7 +372,7 @@
                     </form>
                 </div>
                 <div class="col-12">
-                    <div id="novedades" class="collapse {% if section == 'novedades' %} show {% endif %}" aria-labelledby="headingOne" data-parent="#accordion">
+                    <div id="novedades-section" class="collapse {% if section == 'novedades' %} show {% endif %}" aria-labelledby="headingOne" data-parent="#accordion">
                         {% if historiaPaciente is not empty %}
                             <table class="table table-responsive table-striped table-wrapper-scroll-y">
                                 <thead>
@@ -488,17 +489,17 @@
                                                 {% if historia.habitacion != historiaPaciente[key - 1].habitacion %}
                                                     <b class="text-capitalize">habitacion:</b>
                                                     de
-                                                    <b class="text-capitalize">{{ historiaPaciente[key - 1].habitacion }}</b>
+                                                    <b class="text-capitalize">{{ historiaPaciente[key - 1].habitacion ? habitacionesArray[historiaPaciente[key - 1].habitacion] : 'ninguna' }}</b>
                                                     a
-                                                    <b class="text-capitalize">{{ historia.habitacion }}</b>
+                                                    <b class="text-capitalize">{{ historia.habitacion ? habitacionesArray[historia.habitacion] : 'ninguna'}}</b>
                                                     <br>
                                                 {% endif %}
                                                 {% if historia.cama != historiaPaciente[key - 1].cama %}
                                                     <b class="text-capitalize">cama:</b>
                                                     de
-                                                    <b class="text-capitalize">{{ historiaPaciente[key - 1].cama }}</b>
+                                                    <b class="text-capitalize">{{ historiaPaciente[key - 1].cama ?? 'ninguna' }}</b>
                                                     a
-                                                    <b class="text-capitalize">{{ historia.cama }}</b>
+                                                    <b class="text-capitalize">{{ historia.cama ?? 'ninguna'}}</b>
                                                     <br>
                                                 {% endif %}
                                                 {% if historia.fechaIngreso != historiaPaciente[key - 1].fechaIngreso %}
@@ -752,7 +753,7 @@
                 });*/
 
 
-                let secciones = ['historia-al-ingreso', 'notas', 'notas-en-turnos', 'evoluciones-imprimir', 'novedades', 'epicrisis-al-alta'];
+                let secciones = ['historia-al-ingreso', 'notas', 'notas-en-turnos', 'evoluciones-imprimir', 'novedades-imprimir', 'epicrisis-al-alta'];
 
                 secciones.forEach((seccion) => {
                     if (!checkboxes.includes(seccion)) {
