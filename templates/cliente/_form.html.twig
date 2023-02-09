@@ -142,7 +142,12 @@
         {{ form_label(form.dieta) }}
         {{ form_widget(form.dieta) }}
     </div>
-    <div class="col-sm"></div>
+    <div class="col-sm">
+        {% if form.posicionEnArchivo is defined %}
+            {{ form_label(form.posicionEnArchivo) }}
+            {{ form_widget(form.posicionEnArchivo) }}
+        {% endif %}
+    </div>
 </div>
 <br>
 <div class="form-row">
@@ -267,10 +272,6 @@
     <div class="col-sm">
         {{ form_label(form.motivoEgr) }}
         {{ form_widget(form.motivoEgr) }}
-    </div>
-    <div class="col-sm">
-        {{ form_label(form.posicionEnArchivo) }}
-        {{ form_widget(form.posicionEnArchivo) }}
     </div>
 </div>
 <br>

@@ -149,7 +149,8 @@ class ClienteType extends AbstractType
                 ],
                     'multiple' => false,
                     'expanded' => false,])
-                ->add("familiarResponsableExtra", HiddenType::class, array("mapped" => false, "label" => false));
+                ->add("familiarResponsableExtra", HiddenType::class, array("mapped" => false, "label" => false))
+                ->add('posicionEnArchivo', TextType::class, ['required'=>false, 'label' => 'Posición en Archivo']);
 
                 $builder->get('motivoIng')->addEventListener(FormEvents::POST_SUBMIT, function(FormEvent $event) {
                     $form = $event->getForm();
@@ -189,8 +190,7 @@ class ClienteType extends AbstractType
                         ],
                         'multiple'=>false,
                         'expanded'=>false,
-                    ])
-                    ->add('posicionEnArchivo', TextType::class, ['required'=>false, 'label' => 'Posición en Archivo']);
+                    ]);
             }
 
             if ($options['camasDisp']) {
