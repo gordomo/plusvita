@@ -432,11 +432,6 @@ select:invalid[multiple] {
     background-color: #d1d1d1;
 }
 
-#head {
-    font-size: 50%;
-    font-weight: 300;
-}
-
 .prescripciones-table {
     margin-top: 15px;
 }

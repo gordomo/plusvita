@@ -79,8 +79,15 @@ class DashboardController extends AbstractController
      */
     public function getPacientesFromTo(Request $request, ObraSocialRepository $obraSocialRepository, HistoriaHabitacionesRepository $historiaHabitacionesRepository) {
 
-        $from = $request->get('from', '2021-12-01');
-        $to = $request->get('to', '2021-12-31');
+        $from = $request->get('from', '2000/12/01');
+        $to = $request->get('to', '2121/12/31');
+
+        $fechaDesde = \DateTime::createFromFormat("d/m/Y", $from);
+        $from = date("Y-m-d", strtotime($fechaDesde->format('Y/m/d')));
+
+
+        $fechaHasta = \DateTime::createFromFormat("d/m/Y", $to);
+        $to = date("Y-m-d", strtotime($fechaHasta->format('Y/m/d')));
 
         $historias = $historiaHabitacionesRepository->findByDate($from,  $to);
 
