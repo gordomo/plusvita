@@ -737,6 +737,8 @@ class ClienteController extends AbstractController
                 'evolucionesHasta' => $evolucionesHasta,
                 'puedeEditarEvolucion' => $puedenEditarEvoluciones,
                 'habitacionesArray' => $habitacionesArray,
+                'novedadesDesde' => $novedadesDesde,
+                'novedadesHasta' => $novedadesHasta,
         ]);
     }
 

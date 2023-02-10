@@ -89,14 +89,16 @@ class EvolucionRepository extends ServiceEntityRepository
 
 
         if (!empty($fechaDesde)) {
-            $fechaDesde = new \DateTime($fechaDesde);
-            $fechaDesde->setTime(0,0,0);
-            $query->andWhere('e.fecha >= :fechaDesde')->setParameter('fechaDesde', $fechaDesde);
+
+            $fechaDesde = \DateTime::createFromFormat("d/m/Y", $fechaDesde);
+            $newDate = date("Y/m/d", strtotime($fechaDesde->format('Y/m/d')));
+            $query->andWhere('e.fecha >= :fechaDesde')->setParameter('fechaDesde', $newDate);
         }
         if (!empty($fechaHasta)) {
-            $fechaHasta = new \DateTime($fechaHasta);
+            $fechaHasta = \DateTime::createFromFormat("d/m/Y", $fechaHasta);
             $fechaHasta->setTime(23,59,59);
-            $query->andWhere('e.fecha <= :fechaHasta')->setParameter('fechaHasta', $fechaHasta);
+            $newDate = date("Y/m/d", strtotime($fechaHasta->format('Y/m/d')));
+            $query->andWhere('e.fecha <= :fechaHasta')->setParameter('fechaHasta', $newDate);
         }
         if ( !empty($tipos) ) {
             $query->andWhere('e.tipo IN (:tipos)')->setParameter('tipos', $tipos);

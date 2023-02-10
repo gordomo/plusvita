@@ -49,16 +49,15 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
             ->andWhere('h.cliente = :cliente')
             ->setParameter('cliente', $cliente);
         if (!empty($from)) {
-            $from = new \DateTime($from);
-            $from->setTime(0,0,0);
-            $query->andWhere('h.fecha >= :from')
-                ->setParameter('from', $from);
+            $fechaDesde = \DateTime::createFromFormat("d/m/Y", $from);
+            $newDate = date("Y/m/d", strtotime($fechaDesde->format('Y/m/d')));
+            $query->andWhere('h.fecha >= :fechaDesde')->setParameter('fechaDesde', $newDate);
         }
         if (!empty($to)) {
-            $to = new \DateTime($to);
-            $to->setTime(23,59,59);
-            $query->andWhere('h.fecha <= :to')
-                ->setParameter('to', $to);
+            $fechaHasta = \DateTime::createFromFormat("d/m/Y", $to);
+            $fechaHasta->setTime(23,59,59);
+            $newDate = date("Y/m/d", strtotime($fechaHasta->format('Y/m/d')));
+            $query->andWhere('h.fecha <= :fechaHasta')->setParameter('fechaHasta', $newDate);
         }
         $query->orderBy('h.fecha', 'ASC');
 

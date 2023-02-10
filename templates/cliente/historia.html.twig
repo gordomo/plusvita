@@ -4,13 +4,13 @@
 {% block panelTitle %}
     <div id="head">
         Nombre y Apellido: <strong class="text-capitalize">{{ cliente.nombre }} {{ cliente.apellido }}</strong><br>
-        DNI: <strong>{{ cliente.dni }}</strong> - Fecha de nacimiento: <strong>{{ cliente.fNacimiento | date('m/d/Y') }}</strong><br>
+        DNI: <strong>{{ cliente.dni }}</strong> - Fecha de nacimiento: <strong>{{ cliente.fNacimiento | date('d/m/Y') }}</strong><br>
         Obra social: <strong>{{ obraSociales[cliente.obraSocial] is defined ? obraSociales[cliente.obraSocial] : '' }}</strong> - Nº Afiliado: <strong>{{ cliente.obraSocialAfiliado }}</strong><br>
-        Fecha de Ingreso: <strong>{{ historiaPaciente[0] is defined and historiaPaciente[0].fechaIngreso ? historiaPaciente[0].fechaIngreso|date('m/d/Y') : cliente.fingreso|date('m/d/Y')}}</strong>
+        Fecha de Ingreso: <strong>{{ historiaPaciente[0] is defined and historiaPaciente[0].fechaIngreso ? historiaPaciente[0].fechaIngreso|date('d/m/Y') : cliente.fingreso|date('d/m/Y')}}</strong>
         {% if historiaPaciente | last.habitacion ?? null %} Habitación: <strong> {{ habitacionesArray[historiaPaciente | last.habitacion] }} {% endif %}</strong>
         {% if historiaPaciente | last.cama ?? null %} Cama: <strong> {{ historiaPaciente | last.cama }} {% endif %}</strong><br>
         {% if historiaPaciente[0] is defined and historiaPaciente[0].fechaEngreso %}
-            Fecha de Egreso: <strong>{{ historiaPaciente[0] and  historiaPaciente[0].fechaEngreso ? historiaPaciente[0].fechaEngreso|date('m/d/Y') : cliente.fegreso|date('m/d/Y') }}</strong>
+            Fecha de Egreso: <strong>{{ historiaPaciente[0] and  historiaPaciente[0].fechaEngreso ? historiaPaciente[0].fechaEngreso|date('d/m/Y') : cliente.fegreso|date('d/m/Y') }}</strong>
         {% endif %}
     </div>
 {% endblock %}
@@ -52,18 +52,18 @@
                     <hr>
                     <div class="form-group">
                         <div class="form-row">
-                            <div class="col-1 text-right" style="line-height: 40px;height: 35px;">
+                            {#<div class="col-1 text-right" style="line-height: 40px;height: 35px;">
                                 <label class="control-label">desde:</label>
                             </div>
                             <div class="col-4 text-left">
-                                <input class="form-control" type="date" id="imprimirDesde" >
+                                <input class="form-control js-datepicker" type="text" id="imprimirDesde" >
                             </div>
                             <div class="col-3 text-right" style="line-height: 40px;height: 35px;">
                                 <label class="control-label">hasta:</label>
                             </div>
                             <div class="col-4 text-left">
-                                <input class="form-control" type="date" id="imprimirHasta">
-                            </div>
+                                <input class="form-control js-datepicker" type="text" id="imprimirHasta">
+                            </div>#}
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -151,7 +151,7 @@
                         <tbody>
                         {% for nota in notasHistoria %}
                             <tr style="background-color: #dee2e6">
-                                <td>{{ nota.fecha ? nota.fecha|date('m/d/Y') : ''}}</td>
+                                <td>{{ nota.fecha ? nota.fecha|date('d/m/Y') : ''}}</td>
                             </tr>
                             <tr>
                                 <td>{{ nota.text }}</td>
@@ -183,13 +183,13 @@
                                     <label class="control-label">desde:</label>
                                 </div>
                                 <div class="col-xl-2 col-md-6 col-lg-6 col-sm-12 text-left">
-                                    <input class="form-control" type="date" name="notasDesde" required value="{{ notasDesde }}">
+                                    <input class="form-control js-datepicker" type="text" name="notasDesde" required value="{{ notasDesde }}">
                                 </div>
                                 <div class="col-xl-1 col-md-6 col-lg-6 col-sm-12 text-right" style="line-height: 40px;height: 35px;">
                                     <label class="control-label">hasta:</label>
                                 </div>
                                 <div class="col-xl-2 col-md-6 col-lg-6 col-sm-12 text-left">
-                                    <input class="form-control" type="date" name="notasHasta" required value="{{ notasHasta }}">
+                                    <input class="form-control js-datepicker" type="text" name="notasHasta" required value="{{ notasHasta }}">
                                 </div>
                                 {#<div class="col-xl-4 col-md-6 col-lg-6 col-sm-12">
                                         <select class="form-control" id="filtrarPorTipo" name="notasTipo">
@@ -228,7 +228,7 @@
                                 <tbody>
                                 {% for turno in notasTurnos %}
                                     <tr style="background-color: #dee2e6">
-                                        <td>{{ turno.fecha ? turno.fecha|date('m/d/Y') : ''}}</td>
+                                        <td>{{ turno.fecha ? turno.fecha|date('d/m/Y') : ''}}</td>
                                         <td>{{ turno.doctor ? turno.doctor : ''}}</td>
                                         <td>{{ turno.modalidad ? turno.modalidad : ''}}</td>
                                     </tr>
@@ -264,13 +264,13 @@
                                     <label class="control-label">desde:</label>
                                 </div>
                                 <div class="col-xl-2 col-md-6 col-lg-6 col-sm-12 text-left">
-                                    <input class="form-control" type="date" name="evolucionesDesde" value="{{ evolucionesDesde }}">
+                                    <input class="form-control js-datepicker" type="text" name="evolucionesDesde" value="{{ evolucionesDesde }}">
                                 </div>
                                 <div class="col-xl-1 col-md-6 col-lg-6 col-sm-12 text-right" style="line-height: 40px;height: 35px;">
                                     <label class="control-label">hasta:</label>
                                 </div>
                                 <div class="col-xl-2 col-md-6 col-lg-6 col-sm-12 text-left">
-                                    <input class="form-control" type="date" name="evolucionesHasta" value="{{ evolucionesHasta }}">
+                                    <input class="form-control js-datepicker" type="text" name="evolucionesHasta" value="{{ evolucionesHasta }}">
                                 </div>
                                 <div class="col-xl-4 col-md-6 col-lg-6 col-sm-12">
                                     <select class="form-control" id="filtrarPorTipo" name="filtrarPorTipo[]" multiple data-placeholder="Especialidad">
@@ -299,7 +299,7 @@
                                     <tr>
                                         <td style="border-bottom: 1px solid grey">
                                             <span {% if puedeEditarEvolucion %} class="col-9"  {% endif %}>
-                                                {{ evolucion['evolucion'].fecha ? evolucion['evolucion'].fecha|date('m/d/Y') : ''}} - {{ evolucion['evolucion'].tipo }} - {{ evolucion['evolucion'].user }}
+                                                {{ evolucion['evolucion'].fecha ? evolucion['evolucion'].fecha|date('d/m/Y') : ''}} - {{ evolucion['evolucion'].tipo }} - {{ evolucion['evolucion'].user }}
                                             </span>
                                             {% if puedeEditarEvolucion %}
                                                 <span class="col-3">
@@ -353,13 +353,13 @@
                                     <label class="control-label">desde:</label>
                                 </div>
                                 <div class="col-xl-2 col-md-6 col-lg-6 col-sm-12 text-left">
-                                    <input class="form-control" type="date" name="novedadesDesde" value="{{ evolucionesDesde }}">
+                                    <input class="form-control js-datepicker" type="text" name="novedadesDesde" value="{{ novedadesDesde }}">
                                 </div>
                                 <div class="col-xl-1 col-md-6 col-lg-6 col-sm-12 text-right" style="line-height: 40px;height: 35px;">
                                     <label class="control-label">hasta:</label>
                                 </div>
                                 <div class="col-xl-2 col-md-6 col-lg-6 col-sm-12 text-left">
-                                    <input class="form-control" type="date" name="novedadesHasta" value="{{ evolucionesHasta }}">
+                                    <input class="form-control js-datepicker" type="text" name="novedadesHasta" value="{{ novedadesHasta }}">
                                 </div>
                                 <div class="col-xl-1 col-md-6 col-lg-3 col-sm-6">
                                     <button type="submit" class="btn btn-default" style="width: 100%;">filtrar</button>
@@ -378,7 +378,7 @@
                                 <thead>
                                 <tr>
                                     <th>Fecha</th>
-                                    <th>Cambio</th>
+                                    <th>Novedad</th>
                                     <th>Usuario</th>
                                 </tr>
                                 </thead>
@@ -386,9 +386,11 @@
                                 {% for key, historia in historiaPaciente %}
                                     <tr>
                                         {% if key > 0 %}
-                                            <td>{{ historia.fecha ? historia.fecha|date('m/d/Y') : ''}}</td>
+                                            {% set cambio = 0 %}
+                                            <td>{{ historia.fecha ? historia.fecha|date('d/m/Y') : ''}}</td>
                                             <td class="lowercase">
                                                 {% if historia.modalidad != historiaPaciente[key - 1].modalidad %}
+                                                    {% set cambio = 1 %}
                                                     <b class="text-capitalize">modalidad:</b> de <b class="text-capitalize">
                                                     {% if(historiaPaciente[key - 1].modalidad == 1) %}
                                                         Ambulatorio
@@ -415,6 +417,7 @@
                                                     <br>
                                                 {% endif %}
                                                 {% if historia.patologia != historiaPaciente[key - 1].patologia %}
+                                                    {% set cambio = 1 %}
                                                     <b class="text-capitalize">Patología:</b> de
                                                     <b class="text-capitalize">
                                                         {% if(historia.patologia == 1) %}
@@ -446,6 +449,7 @@
                                                     <br>
                                                 {% endif %}
                                                 {% if historia.patologiaEspecifica != historiaPaciente[key - 1].patologiaEspecifica %}
+                                                    {% set cambio = 1 %}
                                                     <b class="text-capitalize">Patologia Especifica:</b>
                                                     de
                                                     <b class="text-capitalize">{{ historiaPaciente[key - 1].patologiaEspecifica }}</b>
@@ -454,6 +458,7 @@
                                                     <br>
                                                 {% endif %}
                                                 {% if historia.obraSocial != historiaPaciente[key - 1].obraSocial %}
+                                                    {% set cambio = 1 %}
                                                     <b class="text-capitalize">Obra Social:</b>
                                                     de
                                                     <b class="text-capitalize">{{ (historiaPaciente[key - 1].obraSocial is not empty and obraSociales[historiaPaciente[key - 1].obraSocial] is not empty) ? obraSociales[historiaPaciente[key - 1].obraSocial] : 'Vacío' }}</b>
@@ -463,6 +468,7 @@
                                                 {% endif %}
 
                                                 {% if historia.nAfiliadoObraSocial != historiaPaciente[key - 1].nAfiliadoObraSocial %}
+                                                    {% set cambio = 1 %}
                                                     <b class="text-capitalize">Nº Afiliado OS:</b>
                                                     de
                                                     <b class="text-capitalize">{{ historiaPaciente[key - 1].nAfiliadoObraSocial }}</b>
@@ -471,6 +477,7 @@
                                                     <br>
                                                 {% endif %}
                                                 {% if historia.sistemaDeEmergencia != historiaPaciente[key - 1].sistemaDeEmergencia %}
+                                                    {% set cambio = 1 %}
                                                     <b class="text-capitalize">Sistema De Emergencia:</b>
                                                     de
                                                     <b class="text-capitalize">{{ historiaPaciente[key - 1].sistemaDeEmergencia }}</b>
@@ -479,6 +486,7 @@
                                                     <br>
                                                 {% endif %}
                                                 {% if historia.nAfiliadoSistemaDeEmergencia != historiaPaciente[key - 1].nAfiliadoSistemaDeEmergencia %}
+                                                    {% set cambio = 1 %}
                                                     <b class="text-capitalize">Nº Afiliado SdE:</b>
                                                     de
                                                     <b class="text-capitalize">{{ historiaPaciente[key - 1].nAfiliadoSistemaDeEmergencia }}</b>
@@ -487,6 +495,7 @@
                                                     <br>
                                                 {% endif %}
                                                 {% if historia.habitacion != historiaPaciente[key - 1].habitacion %}
+                                                    {% set cambio = 1 %}
                                                     <b class="text-capitalize">habitacion:</b>
                                                     de
                                                     <b class="text-capitalize">{{ (historiaPaciente[key - 1].habitacion and historiaPaciente[key - 1].habitacion in habitacionesArray|keys) ? habitacionesArray[historiaPaciente[key - 1].habitacion] : 'ninguna' }}</b>
@@ -495,6 +504,7 @@
                                                     <br>
                                                 {% endif %}
                                                 {% if historia.cama != historiaPaciente[key - 1].cama %}
+                                                    {% set cambio = 1 %}
                                                     <b class="text-capitalize">cama:</b>
                                                     de
                                                     <b class="text-capitalize">{{ historiaPaciente[key - 1].cama ?? 'ninguna' }}</b>
@@ -503,6 +513,7 @@
                                                     <br>
                                                 {% endif %}
                                                 {% if historia.fechaIngreso != historiaPaciente[key - 1].fechaIngreso %}
+                                                    {% set cambio = 1 %}
                                                     <b class="text-capitalize">Fecha de Ingreso:</b>
                                                     de
                                                     <b class="text-capitalize">{{ historiaPaciente[key - 1].fechaIngreso | date('m/d/Y') }}</b>
@@ -511,6 +522,7 @@
                                                     <br>
                                                 {% endif %}
                                                 {% if historia.fechaDerivacion != historiaPaciente[key - 1].fechaDerivacion %}
+                                                    {% set cambio = 1 %}
                                                     <b class="text-capitalize">Fecha de Derivacion:</b>
                                                     de
                                                     <b class="text-capitalize">{{ historiaPaciente[key - 1].fechaDerivacion is not empty ? historiaPaciente[key - 1].fechaDerivacion | date('m/d/Y') : 'Vacío' }}</b>
@@ -519,6 +531,7 @@
                                                     <br>
                                                 {% endif %}
                                                 {% if historia.fechaReingresoDerivacion != historiaPaciente[key - 1].fechaReingresoDerivacion %}
+                                                    {% set cambio = 1 %}
                                                     <b class="text-capitalize">Fecha de reingreso de Derivacion:</b>
                                                     de
                                                     <b class="text-capitalize">{{ historiaPaciente[key - 1].fechaReingresoDerivacion is not empty ? historiaPaciente[key - 1].fechaReingresoDerivacion | date('m/d/Y') : 'Vacío' }}</b>
@@ -527,6 +540,7 @@
                                                     <br>
                                                 {% endif %}
                                                 {% if historia.motivoDerivacion != historiaPaciente[key - 1].motivoDerivacion %}
+                                                    {% set cambio = 1 %}
                                                     <b class="text-capitalize">Motivo de Derivacion:</b>
                                                     de
                                                     <b class="text-capitalize">{{ historiaPaciente[key - 1].motivoDerivacion }}</b>
@@ -535,6 +549,7 @@
                                                     <br>
                                                 {% endif %}
                                                 {% if historia.derivadoEn != historiaPaciente[key - 1].derivadoEn %}
+                                                    {% set cambio = 1 %}
                                                     <b class="text-capitalize">Derivado En:</b>
                                                     de
                                                     <b class="text-capitalize">{{ historiaPaciente[key - 1].derivadoEn }}</b>
@@ -543,6 +558,7 @@
                                                     <br>
                                                 {% endif %}
                                                 {% if historia.empresaTransporteDerivacion != historiaPaciente[key - 1].empresaTransporteDerivacion %}
+                                                    {% set cambio = 1 %}
                                                     <b class="text-capitalize">Empresa de Transporte de Derivacion:</b>
                                                     de
                                                     <b class="text-capitalize">{{ historiaPaciente[key - 1].empresaTransporteDerivacion }}</b>
@@ -551,6 +567,7 @@
                                                     <br>
                                                 {% endif %}
                                                 {% if historia.fechaAltaPorPermiso != historiaPaciente[key - 1].fechaAltaPorPermiso %}
+                                                    {% set cambio = 1 %}
                                                     <b class="text-capitalize">Fecha de Alta Por Permiso:</b>
                                                     de
                                                     <b class="text-capitalize">{{ historiaPaciente[key - 1].fechaAltaPorPermiso is not empty ? historiaPaciente[key - 1].fechaAltaPorPermiso | date('m/d/Y') : 'vacio'}}</b>
@@ -559,6 +576,7 @@
                                                     <br>
                                                 {% endif %}
                                                 {% if historia.fechaBajaPorPermiso != historiaPaciente[key - 1].fechaBajaPorPermiso %}
+                                                    {% set cambio = 1 %}
                                                     <b class="text-capitalize">Fecha de Baja Por Permiso:</b>
                                                     de
                                                     <b class="text-capitalize">{{ historiaPaciente[key - 1].fechaBajaPorPermiso is not empty ? historiaPaciente[key - 1].fechaBajaPorPermiso | date('m/d/Y') : 'vacio'}}</b>
@@ -567,6 +585,7 @@
                                                     <br>
                                                 {% endif %}
                                                 {% if historia.dePermiso != historiaPaciente[key - 1].dePermiso %}
+                                                    {% set cambio = 1 %}
                                                     <b class="text-capitalize">De Permiso:</b>
                                                     de
                                                     <b class="text-capitalize">{{ historiaPaciente[key - 1].dePermiso is empty or historiaPaciente[key - 1].dePermiso == 0 ? 'no' : 'si' }}</b>
@@ -575,6 +594,7 @@
                                                     <br>
                                                 {% endif %}
                                                 {% if historia.ambulatorio != historiaPaciente[key - 1].ambulatorio %}
+                                                    {% set cambio = 1 %}
                                                     <b class="text-capitalize">Ambulatorio:</b>
                                                     de
                                                     <b class="text-capitalize">{{ historiaPaciente[key - 1].ambulatorio is empty or historiaPaciente[key - 1].ambulatorio == 0 ? 'no' : 'si' }}</b>
@@ -582,10 +602,15 @@
                                                     <b class="text-capitalize">{{ historia.ambulatorio is empty or historia.ambulatorio == 0 ? 'no' : 'si'}}</b>
                                                     <br>
                                                 {% endif %}
+                                                {% if cambio == 0 %}
+                                                    <b class="text-capitalize">No se registraron cambios</b>
+                                                {% endif %}
                                             </td>
-                                            <td class="lowercase">{{ historia.usuario }}</td>
+                                        {% else %}
+                                            <td>{{ historia.fecha ? historia.fecha|date('d/m/Y') : ''}}</td>
+                                            <td><b class="text-capitalize">Primer Registro</b></td>
                                         {% endif %}
-
+                                        <td class="lowercase">{{ historia.usuario }}</td>
                                     </tr>
                                 {% else %}
                                     <tr>
@@ -723,36 +748,6 @@
             if (checkboxes.length < 1) {
                 alert('seleccione al menos un campo')
             } else {
-                /*$.form("{{ path('imprimir_pdf2') }}", {
-                    'seccionesSelected': checkboxes,
-                    'clientId': {{ cliente.id }},
-                    'desde': $('#imprimirDesde').val(),
-                    'hasta': $('#imprimirHasta').val(),
-                    'filtrarPorTipo': $('#filtrarPorTipo').val(),
-                }).submit();*/
-
-                /*$.ajax({
-                    url: "{{ path('imprimir_pdf2') }}",
-                    data: {
-                        'seccionesSelected': checkboxes,
-                        'clientId': {{ cliente.id }},
-                        'desde': $('#imprimirDesde').val(),
-                        'hasta': $('#imprimirHasta').val(),
-                        'filtrarPorTipo': $('#filtrarPorTipo').val(),
-                    },
-                    method: 'POST',
-                    success: function (response) {
-                        console.log(response);
-                        if (response.error) {
-                            alert('hubo un error. Imposible pasar a pdf');
-                        } else {
-                            window.open(response.url);
-                        }
-                        location.reload();
-                    }
-                });*/
-
-
                 let secciones = ['historia-al-ingreso', 'notas', 'notas-en-turnos', 'evoluciones-imprimir', 'novedades-imprimir', 'epicrisis-al-alta'];
 
                 secciones.forEach((seccion) => {
@@ -781,8 +776,6 @@
 
                     setTimeout(() => {
                         let html = "<head><title>Historia</title><style>@media print {@page {margin-top: 10px;}@media print {-webkit-print-color-adjust: exact;}.table.table-responsive.table-striped th{text-align: left;}.table.table-responsive.table-striped td{text-align: left;padding-bottom: 15px;}.h4, h4 {font-size: 1.5rem;border-top: 1px solid;padding-top: 10px;}body {font-family: '-apple-system','BlinkMacSystemFont','Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji'};table.report-container {page-break-after:always;text-align: left}thead.report-header {display:table-header-group;text-align: left;}tfoot.report-footer {display:table-footer-group;table.report-container div.article {page-break-inside: avoid;}} </style></head>";
-                        //html += newHeader;
-                        //html += $('body').find('.container-fluid').html();
                         $('body').find('.container-fluid').find('.buttons').remove();
                         html += '<table class="report-container">';
                         html += '<thead class="report-header">' +
@@ -815,38 +808,6 @@
                     }, 2000);
 
 
-                   /* let html = '<head>' + $('head').html() + '</head>';
-                    let headStyles = '<head>' + $('head').html() + '</head>';
-                    html += $('body').find('.container-fluid').html();*/
-
-                    /*$('.filtrosPlanillaLocal').modal('hide');*/
-
-                    /*setTimeout(() => {
-                        let html = newHeader;
-                        html += $('body').find('.container-fluid').html();
-                        imprimirElemento(html);
-                        location.reload();
-                    }, 1000);*/
-
-                    /*/!*$.form("{{ path('imprimir_pdf2') }}", { 'header': newHeader, 'html': html, 'headStyles': headStyles }).submit();*!/
-
-                    $.ajax({
-                        url: "{{ path('imprimir_pdf2') }}",
-                        data: {
-                            'header': newHeader, 'html': html, 'headStyles': headStyles
-                        },
-                        method: 'POST',
-                        success: function (response) {
-                            if (response.error) {
-                                alert('hubo un error. Imposible pasar a pdf');
-                            } else {
-                                window.open(response.url);
-                            }
-                            location.reload();
-                        }
-                    });*/
-
-
                 }, 1000);
             }
         });
@@ -860,6 +821,10 @@
                 editor.showNotification( 'La epicrisis no puede estar vacía.', 'warning' );
                 evt.cancel();
             } );
+        });
+
+        $('.js-datepicker').datepicker({
+            format: 'dd/mm/yyyy'
         });
 
 
