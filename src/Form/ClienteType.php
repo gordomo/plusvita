@@ -140,7 +140,7 @@ class ClienteType extends AbstractType
                 ->add('docDerivante', TextType::class, ['label' => 'Profesional Derivante', 'required' => false])
                 ->add('edad', TextType::class, ['label' => 'Edad', 'required' => false])
                 ->add('dieta', TextType::class, ['label' => 'Dieta', 'required' => false])
-                ->add('sesionesDisp', TextType::class, ['label' => 'Sesiones Disponibles', 'required' => false])
+                ->add('sesionesDisp', NumberType::class, ['label' => 'Sesiones Disponibles', 'required' => false, 'html5' => true])
                 ->add('formNum', NumberType::class, ['label' => 'Número de Formulario', 'required' => false, 'html5' => true])
                 ->add('vtoSesiones', DateType::class, ['label' => 'Vto Sesiones', 'required' => false, 'widget' => 'single_text', 'attr' => ['class' => 'js-datepicker']])
                 ->add('mediaSesion', ChoiceType::class, ['label' => 'Media sesion?', 'required' => false, 'choices' => [
