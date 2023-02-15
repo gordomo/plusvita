@@ -98,7 +98,7 @@ class DashboardController extends AbstractController
         $dateFrom = new \DateTime($from);
         $dateTo = new \DateTime($to);
         $dateTo->modify('+1 day');
-
+        $arrHistorias['clientes'] = [];
         do {
             foreach ( $historias as $historia ) {
                 $cliente = $historia->getCliente();

@@ -18,7 +18,7 @@
             <button class="btn btn-default" data-toggle="modal" data-target="#filtros"><i class="fas fa-filter"></i></button>
         </div>
         <div class="modal fade bd-example-modal-xl camposExtras" id="filtros" tabindex="-1" role="dialog" aria-labelledby="filtros" aria-hidden="true">
-            <div class="modal-dialog modal-xl">
+            <div class="m-4">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="exampleModalLongTitle">Filtrar</h5>
@@ -263,7 +263,7 @@
                     let html = '';
                     let fechaCheck = '';
                     let i = 0;
-
+                    if (response.cliente)
                     Object.keys(response.clientes).forEach(function(k, v) {
                         html += '<tr><td>'+ k +'</td>';
 
