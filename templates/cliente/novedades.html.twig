@@ -134,7 +134,9 @@
                                 <b>|</b> Patologías laborales
                             {% endif %}
 
+                            {% if historia.patologiaEspecifica is not empty %}
                             <b>|</b> {{ historia.patologiaEspecifica }}
+                            {% endif %}
 
                             {% if habitacionesArray[historia.habitacion] is defined and  habitacionesArray[historia.habitacion] is not empty%}
                                 <b>|</b> H:{{ habitacionesArray[historia.habitacion] }}

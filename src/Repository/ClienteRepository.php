@@ -103,7 +103,7 @@ class ClienteRepository extends ServiceEntityRepository
         if ( $obraSocial ) {
             $query->andWhere('c.obraSocial = :os')->setParameter("os", $obraSocial);
         }
-        $query = $query->orderBy('c.hClinica', 'ASC');
+        $query = $query->orderBy('c.hClinica', 'DESC');
 
 
         return $query->getQuery()->getResult();
