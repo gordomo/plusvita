@@ -143,6 +143,7 @@ class ClienteController extends AbstractController
         $historiasArray = [];
 
             foreach ($clientes as $key => $cliente) {
+                $historias = $cliente->getHistoria();
                 $esteVa = true;
                 if ($prof) {
                     if((empty($cliente->getDocReferente()) or $cliente->getDocReferente()[0]->getId() != $prof)) {
@@ -150,11 +151,14 @@ class ClienteController extends AbstractController
                         $esteVa = false;
                     }
                 }
+                if(empty($historias->getValues())) {
+                    unset($clientes[$key]);
+                    $esteVa = false;
+                }
                 if ($esteVa) {
-                    $historias = $cliente->getHistoria();
                     foreach ($historias as $historia) {
                         $fechaHistoria = $historia->getFecha();
-                        if($fechaHistoria >= $fechaDesde and  $fechaHistoria <= $fechaHasta) {
+                        if($fechaHistoria >= $fechaDesde and  $fechaHistoria <= $fechaHasta and !empty($historia->getUsuario())) {
                             $historiasArray[$cliente->getId()][] = $historia;
                         }
                     }

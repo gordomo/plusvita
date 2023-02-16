@@ -75,7 +75,7 @@
         <tbody>
         {% for cliente in clientes %}
             <tr class="bg-light">
-                <td class="hClinica">{{ cliente.hClinica }}</td>
+                <td class="hClinica">{{ cliente.id }}</td>
                 <td class="nombre"><b>{{ cliente.nombre }} {{ cliente.apellido }}</b></td>
                 <td class="fIngreso">{{ cliente.fIngreso ? cliente.fIngreso|date('d/m/Y') : '' }}</td>
                 <td class="fEgreso">{{ cliente.fEgreso ? cliente.fEgreso|date('d/m/Y') : '' }}</td>
