@@ -1,0 +1,331 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Pacientes index{% endblock %}
+{% block stylesheets %}
+    {{ parent() }}
+
+{% endblock %}
+{% block panelTitle %}Novedades{% endblock %}
+{% block body %}
+<div class="container-fluid">
+    <form>
+        <div class="row">
+            <div class="col">
+                <label for="contrato">Desde</label>
+                <input class="form-control js-datepicker" type="text" id="from" autocomplete="off" name="from" value="{{ from }}">
+            </div>
+            <div class="col">
+                <label for="contrato">Hasta</label>
+                <input class="form-control js-datepicker" type="text" id="to" autocomplete="off" name="to" value="{{ to }}">
+            </div>
+            <div class="col">
+                <label for="estado">Estado</label>
+                <select class="form-control" name="estado">
+                    <option value="2">Internados</option>
+                    <option value="1">Ambulatorios</option>
+                </select>
+            </div>
+            <div class="col">
+                <label for="contrato">Nombre / Apellido</label>
+                <input class="form-control" type="text" id="nombre" name="nombre" value="{{ nombre }}">
+            </div>
+            <div class="col">
+                <label for="estado">O. Social</label>
+                <select class="form-control" name="obraSocial">
+                    <option value="">Seleccione una O. Social</option>
+                    {% for idObra, obra in oSociales %}
+                        <option {{ obraSocial == idObra ? 'selected' : '' }} value="{{ idObra }}">{{ obra }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col">
+                <label for="estado">O. Social</label>
+                <select class="form-control" name="prof">
+                    <option value="">Seleccione un Profesional</option>
+                    {% for profesional in profesionales %}
+                        <option {{ prof == profesional.id ? 'selected' : '' }} value="{{ profesional.id }}">{{ profesional.nombre }} {{ profesional.apellido }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col">
+                <button type="submit" class="btn btn-primary">Buscar</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="printiable">
+    <table class="table table-responsive" style="display: inline-table">
+        <thead>
+        <tr>
+            <th class="hClinica">H. Clínica</th>
+            <th class="nombre">Nombre</th>
+            <th class="fIngreso">Fecha Ingreso</th>
+            <th class="fEgreso">Fecha Egreso</th>
+            <th class="motivoIng">Motivo Ing</th>
+            <th class="motivoIngEspecifico">Motivo Ing Especifico</th>
+            <th class="modalidad">Modalidad</th>
+            <th class="obraSocial">O. Social</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for cliente in clientes %}
+            <tr class="bg-light">
+                <td class="hClinica">{{ cliente.hClinica }}</td>
+                <td class="nombre"><b>{{ cliente.nombre }} {{ cliente.apellido }}</b></td>
+                <td class="fIngreso">{{ cliente.fIngreso ? cliente.fIngreso|date('d/m/Y') : '' }}</td>
+                <td class="fEgreso">{{ cliente.fEgreso ? cliente.fEgreso|date('d/m/Y') : '' }}</td>
+                <td class="motivoIng">
+                    {% if(cliente.motivoIng == 1) %}
+                        Neurologicas
+                    {% elseif(cliente.motivoIng == 2) %}
+                        Traumatológicas
+                    {% elseif(cliente.motivoIng == 3) %}
+                        Respiratorias
+                    {% elseif(cliente.motivoIng == 4) %}
+                        Paliativos
+                    {% elseif(cliente.motivoIng == 5) %}
+                        Patologías laborales
+                    {% endif %}
+                </td>
+                <td class="motivoIngEspecifico">{{ cliente.motivoIngEspecifico }}</td>
+                <td class="modalidad">
+                    {% if(cliente.modalidad == 1) %}
+                        Ambulatorio
+                    {% elseif(cliente.modalidad == 2) %}
+                        Internacion
+                    {% elseif(cliente.modalidad == 3) %}
+                        Hospital de día
+                    {% elseif(cliente.modalidad == 4) %}
+                        ART
+                    {% endif %}
+                </td>
+                <td class="obraSocial">{{ oSociales[cliente.obraSocial] }}</td>
+            </tr>
+            {% if historiasArray[cliente.id] is defined %}
+                {% for historia in historiasArray[cliente.id] %}
+                    <tr >
+                        <td class="border-top border-dark">{{ historia.fecha ? historia.fecha|date('d/m/Y') : '' }}</td>
+                        <td class="border-top border-dark text-lowercase" colspan="7">
+                            <b>|</b> {{ historia.usuario }}
+                            {% if(historia.modalidad == 1) %}
+                                <b>|</b> Ambulatorio
+                            {% elseif(historia.modalidad == 2) %}
+                                <b>|</b> Internacion
+                            {% elseif(historia.modalidad == 3) %}
+                                <b>|</b> Hospital de día
+                            {% elseif(historia.modalidad == 4) %}
+                                <b>|</b> ART
+                            {% endif %}
+
+                            {% if(historia.patologia == 1) %}
+                                <b>|</b> Neurologicas
+                            {% elseif(historia.patologia == 2) %}
+                                <b>|</b> Traumatológicas
+                            {% elseif(historia.patologia == 3) %}
+                                <b>|</b> Respiratorias
+                            {% elseif(historia.patologia == 4) %}
+                                <b>|</b> Paliativos
+                            {% elseif(historia.patologia == 5) %}
+                                <b>|</b> Patologías laborales
+                            {% endif %}
+
+                            <b>|</b> {{ historia.patologiaEspecifica }}
+
+                            {% if habitacionesArray[historia.habitacion] is defined and  habitacionesArray[historia.habitacion] is not empty%}
+                                <b>|</b> H:{{ habitacionesArray[historia.habitacion] }}
+                            {% endif %}
+                            {% if historia.cama is not empty %}
+                                | C:{{ historia.cama }}
+                            {% endif %}
+
+                            {% if historia.fechaDerivacion is not empty %}
+                                <b>|</b> derivado:
+                                {{ historia.fechaDerivacion ? historia.fechaDerivacion|date('d/m/Y') : '' }}
+                            {% endif %}
+
+                            {% if historia.fechaReingresoDerivacion is not empty %}
+                                <b>|</b> reingreso:
+                                {{ historia.fechaReingresoDerivacion ? historia.fechaReingresoDerivacion|date('d/m/Y') : '' }}
+                            {% endif %}
+
+                            {% if historia.motivoDerivacion is not empty %}
+                                <b>|</b> Motivo Derivacion:
+                                {{ historia.motivoDerivacion}}
+                            {% endif %}
+
+                            {% if historia.derivadoEn is not empty %}
+                                <b>|</b> derivado en:
+                                {{ historia.derivadoEn }}
+                            {% endif %}
+
+                            {% if historia.fechaAltaPorPermiso is not empty %}
+                                <b>|</b> fecha alta permiso:
+                                {{ historia.fechaAltaPorPermiso ? historia.fechaAltaPorPermiso|date('d/m/Y') : '' }}
+                            {% endif %}
+
+                            {% if historia.fechaBajaPorPermiso is not empty %}
+                                <b>|</b> fecha Baja permiso:
+                                {{ historia.fechaBajaPorPermiso ? historia.fechaBajaPorPermiso|date('d/m/Y') : '' }}
+                            {% endif %}
+                            <b>|</b>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% endif %}
+
+        {% else %}
+            <tr>
+                <td colspan="15">No existen registros</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="modal fade bd-example-modal-lg camposExtras" id="camposExtras" tabindex="-1" role="dialog" aria-labelledby="camposExtras" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Seleccione los campos a mostrar</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-group columnas-de-dos" id="checkboxesForView">
+                        {% for fiel in [
+                            'hClinica', 'nombre', 'apellido','dni', 'fNacimiento', 'edad', 'telefono', 'legajo','fIngreso',
+                            'obraSocial', 'obraSocialAfiliado', 'tipoDePago',
+                            'fEgreso','motivoIng', 'motivoEgr',
+                            'docReferente', 'Email',
+                            'vieneDe', 'posicionEnArchivo',
+                            'docDerivante',
+                            'modalidad', 'motivoIngEspecifico',
+                            'habitacion', 'nCama', 'habPrivada', 'familiarResponsableNombre','familiarResponsableTel',
+                            'familiarResponsableMail','familiarResponsableAcompanante',
+                            'vinculoResponsable', 'sistemaDeEmergenciaNombre',
+                            'sistemaDeEmergenciaTel', 'sistemaDeEmergenciaAfiliado','fIngreso',
+                            'disponibleParaTerapia', 'derivado', 'dePermiso', 'derivadoEn', 'fechaDerivacion',
+                            'motivoDerivacion', 'empTrasladoDerivacion', 'fechaReingresoDerivacion', 'motivoReingresoDerivacion', 'fechaBajaPorPermiso',
+                            'fechaAltaPorPermiso', 'terapiasHabilitadas', 'terapiasNoHabilitadas', 'sesionesDisp',
+                            'formNum', 'vtoSesiones', 'mediaSesionView', 'dieta'
+                        ] %}
+
+                            <div class="form-check">
+                                <input class="form-check-input checkForView"
+                                        {% if fiel == 'hClinica' %} checked {% endif %}
+                                        {% if fiel == 'nombre' %} checked {% endif %}
+                                        {% if fiel == 'apellido' %} checked {% endif %}
+                                        {% if fiel == 'dni' %} checked {% endif %}
+                                        {% if fiel == 'habitacion' %} checked {% endif %}
+                                        {% if fiel == 'nCama' %} checked {% endif %}
+                                        {% if fiel == 'fIngreso' %} checked {% endif %}
+                                        {% if fiel == 'obraSocial' %} checked {% endif %}
+                                        {% if fiel == 'tipoDePago' %} checked {% endif %}
+                                        {% if fiel == 'motivoIng' %} checked {% endif %}
+                                        {% if fiel == 'docReferente' %} checked {% endif %}
+                                       type="checkbox" value="{{ fiel }}" id="{{ fiel }}"
+                                >
+                                <label class="form-check-label" for="{{ fiel }}" style="text-transform: capitalize">
+                                    {{ fiel }}
+                                </label>
+                            </div>
+                        {% endfor %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="todos" id="todosForView">
+                            <label class="form-check-label" for="todosForView">
+                                Todos
+                            </label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="updateCamposForView">Mostrar</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    {% endblock %}
+    {% block modalImprimir %}
+        {% for fiel in [
+            'hClinica', 'nombre', 'apellido','dni', 'fNacimiento', 'edad', 'telefono', 'legajo','fIngreso',
+            'obraSocial', 'obraSocialAfiliado', 'tipoDePago',
+            'fEgreso','motivoIng', 'motivoEgr',
+            'docReferente', 'Email',
+            'vieneDe', 'posicionEnArchivo',
+            'docDerivante',
+            'modalidad', 'motivoIngEspecifico',
+            'habitacion', 'nCama', 'habPrivada', 'familiarResponsableNombre','familiarResponsableTel',
+            'familiarResponsableMail','familiarResponsableAcompanante',
+            'vinculoResponsable', 'sistemaDeEmergenciaNombre',
+            'sistemaDeEmergenciaTel', 'sistemaDeEmergenciaAfiliado','fIngreso',
+            'disponibleParaTerapia', 'derivado', 'dePermiso', 'derivadoEn', 'fechaDerivacion',
+            'motivoDerivacion', 'empTrasladoDerivacion', 'fechaReingresoDerivacion', 'motivoReingresoDerivacion', 'fechaBajaPorPermiso',
+            'fechaAltaPorPermiso', 'terapiasHabilitadas', 'terapiasNoHabilitadas', 'sesionesDisp',
+            'formNum', 'vtoSesiones', 'mediaSesionView', 'dieta'
+        ] %}
+            <div class="form-check">
+                <input class="form-check-input check" type="checkbox" value="{{ fiel }}" id="{{ fiel }}"
+                        {% if fiel == 'hClinica' %} checked {% endif %}
+                        {% if fiel == 'nombre' %} checked {% endif %}
+                        {% if fiel == 'apellido' %} checked {% endif %}
+                        {% if fiel == 'fIngreso' %} checked {% endif %}
+                        {% if fiel == 'tipoDePago' %} checked {% endif %}
+                        {% if fiel == 'motivoIng' %} checked {% endif %}
+                        {% if fiel == 'docReferente' %} checked {% endif %}
+                >
+                <label class="form-check-label" for="{{ fiel }}" style="text-transform: capitalize">
+                    {{ fiel }}
+                </label>
+            </div>
+        {% endfor %}
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="todos" id="todos">
+            <label class="form-check-label" for="todos">
+                Todos
+            </label>
+        </div>
+    {% endblock %}
+    {% block javascripts %}
+        {{ parent() }}
+        <script src="{{ asset('assets/js/cliente.js') }}"></script>
+        <script>
+            var tituloExcel = 'clientes.xlsx';
+
+            $('#from').change(function() {
+                setCalendar('from');
+            });
+
+            $('#to').change(function() {
+                setCalendar('to');
+            });
+
+            function setCalendar(ho) {
+                let from = $('#from').val();
+                let to = $('#to').val();
+
+                var FromDateParts = from.split("/");
+                var ToDateParts = to.split("/");
+
+                var headerFrom = new Date(+FromDateParts[2], FromDateParts[1] - 1, +FromDateParts[0]);
+                var headerTo = new Date(+ToDateParts[2], ToDateParts[1] - 1, +ToDateParts[0]);
+                if (headerFrom > headerTo) {
+                    if(ho === 'from') {
+                        $('#to').datepicker("update", from);
+                    } else {
+                        $('#from').datepicker("update", to);
+                    }
+
+                }
+            }
+
+        </script>
+    {% endblock %}

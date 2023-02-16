@@ -91,10 +91,6 @@ function _calculateAge(birthday) {
     return Math.abs(ageDate.getUTCFullYear() - 1970);
 }
 
-$('.js-datepicker').datepicker({
-    format: 'yyyy-mm-dd'
-});
-
 $('.editarPacienteInner').click(function () {
     window.location.href = $(this).data('url');
 });
@@ -122,6 +118,10 @@ $( document ).ready(function () {
     $('[data-toggle="tooltip"]').tooltip();
 
     $('#cliente_familiarResponsableAcompanante').find('.radio').addClass('form-check form-check-inline');
+
+    $('.js-datepicker').datepicker({
+        format: 'dd/mm/yyyy'
+    });
 
 });
 

@@ -55,6 +55,60 @@ class ClienteRepository extends ServiceEntityRepository
 
         return $query->getQuery()->getResult();
     }
+// modalidad 1 es ambulatorio
+    public function findActivosDesdeHasta($from, $to, $nombre, $estado, $obraSocial)
+    {
+        /*$entityManager = $this->getEntityManager();
+
+        $query = $entityManager->createQuery(
+            'SELECT c, h
+            FROM App\Entity\Cliente c
+            INNER JOIN c.historia h
+            WHERE (c.fEgreso <= :to or c.fEgreso IS NULL) 
+            AND c.fIngreso >= :from 
+            AND h.modalidad = :estado
+            AND c.nombre like :nombre
+            AND c.obraSocial like :obraSocial'
+        )->setParameter('to', $to)
+            ->setParameter('from', $from)
+            ->setParameter('estado', $estado);
+        if($nombre) {
+            $query->setParameter('nombre', "%".$nombre."%");
+        } else {
+            $query->setParameter('nombre', "%");
+        }
+
+        if($obraSocial) {
+            $query->setParameter('obraSocial', $obraSocial);
+        } else {
+            $query->setParameter('obraSocial', "%");
+        }
+
+        return $query->getResult();*/
+
+        $query = $this->createQueryBuilder('c')
+            ->andWhere('c.fIngreso >= :from')->setParameter('from', $from)
+            ->andWhere('c.fEgreso <= :to')->setParameter('to', $to)
+            ->orWhere('c.fEgreso IS NULL');
+
+        if ( $nombre != '' ) {
+            $arrayNombres = explode(' ', $nombre);
+            $i = 1;
+            foreach ( $arrayNombres as $nombre ) {
+                $query->andWhere("c.nombre like :nombre$i OR c.apellido like :nombre$i")->setParameter("nombre$i",'%'. $nombre .'%');
+                $i ++;
+            }
+        }
+
+        $query = $query->orderBy('c.hClinica', 'ASC');
+
+
+        if ( $obraSocial ) {
+            $query->andWhere('c.obraSocial = :os')->setParameter("os", $obraSocial);
+        }
+
+        return $query->getQuery()->getResult();
+    }
 
     public function findByNombreYobraSocial($nombre = null, $oSocial = null)
     {

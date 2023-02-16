@@ -18,6 +18,7 @@ use App\Repository\EvolucionRepository;
 use App\Repository\FamiliarExtraRepository;
 use App\Repository\HabitacionRepository;
 use App\Repository\HistoriaEgresoRepository;
+use App\Repository\HistoriaHabitacionesRepository;
 use App\Repository\HistoriaPacienteRepository;
 use App\Repository\NotasHistoriaClinicaRepository;
 use App\Repository\NotasTurnoRepository;
@@ -98,6 +99,93 @@ class ClienteController extends AbstractController
             'paginaImprimible' => true,
             'oSociales' => $obArray,
             'idObraSelected' => $idObra,
+        ]);
+    }
+
+
+    /**
+     * @Route("/novedades", name="cliente_novedades", methods={"GET"})
+     */
+    public function novedades(Request $request, HistoriaHabitacionesRepository $historiaHabitacionesRepository, ClienteRepository $clienteRepository, HabitacionRepository $habitacionRepository, ObraSocialRepository $obraSocialRepository, DoctorRepository $doctorRepository): Response
+    {
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        } else if (!in_array('ROLE_ADMIN', $user->getRoles())) {
+            return $this->redirectToRoute('doctor_historia');
+        }
+
+        $estado = $request->query->get('estado') ?? '1';
+        $nombre = $request->query->get('nombre') ?? null;
+        $prof = $request->query->get('prof') ?? null;
+        $nombreInput = $request->query->get('nombreInput');
+        $hab = $request->query->get('hab') ?? null;
+        $obraSocial = $request->query->get('obraSocial') ?? null;
+
+        $obrasSociales = $obraSocialRepository->findBy(array(), array('nombre' => 'ASC'));
+        $obArray = [];
+        foreach ( $obrasSociales as $ob ) {
+            $obArray[$ob->getId()] = $ob->getNombre();
+        }
+
+        $from = $request->get('from', '01/01/2000');
+        $to = $request->get('to', '31/12/3000');
+
+        $fechaDesde = \DateTime::createFromFormat("d/m/Y", $from);
+        $from = date("Y-m-d", strtotime($fechaDesde->format('Y/m/d')));
+
+
+        $fechaHasta = \DateTime::createFromFormat("d/m/Y", $to);
+        $to = date("Y-m-d", strtotime($fechaHasta->format('Y/m/d')));
+
+        $clientes = $clienteRepository->findActivosDesdeHasta($fechaDesde, $fechaHasta, $nombre, $estado, $obraSocial);
+
+        $historiasArray = [];
+
+            foreach ($clientes as $key => $cliente) {
+                $esteVa = true;
+                if ($prof) {
+                    if((empty($cliente->getDocReferente()) or $cliente->getDocReferente()[0]->getId() != $prof)) {
+                        unset($clientes[$key]);
+                        $esteVa = false;
+                    }
+                }
+                if ($esteVa) {
+                    $historias = $cliente->getHistoria();
+                    foreach ($historias as $historia) {
+                        $fechaHistoria = $historia->getFecha();
+                        if($fechaHistoria >= $fechaDesde and  $fechaHistoria <= $fechaHasta) {
+                            $historiasArray[$cliente->getId()][] = $historia;
+                        }
+                    }
+
+                }
+
+            }
+
+        $habitaciones = $habitacionRepository->getHabitacionesConPacientes();
+
+        $habitacionesArray = [];
+        foreach ($habitaciones as $habitacion) {
+            $habitacionesArray[$habitacion->getId()] = $habitacion->getNombre();
+        }
+
+        $profesionales = $doctorRepository->findAll();
+
+        return $this->render('cliente/novedades.html.twig', [
+            'clientes' => $clientes,
+            'estado' => $estado,
+            'nombreInput' => $nombreInput,
+            'habitacionesArray'=>$habitacionesArray,
+            'paginaImprimible' => true,
+            'oSociales' => $obArray,
+            'obraSocial' => $obraSocial,
+            'from' => $fechaDesde->format('d/m/Y'),
+            'to' => $fechaHasta->format('d/m/Y'),
+            'nombre' => $nombre,
+            'profesionales' => $profesionales,
+            'prof' => $prof,
+            'historiasArray' => $historiasArray,
         ]);
     }
 
