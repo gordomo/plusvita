@@ -70,6 +70,7 @@
             <th class="motivoIngEspecifico">Motivo Ing Especifico</th>
             <th class="modalidad">Modalidad</th>
             <th class="obraSocial">O. Social</th>
+            <th></th>
         </tr>
         </thead>
         <tbody>
@@ -105,12 +106,13 @@
                     {% endif %}
                 </td>
                 <td class="obraSocial">{{ oSociales[cliente.obraSocial] }}</td>
+                <td><a href="{{ path('cliente_historial', {'id': cliente.id}) }}" class="btn btn-primary btn-sm">HC</a> </td>
             </tr>
             {% if historiasArray[cliente.id] is defined %}
                 {% for historia in historiasArray[cliente.id] %}
                     <tr >
                         <td class="border-top border-dark">{{ historia.fecha ? historia.fecha|date('d/m/Y') : '' }}</td>
-                        <td class="border-top border-dark text-lowercase" colspan="7">
+                        <td class="border-top border-dark text-lowercase" colspan="8">
                             <b>|</b> {{ historia.usuario }}
                             {% if(historia.modalidad == 1) %}
                                 <b>|</b> Ambulatorio
