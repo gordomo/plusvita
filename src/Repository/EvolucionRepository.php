@@ -104,7 +104,7 @@ class EvolucionRepository extends ServiceEntityRepository
             $query->andWhere('e.tipo IN (:tipos)')->setParameter('tipos', $tipos);
         }
 
-        return $query->orderBy('e.fecha, e.tipo', 'ASC')->getQuery()->getResult();
+        return $query->orderBy('e.fecha, e.tipo', 'DESC')->getQuery()->getResult();
 
     }
 
