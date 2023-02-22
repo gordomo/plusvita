@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\ClienteRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -773,6 +774,13 @@ class Cliente
     public function getHistoria()
     {
         return $this->historia;
+    }
+
+    public function getLastHistoriaInternado($from, $to)
+    {
+        //modalidad 2 es internado
+        $criteria = Criteria::create()->where(Criteria::expr()->eq("modalidad", '2'))->andWhere(Criteria::expr()->gte("fecha", $from))->andWhere(Criteria::expr()->lte("fecha", $to));
+        return $this->getHistoria()->matching($criteria)->last();
     }
 
     /**

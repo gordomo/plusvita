@@ -1,0 +1,120 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Historico {{ modalidad == 1 ? 'Internados' : 'Ambulatorios' }} {% endblock %}
+{% block stylesheets %}
+    {{ parent() }}
+
+{% endblock %}
+{% block panelTitle %}Historico {{ modalidad == 1 ? 'Internados' : 'Ambulatorios' }}{% endblock %}
+{% block body %}
+    <form>
+        <div class="row">
+            <div class="col">
+                <label for="contrato">Desde</label>
+                <input class="form-control js-datepicker" type="text" id="from" autocomplete="off" name="from" value="{{ from }}">
+            </div>
+            <div class="col">
+                <label for="contrato">Hasta</label>
+                <input class="form-control js-datepicker" type="text" id="to" autocomplete="off" name="to" value="{{ to }}">
+            </div>
+            {#<div class="col">
+                <label for="modalidad">Estado</label>
+                <select class="form-control" name="modalidad">
+                    <option value="2" {{ modalidad == 2 ? 'selected' : '' }}>Internados</option>
+                    <option value="1" {{ modalidad == 1 ? 'selected' : '' }}>Ambulatorios</option>
+                </select>
+            </div>#}
+            <div class="col">
+                <label for="contrato">Nombre / Apellido</label>
+                <input class="form-control" type="text" id="nombre" name="nombre" value="{{ nombre }}">
+            </div>
+            <div class="col">
+                <label for="estado">O. Social</label>
+                <select class="form-control" name="obraSocial">
+                    <option value="">Seleccione una O. Social</option>
+                    {% for idObra, obra in obrasSociales %}
+                        <option {{ obraSocial == idObra ? 'selected' : '' }} value="{{ idObra }}">{{ obra }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col">
+                <label for="estado">O. Social</label>
+                <select class="form-control" name="prof">
+                    <option value="">Seleccione un Profesional</option>
+                    {% for profesional in profesionales %}
+                        <option {{ prof == profesional.id ? 'selected' : '' }} value="{{ profesional.id }}">{{ profesional.nombre }} {{ profesional.apellido }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col">
+                <button type="submit" class="btn btn-primary">Buscar</button>
+                <a href="{{ path('cliente_internados') }}" class="btn btn-action">Limpiar</a>
+            </div>
+        </div>
+    </form>
+
+        <div class="row mt-4">
+            <table class="table table-responsive">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>H.C.</th>
+                        <th>Paciente</th>
+                        <th>Fecha</th>
+                        <th>Modalidad en Fecha</th>
+                        <th>Modalidad Actual</th>
+                        <th>O. S.</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for historia in historias %}
+                        {% if historia.cliente is not null %}
+                        <tr>
+                            <td>{{ historia.cliente.id }}</td>
+                            <td>{{ historia.cliente.hClinica }}</td>
+                            <td>{{ historia.cliente.nombre }} {{ historia.cliente.apellido }}</td>
+                            <td>{{ historia.fecha|date('d/m/Y') }}</td>
+                            <td>
+                                {% if(historia.modalidad == 1) %}
+                                    Ambulatorio
+                                {% elseif(historia.modalidad == 2) %}
+                                    Internacion
+                                {% elseif(historia.modalidad == 3) %}
+                                    Hospital de día
+                                {% elseif(historia.modalidad == 4) %}
+                                    ART
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if(historia.cliente.modalidad == 1) %}
+                                    Ambulatorio
+                                {% elseif(historia.cliente.modalidad == 2) %}
+                                    Internacion
+                                {% elseif(historia.cliente.modalidad == 3) %}
+                                    Hospital de día
+                                {% elseif(historia.cliente.modalidad == 4) %}
+                                    ART
+                                {% endif %}
+                            </td>
+                            <td>{{ obrasSociales[historia.obraSocial] }}</td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        $('.js-datepicker').datepicker({
+            format: 'dd/mm/yyyy'
+        });
+    </script>
+{% endblock %}

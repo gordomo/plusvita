@@ -31,6 +31,12 @@
                     <a class="text-white dropdown-item" href="{{ path('cliente_novedades') }}">
                         Novedades
                     </a>
+                    <a class="text-white dropdown-item" href="{{ path('cliente_internados', {'modalidad': 1}) }}">
+                        Historico Internados
+                    </a>
+                    <a class="text-white dropdown-item" href="{{ path('cliente_internados', {'modalidad': 2}) }}">
+                        Historico Ambulatorios
+                    </a>
                 </div>
             </div>
             <a class="list-group-item list-group-item-action bg-light " href="{{ path('booking_calendar') }}">

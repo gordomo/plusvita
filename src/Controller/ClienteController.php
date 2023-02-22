@@ -102,6 +102,71 @@ class ClienteController extends AbstractController
         ]);
     }
 
+    /**
+     * @Route("/internados", name="cliente_internados", methods={"GET"})
+     */
+    public function internados(Request $request, HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, DoctorRepository $doctorRepository, HistoriaPacienteRepository $historiaPacienteRepository): Response
+    {
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        } else if (!in_array('ROLE_ADMIN', $user->getRoles())) {
+            return $this->redirectToRoute('doctor_historia');
+        }
+
+        $estado = $request->query->get('estado') ?? '1';
+        $nombre = $request->query->get('nombre') ?? null;
+        $prof = $request->query->get('prof') ?? null;
+        $nombreInput = $request->query->get('nombreInput');
+        $modalidad = $request->query->get('modalidad', 1);
+
+        $hab = $request->query->get('hab') ?? null;
+        $obraSocial = $request->query->get('obraSocial') ?? null;
+
+        $obrasSociales = $obraSocialRepository->findBy(array(), array('nombre' => 'ASC'));
+        $obArray = [];
+        foreach ( $obrasSociales as $ob ) {
+            $obArray[$ob->getId()] = $ob->getNombre();
+        }
+
+        $from = $request->get('from', '01/01/2000');
+        $to = $request->get('to', '31/12/3000');
+
+        $fechaDesde = \DateTime::createFromFormat("d/m/Y", $from);
+        $fechaHasta = \DateTime::createFromFormat("d/m/Y", $to);
+
+        //$clientes = $clienteRepository->findActivosDesdeHasta($fechaDesde, $fechaHasta, $nombre, $estado, $obraSocial);
+        $historiasDesdeHasta = $historiaPacienteRepository->getLastHistorialConModalidad($fechaDesde, $fechaHasta, $modalidad);
+
+
+        /*$historiaArray = [];
+
+        foreach ($clientes as $cliente) {
+            $hist = $cliente->getLastHistoriaInternado($fechaDesde, $fechaHasta);
+            if($hist) $historiaArray[] = $hist;
+        }*/
+
+        $obrasSociales = $obraSocialRepository->findAll();
+        $osArray = [];
+        foreach ($obrasSociales as $os) {
+            $osArray[$os->getId()] = $os->getNombre();
+        }
+
+        //$historiaArray = $historiasDesdeHasta;
+
+        return $this->render('cliente/internados.html.twig',
+            [
+                'obrasSociales' => $osArray,
+                'historias' => $historiasDesdeHasta,
+                'from' => $from,
+                'to' => $to,
+                'nombre' => $nombre,
+                'obraSocial' => $obraSocial,
+                'profesionales' => $prof,
+                'modalidad' => $modalidad
+            ]);
+    }
+
 
     /**
      * @Route("/novedades", name="cliente_novedades", methods={"GET"})
@@ -473,6 +538,7 @@ class ClienteController extends AbstractController
         $user = $this->security->getUser();
 
         $cliente->setAmbulatorio(true);
+        $cliente->setModalidad(1);
         $cliente->setFechaAmbulatorio(new \DateTime());
 
         $this->liberarCamaCliente($cliente);
@@ -481,6 +547,7 @@ class ClienteController extends AbstractController
 
         $parametros = [
             'ambulatorio' => true,
+            'modalidad' => 1,
             'habitacion' => '',
             'cama' => '',
         ];
@@ -589,10 +656,13 @@ class ClienteController extends AbstractController
                     $habitacion->setCamasOcupadas($camasOcupadas);
                     $entityManager->persist($habitacion);
                     $parametros['habitacion'] = $habitacion->getId();
+                    $parametros['modalidad'] = 2;
                 } else {
                     $cliente->setAmbulatorio(true);
                     $cliente->setFechaAmbulatorio(new \DateTime());
                     $parametros['ambulatorio'] = true;
+                    $parametros['modalidad'] = 1;
+
                 }
 
                 $parametros['dePermiso'] = false;
@@ -616,6 +686,7 @@ class ClienteController extends AbstractController
             if($cliente->getAmbulatorio() && $cliente->getHabitacion() != null ) {
                 $parametros['derivadoEn'] = null;
                 $parametros['ambulatorio'] = false;
+                $parametros['modalidad'] = 2;
 
                 $cliente->setAmbulatorio(false);
             }

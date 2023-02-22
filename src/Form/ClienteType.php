@@ -176,7 +176,7 @@ class ClienteType extends AbstractType
             }
             if($options['egreso'] || $options['is_new']) {
                 $builder
-                    ->add('fEgreso', DateType::class, ['label' => 'Fecha de Egreso', 'required'=>false, 'widget' => 'single_text', 'attr' => ['class' => 'js-datepicker']])
+                    ->add('fEgreso', DateType::class, ['label' => 'Fecha de Egreso', 'required'=>false, 'format' => 'dd-MM-yyyy',])
                     ->add('motivoEgr', ChoiceType::class, [
                         'label' => 'Motivo de Egreso',
                         'choices'  => [
