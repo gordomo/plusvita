@@ -1,11 +1,11 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Historico {{ modalidad == 1 ? 'Internados' : 'Ambulatorios' }} {% endblock %}
+{% block title %}Historico {{ modalidad == 2 ? 'Internados' : 'Ambulatorios' }} {% endblock %}
 {% block stylesheets %}
     {{ parent() }}
 
 {% endblock %}
-{% block panelTitle %}Historico {{ modalidad == 1 ? 'Internados' : 'Ambulatorios' }}{% endblock %}
+{% block panelTitle %}Historico {{ modalidad == 2 ? 'Internados' : 'Ambulatorios' }}{% endblock %}
 {% block body %}
     <form>
         <div class="row">
@@ -68,6 +68,7 @@
                         <th>Modalidad en Fecha</th>
                         <th>Modalidad Actual</th>
                         <th>O. S.</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -101,6 +102,7 @@
                                 {% endif %}
                             </td>
                             <td>{{ obrasSociales[historia.obraSocial] }}</td>
+                            <td><a class="btn btn-action btn-sm" href="{{ path('cliente_historial', {'id': historia.cliente.id}) }}">HC</a></td>
                         </tr>
                         {% endif %}
                     {% endfor %}

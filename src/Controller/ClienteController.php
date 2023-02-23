@@ -136,8 +136,15 @@ class ClienteController extends AbstractController
         $fechaHasta = \DateTime::createFromFormat("d/m/Y", $to);
 
         //$clientes = $clienteRepository->findActivosDesdeHasta($fechaDesde, $fechaHasta, $nombre, $estado, $obraSocial);
-        $historiasDesdeHasta = $historiaPacienteRepository->getLastHistorialConModalidad($fechaDesde, $fechaHasta, $modalidad);
+        $historiasDesdeHastaAll = $historiaPacienteRepository->getLastHistorialConModalidad($fechaDesde, $fechaHasta, $modalidad);
 
+        if ($prof) {
+            $historiasDesdeHasta = array_filter($historiasDesdeHastaAll, function($historia, $prof) {
+                return $historia->getCliente()->getDocReferente()->getId() && $historia->getCliente()->getDocReferente()->getId() === $prof;
+            });
+        } else {
+            $historiasDesdeHasta = $historiasDesdeHastaAll;
+        }
 
         /*$historiaArray = [];
 
@@ -162,7 +169,8 @@ class ClienteController extends AbstractController
                 'to' => $to,
                 'nombre' => $nombre,
                 'obraSocial' => $obraSocial,
-                'profesionales' => $prof,
+                'prof' => $prof,
+                'profesionales' => $doctorRepository->findAll(),
                 'modalidad' => $modalidad
             ]);
     }
