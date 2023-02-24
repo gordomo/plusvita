@@ -615,7 +615,20 @@
                                             </td>
                                         {% else %}
                                             <td>{{ historia.fecha ? historia.fecha|date('d/m/Y') : ''}}</td>
-                                            <td><b class="text-capitalize">Primer Registro</b></td>
+                                            <td>
+                                                <b class="text-capitalize">
+                                                    Primer Registro - modalidad:
+                                                    {% if(historia.modalidad == 1) %}
+                                                        Ambulatorio
+                                                    {% elseif(historia.modalidad == 2) %}
+                                                        Internacion
+                                                    {% elseif(historia.modalidad == 3) %}
+                                                        Hospital de día
+                                                    {% elseif(historia.modalidad == 4) %}
+                                                        ART
+                                                    {% endif %}
+                                                </b>
+                                            </td>
                                         {% endif %}
                                         <td class="lowercase">{{ historia.usuario }}</td>
                                     </tr>

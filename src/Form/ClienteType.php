@@ -35,7 +35,14 @@ class ClienteType extends AbstractType
                 ->add('dni', TextType::class, ['label' => 'Número de Documento'])
                 ->add('email', EmailType::class, ['required' => false,])
                 ->add('telefono', TextType::class, ['label' => 'Teléfono', 'required' => false,])
-                ->add('fNacimiento', DateType::class, ['label' => 'Fecha de Nacimiento', 'required' => false, 'widget' => 'single_text', 'html5' => true, 'attr' => ['class' => 'js-datepicker'],])
+                ->add('fNacimiento', DateType::class, [
+                    'label' => 'Fecha de Nacimiento',
+                    'html5' => false,
+                    'widget' => 'single_text',
+                    'format' => 'dd/mm/yyyy',
+                    'required' => false,
+                    'attr' => ['class' => 'js-datepicker', 'autocomplete'=>'off'],
+                    ])
                 ->add('hClinica', TextType::class, ['label' => 'Número de Historia Clínica', 'required' => false,])
                 ->add('obraSocial', ChoiceType::class, [
                     'label' => 'Obra Social',
@@ -60,7 +67,14 @@ class ClienteType extends AbstractType
                 ->add('sistemaDeEmergenciaNombre', TextType::class, ['required' => false, 'label' => 'Sistema de emergencias'])
                 ->add('sistemaDeEmergenciaTel', TextType::class, ['required' => false, 'label' => 'Teléfono'])
                 ->add('sistemaDeEmergenciaAfiliado', TextType::class, ['required' => false, 'label' => 'N Afiliado'])
-                ->add('fIngreso', DateType::class, ['label' => 'Fecha de Ingreso', 'required' => false, 'widget' => 'single_text', 'attr' => ['class' => 'js-datepicker']])
+                ->add('fIngreso', DateType::class, [
+                    'label' => 'Fecha de Ingreso',
+                    'html5' => false,
+                    'widget' => 'single_text',
+                    'format' => 'dd/mm/yyyy',
+                    'required' => false,
+                    'attr' => ['class' => 'js-datepicker', 'autocomplete'=>'off']],
+                )
                 ->add('modalidad', ChoiceType::class, [
                     'label' => 'Modalidad',
                     'placeholder' => 'Seleccione una modalidad',
@@ -142,7 +156,14 @@ class ClienteType extends AbstractType
                 ->add('dieta', TextType::class, ['label' => 'Dieta', 'required' => false])
                 ->add('sesionesDisp', NumberType::class, ['label' => 'Sesiones Disponibles', 'required' => false, 'html5' => true])
                 ->add('formNum', NumberType::class, ['label' => 'Número de Formulario', 'required' => false, 'html5' => true])
-                ->add('vtoSesiones', DateType::class, ['label' => 'Vto Sesiones', 'required' => false, 'widget' => 'single_text', 'attr' => ['class' => 'js-datepicker']])
+                ->add('vtoSesiones', DateType::class, [
+                    'label' => 'Vto Sesiones',
+                    'html5' => false,
+                    'widget' => 'single_text',
+                    'format' => 'dd/mm/yyyy',
+                    'required' => false,
+                    'attr' => ['class' => 'js-datepicker', 'autocomplete'=>'off']],
+                )
                 ->add('mediaSesion', ChoiceType::class, ['label' => 'Media sesion?', 'required' => false, 'choices' => [
                     'Si' => true,
                     'No' => false,
@@ -176,7 +197,13 @@ class ClienteType extends AbstractType
             }
             if($options['egreso'] || $options['is_new']) {
                 $builder
-                    ->add('fEgreso', DateType::class, ['label' => 'Fecha de Egreso', 'required'=>false, 'format' => 'dd-MM-yyyy',])
+                    ->add('fEgreso', DateType::class, [
+                        'html5' => false,
+                        'widget' => 'single_text',
+                        'format' => 'dd/mm/yyyy',
+                        'required' => false,
+                        'attr' => ['class' => 'js-datepicker', 'autocomplete'=>'off']],
+                    )
                     ->add('motivoEgr', ChoiceType::class, [
                         'label' => 'Motivo de Egreso',
                         'choices'  => [

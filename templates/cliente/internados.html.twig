@@ -1,35 +1,36 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Historico {{ modalidad == 2 ? 'Internados' : 'Ambulatorios' }} {% endblock %}
+{% block title %}Historico{% endblock %}
 {% block stylesheets %}
     {{ parent() }}
 
 {% endblock %}
-{% block panelTitle %}Historico {{ modalidad == 2 ? 'Internados' : 'Ambulatorios' }}{% endblock %}
+{% block panelTitle %}Historico{% endblock %}
 {% block body %}
     <form>
         <div class="row">
             <div class="col">
-                <label for="contrato">Desde</label>
+                <label for="from">Desde</label>
                 <input class="form-control js-datepicker" type="text" id="from" autocomplete="off" name="from" value="{{ from }}">
             </div>
             <div class="col">
-                <label for="contrato">Hasta</label>
+                <label for="to">Hasta</label>
                 <input class="form-control js-datepicker" type="text" id="to" autocomplete="off" name="to" value="{{ to }}">
             </div>
-            {#<div class="col">
+            <div class="col">
                 <label for="modalidad">Estado</label>
                 <select class="form-control" name="modalidad">
+                    <option value="0">Todos</option>
                     <option value="2" {{ modalidad == 2 ? 'selected' : '' }}>Internados</option>
                     <option value="1" {{ modalidad == 1 ? 'selected' : '' }}>Ambulatorios</option>
                 </select>
-            </div>#}
+            </div>
             <div class="col">
-                <label for="contrato">Nombre / Apellido</label>
+                <label for="nombre">Nombre / Apellido</label>
                 <input class="form-control" type="text" id="nombre" name="nombre" value="{{ nombre }}">
             </div>
             <div class="col">
-                <label for="estado">O. Social</label>
+                <label for="obraSocial">O. Social</label>
                 <select class="form-control" name="obraSocial">
                     <option value="">Seleccione una O. Social</option>
                     {% for idObra, obra in obrasSociales %}
@@ -39,14 +40,18 @@
             </div>
         </div>
         <div class="row mt-4">
-            <div class="col">
-                <label for="estado">O. Social</label>
+            <div class="col-5">
+                <label for="prof">Profesional</label>
                 <select class="form-control" name="prof">
                     <option value="">Seleccione un Profesional</option>
                     {% for profesional in profesionales %}
-                        <option {{ prof == profesional.id ? 'selected' : '' }} value="{{ profesional.id }}">{{ profesional.nombre }} {{ profesional.apellido }}</option>
+                        <option class="text-uppercase" {{ prof == profesional.id ? 'selected' : '' }} value="{{ profesional.id }}">{{ profesional.apellido }} {{ profesional.nombre }}</option>
                     {% endfor %}
                 </select>
+            </div>
+            <div class="col-2">
+                <label for="vto">Vto. Autorizaciones</label>
+                <input class="form-control js-datepicker" type="text" id="vto" autocomplete="off" name="vto" value="{{ vto }}">
             </div>
         </div>
         <div class="row mt-4">
@@ -60,7 +65,7 @@
         <div class="row mt-4">
             <table class="table table-responsive">
                 <thead>
-                    <tr>
+                    {#<tr>
                         <th>ID</th>
                         <th>H.C.</th>
                         <th>Paciente</th>
@@ -69,44 +74,67 @@
                         <th>Modalidad Actual</th>
                         <th>O. S.</th>
                         <th>Acciones</th>
-                    </tr>
+                    </tr>#}
                 </thead>
                 <tbody>
-                    {% for historia in historias %}
-                        {% if historia.cliente is not null %}
+                    {% for cliente, historias in historiasArray %}
                         <tr>
-                            <td>{{ historia.cliente.id }}</td>
-                            <td>{{ historia.cliente.hClinica }}</td>
-                            <td>{{ historia.cliente.nombre }} {{ historia.cliente.apellido }}</td>
-                            <td>{{ historia.fecha|date('d/m/Y') }}</td>
-                            <td>
-                                {% if(historia.modalidad == 1) %}
-                                    Ambulatorio
-                                {% elseif(historia.modalidad == 2) %}
-                                    Internacion
-                                {% elseif(historia.modalidad == 3) %}
-                                    Hospital de día
-                                {% elseif(historia.modalidad == 4) %}
-                                    ART
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if(historia.cliente.modalidad == 1) %}
-                                    Ambulatorio
-                                {% elseif(historia.cliente.modalidad == 2) %}
-                                    Internacion
-                                {% elseif(historia.cliente.modalidad == 3) %}
-                                    Hospital de día
-                                {% elseif(historia.cliente.modalidad == 4) %}
-                                    ART
-                                {% endif %}
-                            </td>
-                            <td>{{ obrasSociales[historia.obraSocial] }}</td>
-                            <td><a class="btn btn-action btn-sm" href="{{ path('cliente_historial', {'id': historia.cliente.id}) }}">HC</a></td>
+                            <th class="text-capitalize" colspan="6">
+                                <a class="" href="{{ path('cliente_historial', {'id': historias[0].cliente.id}) }}">
+                                    {{ historias[0].cliente.hClinica }}
+                                </a>
+                            </th>
+                            <th class="text-capitalize" colspan="6">
+                                <a class="" href="{{ path('cliente_historial', {'id': historias[0].cliente.id}) }}">
+                                    {{ cliente }} - Fecha Ingreso: {{ historias[0].cliente.fIngreso | date('d/m/Y') }}
+                                </a>
+                            </th>
                         </tr>
-                        {% endif %}
+                        <tr>
+                            <th>ID</th>
+                            <th>H.C.</th>
+                            <th>Fecha</th>
+                            <th>Modalidad en Fecha</th>
+                            <th>Modalidad Actual</th>
+                            <th>O. S.</th>
+                        </tr>
+                        {% for historia in historias %}
+                            <tr>
+                                <td>{{ historia.cliente.id }}</td>
+                                <td>{{ historia.cliente.hClinica }}</td>
+                                <td>{{ historia.fecha|date('d/m/Y') }}</td>
+                                <td>
+                                    {% if(historia.modalidad == 1) %}
+                                        Ambulatorio
+                                    {% elseif(historia.modalidad == 2) %}
+                                        Internacion
+                                    {% elseif(historia.modalidad == 3) %}
+                                        Hospital de día
+                                    {% elseif(historia.modalidad == 4) %}
+                                        ART
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if(historia.cliente.modalidad == 1) %}
+                                        Ambulatorio
+                                    {% elseif(historia.cliente.modalidad == 2) %}
+                                        Internacion
+                                    {% elseif(historia.cliente.modalidad == 3) %}
+                                        Hospital de día
+                                    {% elseif(historia.cliente.modalidad == 4) %}
+                                        ART
+                                    {% endif %}
+                                </td>
+                                <td>{{ historia.obraSocial ? obrasSociales[historia.obraSocial] : '' }}</td>
+                            </tr>
+                        {% endfor %}
                     {% endfor %}
                 </tbody>
+                <tfoot>
+                    <tr>
+                        <td>Total Pacientes: {{ historiasArray | length  }}</td>
+                    </tr>
+                </tfoot>
             </table>
         </div>
 

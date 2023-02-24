@@ -118,59 +118,61 @@ class ClienteController extends AbstractController
         $nombre = $request->query->get('nombre') ?? null;
         $prof = $request->query->get('prof') ?? null;
         $nombreInput = $request->query->get('nombreInput');
-        $modalidad = $request->query->get('modalidad', 1);
+        $modalidad = $request->query->get('modalidad', 0);
 
         $hab = $request->query->get('hab') ?? null;
         $obraSocial = $request->query->get('obraSocial') ?? null;
 
         $obrasSociales = $obraSocialRepository->findBy(array(), array('nombre' => 'ASC'));
+
         $obArray = [];
         foreach ( $obrasSociales as $ob ) {
             $obArray[$ob->getId()] = $ob->getNombre();
         }
 
-        $from = $request->get('from', '01/01/2000');
-        $to = $request->get('to', '31/12/3000');
+        $from = $request->get('from', null);
+        $to = $request->get('to', null);
+        $vto = $request->get('vto', null);
 
         $fechaDesde = \DateTime::createFromFormat("d/m/Y", $from);
         $fechaHasta = \DateTime::createFromFormat("d/m/Y", $to);
+        $vencimientoAut = \DateTime::createFromFormat("d/m/Y", $vto);
 
         //$clientes = $clienteRepository->findActivosDesdeHasta($fechaDesde, $fechaHasta, $nombre, $estado, $obraSocial);
-        $historiasDesdeHastaAll = $historiaPacienteRepository->getLastHistorialConModalidad($fechaDesde, $fechaHasta, $modalidad);
+        $historiasDesdeHastaAll = $historiaPacienteRepository->getLastHistorialConModalidad($fechaDesde, $fechaHasta, $modalidad, $obraSocial, $vencimientoAut);
 
         if ($prof) {
-            $historiasDesdeHasta = array_filter($historiasDesdeHastaAll, function($historia, $prof) {
-                return $historia->getCliente()->getDocReferente()->getId() && $historia->getCliente()->getDocReferente()->getId() === $prof;
+            $historiasDesdeHasta = array_filter($historiasDesdeHastaAll, function($historia) use ($prof) {
+                $tieneEsteDocReferente = false;
+                foreach ($historia->getCliente()->getDocReferente() as $docReferente) {
+                    $tieneEsteDocReferente = $docReferente->getId() && $docReferente->getId() == $prof;
+                }
+                return $tieneEsteDocReferente;
             });
         } else {
             $historiasDesdeHasta = $historiasDesdeHastaAll;
         }
 
-        /*$historiaArray = [];
-
-        foreach ($clientes as $cliente) {
-            $hist = $cliente->getLastHistoriaInternado($fechaDesde, $fechaHasta);
-            if($hist) $historiaArray[] = $hist;
-        }*/
-
-        $obrasSociales = $obraSocialRepository->findAll();
-        $osArray = [];
-        foreach ($obrasSociales as $os) {
-            $osArray[$os->getId()] = $os->getNombre();
+        $histArray = [];
+        foreach ($historiasDesdeHasta as $historia) {
+            $histArray[$historia->getCliente()->getNombreApellido()][] = $historia;
         }
 
-        //$historiaArray = $historiasDesdeHasta;
+        $histArray = array_reverse($histArray);
+
+        $docReferentes = $doctorRepository->findByContratos(['Fisiatra', 'Director medico', 'Sub director medico'], false);
 
         return $this->render('cliente/internados.html.twig',
             [
-                'obrasSociales' => $osArray,
-                'historias' => $historiasDesdeHasta,
+                'obrasSociales' => $obArray,
+                'historiasArray' => $histArray,
                 'from' => $from,
                 'to' => $to,
+                'vto' => $vto,
                 'nombre' => $nombre,
                 'obraSocial' => $obraSocial,
                 'prof' => $prof,
-                'profesionales' => $doctorRepository->findAll(),
+                'profesionales' => $docReferentes,
                 'modalidad' => $modalidad
             ]);
     }
