@@ -79,12 +79,12 @@
                 <tbody>
                     {% for cliente, historias in historiasArray %}
                         <tr>
-                            <th class="text-capitalize" colspan="6">
+                            <th class="text-capitalize" >
                                 <a class="" href="{{ path('cliente_historial', {'id': historias[0].cliente.id}) }}">
                                     {{ historias[0].cliente.hClinica }}
                                 </a>
                             </th>
-                            <th class="text-capitalize" colspan="6">
+                            <th class="text-capitalize" colspan="5">
                                 <a class="" href="{{ path('cliente_historial', {'id': historias[0].cliente.id}) }}">
                                     {{ cliente }} - Fecha Ingreso: {{ historias[0].cliente.fIngreso | date('d/m/Y') }}
                                 </a>
