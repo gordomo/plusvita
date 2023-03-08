@@ -5,10 +5,10 @@ namespace App\Form;
 use App\Entity\Cliente;
 use App\Entity\Doctor;
 use Doctrine\ORM\EntityRepository;
+use Svg\Tag\Text;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
@@ -26,6 +26,7 @@ class ClienteType extends AbstractType
     {
         $obrasSociales = $options['obrasSociales'] ?? '';
         $habitaciones = $options['habitaciones'] ?? '';
+        $fechas = $options['fechas'] ?? '';
 
         ksort($obrasSociales);
         if (!$options['egreso']) {
@@ -35,13 +36,11 @@ class ClienteType extends AbstractType
                 ->add('dni', TextType::class, ['label' => 'Número de Documento'])
                 ->add('email', EmailType::class, ['required' => false,])
                 ->add('telefono', TextType::class, ['label' => 'Teléfono', 'required' => false,])
-                ->add('fNacimiento', DateType::class, [
+                ->add('fNacimiento', TextType::class, [
                     'label' => 'Fecha de Nacimiento',
-                    'html5' => false,
-                    'widget' => 'single_text',
-                    'format' => 'dd/mm/yyyy',
                     'required' => false,
-                    'attr' => ['class' => 'js-datepicker', 'autocomplete'=>'off'],
+                    'attr' => ['class' => 'js-datepicker', 'autocomplete'=>'off', 'value' => $fechas['fNacimiento']],
+                    'mapped' => false
                     ])
                 ->add('hClinica', TextType::class, ['label' => 'Número de Historia Clínica', 'required' => false,])
                 ->add('obraSocial', ChoiceType::class, [
@@ -67,13 +66,11 @@ class ClienteType extends AbstractType
                 ->add('sistemaDeEmergenciaNombre', TextType::class, ['required' => false, 'label' => 'Sistema de emergencias'])
                 ->add('sistemaDeEmergenciaTel', TextType::class, ['required' => false, 'label' => 'Teléfono'])
                 ->add('sistemaDeEmergenciaAfiliado', TextType::class, ['required' => false, 'label' => 'N Afiliado'])
-                ->add('fIngreso', DateType::class, [
+                ->add('fIngreso', TextType::class, [
                     'label' => 'Fecha de Ingreso',
-                    'html5' => false,
-                    'widget' => 'single_text',
-                    'format' => 'dd/mm/yyyy',
                     'required' => false,
-                    'attr' => ['class' => 'js-datepicker', 'autocomplete'=>'off']],
+                    'mapped' => false,
+                    'attr' => ['class' => 'js-datepicker', 'autocomplete'=>'off', 'value' => $fechas['fIngreso']]],
                 )
                 ->add('modalidad', ChoiceType::class, [
                     'label' => 'Modalidad',
@@ -156,13 +153,11 @@ class ClienteType extends AbstractType
                 ->add('dieta', TextType::class, ['label' => 'Dieta', 'required' => false])
                 ->add('sesionesDisp', NumberType::class, ['label' => 'Sesiones Disponibles', 'required' => false, 'html5' => true])
                 ->add('formNum', NumberType::class, ['label' => 'Número de Formulario', 'required' => false, 'html5' => true])
-                ->add('vtoSesiones', DateType::class, [
+                ->add('vtoSesiones', TextType::class, [
                     'label' => 'Vto Sesiones',
-                    'html5' => false,
-                    'widget' => 'single_text',
-                    'format' => 'dd/mm/yyyy',
+                    'mapped' => false,
                     'required' => false,
-                    'attr' => ['class' => 'js-datepicker', 'autocomplete'=>'off']],
+                    'attr' => ['class' => 'js-datepicker', 'autocomplete'=>'off', 'value' => $fechas['vtoSesiones']]],
                 )
                 ->add('mediaSesion', ChoiceType::class, ['label' => 'Media sesion?', 'required' => false, 'choices' => [
                     'Si' => true,
@@ -197,12 +192,10 @@ class ClienteType extends AbstractType
             }
             if($options['egreso'] || $options['is_new']) {
                 $builder
-                    ->add('fEgreso', DateType::class, [
-                        'html5' => false,
-                        'widget' => 'single_text',
-                        'format' => 'dd/mm/yyyy',
+                    ->add('fEgreso', TextType::class, [
+                        'mapped' => false,
                         'required' => false,
-                        'attr' => ['class' => 'js-datepicker', 'autocomplete'=>'off']],
+                        'attr' => ['class' => 'js-datepicker', 'autocomplete'=>'off', 'value' => $fechas['fEgreso']]],
                     )
                     ->add('motivoEgr', ChoiceType::class, [
                         'label' => 'Motivo de Egreso',
@@ -299,6 +292,12 @@ class ClienteType extends AbstractType
             'habitaciones' => [],
             'camasDisp' => 0,
             'bloquearHab' => false,
+            'fechas' => array(
+                'fIngreso' => null,
+                'fNacimiento' => null,
+                'vtoSesiones' => null,
+                'fEgreso' => null,
+            )
         ]);
     }
 }

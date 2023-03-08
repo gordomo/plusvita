@@ -34,6 +34,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Validator\Constraints\DateTime;
 
 /**
  * @Route("/pacientes")
@@ -346,6 +347,22 @@ class ClienteController extends AbstractController
                 $doctor->addCliente($cliente);
                 $entityManager->persist($doctor);
             }
+            $cliente->setFIngreso(null);
+            if (!empty($form->get('fIngreso')->getData())) {
+                $cliente->setFIngreso(\DateTime::createFromFormat('d/m/Y', $form->get('fIngreso')->getData()));
+            }
+            $cliente->setFNacimiento(null);
+            if (!empty($form->get('fNacimiento')->getData())) {
+                $cliente->setFNacimiento(\DateTime::createFromFormat('d/m/Y', $form->get('fNacimiento')->getData()));
+            }
+            $cliente->setVtoSesiones(null);
+            if (!empty($form->get('vtoSesiones')->getData())) {
+                $cliente->setVtoSesiones(\DateTime::createFromFormat('d/m/Y', $form->get('vtoSesiones')->getData()));
+            }
+            $cliente->setFEgreso(null);
+            if (!empty($form->get('fEgreso')->getData())) {
+                $cliente->setFEgreso(\DateTime::createFromFormat('d/m/Y', $form->get('fEgreso')->getData()));
+            }
 
             $entityManager->persist($cliente);
             $entityManager->flush();
@@ -422,6 +439,197 @@ class ClienteController extends AbstractController
             'cliente' => $cliente,
             'form' => $form->createView(),
 
+        ]);
+    }
+
+    /**
+     * @Route("/{id}/edit", name="cliente_edit", methods={"GET","POST"})
+     */
+    public function edit(Request $request, Cliente $cliente, ObraSocialRepository $obraSocialRepository, FamiliarExtraRepository $familiarExtraRepository, HabitacionRepository $habitacionRepository): Response
+    {
+        $user = $this->security->getUser();
+
+        $habitacionesDisp = $habitacionRepository->findHabitacionConCamasDisponibles();
+        $obrasSociales = $obraSocialRepository->findAll();
+        $familiarExtraActuales = $familiarExtraRepository->findBy(['cliente_id' => $cliente->getId()]);
+
+        $obArray = [];
+        foreach ( $obrasSociales as $ob ) {
+            $obArray[$ob->getId()] = $ob->getNombre();
+        }
+        $obArray = array_flip($obArray);
+
+        $haArray = [];
+        foreach ( $habitacionesDisp as $ha ) {
+            $haArray[$ha->getId()] = $ha->getNombre();
+        }
+
+        $camasDispArray = [];
+        $habitacionActualId = $cliente->getHabitacion() ?? 0;
+        $camaActualId = $cliente->getNCama() ?? 0;
+
+        if(!empty($habitacionActualId)) {
+            $habitacionActual = $habitacionRepository->find($habitacionActualId);
+            if(!empty($habitacionActual)) {
+                if(empty($haArray[$habitacionActualId])) {
+                    $haArray[$habitacionActualId] = !empty($habitacionActual) ? $habitacionActual->getNombre() : 'Habitación sin nombre';
+                }
+
+                $camasOcupadas = $habitacionActual->getCamasOcupadas();
+                $cantCamas = $habitacionActual->getCamasDisponibles();
+                $camasDispArray['sin cama'] = 0;
+                for ($i = 1; $i <= $cantCamas; $i++) {
+                    if(!in_array($i, $camasOcupadas)) {
+                        $camasDispArray[$i] = $i;
+                    }
+                }
+                $camasDispArray[$camaActualId] = $camaActualId;
+            }
+        }
+
+        ksort($camasDispArray);
+
+        $habPrivada = $cliente->getHabPrivada() ?? false;
+        $puedePasarHabPrivada = $habPrivada;
+        if(!empty($habitacionActual)) {
+            if(count($habitacionActual->getCamasOcupadas()) == 1) {
+                $puedePasarHabPrivada = true;
+            }
+        }
+
+        $formFechas = array(
+            'fIngreso' => ($cliente->getFIngreso()) ? $cliente->getFIngreso()->format('d/m/Y') : null,
+            'fNacimiento' => ($cliente->getFNacimiento()) ? $cliente->getFNacimiento()->format('d/m/Y') : null,
+            'vtoSesiones' => ($cliente->getVtoSesiones()) ? $cliente->getVtoSesiones()->format('d/m/Y') : null,
+            'fEgreso' => ($cliente->getFEgreso()) ? $cliente->getFEgreso()->format('d/m/Y') : null,
+        );
+
+        $form = $this->createForm(ClienteType::class, $cliente, [
+            'allow_extra_fields'=>true,
+            'is_new' => false,
+            'obrasSociales' => $obArray,
+            'habitaciones' => array_flip($haArray),
+            'camasDisp' => $camasDispArray,
+            'bloquearHab' => $puedePasarHabPrivada,
+            'fechas' => $formFechas,
+        ]);
+
+
+        $form->handleRequest($request);
+
+        if ( $form->isSubmitted()) {
+            if ( !$form->isValid() ) {
+                $cliente->setNCama($request->request->get('cliente')['nCama'] ?? 0);
+            }
+            try {
+
+                if ($form->has('fIngreso') && !empty($form->get('fIngreso')->getData())) {
+                    $cliente->setFIngreso(\DateTime::createFromFormat('d/m/Y', $form->get('fIngreso')->getData()));
+                }
+
+                if ($form->has('fNacimiento') && !empty($form->get('fNacimiento')->getData())) {
+                    $cliente->setFNacimiento(\DateTime::createFromFormat('d/m/Y', $form->get('fNacimiento')->getData()));
+                }
+
+                if ($form->has('vtoSesiones') && !empty($form->get('vtoSesiones')->getData())) {
+                    $cliente->setVtoSesiones(\DateTime::createFromFormat('d/m/Y', $form->get('vtoSesiones')->getData()));
+                }
+
+                if ($form->has('fEgreso') && !empty($form->get('fEgreso')->getData())) {
+                    $cliente->setFEgreso(\DateTime::createFromFormat('d/m/Y', $form->get('fEgreso')->getData()));
+                }
+
+                $cliente->setAmbulatorio($form->get('modalidad')->getData() == 1);
+                $entityManager = $this->getDoctrine()->getManager();
+                $doctoresReferentes = $cliente->getDocReferente();
+
+                $familiarResponsableExtraNombres = $request->request->get('familiarResponsableExtraNombre');
+                $familiarResponsableExtraTel = $request->request->get('familiarResponsableExtraTel');
+                $familiarResponsableExtraMail = $request->request->get('familiarResponsableExtraMail');
+                $familiarResponsableExtraVinculo = $request->request->get('familiarResponsableExtraVinculo');
+                $familiarResponsableExtraAcompanante = $request->request->get('familiarResponsableExtraAcompanante');
+
+                foreach ($familiarExtraActuales as $familiarExtraActual) {
+                    $entityManager->remove($familiarExtraActual);
+                }
+
+                $familiarResponsableExtraNombres = $familiarResponsableExtraNombres ?? [];
+                foreach ($familiarResponsableExtraNombres as $key => $item) {
+                    $tel = $familiarResponsableExtraTel[$key] ?? '';
+                    $mail = $familiarResponsableExtraMail[$key] ?? '';
+                    $vinculo = $familiarResponsableExtraVinculo[$key] ?? '';
+                    $acompanante = $familiarResponsableExtraAcompanante[$key] ?? false;
+
+                    $familarRespExtra = new FamiliarExtra();
+                    $familarRespExtra->setNombre($item);
+                    $familarRespExtra->setTel($tel);
+                    $familarRespExtra->setMail($mail);
+                    $familarRespExtra->setVinculo($vinculo);
+                    $familarRespExtra->setAcompanante($acompanante);
+                    $familarRespExtra->setClienteId($cliente->getId());
+
+                    $entityManager->persist($familarRespExtra);
+                };
+
+                foreach ($doctoresReferentes as $doctor) {
+                    $doctor->addCliente($cliente);
+                    $entityManager->persist($doctor);
+                }
+
+                $habPrivadaNueva = $form->getExtraData()['habPrivada'] ?? $cliente->getHabPrivada() ?? 0;
+
+                $cliente->setHabPrivada($habPrivadaNueva);
+
+                $entityManager->persist($cliente);
+
+                $nuevaHabId = $cliente->getHabitacion() ?? 0;
+
+                if ($cliente->getNCama()) {
+                    $nuevaCamaId = $cliente->getNCama();
+                } else {
+                    $nuevaCamaId = $form->getExtraData()['nCama'] ?? 0;
+                    $cliente->setNCama($nuevaCamaId);
+                    $entityManager->persist($cliente);
+                }
+
+                $habitacionNueva = $habitacionRepository->find($nuevaHabId);
+                $habVieja = $habitacionRepository->find($habitacionActualId);
+
+                $this->acomodarHabitacion($habitacionNueva, $nuevaCamaId, $habVieja, $camaActualId, $habPrivada, $habPrivadaNueva, $entityManager);
+
+                $parametros = [
+                    'cama' => $cliente->getNCama(),
+                    'habitacion' => $cliente->getHabitacion(),
+                    'nAfiliadoObraSocial' => $cliente->getObraSocialAfiliado(),
+                    'modalidad' => $cliente->getModalidad(),
+                    'patologia' => $cliente->getMotivoIng(),
+                    'patologiaEspecifica' => $cliente->getMotivoIngEspecifico(),
+                    'obraSocial' => $cliente->getObraSocial(),
+                    'sistemaDeEmergencia' => $cliente->getSistemaDeEmergenciaNombre(),
+                    'nAfiliadoSistemaDeEmergencia' => $cliente->getSistemaDeEmergenciaAfiliado(),
+                    'fechaIngreso' => $cliente->getFIngreso(),
+                    'fechaEngreso' => $cliente->getFEgreso(),
+                    'ambulatorio' => $cliente->getAmbulatorio(),
+                ];
+
+                $historial = $this->getHistorialActualizado($cliente, $parametros, $user);
+
+                $entityManager->persist($historial);
+
+                $entityManager->flush();
+
+                return $this->redirectToRoute('cliente_index');
+            } catch (\Exception $e) {
+                dd($e);
+            }
+        }
+
+
+        return $this->render('cliente/edit.html.twig', [
+            'cliente' => $cliente,
+            'form' => $form->createView(),
+            'title' => 'Editar Paciente: ' . $cliente->getNombre() . ' ' . $cliente->getApellido(),
+            'familiarExtraActuales' => $familiarExtraActuales,
         ]);
     }
 
@@ -915,165 +1123,6 @@ class ClienteController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/{id}/edit", name="cliente_edit", methods={"GET","POST"})
-     */
-    public function edit(Request $request, Cliente $cliente, ObraSocialRepository $obraSocialRepository, FamiliarExtraRepository $familiarExtraRepository, HabitacionRepository $habitacionRepository): Response
-    {
-        $user = $this->security->getUser();
-
-        $habitacionesDisp = $habitacionRepository->findHabitacionConCamasDisponibles();
-        $obrasSociales = $obraSocialRepository->findAll();
-        $familiarExtraActuales = $familiarExtraRepository->findBy(['cliente_id' => $cliente->getId()]);
-
-        $obArray = [];
-        foreach ( $obrasSociales as $ob ) {
-            $obArray[$ob->getId()] = $ob->getNombre();
-        }
-        $obArray = array_flip($obArray);
-
-        $haArray = [];
-        foreach ( $habitacionesDisp as $ha ) {
-            $haArray[$ha->getId()] = $ha->getNombre();
-        }
-
-        $camasDispArray = [];
-        $habitacionActualId = $cliente->getHabitacion() ?? 0;
-        $camaActualId = $cliente->getNCama() ?? 0;
-
-        if(!empty($habitacionActualId)) {
-            $habitacionActual = $habitacionRepository->find($habitacionActualId);
-            if(!empty($habitacionActual)) {
-                if(empty($haArray[$habitacionActualId])) {
-                    $haArray[$habitacionActualId] = !empty($habitacionActual) ? $habitacionActual->getNombre() : 'Habitación sin nombre';
-                }
-
-                $camasOcupadas = $habitacionActual->getCamasOcupadas();
-                $cantCamas = $habitacionActual->getCamasDisponibles();
-                $camasDispArray['sin cama'] = 0;
-                for ($i = 1; $i <= $cantCamas; $i++) {
-                    if(!in_array($i, $camasOcupadas)) {
-                        $camasDispArray[$i] = $i;
-                    }
-                }
-                $camasDispArray[$camaActualId] = $camaActualId;
-            }
-        }
-
-        ksort($camasDispArray);
-
-        $habPrivada = $cliente->getHabPrivada() ?? false;
-        $puedePasarHabPrivada = $habPrivada;
-        if(!empty($habitacionActual)) {
-            if(count($habitacionActual->getCamasOcupadas()) == 1) {
-                $puedePasarHabPrivada = true;
-            }
-        }
-
-        $form = $this->createForm(ClienteType::class, $cliente, ['allow_extra_fields'=>true, 'is_new' => false, 'obrasSociales' => $obArray, 'habitaciones' => array_flip($haArray), 'camasDisp' => $camasDispArray, 'bloquearHab' => $puedePasarHabPrivada]);
-
-
-        $form->handleRequest($request);
-
-        if ( $form->isSubmitted()) {
-            if ( !$form->isValid() ) {
-                $cliente->setNCama($request->request->get('cliente')['nCama'] ?? 0);
-            }
-                try {
-                    $cliente->setAmbulatorio($form->get('modalidad')->getData() == 1);
-                    $entityManager = $this->getDoctrine()->getManager();
-                    $doctoresReferentes = $cliente->getDocReferente();
-
-                    $familiarResponsableExtraNombres = $request->request->get('familiarResponsableExtraNombre');
-                    $familiarResponsableExtraTel = $request->request->get('familiarResponsableExtraTel');
-                    $familiarResponsableExtraMail = $request->request->get('familiarResponsableExtraMail');
-                    $familiarResponsableExtraVinculo = $request->request->get('familiarResponsableExtraVinculo');
-                    $familiarResponsableExtraAcompanante = $request->request->get('familiarResponsableExtraAcompanante');
-
-                    foreach ($familiarExtraActuales as $familiarExtraActual) {
-                        $entityManager->remove($familiarExtraActual);
-                    }
-
-                    $familiarResponsableExtraNombres = $familiarResponsableExtraNombres ?? [];
-                    foreach ($familiarResponsableExtraNombres as $key => $item) {
-                        $tel = $familiarResponsableExtraTel[$key] ?? '';
-                        $mail = $familiarResponsableExtraMail[$key] ?? '';
-                        $vinculo = $familiarResponsableExtraVinculo[$key] ?? '';
-                        $acompanante = $familiarResponsableExtraAcompanante[$key] ?? false;
-
-                        $familarRespExtra = new FamiliarExtra();
-                        $familarRespExtra->setNombre($item);
-                        $familarRespExtra->setTel($tel);
-                        $familarRespExtra->setMail($mail);
-                        $familarRespExtra->setVinculo($vinculo);
-                        $familarRespExtra->setAcompanante($acompanante);
-                        $familarRespExtra->setClienteId($cliente->getId());
-
-                        $entityManager->persist($familarRespExtra);
-                    };
-
-                    foreach ($doctoresReferentes as $doctor) {
-                        $doctor->addCliente($cliente);
-                        $entityManager->persist($doctor);
-                    }
-
-                    $habPrivadaNueva = $form->getExtraData()['habPrivada'] ?? $cliente->getHabPrivada() ?? 0;
-
-                    $cliente->setHabPrivada($habPrivadaNueva);
-
-                    $entityManager->persist($cliente);
-
-                    $nuevaHabId = $cliente->getHabitacion() ?? 0;
-
-                    if ($cliente->getNCama()) {
-                        $nuevaCamaId = $cliente->getNCama();
-                    } else {
-                        $nuevaCamaId = $form->getExtraData()['nCama'] ?? 0;
-                        $cliente->setNCama($nuevaCamaId);
-                        $entityManager->persist($cliente);
-                    }
-
-                    $habitacionNueva = $habitacionRepository->find($nuevaHabId);
-                    $habVieja = $habitacionRepository->find($habitacionActualId);
-
-                    $this->acomodarHabitacion($habitacionNueva, $nuevaCamaId, $habVieja, $camaActualId, $habPrivada, $habPrivadaNueva, $entityManager);
-
-                    $parametros = [
-                        'cama' => $cliente->getNCama(),
-                        'habitacion' => $cliente->getHabitacion(),
-                        'nAfiliadoObraSocial' => $cliente->getObraSocialAfiliado(),
-                        'modalidad' => $cliente->getModalidad(),
-                        'patologia' => $cliente->getMotivoIng(),
-                        'patologiaEspecifica' => $cliente->getMotivoIngEspecifico(),
-                        'obraSocial' => $cliente->getObraSocial(),
-                        'sistemaDeEmergencia' => $cliente->getSistemaDeEmergenciaNombre(),
-                        'nAfiliadoSistemaDeEmergencia' => $cliente->getSistemaDeEmergenciaAfiliado(),
-                        'fechaIngreso' => $cliente->getFIngreso(),
-                        'fechaEngreso' => $cliente->getFEgreso(),
-                        'ambulatorio' => $cliente->getAmbulatorio(),
-                    ];
-
-                    $historial = $this->getHistorialActualizado($cliente, $parametros, $user);
-
-                    $entityManager->persist($historial);
-
-                    $entityManager->flush();
-
-                    return $this->redirectToRoute('cliente_index');
-                } catch (\Exception $e) {
-                    dd($e);
-                }
-            }
-
-
-        return $this->render('cliente/edit.html.twig', [
-            'cliente' => $cliente,
-            'form' => $form->createView(),
-            'title' => 'Editar Paciente: ' . $cliente->getNombre() . ' ' . $cliente->getApellido(),
-            'familiarExtraActuales' => $familiarExtraActuales,
-        ]);
-    }
-
     public function buildErrorArray(FormInterface $form)
     {
         $errors = [];
@@ -1108,6 +1157,9 @@ class ClienteController extends AbstractController
             foreach ($doctoresReferentes as $doctor) {
                 $doctor->addCliente($cliente);
                 $entityManager->persist($doctor);
+            }
+            if ($form->has('fEgreso') && !empty($form->get('fEgreso')->getData())) {
+                $cliente->setFEgreso(\DateTime::createFromFormat('d/m/Y', $form->get('fEgreso')->getData()));
             }
             $fechaDeEgresoString = $cliente->getFEgreso()->setTime(23, 59, 59)->format('Y-m-d H:i:s');
 
