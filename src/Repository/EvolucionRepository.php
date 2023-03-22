@@ -83,7 +83,7 @@ class EvolucionRepository extends ServiceEntityRepository
 
     }
 
-    public function findByFechaClienteYtipos($cliente, $fechaDesde, $fechaHasta, $tipos = 'todos')
+    public function findByFechaClienteYtipos($cliente, $fechaDesde, $fechaHasta, $tipos = 'todos', $prof = null)
     {
         $query = $this->createQueryBuilder('e')->where('e.paciente = :cliente')->setParameter('cliente', $cliente);
 

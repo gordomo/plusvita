@@ -104,9 +104,9 @@ class ClienteController extends AbstractController
     }
 
     /**
-     * @Route("/internados", name="cliente_internados", methods={"GET"})
+     * @Route("/historico", name="cliente_historicos", methods={"GET"})
      */
-    public function internados(Request $request, HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, DoctorRepository $doctorRepository, HistoriaPacienteRepository $historiaPacienteRepository): Response
+    public function historico(Request $request, HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, DoctorRepository $doctorRepository, HistoriaPacienteRepository $historiaPacienteRepository): Response
     {
         $user = $this->getUser();
         if (!$user) {
@@ -163,9 +163,16 @@ class ClienteController extends AbstractController
 
         $docReferentes = $doctorRepository->findByContratos(['Fisiatra', 'Director medico', 'Sub director medico'], false);
 
-        return $this->render('cliente/internados.html.twig',
+        $habitaciones = $habitacionRepository->findAll();
+        $habitacionesArray = [];
+        foreach ($habitaciones as $habitacion) {
+            $habitacionesArray[$habitacion->getId()] = $habitacion->getNombre();
+        }
+
+
+        return $this->render('cliente/historico.html.twig',
             [
-                'obrasSociales' => $obArray,
+                'obraSociales' => $obArray,
                 'historiasArray' => $histArray,
                 'from' => $from,
                 'to' => $to,
@@ -174,7 +181,9 @@ class ClienteController extends AbstractController
                 'obraSocial' => $obraSocial,
                 'prof' => $prof,
                 'profesionales' => $docReferentes,
-                'modalidad' => $modalidad
+                'modalidad' => $modalidad,
+                'total' => count($histArray),
+                'habitacionesArray' => $habitacionesArray,
             ]);
     }
 
@@ -1024,6 +1033,8 @@ class ClienteController extends AbstractController
 
         $evoluciones = $evolucionRepository->findByFechaClienteYtipos($cliente, $evolucionesDesde, $evolucionesHasta, $tiposEvolucion);
 
+        $docId = $request->query->get('prof', 0);
+        $doc = $doctorRepository->find($docId);
         $evArray = [];
 
         foreach ($evoluciones as $evolucion) {
@@ -1038,7 +1049,12 @@ class ClienteController extends AbstractController
             if (count($doctor) > 0) {
                 $firma = $doctor[0]->getFirma();
             }
-            $evArray[] = ['evolucion' => $evolucion, 'firma' => $firma];
+
+
+            if($doc && $doc->getEmail() === $doctor[0]->getEmail()) {
+                $evArray[] = ['evolucion' => $evolucion, 'firma' => $firma];
+            }
+
         }
         $novedadesDesde = $request->query->get('novedadesDesde') ?? '';
         $novedadesHasta = $request->query->get('novedadesHasta') ?? '';
@@ -1120,6 +1136,7 @@ class ClienteController extends AbstractController
                 'habitacionesArray' => $habitacionesArray,
                 'novedadesDesde' => $novedadesDesde,
                 'novedadesHasta' => $novedadesHasta,
+                'doc' => $doc,
         ]);
     }
 
