@@ -117,7 +117,6 @@ class EvolucionController extends AbstractController
             'evolucion' => $evolucion,
             'nombreCliente' => $cliente->getNombre() . ' ' . $cliente->getApellido(),
             'form' => $form->createView(),
-            'evolucions' => $evolucionRepository->findAll(),
             'clienteId' => $cliente->getId(),
             'error' => $error,
         ]);
