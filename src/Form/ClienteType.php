@@ -33,7 +33,7 @@ class ClienteType extends AbstractType
             $builder
                 ->add('nombre', TextType::class)
                 ->add('apellido', TextType::class)
-                ->add('dni', TextType::class, ['label' => 'Número de Documento'])
+                ->add('dni', TextType::class, ['label' => 'Número de Documento', 'required' => false,])
                 ->add('email', EmailType::class, ['required' => false,])
                 ->add('telefono', TextType::class, ['label' => 'Teléfono', 'required' => false,])
                 ->add('fNacimiento', TextType::class, [
