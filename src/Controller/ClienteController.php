@@ -1037,25 +1037,44 @@ class ClienteController extends AbstractController
         $doc = $doctorRepository->find($docId);
         $evArray = [];
 
-        foreach ($evoluciones as $evolucion) {
-            $doctor = $doctorRepository->findBy(['email' => $evolucion->getUser()]);
-            if (count($doctor) == 0) {
-                $doctor = $userRepository->findBy(['email' => $evolucion->getUser()]);
-            }
-            if (count($doctor) == 0) {
-                $doctor = $userRepository->findBy(['user' => $evolucion->getUser()]);
-            }
-            $firma = '';
-            if (count($doctor) > 0) {
-                $firma = $doctor[0]->getFirma();
-            }
+        if ($doc) {
+            foreach ($evoluciones as $evolucion) {
+                $doctor = $doctorRepository->findBy(['email' => $evolucion->getUser()]);
 
+                if (count($doctor) == 0) {
+                    $doctor = $userRepository->findBy(['email' => $evolucion->getUser()]);
+                }
+                if (count($doctor) == 0) {
+                    $doctor = $userRepository->findBy(['user' => $evolucion->getUser()]);
+                }
+                $firma = '';
+                if (count($doctor) > 0) {
+                    $firma = $doctor[0]->getFirma();
+                }
 
-            if($doc && $doc->getEmail() === $doctor[0]->getEmail()) {
+                if($doc->getEmail() === $doctor[0]->getEmail()) {
+                    $evArray[] = ['evolucion' => $evolucion, 'firma' => $firma];
+                }
+            }
+        } else {
+            foreach ($evoluciones as $evolucion) {
+                $doctor = $doctorRepository->findBy(['email' => $evolucion->getUser()]);
+
+                if (count($doctor) == 0) {
+                    $doctor = $userRepository->findBy(['email' => $evolucion->getUser()]);
+                }
+                if (count($doctor) == 0) {
+                    $doctor = $userRepository->findBy(['user' => $evolucion->getUser()]);
+                }
+                $firma = '';
+                if (count($doctor) > 0) {
+                    $firma = $doctor[0]->getFirma();
+                }
+
                 $evArray[] = ['evolucion' => $evolucion, 'firma' => $firma];
             }
-
         }
+
         $novedadesDesde = $request->query->get('novedadesDesde') ?? '';
         $novedadesHasta = $request->query->get('novedadesHasta') ?? '';
 
