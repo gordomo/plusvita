@@ -8,7 +8,10 @@
             El correo no es válido.
         </div>
     </div>
-    <div class="col-sm"></div>
+    <div class="col-sm">
+        {{ form_label(form.username, 'Nombre') }}
+        {{ form_widget(form.username, {'attr': { 'autocomplete' : 'false'}}) }}
+    </div>
 </div>
 <br>
 <div class="form-row">
@@ -16,7 +19,10 @@
         {{ form_label(form.legajo, 'legajo') }}
         {{ form_widget(form.legajo) }}
     </div>
-    <div class="col-sm"></div>
+    <div class="col-sm">
+        {{ form_label(form.telefono, 'Telefono') }}
+        {{ form_widget(form.telefono) }}
+    </div>
 </div>
 <br>
 <div class="form-row">
@@ -24,7 +30,10 @@
         {{ form_label(form.password, 'password') }}
         {{ form_widget(form.password) }}
     </div>
-    <div class="col-sm"></div>
+    <div class="col-sm">
+        {{ form_label(form.habilitado, 'Habilitado') }}
+        {{ form_widget(form.habilitado) }}
+    </div>
 </div>
 <br>
 <div class="form-row">
