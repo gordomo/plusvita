@@ -140,7 +140,7 @@ class ClienteController extends AbstractController
         $vencimientoAut = \DateTime::createFromFormat("d/m/Y", $vto);
 
         //$clientes = $clienteRepository->findActivosDesdeHasta($fechaDesde, $fechaHasta, $nombre, $estado, $obraSocial);
-        $historiasDesdeHastaAll = $historiaPacienteRepository->getLastHistorialConModalidad($fechaDesde, $fechaHasta, $modalidad, $obraSocial, $vencimientoAut);
+        $historiasDesdeHastaAll = $historiaPacienteRepository->getLastHistorialConModalidad($fechaDesde, $fechaHasta, $modalidad, $nombre, $obraSocial, $vencimientoAut);
 
         if ($prof) {
             $historiasDesdeHasta = array_filter($historiasDesdeHastaAll, function($historia) use ($prof) {
