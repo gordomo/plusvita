@@ -68,16 +68,35 @@
         <div class="row mt-4">
             <table class="table table-responsive">
                 <thead>
-                    {#<tr>
-                        <th>ID</th>
-                        <th>H.C.</th>
-                        <th>Paciente</th>
-                        <th>Fecha</th>
-                        <th>Modalidad en Fecha</th>
-                        <th>Modalidad Actual</th>
-                        <th>O. S.</th>
-                        <th>Acciones</th>
-                    </tr>#}
+                    <tr>
+                        <th colspan="2">
+                            {% if maxPages > 1 %}
+                            <nav aria-label="Page navigation example">
+                                <ul class="pagination">
+                                    {%if thisPage > 1 %}
+                                        <li class="page-item" >
+                                            <a class="page-link" href="{{ path('cliente_historicos', {currentPage: thisPage-1 < 1 ? 1 : thisPage-1}) }}">«</a>
+                                        </li>
+                                    {% endif %}
+
+                                    {# Render each page number #}
+                                    {% for i in 1..maxPages %}
+                                        <li class="page-item {% if thisPage == i %}active{% endif %}">
+                                            <a class="page-link" href="{{ path('cliente_historicos', {currentPage: i}) }}">{{ i }}</a>
+                                        </li>
+                                    {% endfor %}
+
+                                    {# `»` arrow #}
+                                    {%if thisPage < maxPages %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ path('cliente_historicos', {currentPage: thisPage+1 <= maxPages ? thisPage+1 : thisPage}) }}">»</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                            {% endif %}
+                        </th>
+                    </tr>
                 </thead>
                 <tbody>
                     {% for cliente, historiaPaciente in historiasArray %}
@@ -389,9 +408,7 @@
                     {% endfor %}
                 </tbody>
                 <tfoot>
-                    <tr>
-                        <td>Total Pacientes: {{ historiasArray | length  }}</td>
-                    </tr>
+
                 </tfoot>
             </table>
         </div>
@@ -404,5 +421,6 @@
         $('.js-datepicker').datepicker({
             format: 'dd/mm/yyyy'
         });
+
     </script>
 {% endblock %}

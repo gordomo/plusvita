@@ -64,12 +64,10 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
         return $query->getQuery()->getResult();
     }
 
-    public function getLastHistorialConModalidad($from, $to, $modalidad, $nombre, $ob, $vto)
+    public function getLastHistorialConModalidad($clientes, $from, $to, $modalidad, $ob, $vto)
     {
         $query = $this->createQueryBuilder('h');
-        $query->andWhere('h.cliente is not null');
-        $query->join('h.cliente', 'c');
-        if (!empty($from)) {
+       if (!empty($from)) {
             $from->setTime(00,00,00);
             $query->andWhere('h.fecha >= :fechaDesde')->setParameter('fechaDesde', $from);
         }
@@ -77,17 +75,15 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
             $to->setTime(23,59,59);
             $query->andWhere('h.fecha <= :fechaHasta')->setParameter('fechaHasta', $to);
         }
-        if (!empty($nombre)) {
-            $query->andWhere("c.nombre like :nombre OR c.apellido like :nombre")->setParameter("nombre",'%'. $nombre .'%');
-        }
         if (!empty($modalidad)) {
             $query->andWhere('h.modalidad = :modalidad')->setParameter('modalidad', $modalidad);
         }
         if (!empty($ob)) {
             $query->andWhere('h.obra_social = :ob')->setParameter('ob', $ob);
         }
-        if (!empty($vto)) {
-            $query->andWhere('c.vtoSesiones <= :vto')->setParameter('vto', $vto);
+
+        if (!empty($clientes)) {
+            $query->andWhere('h.cliente in (:ids)')->setParameter('ids', $clientes);
         }
         $query->orderBy('h.cliente, h.fecha', 'ASC');
 

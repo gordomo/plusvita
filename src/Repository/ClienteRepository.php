@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Cliente;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -280,5 +281,42 @@ class ClienteRepository extends ServiceEntityRepository
         }
 
         return $query->getQuery()->getResult();
+    }
+
+    public function findByNameDocReferentePaginado($nombre = null, $doc = null, $vto = null, $currentPage = 1, $limit = 10)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQueryBuilder()
+            ->select('c.id')
+            ->from('App\Entity\Cliente', 'c')
+            ->leftJoin('c.docReferente', 'd');
+        if ( $doc ) {
+            $query->andWhere('d.id = :doctorId')
+                ->setParameter('doctorId', 26);
+        }
+        if (!empty($vto)) {
+            $query->andWhere('c.vtoSesiones <= :vto')->setParameter('vto', $vto);
+        }
+        if ( $nombre != '' ) {
+            $arrayNombres = explode(' ', $nombre);
+            $i = 1;
+            foreach ( $arrayNombres as $nombre ) {
+                $query->andWhere("c.nombre like :nombre$i OR c.apellido like :nombre$i")->setParameter("nombre$i",'%'. $nombre .'%');
+                $i ++;
+            }
+        }
+        return $query->getQuery()->getResult();
+
+    }
+
+    public function paginate($dql, $page = 1, $limit = 3)
+    {
+        $paginator = new Paginator($dql);
+
+        $paginator->getQuery()
+            ->setFirstResult($limit * ($page - 1)) // Offset
+            ->setMaxResults($limit); // Limit
+
+        return $paginator;
     }
 }

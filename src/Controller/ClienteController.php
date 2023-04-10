@@ -25,6 +25,7 @@ use App\Repository\NotasTurnoRepository;
 use App\Repository\ObraSocialRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -120,6 +121,8 @@ class ClienteController extends AbstractController
         $prof = $request->query->get('prof') ?? null;
         $nombreInput = $request->query->get('nombreInput');
         $modalidad = $request->query->get('modalidad', 0);
+        $limit = $request->query->get('limit', 100);
+        $currentPage = $request->query->get('currentPage', 1);
 
         $hab = $request->query->get('hab') ?? null;
         $obraSocial = $request->query->get('obraSocial') ?? null;
@@ -139,27 +142,20 @@ class ClienteController extends AbstractController
         $fechaHasta = \DateTime::createFromFormat("d/m/Y", $to);
         $vencimientoAut = \DateTime::createFromFormat("d/m/Y", $vto);
 
-        //$clientes = $clienteRepository->findActivosDesdeHasta($fechaDesde, $fechaHasta, $nombre, $estado, $obraSocial);
-        $historiasDesdeHastaAll = $historiaPacienteRepository->getLastHistorialConModalidad($fechaDesde, $fechaHasta, $modalidad, $nombre, $obraSocial, $vencimientoAut);
+        $clientes = $clienteRepository->findByNameDocReferentePaginado($nombre, $prof, $vto);
 
-        if ($prof) {
-            $historiasDesdeHasta = array_filter($historiasDesdeHastaAll, function($historia) use ($prof) {
-                $tieneEsteDocReferente = false;
-                foreach ($historia->getCliente()->getDocReferente() as $docReferente) {
-                    $tieneEsteDocReferente = $docReferente->getId() && $docReferente->getId() == $prof;
-                }
-                return $tieneEsteDocReferente;
-            });
-        } else {
-            $historiasDesdeHasta = $historiasDesdeHastaAll;
-        }
+        $historiasDesdeHastaAll = $historiaPacienteRepository->getLastHistorialConModalidad($clientes, $fechaDesde, $fechaHasta, $modalidad, $obraSocial, $vencimientoAut);
 
         $histArray = [];
-        foreach ($historiasDesdeHasta as $historia) {
+        foreach ($historiasDesdeHastaAll as $historia) {
             $histArray[$historia->getCliente()->getNombreApellido()][] = $historia;
         }
 
         $histArray = array_reverse($histArray);
+
+        $historiasPaginado['results'] = array_slice($histArray, $limit * ($currentPage - 1), $limit);
+        $historiasPaginado['total'] = count($histArray);
+        $maxPages = ceil($historiasPaginado['total'] / $limit);
 
         $docReferentes = $doctorRepository->findByContratos(['Fisiatra', 'Director medico', 'Sub director medico'], false);
 
@@ -173,7 +169,7 @@ class ClienteController extends AbstractController
         return $this->render('cliente/historico.html.twig',
             [
                 'obraSociales' => $obArray,
-                'historiasArray' => $histArray,
+                'historiasArray' => $historiasPaginado['results'],
                 'from' => $from,
                 'to' => $to,
                 'vto' => $vto,
@@ -182,8 +178,11 @@ class ClienteController extends AbstractController
                 'prof' => $prof,
                 'profesionales' => $docReferentes,
                 'modalidad' => $modalidad,
-                'total' => count($histArray),
+                'total' => $historiasPaginado['total'],
                 'habitacionesArray' => $habitacionesArray,
+                'maxPages'=>$maxPages,
+                'thisPage' => $currentPage,
+                'limit' => $limit,
             ]);
     }
 
