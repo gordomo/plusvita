@@ -143,12 +143,16 @@ class ClienteController extends AbstractController
         $vencimientoAut = \DateTime::createFromFormat("d/m/Y", $vto);
 
         $clientes = $clienteRepository->findByNameDocReferentePaginado($nombre, $prof, $vto);
-
-        $historiasDesdeHastaAll = $historiaPacienteRepository->getLastHistorialConModalidad($clientes, $fechaDesde, $fechaHasta, $modalidad, $obraSocial, $vencimientoAut);
+        $historiasDesdeHastaAll = [];
+        if ($nombre && $clientes or $nombre === null) {
+            $historiasDesdeHastaAll = $historiaPacienteRepository->getLastHistorialConModalidad($clientes, $fechaDesde, $fechaHasta, $modalidad, $obraSocial, $vencimientoAut);
+        }
 
         $histArray = [];
         foreach ($historiasDesdeHastaAll as $historia) {
-            $histArray[$historia->getCliente()->getNombreApellido()][] = $historia;
+            if ($historia->getCliente()) {
+                $histArray[$historia->getCliente()->getNombreApellido()][] = $historia;
+            }
         }
 
         $histArray = array_reverse($histArray);

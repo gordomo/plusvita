@@ -400,11 +400,11 @@
                                 {% endif %}
                                 <td class="lowercase">{{ historia.usuario }}</td>
                             </tr>
-                        {% else %}
-                            <tr>
-                                <td colspan="15">No existen registros</td>
-                            </tr>
                         {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="15">No existen registros</td>
+                        </tr>
                     {% endfor %}
                 </tbody>
                 <tfoot>
