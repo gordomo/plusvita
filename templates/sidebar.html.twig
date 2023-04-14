@@ -1,12 +1,12 @@
 
 <!-- Sidebar -->
 <div class="bg-light border-right" id="sidebar-wrapper">
-    <div class="sidebar-heading">Start Bootstrap </div>
+    <div class="sidebar-heading">Plus Vita </div>
     <div class="list-group list-group-flush">
         {% if app.user %}
             <a class="list-group-item list-group-item-action bg-light " href="{{ path('dashboard_index') }}">
                 <i class="fas fa-chart-line"></i>
-                Dashboard
+                Novedades
             </a>
         {% endif %}
         {% if app.user and 'ROLE_ADMIN' in app.user.roles %}

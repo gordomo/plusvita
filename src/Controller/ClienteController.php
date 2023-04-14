@@ -117,11 +117,13 @@ class ClienteController extends AbstractController
         }
 
         $estado = $request->query->get('estado') ?? '1';
-        $nombre = $request->query->get('nombre') ?? null;
+        $nombre = $request->query->get('nombre') ?? '';
+        $nombre = (!empty($nombre)) ? $nombre : null;
         $prof = $request->query->get('prof') ?? null;
         $nombreInput = $request->query->get('nombreInput');
         $modalidad = $request->query->get('modalidad', 0);
         $limit = $request->query->get('limit', 100);
+        $limit = intval($limit);
         $currentPage = $request->query->get('currentPage', 1);
 
         $hab = $request->query->get('hab') ?? null;
@@ -187,6 +189,7 @@ class ClienteController extends AbstractController
                 'maxPages'=>$maxPages,
                 'thisPage' => $currentPage,
                 'limit' => $limit,
+                'paginaImprimible' => true,
             ]);
     }
 

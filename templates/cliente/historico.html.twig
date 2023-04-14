@@ -53,6 +53,17 @@
                 <label for="vto">Vto. Autorizaciones</label>
                 <input class="form-control js-datepicker" type="text" id="vto" autocomplete="off" name="vto" value="{{ vto }}">
             </div>
+            <div class="col-2">
+                <label for="vto">Resultados por Página</label>
+                <select class="form-control" name="limit" id="limit">
+                    <option value="10" {% if (limit == 10) %} selected {% endif %}>10</option>
+                    <option value="50" {% if (limit == 50) %} selected {% endif %}>50</option>
+                    <option value="100" {% if (limit == 100) %} selected {% endif %}>100</option>
+                    <option value="200" {% if (limit == 200) %} selected {% endif %}>200</option>
+                    <option value="100000000000000" {% if (limit == 100000000000000) %} selected {% endif %}>Todos</option>
+
+                </select>
+            </div>
         </div>
         <div class="row mt-4">
             <div class="col">
@@ -64,7 +75,7 @@
             </div>
         </div>
     </form>
-
+    <div class="printiable">
         <div class="row mt-4">
             <table class="table table-responsive">
                 <thead>
@@ -100,11 +111,11 @@
                 </thead>
                 <tbody>
                     {% for cliente, historiaPaciente in historiasArray %}
-                        <tr>
-                            <th class="text-capitalize" >
+                        <tr class="cliente-tr">
+                            <td class="text-capitalize datos" >
                                 H.C.: {{ historiaPaciente[0].cliente.hClinica }}
-                            </th>
-                            <th class="text-capitalize">
+                            </td>
+                            <td class="text-capitalize datos">
                                 {% if prof is defined %}
                                     <a class="" href="{{ path('cliente_historial', {'id': historiaPaciente[0].cliente.id, 'prof': prof}) }}">
                                         {{ cliente }}
@@ -114,42 +125,42 @@
                                         {{ cliente }}
                                     </a>
                                 {% endif %}
-                            </th>
+                            </td>
                             {% set last = historiaPaciente|last %}
                             {% if last.cliente.vtoSesiones is not null %}
-                                <th>
+                                <td class="datos">
                                     Vto Sesiones: {{ last.cliente.vtoSesiones | date('d/m/Y')}}
-                                </th>
+                                </td>
                             {% endif %}
                             {% if last.fechaIngreso is not null %}
-                                <th>
+                                <td class="datos">
                                     Ingreso: {{ last.fechaIngreso | date('d/m/Y')}}
-                                </th>
+                                </td>
                             {% endif %}
                             {% if last.fechaEngreso is not null %}
-                                <th>
+                                <td class="datos">
                                     Egreso: {{ last.fechaEngreso | date('d/m/Y')}}
-                                </th>
+                                </td>
                             {% endif %}
                             {% if last.fechaDerivacion is not null %}
-                                <th>
+                                <td class="datos">
                                     Derivacion: {{ last.fechaDerivacion | date('d/m/Y')}}
-                                </th>
+                                </td>
                             {% endif %}
                             {% if last.fechaReingresoDerivacion is not null %}
-                                <th>
+                                <td class="datos">
                                     R. Derivacion: {{ last.fechaReingresoDerivacion | date('d/m/Y')}}
-                                </th>
+                                </td>
                             {% endif %}
                             {% if last.fechaBajaPorPermiso is not null %}
-                                <th>
+                                <td class="datos">
                                     Baja Por Permiso: {{ last.fechaBajaPorPermiso | date('d/m/Y')}}
-                                </th>
+                                </td>
                             {% endif %}
                             {% if last.fechaAltaPorPermiso is not null %}
-                                <th>
+                                <td class="datos">
                                     Alta Por Permiso: {{ last.fechaAltaPorPermiso | date('d/m/Y')}}
-                                </th>
+                                </td>
                             {% endif %}
 
                         </tr>
@@ -162,7 +173,7 @@
                             <tr>
                                 {% if key > 0 %}
                                     {% set cambio = 0 %}
-                                    <td>{{ historia.fecha ? historia.fecha|date('d/m/Y') : ''}}</td>
+                                    <td class="novedades">{{ historia.fecha ? historia.fecha|date('d/m/Y') : ''}}</td>
                                     <td class="lowercase">
                                         {% if historia.modalidad != historiaPaciente[key - 1].modalidad %}
                                             {% set cambio = 1 %}
@@ -382,8 +393,8 @@
                                         {% endif %}
                                     </td>
                                 {% else %}
-                                    <td>{{ historia.fecha ? historia.fecha|date('d/m/Y') : ''}}</td>
-                                    <td>
+                                    <td class="novedades">{{ historia.fecha ? historia.fecha|date('d/m/Y') : ''}}</td>
+                                    <td class="novedades">
                                         <b class="text-capitalize">
                                             Primer Registro - modalidad:
                                             {% if(historia.modalidad == 1) %}
@@ -398,7 +409,7 @@
                                         </b>
                                     </td>
                                 {% endif %}
-                                <td class="lowercase">{{ historia.usuario }}</td>
+                                <td class="novedades" class="lowercase">{{ historia.usuario }}</td>
                             </tr>
                         {% endfor %}
                     {% else %}
@@ -408,11 +419,37 @@
                     {% endfor %}
                 </tbody>
                 <tfoot>
-
+                    <tr>
+                        <td colspan="15" class="datos">
+                            Total: {{ total }}
+                        </td>
+                    </tr>
                 </tfoot>
             </table>
         </div>
+    </div>
 
+{% endblock %}
+
+{% block modalImprimir %}
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" checked value="datos" id="datos">
+        <label class="form-check-label" for="id">
+            Datos
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" checked value="novedades" id="novedades">
+        <label class="form-check-label" for="email">
+            Novedades
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" checked value="todos" id="todos">
+        <label class="form-check-label" for="todos">
+            Todos
+        </label>
+    </div>
 {% endblock %}
 
 {% block javascripts %}
