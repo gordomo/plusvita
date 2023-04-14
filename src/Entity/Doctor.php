@@ -352,7 +352,7 @@ class Doctor implements UserInterface
     {
         if (!$this->clientes->contains($cliente)) {
             $this->clientes[] = $cliente;
-            //$cliente->setDocReferente($this);
+            $cliente->addDocReferente($this);
         }
 
         return $this;
@@ -363,8 +363,8 @@ class Doctor implements UserInterface
         if ($this->clientes->contains($cliente)) {
             $this->clientes->removeElement($cliente);
             // set the owning side to null (unless already changed)
-            if ($cliente->getDocReferente() === $this) {
-                $cliente->setDocReferente(null);
+            if ($cliente->getDocReferente()->contains($this)) {
+                $cliente->removeDocReferente($this);
             }
         }
 

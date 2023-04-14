@@ -78,7 +78,6 @@ class Cliente
     /**
      * @ORM\ManyToMany(targetEntity=Doctor::class, mappedBy="clientes")
      */
-    #[Ignore]
     private $docReferente;
 
     /**
@@ -491,7 +490,7 @@ class Cliente
         return $this;
     }
 
-    public function setDocReferente(?Doctor $docReferente): self
+    public function setDocReferente(?ArrayCollection $docReferente): self
     {
         $this->docReferente = $docReferente;
 
@@ -510,7 +509,7 @@ class Cliente
     {
         if (!$this->docReferente->contains($docReferente)) {
             $this->docReferente[] = $docReferente;
-            $docReferente->setClientes($this);
+            $docReferente->addCliente($this);
         }
 
         return $this;
@@ -521,8 +520,8 @@ class Cliente
         if ($this->docReferente->contains($docReferente)) {
             $this->docReferente->removeElement($docReferente);
             // set the owning side to null (unless already changed)
-            if ($docReferente->getClientes() === $this) {
-                $docReferente->setClientes(null);
+            if ($docReferente->getClientes()->contains($this)) {
+                $docReferente->removeCliente($this);
             }
         }
 

@@ -106,7 +106,7 @@ class ClienteType extends AbstractType
                             ->orWhere("JSON_CONTAINS (u.modalidad, '\"Director medico\"', '$') = 1")
                             ->orWhere("JSON_CONTAINS (u.modalidad, '\"Sub director medico\"', '$') = 1");
                     },
-
+                    'by_reference' => false,
 
                     'multiple' => true,
                     'expanded' => true,

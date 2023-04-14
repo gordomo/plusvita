@@ -24,6 +24,7 @@ use App\Repository\NotasHistoriaClinicaRepository;
 use App\Repository\NotasTurnoRepository;
 use App\Repository\ObraSocialRepository;
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -460,9 +461,11 @@ class ClienteController extends AbstractController
     /**
      * @Route("/{id}/edit", name="cliente_edit", methods={"GET","POST"})
      */
-    public function edit(Request $request, Cliente $cliente, ObraSocialRepository $obraSocialRepository, FamiliarExtraRepository $familiarExtraRepository, HabitacionRepository $habitacionRepository): Response
+    public function edit(Request $request, Cliente $cliente, ObraSocialRepository $obraSocialRepository, FamiliarExtraRepository $familiarExtraRepository, HabitacionRepository $habitacionRepository, DoctorRepository $doctorRepository): Response
     {
         $user = $this->security->getUser();
+
+        $docReferentesList = $doctorRepository->findDocReferente();
 
         $habitacionesDisp = $habitacionRepository->findHabitacionConCamasDisponibles();
         $obrasSociales = $obraSocialRepository->findAll();
@@ -556,7 +559,6 @@ class ClienteController extends AbstractController
 
                 $cliente->setAmbulatorio($form->get('modalidad')->getData() == 1);
                 $entityManager = $this->getDoctrine()->getManager();
-                $doctoresReferentes = $cliente->getDocReferente();
 
                 $familiarResponsableExtraNombres = $request->request->get('familiarResponsableExtraNombre');
                 $familiarResponsableExtraTel = $request->request->get('familiarResponsableExtraTel');
@@ -586,16 +588,9 @@ class ClienteController extends AbstractController
                     $entityManager->persist($familarRespExtra);
                 };
 
-                foreach ($doctoresReferentes as $doctor) {
-                    $doctor->addCliente($cliente);
-                    $entityManager->persist($doctor);
-                }
-
                 $habPrivadaNueva = $form->getExtraData()['habPrivada'] ?? $cliente->getHabPrivada() ?? 0;
 
                 $cliente->setHabPrivada($habPrivadaNueva);
-
-                $entityManager->persist($cliente);
 
                 $nuevaHabId = $cliente->getHabitacion() ?? 0;
 
@@ -604,7 +599,6 @@ class ClienteController extends AbstractController
                 } else {
                     $nuevaCamaId = $form->getExtraData()['nCama'] ?? 0;
                     $cliente->setNCama($nuevaCamaId);
-                    $entityManager->persist($cliente);
                 }
 
                 $habitacionNueva = $habitacionRepository->find($nuevaHabId);
@@ -625,11 +619,13 @@ class ClienteController extends AbstractController
                     'fechaIngreso' => $cliente->getFIngreso(),
                     'fechaEngreso' => $cliente->getFEgreso(),
                     'ambulatorio' => $cliente->getAmbulatorio(),
+                    'docReferente' => $cliente->getDocReferente(),
                 ];
 
                 $historial = $this->getHistorialActualizado($cliente, $parametros, $user);
 
                 $entityManager->persist($historial);
+                $entityManager->persist($cliente);
 
                 $entityManager->flush();
 
@@ -1502,9 +1498,17 @@ class ClienteController extends AbstractController
         $fechaBajaPorPermiso = (!empty($parametros['fechaBajaPorPermiso'])) ? $parametros['fechaBajaPorPermiso'] : (!empty($ultimoHistorial) ? $ultimoHistorial[0]->getFechaBajaPorPermiso() : null);
         $dePermiso = (!empty($parametros['dePermiso'])) ? $parametros['dePermiso'] : (!empty($ultimoHistorial) ? $ultimoHistorial[0]->getDePermiso() : null);
         $ambulatorio = (!empty($parametros['ambulatorio'])) ? $parametros['ambulatorio'] : (!empty($ultimoHistorial) ? $ultimoHistorial[0]->getAmbulatorio() : null);
+        $docReferente = [];
+        if ((!empty($parametros['docReferente']))) {
+            foreach ($parametros['docReferente'] as $doc) {
+                $docReferente[] = $doc->getId();
+            }
+            $docReferente = json_encode($docReferente);
+        } else if (!empty($ultimoHistorial)) {
+            $docReferente = $ultimoHistorial[0]->getDocReferente();
+        }
 
         $historial->setCliente($cliente);
-
         $historial->setModalidad($modalidad);
         $historial->setPatologia($patologia);
         $historial->setPatologiaEspecifica($patologiaEspecifica);
@@ -1527,6 +1531,7 @@ class ClienteController extends AbstractController
         $historial->setFechaBajaPorPermiso($fechaBajaPorPermiso);
         $historial->setDePermiso($dePermiso);
         $historial->setAmbulatorio($ambulatorio);
+        $historial->setDocReferente($docReferente);
 
         return $historial;
     }

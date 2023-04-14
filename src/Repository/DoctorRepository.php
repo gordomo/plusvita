@@ -71,4 +71,13 @@ class DoctorRepository extends ServiceEntityRepository
             ->getResult();
 
     }
+
+    public function findDocReferente() {
+        return $this->createQueryBuilder('u')
+            ->where("JSON_CONTAINS (u.modalidad, '\"Fisiatra\"', '$') = 1")
+            ->orWhere("JSON_CONTAINS (u.modalidad, '\"Director medico\"', '$') = 1")
+            ->orWhere("JSON_CONTAINS (u.modalidad, '\"Sub director medico\"', '$') = 1")
+            ->getQuery()
+            ->getResult();
+    }
 }

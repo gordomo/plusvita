@@ -138,6 +138,27 @@ class HistoriaPaciente
     private $ambulatorio;
 
     /**
+     * @ORM\Column(type="json", nullable=true)
+     */
+    private $docReferente;
+
+    /**
+     * @return mixed
+     */
+    public function getDocReferente()
+    {
+        return $this->docReferente;
+    }
+
+    /**
+     * @param mixed $docReferente
+     */
+    public function setDocReferente($docReferente): void
+    {
+        $this->docReferente = $docReferente;
+    }
+
+    /**
      * @return mixed
      */
     public function getFechaEngreso()

@@ -388,6 +388,31 @@
                                             <b class="text-capitalize">{{ historia.ambulatorio is empty or historia.ambulatorio == 0 ? 'no' : 'si'}}</b>
                                             <br>
                                         {% endif %}
+                                        {% if historia.docReferente != historiaPaciente[key - 1].docReferente %}
+                                            {% set cambio = 1 %}
+                                            <b class="text-capitalize">Doc Referente:</b>
+                                            de
+                                            {% for profesional in profesionales %}
+                                                {% if profesional.id in historiaPaciente[key - 1].docReferente %}
+                                                    {{ profesional.nombre }} {{ profesional.apellido }} -
+                                                {% endif %}
+                                            {% endfor %}
+                                            {% if historiaPaciente[key - 1].docReferente | length == 0 %}
+                                                Ninguno
+                                            {% endif %}
+                                            a
+                                            <br>
+                                            <b class="text-capitalize">
+                                            {% for profesional in profesionales %}
+                                                {% if profesional.id in historia.docReferente %}
+                                                    {{ profesional.nombre }} {{ profesional.apellido }} -
+                                                {% endif %}
+                                            {% endfor %}
+                                                {% if historia.docReferente | length == 0 %}
+                                                    Ninguno
+                                                {% endif %}
+                                            </b>
+                                        {% endif %}
                                         {% if cambio == 0 %}
                                             <b class="text-capitalize">No se registraron cambios</b>
                                         {% endif %}
