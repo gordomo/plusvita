@@ -247,9 +247,27 @@
                                             {% set cambio = 1 %}
                                             <b class="text-capitalize">Obra Social:</b>
                                             de
-                                            <b class="text-capitalize">{{ (historiaPaciente[key - 1].obraSocial is not empty and obraSociales[historiaPaciente[key - 1].obraSocial] is not empty) ? obraSociales[historiaPaciente[key - 1].obraSocial] : 'Vacío' }}</b>
+                                            <b class="text-capitalize">
+                                                {% if (historiaPaciente[key - 1].obraSocial is not empty) %}
+                                                    {% set obrasSocialesCliente = historiaPaciente[key - 1].obraSocial|split(',') %}
+                                                    {% for obraSocialCliente in obrasSocialesCliente %}
+                                                        <div>{{ obraSociales[obraSocialCliente] }}</div>
+                                                    {% endfor %}
+                                                {% else %}
+                                                    Vacío
+                                                {% endif %}
+                                            </b>
                                             a
-                                            <b class="text-capitalize">{{ (historia.obraSocial is not empty and obraSociales[historia.obraSocial] is not empty) ? obraSociales[historia.obraSocial] : 'Vacío' }}</b>
+                                            <b class="text-capitalize">
+                                            {% if (historia.obraSocial is not empty) %}
+                                                {% set obrasSocialesCliente = historia.obraSocial|split(',') %}
+                                                {% for obraSocialCliente in obrasSocialesCliente %}
+                                                    <div>{{ obraSociales[obraSocialCliente] }}</div>
+                                                {% endfor %}
+                                            {% else %}
+                                                Vacío
+                                            {% endif %}
+                                            </b>
                                             <br>
                                         {% endif %}
 
@@ -394,7 +412,7 @@
                                             de
                                             {% for profesional in profesionales %}
                                                 {% if profesional.id in historiaPaciente[key - 1].docReferente %}
-                                                    {{ profesional.nombre }} {{ profesional.apellido }} -
+                                                    <div>{{ profesional.nombre }} {{ profesional.apellido }}</div>
                                                 {% endif %}
                                             {% endfor %}
                                             {% if historiaPaciente[key - 1].docReferente | length == 0 %}
@@ -405,7 +423,7 @@
                                             <b class="text-capitalize">
                                             {% for profesional in profesionales %}
                                                 {% if profesional.id in historia.docReferente %}
-                                                    {{ profesional.nombre }} {{ profesional.apellido }} -
+                                                    <div>{{ profesional.nombre }} {{ profesional.apellido }}</div>
                                                 {% endif %}
                                             {% endfor %}
                                                 {% if historia.docReferente | length == 0 %}

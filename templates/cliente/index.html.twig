@@ -194,9 +194,30 @@
                         </td>
                         <td class="fEgreso">{{ cliente.fEgreso ? cliente.fEgreso|date('Y-m-d') : '' }}</td>
                         <td class="motivoEgr">{{ cliente.motivoEgr }}</td>
-                        <td class="obraSocial">{{ oSociales[cliente.obraSocial] }}</td>
+                        <td class="obraSocial">
+                            {% set obrasSocialesCliente = cliente.obraSocial|split(',') %}
+                            {% for obraSocialCliente in obrasSocialesCliente %}
+                                <div>{{ oSociales[obraSocialCliente] }}</div>
+                            {% endfor %}
+                        </td>
                         <td class="obraSocialAfiliado">{{ cliente.obraSocialAfiliado }}</td>
-                        <td class="tipoDePago">{{ cliente.tipoDePago }}</td>
+                        <td class="tipoDePago">
+                            {% if(cliente.tipoDePago == 1) %}
+                                Particular
+                            {% elseif(cliente.tipoDePago == 2) %}
+                                Reintegro
+                            {% elseif(cliente.tipoDePago == 3) %}
+                                Discapacidad
+                            {% elseif(cliente.tipoDePago == 4) %}
+                                ART
+                            {% elseif(cliente.tipoDePago == 5) %}
+                                Convenio
+                            {% elseif(cliente.tipoDePago == 6) %}
+                                Amparo
+                            {% elseif(cliente.tipoDePago == 7) %}
+                                Presupuesto
+                            {% endif %}
+                        </td>
                         <td class="vieneDe">{{ cliente.vieneDe }}</td>
                         <td class="posicionEnArchivo">{{ cliente.posicionEnArchivo }}</td>
                         <td class="docDerivante">{{ cliente.docDerivante }}</td>

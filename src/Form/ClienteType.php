@@ -27,6 +27,7 @@ class ClienteType extends AbstractType
         $obrasSociales = $options['obrasSociales'] ?? '';
         $habitaciones = $options['habitaciones'] ?? '';
         $fechas = $options['fechas'] ?? '';
+        $idSeleccionadosOb = $options['idSeleccionadosOb'] ? explode(',', $options['idSeleccionadosOb']) : [];
 
         ksort($obrasSociales);
         if (!$options['egreso']) {
@@ -46,7 +47,9 @@ class ClienteType extends AbstractType
                 ->add('obraSocial', ChoiceType::class, [
                     'label' => 'Obra Social',
                     'placeholder' => 'Seleccione una Obra Social',
-                    'choices' => $obrasSociales
+                    'choices' => $obrasSociales,
+                    'multiple' => true,
+                    'data' => $idSeleccionadosOb
                 ])
                 ->add('obraSocialTelefono', TextType::class, ['required' => false, 'label' => 'Teléfono'])
                 ->add('obraSocialAfiliado', TextType::class, ['required' => false, 'label' => 'N Afiliado'])
@@ -154,7 +157,7 @@ class ClienteType extends AbstractType
                 ->add('sesionesDisp', NumberType::class, ['label' => 'Sesiones Disponibles', 'required' => false, 'html5' => true])
                 ->add('formNum', NumberType::class, ['label' => 'Número de Formulario', 'required' => false, 'html5' => true])
                 ->add('vtoSesiones', TextType::class, [
-                    'label' => 'Vto Sesiones',
+                    'label' => 'Vto Autorizaciones',
                     'mapped' => false,
                     'required' => false,
                     'attr' => ['class' => 'js-datepicker', 'autocomplete'=>'off', 'value' => $fechas['vtoSesiones']]],
@@ -297,7 +300,8 @@ class ClienteType extends AbstractType
                 'fNacimiento' => null,
                 'vtoSesiones' => null,
                 'fEgreso' => null,
-            )
+            ),
+            'idSeleccionadosOb' => [],
         ]);
     }
 }

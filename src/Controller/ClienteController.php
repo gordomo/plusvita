@@ -290,29 +290,34 @@ class ClienteController extends AbstractController
      */
     public function testJobs(HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository): Response
     {
-        $habitaciones = $habitacionRepository->findAll();
-        $clientes = $clienteRepository->findClienteConHabitacion();
+        $clientesInactivos = $clienteRepository->findInActivosOcupandoCama();
+        $em = $this->getDoctrine()->getManager();
+        foreach ( $clientesInactivos as $inactivo ) {
+            if ($inactivo->getHabitacion()) {
+                $habitacionActual = $habitacionRepository->find($inactivo->getHabitacion());
 
-        foreach ($clientes as $cliente) {
-            $historia = new HistoriaHabitaciones();
-            $historia->setFecha(new \DateTime());
-            $historia->setHabitacion($habitacionRepository->find($cliente->getHabitacion()));
-            $historia->setNCama($cliente->getNcama());
-            $historia->setCliente($cliente);
+                $habPrivada = $inactivo->getHabPrivada();
+                $camasOcupadasPorCliente = $habitacionActual->getCamasOcupadas();
 
+                if($habPrivada != null && $habPrivada) {
+                    $camasOcupadasPorCliente = [];
+                } else {
+                    unset($camasOcupadasPorCliente[$inactivo->getNCama()]);
+                }
 
-        }
-
-        /*$clientesHabitacionesCamas = [];
-        $habitacionesOcupadas = [];
-        foreach ( $clientes as $cliente ) {
-            if ( !empty($cliente->getHabitacion()) ) {
-                $clientesHabitacionesCamas[$cliente->getHabitacion()] = ['Cliente' => $cliente->getNombre() . $cliente->getApellido(), 'cama' => $cliente->getNCama()];
-                $habitacionesOcupadas[$cliente->getHabitacion()] = 1;
+                $habitacionActual->setCamasOcupadas($camasOcupadasPorCliente);
+                $em->persist($habitacionActual);
             }
-        }
 
-        dd($clientesHabitacionesCamas);*/
+            $inactivo->setHabitacion(null);
+            $inactivo->setNCama(null);
+            $inactivo->setHabPrivada(0);
+
+
+            $em->persist($inactivo);
+            $em->flush();
+        }
+        dd($clientesInactivos, $clienteRepository->findInActivosOcupandoCama());
     }
 
     /**
@@ -521,6 +526,11 @@ class ClienteController extends AbstractController
             'vtoSesiones' => ($cliente->getVtoSesiones()) ? $cliente->getVtoSesiones()->format('d/m/Y') : null,
             'fEgreso' => ($cliente->getFEgreso()) ? $cliente->getFEgreso()->format('d/m/Y') : null,
         );
+        $obraSocialesReq = $request->request->get('cliente')['obraSocial'];
+        if ($obraSocialesReq) {
+            $obraSocialArray = implode(',', $obraSocialesReq);
+            $request->request->set('cliente', array_merge($request->request->get('cliente'), ['obraSocial' => $obraSocialArray]));
+        }
 
         $form = $this->createForm(ClienteType::class, $cliente, [
             'allow_extra_fields'=>true,
@@ -530,6 +540,7 @@ class ClienteController extends AbstractController
             'camasDisp' => $camasDispArray,
             'bloquearHab' => $puedePasarHabPrivada,
             'fechas' => $formFechas,
+            'idSeleccionadosOb' => $cliente->getObraSocial()
         ]);
 
 
@@ -555,6 +566,10 @@ class ClienteController extends AbstractController
 
                 if ($form->has('fEgreso') && !empty($form->get('fEgreso')->getData())) {
                     $cliente->setFEgreso(\DateTime::createFromFormat('d/m/Y', $form->get('fEgreso')->getData()));
+                }
+
+                if($obraSocialArray) {
+                    $cliente->setObraSocial($obraSocialArray);
                 }
 
                 $cliente->setAmbulatorio($form->get('modalidad')->getData() == 1);
@@ -1183,12 +1198,13 @@ class ClienteController extends AbstractController
      */
     public function egreso(Request $request, Cliente $cliente, HistoriaPacienteRepository $historiaPacienteRepository, HabitacionRepository $habitacionRepository, BookingRepository $bookingRepository): Response
     {
-        //TODO liberar cama al momento del egreso (cron job)
+        $user = $this->security->getUser();
         $form = $this->createForm(ClienteType::class, $cliente, ['egreso' => true]);
 
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+
             $entityManager = $this->getDoctrine()->getManager();
             $doctoresReferentes = $cliente->getDocReferente();
 
@@ -1199,6 +1215,7 @@ class ClienteController extends AbstractController
             if ($form->has('fEgreso') && !empty($form->get('fEgreso')->getData())) {
                 $cliente->setFEgreso(\DateTime::createFromFormat('d/m/Y', $form->get('fEgreso')->getData()));
             }
+
             $fechaDeEgresoString = $cliente->getFEgreso()->setTime(23, 59, 59)->format('Y-m-d H:i:s');
 
             $turnos = $bookingRepository->turnosConFiltro('', $cliente, $fechaDeEgresoString);
@@ -1208,8 +1225,13 @@ class ClienteController extends AbstractController
             }
 
             $entityManager->persist($cliente);
-            $historial = $historiaPacienteRepository->findOneBy(['id_paciente' => $cliente->getId()]);
-            $historial->setFechaEngreso($cliente->getFEgreso());
+
+            $parametros = [
+                'fEgreso' => $cliente->getFEgreso(),
+            ];
+
+            $historial = $this->getHistorialActualizado($cliente, $parametros, $user);
+            $entityManager->persist($historial);
 
             if($cliente->getFEgreso() <= new \DateTime()) {
                 $this->liberarCamaCliente($cliente);
@@ -1366,7 +1388,6 @@ class ClienteController extends AbstractController
         ]);
     }
 
-
     /**
      * @Route("/guardar/epi/{id}", name="guardar_epi", methods={"POST"})
      */
@@ -1498,7 +1519,7 @@ class ClienteController extends AbstractController
         $fechaBajaPorPermiso = (!empty($parametros['fechaBajaPorPermiso'])) ? $parametros['fechaBajaPorPermiso'] : (!empty($ultimoHistorial) ? $ultimoHistorial[0]->getFechaBajaPorPermiso() : null);
         $dePermiso = (!empty($parametros['dePermiso'])) ? $parametros['dePermiso'] : (!empty($ultimoHistorial) ? $ultimoHistorial[0]->getDePermiso() : null);
         $ambulatorio = (!empty($parametros['ambulatorio'])) ? $parametros['ambulatorio'] : (!empty($ultimoHistorial) ? $ultimoHistorial[0]->getAmbulatorio() : null);
-        $docReferente = [];
+        $docReferente = null;
         if ((!empty($parametros['docReferente']))) {
             foreach ($parametros['docReferente'] as $doc) {
                 $docReferente[] = $doc->getId();

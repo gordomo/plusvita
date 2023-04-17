@@ -335,7 +335,7 @@ class Cliente
     /**
      * @ORM\OneToMany(targetEntity=Prescripcion::class, mappedBy="cliente")
      */
-    private $cliente;
+    private $prescripcion;
 
     public function __construct()
     {
@@ -345,7 +345,8 @@ class Cliente
         $this->historiaHabitaciones = new ArrayCollection();
         $this->evolucions = new ArrayCollection();
         $this->historiaEgresos = new ArrayCollection();
-        $this->cliente = new ArrayCollection();
+        $this->prescripcion = new ArrayCollection();
+        $this->obraSocial = new ArrayCollection();
     }
 
     public function getNombreApellido(): ?string
@@ -1259,32 +1260,31 @@ class Cliente
     /**
      * @return Collection|Prescripcion[]
      */
-    public function getCliente(): Collection
+    public function getPrescripcion(): Collection
     {
-        return $this->cliente;
+        return $this->prescripcion;
     }
 
-    public function addCliente(Prescripcion $cliente): self
+    public function addPrescripcion(Prescripcion $prescripcion): self
     {
-        if (!$this->cliente->contains($cliente)) {
-            $this->cliente[] = $cliente;
-            $cliente->setCliente($this);
+        if (!$this->prescripcion->contains($prescripcion)) {
+            $this->prescripcion[] = $prescripcion;
+            $prescripcion->setCliente($this);
         }
 
         return $this;
     }
 
-    public function removeCliente(Prescripcion $cliente): self
+    public function removePrescripcion(Prescripcion $prescripcion): self
     {
-        if ($this->cliente->removeElement($cliente)) {
+        if ($this->prescripcion->removeElement($prescripcion)) {
             // set the owning side to null (unless already changed)
-            if ($cliente->getCliente() === $this) {
-                $cliente->setCliente(null);
+            if ($prescripcion->getCliente() === $this) {
+                $prescripcion->setCliente(null);
             }
         }
 
         return $this;
     }
-
 
 }

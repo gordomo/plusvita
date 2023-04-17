@@ -39,7 +39,8 @@ class ClienteRepository extends ServiceEntityRepository
             ->andWhere('c.dePermiso = 0')
             ->orWhere('c.dePermiso is null')
             ->andWhere('c.ambulatorio = 0')
-            ->orWhere('c.ambulatorio is null');
+            ->orWhere('c.ambulatorio is null')
+            ->andWhere('c.habitacion is not null');
             if($hab != null) {
                 $query->andWhere('c.habitacion = :hab')->setParameter('hab',$hab);
             }
@@ -56,7 +57,8 @@ class ClienteRepository extends ServiceEntityRepository
 
         return $query->getQuery()->getResult();
     }
-// modalidad 1 es ambulatorio
+
+    // modalidad 1 es ambulatorio
     public function findActivosDesdeHasta($from, $to, $nombre, $estado, $obraSocial)
     {
         $query = $this->createQueryBuilder('c')
@@ -180,7 +182,7 @@ class ClienteRepository extends ServiceEntityRepository
         if ( $os ) {
             $query->orWhere('c.obraSocial = :os')->setParameter("os", $os);
         }
-        return $query->andWhere('c.ambulatorio = 1')->getQuery()->getResult();
+        return $query->andWhere('c.ambulatorio = 1 or c.habitacion is null')->getQuery()->getResult();
     }
 
     public function findInActivos($value, $nombre, $orderBy = null, $os = null)
@@ -212,6 +214,18 @@ class ClienteRepository extends ServiceEntityRepository
 
 
             return $query->getQuery()->getResult();
+    }
+
+
+    public function findInActivosOcupandoCama() {
+        $hoy = new \DateTime();
+        return $this->createQueryBuilder('c')
+            //'c.fEgreso != null && c.fEgreso <= :hoy) and (c.nCama != null and c.nCama != 0) and (c.habitacion != null and c.habitacion != 0)'
+            ->andWhere('(c.fEgreso is not null and c.fEgreso <= :hoy) and ((c.nCama is not null and c.nCama != 0) or (c.habitacion is not null and c.habitacion != 0))')
+            ->setParameter(':hoy', $hoy)
+            ->getQuery()
+            ->getResult()
+            ;
     }
 
     public function findAllInactivos($value)

@@ -84,7 +84,11 @@
                                          <a href="{{ path('cliente_historial', {id: paciente.id}) }}">{{ paciente.nombre }} {{ paciente.apellido }}</a>
                                     </td>
                                     <td class="obraSocial {{ (habitacion.cliente | length > 1 and key != 0) ? '' : 'border-0' }}">
-                                        {{ obrasSociales[paciente.obraSocial] }}
+                                        {% set obrasSocialesCliente = paciente.obraSocial|split(',') %}
+                                        {% for obraSocialCliente in obrasSocialesCliente %}
+                                            {% set obraId = obraSocialCliente|replace({ '\s+': '' }) %}
+                                            <div>{{ obrasSociales[obraId] }}</div>
+                                        {% endfor %}
                                     </td>
                                     <td class="patología {{ (habitacion.cliente | length > 1 and key != 0) ? '' : 'border-0' }}">
                                         {{ paciente.motivoIngEspecifico }}

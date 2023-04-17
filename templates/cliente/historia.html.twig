@@ -12,7 +12,19 @@
             {% endfor %}
         </strong>
             <br>
-        Obra social: <strong>{{ obraSociales[cliente.obraSocial] is defined ? obraSociales[cliente.obraSocial] : '' }}</strong> - Nº Afiliado: <strong>{{ cliente.obraSocialAfiliado }}</strong><br>
+        Obra social: <strong>{{ obraSociales[cliente.obraSocial] is defined ? obraSociales[cliente.obraSocial] : '' }}</strong> -
+        Modalidad: <strong>
+            {% if(cliente.modalidad == 1) %}
+                Ambulatorio
+            {% elseif(cliente.modalidad == 2) %}
+                Internacion
+            {% elseif(cliente.modalidad == 3) %}
+                Hospital de día
+            {% elseif(cliente.modalidad == 4) %}
+                ART
+            {% endif %}
+        </strong><br>
+        Nº Afiliado: <strong>{{ cliente.obraSocialAfiliado }}</strong><br>
         Fecha de Ingreso: <strong>{{ historiaPaciente[0] is defined and historiaPaciente[0].fechaIngreso ? historiaPaciente[0].fechaIngreso|date('d/m/Y') : cliente.fingreso|date('d/m/Y')}}</strong>
         {% if historiaPaciente | last.habitacion ?? null %} Habitación: <strong> {{ habitacionesArray[historiaPaciente | last.habitacion] ?? 'habitación borrada' }} {% endif %}</strong>
         {% if historiaPaciente | last.cama ?? null %} Cama: <strong> {{ historiaPaciente | last.cama }} {% endif %}</strong><br>

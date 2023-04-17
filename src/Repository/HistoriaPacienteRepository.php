@@ -79,7 +79,7 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
             $query->andWhere('h.modalidad = :modalidad')->setParameter('modalidad', $modalidad);
         }
         if (!empty($ob)) {
-            $query->andWhere('h.obra_social = :ob')->setParameter('ob', $ob);
+            $query->andWhere('h.obra_social like :ob')->setParameter('ob', '%'.$ob.'%');
         }
 
         if (!empty($clientes)) {
