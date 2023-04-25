@@ -126,6 +126,7 @@ class ClienteController extends AbstractController
         $limit = $request->query->get('limit', 100);
         $limit = intval($limit);
         $currentPage = $request->query->get('currentPage', 1);
+        $hc = $request->query->get('hc', null);
 
         $hab = $request->query->get('hab') ?? null;
         $obraSocial = $request->query->get('obraSocial') ?? null;
@@ -145,7 +146,7 @@ class ClienteController extends AbstractController
         $fechaHasta = \DateTime::createFromFormat("d/m/Y", $to);
         $vencimientoAut = \DateTime::createFromFormat("d/m/Y", $vto);
 
-        $clientes = $clienteRepository->findByNameDocReferentePaginado($nombre, $prof, $vto);
+        $clientes = $clienteRepository->findByNameDocReferentePaginado($nombre, $prof, $vto, $hc);
         $historiasDesdeHastaAll = [];
         if ($nombre && $clientes or $nombre === null) {
             $historiasDesdeHastaAll = $historiaPacienteRepository->getLastHistorialConModalidad($clientes, $fechaDesde, $fechaHasta, $modalidad, $obraSocial, $vencimientoAut);
@@ -191,6 +192,7 @@ class ClienteController extends AbstractController
                 'thisPage' => $currentPage,
                 'limit' => $limit,
                 'paginaImprimible' => true,
+                'hc' => $hc,
             ]);
     }
 

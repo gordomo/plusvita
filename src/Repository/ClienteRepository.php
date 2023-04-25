@@ -297,7 +297,7 @@ class ClienteRepository extends ServiceEntityRepository
         return $query->getQuery()->getResult();
     }
 
-    public function findByNameDocReferentePaginado($nombre = null, $doc = null, $vto = null, $currentPage = 1, $limit = 10)
+    public function findByNameDocReferentePaginado($nombre = null, $doc = null, $vto = null, $hc = null)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQueryBuilder()
@@ -310,6 +310,9 @@ class ClienteRepository extends ServiceEntityRepository
         }
         if (!empty($vto)) {
             $query->andWhere('c.vtoSesiones <= :vto')->setParameter('vto', $vto);
+        }
+        if (!empty($hc)) {
+            $query->andWhere('c.hClinica = :hc')->setParameter('hc', $hc);
         }
         if ( $nombre != '' ) {
             $arrayNombres = explode(' ', $nombre);
