@@ -36,6 +36,7 @@
                         </div>
                         <div class="form-group text-right">
                             <button type="button" id="filtrarPorFecha" class="btn btn-primary">Buscar</button>
+                            <button type="button" id="printFiltrado" class="btn btn-secondary">Imprimir</button>
                         </div>
                         <div class="form-group text-center" style="overflow: auto;">
                             <img id="loading" src="{{ asset('assets/images/loading.gif') }}">
@@ -291,7 +292,15 @@
                         });
                         let dateIndex = 0;
                         for (const key in response.totales) {
-                            $('#totales-' + dateIndex).text(response.totales[key]);
+                            let texto = 'TOTAL PACIENTES: ' + response.totales[key];
+                            $('#totales-' + dateIndex).text(texto);
+
+                            for(const otra in response.docReferentes[key]) {
+                                let esp = document.createElement("div");
+                                esp.innerHTML = otra +': ' + response.docReferentes[key][otra];
+                                document.getElementById('totales-' + dateIndex).appendChild(esp);
+                            }
+
                             dateIndex ++;
                         }
                     }
@@ -309,6 +318,12 @@
             });
 
         })
+
+        $('#printFiltrado').click(function () {
+            let html = '<head>' + $('head').html() + '</head>';
+            html += $('#resultados').parent().html().trim();
+            imprimirElemento(html);
+        });
 
     </script>
 {% endblock %}

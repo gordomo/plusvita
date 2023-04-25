@@ -99,25 +99,24 @@ class DashboardController extends AbstractController
         $dateTo = new \DateTime($to);
         $dateTo->modify('+1 day');
         $arrHistorias['clientes'] = [];
-        do {
-            foreach ( $historias as $historia ) {
-                $cliente = $historia->getCliente();
-                $arrHistoria = ['habitacion' => $historia->getHabitacion()->getNombre(), 'cama' => $historia->getNCama()];
-                if ($historia->getFecha()->format("Y-m-d") !== $dateFrom->format("Y-m-d") && empty($arrHistorias['clientes'][$cliente->getNombre() . ' ' . $cliente->getApellido()][$obrasSociales[$cliente->getObraSocial()] ?? 'Sin OS'][$dateFrom->format("Y-m-d")])) {
-                    $arrHistoria = [];
+        foreach ( $historias as $historia ) {
+            $cliente = $historia->getCliente();
+            foreach ($cliente->getDocReferente() as $doc) {
+                if (isset ($arrHistorias['docReferentes'][$historia->getFecha()->format("Y-m-d")][$doc->getNombreApellido()])) {
+                    $arrHistorias['docReferentes'][$historia->getFecha()->format("Y-m-d")][$doc->getNombreApellido()] = $arrHistorias['docReferentes'][$historia->getFecha()->format("Y-m-d")][$doc->getNombreApellido()] + 1;
+                } else {
+                    $arrHistorias['docReferentes'][$historia->getFecha()->format("Y-m-d")][$doc->getNombreApellido()] = 1;
                 }
-
-                $arrHistorias['clientes'][$cliente->getNombre() . ' ' . $cliente->getApellido()][$obrasSociales[$cliente->getObraSocial()] ?? 'Sin OS'][$dateFrom->format("Y-m-d")] = $arrHistoria;
-
             }
 
-            $arrHistorias['totales'][$dateFrom->format("Y-m-d")] = $historiaHabitacionesRepository->countByDate($dateFrom->format("Y-m-d"));
+            $arrHistoria = ['habitacion' => $historia->getHabitacion()->getNombre(), 'cama' => $historia->getNCama()];
+            if ($historia->getFecha()->format("Y-m-d") !== $historia->getFecha()->format("Y-m-d") && empty($arrHistorias['clientes'][$cliente->getNombre() . ' ' . $cliente->getApellido()][$obrasSociales[$cliente->getObraSocial()] ?? 'Sin OS'][$historia->getFecha()->format("Y-m-d")])) {
+                $arrHistoria = [];
+            }
 
-            $dateFrom->modify('+1 day');
-
-
-        } while ($dateFrom->format("Y-m-d") !== $dateTo->format("Y-m-d"));
-
+            $arrHistorias['clientes'][$cliente->getNombre() . ' ' . $cliente->getApellido()][$obrasSociales[$cliente->getObraSocial()] ?? 'Sin OS'][$historia->getFecha()->format("Y-m-d")] = $arrHistoria;
+            $arrHistorias['totales'][$historia->getFecha()->format("Y-m-d")] = $historiaHabitacionesRepository->countByDate($historia->getFecha()->format("Y-m-d"));
+        }
 
         return new JsonResponse($arrHistorias);
 
