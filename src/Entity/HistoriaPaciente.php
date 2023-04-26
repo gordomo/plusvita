@@ -245,9 +245,9 @@ class HistoriaPaciente
         return $this->obra_social;
     }
 
-    public function setObraSocial(?string $obra_social): self
+    public function setObraSocial(?ObraSocial $obra_social): self
     {
-        $this->obra_social = $obra_social;
+        $this->obra_social = $obra_social->getId();
 
         return $this;
     }

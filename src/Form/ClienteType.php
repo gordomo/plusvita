@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\Cliente;
 use App\Entity\Doctor;
+use App\Entity\ObraSocial;
 use Doctrine\ORM\EntityRepository;
 use Svg\Tag\Text;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
@@ -27,7 +28,6 @@ class ClienteType extends AbstractType
         $obrasSociales = $options['obrasSociales'] ?? '';
         $habitaciones = $options['habitaciones'] ?? '';
         $fechas = $options['fechas'] ?? '';
-        $idSeleccionadosOb = $options['idSeleccionadosOb'] ? explode(',', $options['idSeleccionadosOb']) : [];
 
         ksort($obrasSociales);
         if (!$options['egreso']) {
@@ -44,12 +44,15 @@ class ClienteType extends AbstractType
                     'mapped' => false
                     ])
                 ->add('hClinica', TextType::class, ['label' => 'Número de Historia Clínica', 'required' => false,])
-                ->add('obraSocial', ChoiceType::class, [
+                ->add('obraSocial', EntityType::class, [
+                    'class' => ObraSocial::class,
+                    'choice_label' => 'nombre',
                     'label' => 'Obra Social',
                     'placeholder' => 'Seleccione una Obra Social',
-                    'choices' => $obrasSociales,
-                    'multiple' => true,
-                    'data' => $idSeleccionadosOb
+                    'query_builder' => function (EntityRepository $er) {
+                        return $er->createQueryBuilder('o')
+                            ->orderBy('o.nombre', 'ASC');
+                    },
                 ])
                 ->add('obraSocialTelefono', TextType::class, ['required' => false, 'label' => 'Teléfono'])
                 ->add('obraSocialAfiliado', TextType::class, ['required' => false, 'label' => 'N Afiliado'])
@@ -300,8 +303,7 @@ class ClienteType extends AbstractType
                 'fNacimiento' => null,
                 'vtoSesiones' => null,
                 'fEgreso' => null,
-            ),
-            'idSeleccionadosOb' => [],
+            )
         ]);
     }
 }

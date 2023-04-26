@@ -12,7 +12,7 @@
             {% endfor %}
         </strong>
             <br>
-        Obra social: <strong>{{ obraSociales[cliente.obraSocial] is defined ? obraSociales[cliente.obraSocial] : '' }}</strong> -
+        Obra social: <strong>{{ cliente.obraSocial.nombre ?? 'no tiene' }}</strong> -
         Modalidad: <strong>
             {% if(cliente.modalidad == 1) %}
                 Ambulatorio

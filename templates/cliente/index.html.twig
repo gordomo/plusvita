@@ -195,10 +195,7 @@
                         <td class="fEgreso">{{ cliente.fEgreso ? cliente.fEgreso|date('Y-m-d') : '' }}</td>
                         <td class="motivoEgr">{{ cliente.motivoEgr }}</td>
                         <td class="obraSocial">
-                            {% set obrasSocialesCliente = cliente.obraSocial|split(',') %}
-                            {% for obraSocialCliente in obrasSocialesCliente %}
-                                <div>{{ oSociales[obraSocialCliente] }}</div>
-                            {% endfor %}
+                            {{ cliente.obraSocial.nombre ?? 'no tiene' }}
                         </td>
                         <td class="obraSocialAfiliado">{{ cliente.obraSocialAfiliado }}</td>
                         <td class="tipoDePago">

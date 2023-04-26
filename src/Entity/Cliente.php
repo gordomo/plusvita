@@ -139,11 +139,6 @@ class Cliente
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $obraSocial;
-
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
     private $vinculoResponsable;
 
     /**
@@ -337,6 +332,11 @@ class Cliente
      */
     private $prescripcion;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=ObraSocial::class, inversedBy="clientes")
+     */
+    private $obraSocial;
+
     public function __construct()
     {
         $this->docReferente = new ArrayCollection();
@@ -346,7 +346,6 @@ class Cliente
         $this->evolucions = new ArrayCollection();
         $this->historiaEgresos = new ArrayCollection();
         $this->prescripcion = new ArrayCollection();
-        $this->obraSocial = new ArrayCollection();
     }
 
     public function getNombreApellido(): ?string
@@ -637,17 +636,6 @@ class Cliente
         return $this;
     }
 
-    public function getObraSocial(): ?string
-    {
-        return $this->obraSocial;
-    }
-
-    public function setObraSocial(?string $obraSocial): self
-    {
-        $this->obraSocial = $obraSocial;
-
-        return $this;
-    }
 
     public function getVinculoResponsable(): ?string
     {
@@ -1283,6 +1271,18 @@ class Cliente
                 $prescripcion->setCliente(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getObraSocial(): ?ObraSocial
+    {
+        return $this->obraSocial;
+    }
+
+    public function setObraSocial(?ObraSocial $obraSocial): self
+    {
+        $this->obraSocial = $obraSocial;
 
         return $this;
     }

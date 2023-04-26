@@ -297,7 +297,7 @@ class ClienteRepository extends ServiceEntityRepository
         return $query->getQuery()->getResult();
     }
 
-    public function findByNameDocReferentePaginado($nombre = null, $doc = null, $vto = null, $hc = null)
+    public function findByNameDocReferentePaginado($nombre = null, $doc = null, $vto = null, $hc = null, $ob = null)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQueryBuilder()
@@ -313,6 +313,9 @@ class ClienteRepository extends ServiceEntityRepository
         }
         if (!empty($hc)) {
             $query->andWhere('c.hClinica = :hc')->setParameter('hc', $hc);
+        }
+        if (!empty($ob)) {
+            $query->andWhere('c.obraSocial = :ob')->setParameter('ob', $ob);
         }
         if ( $nombre != '' ) {
             $arrayNombres = explode(' ', $nombre);

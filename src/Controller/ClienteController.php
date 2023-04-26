@@ -146,10 +146,10 @@ class ClienteController extends AbstractController
         $fechaHasta = \DateTime::createFromFormat("d/m/Y", $to);
         $vencimientoAut = \DateTime::createFromFormat("d/m/Y", $vto);
 
-        $clientes = $clienteRepository->findByNameDocReferentePaginado($nombre, $prof, $vto, $hc);
+        $clientes = $clienteRepository->findByNameDocReferentePaginado($nombre, $prof, $vto, $hc, $obraSocial);
         $historiasDesdeHastaAll = [];
         if ($nombre && $clientes or $nombre === null) {
-            $historiasDesdeHastaAll = $historiaPacienteRepository->getLastHistorialConModalidad($clientes, $fechaDesde, $fechaHasta, $modalidad, $obraSocial, $vencimientoAut);
+            $historiasDesdeHastaAll = $historiaPacienteRepository->getLastHistorialConModalidad($clientes, $fechaDesde, $fechaHasta, $modalidad, $vencimientoAut);
         }
 
         $histArray = [];
@@ -528,11 +528,6 @@ class ClienteController extends AbstractController
             'vtoSesiones' => ($cliente->getVtoSesiones()) ? $cliente->getVtoSesiones()->format('d/m/Y') : null,
             'fEgreso' => ($cliente->getFEgreso()) ? $cliente->getFEgreso()->format('d/m/Y') : null,
         );
-        $obraSocialesReq = $request->request->get('cliente')['obraSocial'];
-        if ($obraSocialesReq) {
-            $obraSocialArray = implode(',', $obraSocialesReq);
-            $request->request->set('cliente', array_merge($request->request->get('cliente'), ['obraSocial' => $obraSocialArray]));
-        }
 
         $form = $this->createForm(ClienteType::class, $cliente, [
             'allow_extra_fields'=>true,
@@ -542,7 +537,6 @@ class ClienteController extends AbstractController
             'camasDisp' => $camasDispArray,
             'bloquearHab' => $puedePasarHabPrivada,
             'fechas' => $formFechas,
-            'idSeleccionadosOb' => $cliente->getObraSocial()
         ]);
 
 
@@ -568,10 +562,6 @@ class ClienteController extends AbstractController
 
                 if ($form->has('fEgreso') && !empty($form->get('fEgreso')->getData())) {
                     $cliente->setFEgreso(\DateTime::createFromFormat('d/m/Y', $form->get('fEgreso')->getData()));
-                }
-
-                if($obraSocialArray) {
-                    $cliente->setObraSocial($obraSocialArray);
                 }
 
                 $cliente->setAmbulatorio($form->get('modalidad')->getData() == 1);

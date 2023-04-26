@@ -64,7 +64,7 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
         return $query->getQuery()->getResult();
     }
 
-    public function getLastHistorialConModalidad($clientes, $from, $to, $modalidad, $ob, $vto)
+    public function getLastHistorialConModalidad($clientes, $from, $to, $modalidad, $vto)
     {
         $query = $this->createQueryBuilder('h');
        if (!empty($from)) {
@@ -77,9 +77,6 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
         }
         if (!empty($modalidad)) {
             $query->andWhere('h.modalidad = :modalidad')->setParameter('modalidad', $modalidad);
-        }
-        if (!empty($ob)) {
-            $query->andWhere('h.obra_social like :ob')->setParameter('ob', '%'.$ob.'%');
         }
 
         if (!empty($clientes)) {
