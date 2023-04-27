@@ -110,7 +110,7 @@ class DashboardController extends AbstractController
             }
 
             $arrHistoria = ['habitacion' => $historia->getHabitacion()->getNombre(), 'cama' => $historia->getNCama()];
-            if ($historia->getFecha()->format("Y-m-d") !== $historia->getFecha()->format("Y-m-d") && empty($arrHistorias['clientes'][$cliente->getNombre() . ' ' . $cliente->getApellido()][$obrasSociales[$cliente->getObraSocial()] ?? 'Sin OS'][$historia->getFecha()->format("Y-m-d")])) {
+            if ($historia->getFecha()->format("Y-m-d") !== $historia->getFecha()->format("Y-m-d") && empty($arrHistorias['clientes'][$cliente->getNombre() . ' ' . $cliente->getApellido()][$cliente->getObraSocial()->getNombre()][$historia->getFecha()->format("Y-m-d")])) {
                 $arrHistoria = [];
             }
 
