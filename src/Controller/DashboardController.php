@@ -114,7 +114,7 @@ class DashboardController extends AbstractController
                 $arrHistoria = [];
             }
 
-            $arrHistorias['clientes'][$cliente->getNombre() . ' ' . $cliente->getApellido()][$obrasSociales[$cliente->getObraSocial()] ?? 'Sin OS'][$historia->getFecha()->format("Y-m-d")] = $arrHistoria;
+            $arrHistorias['clientes'][$cliente->getNombre() . ' ' . $cliente->getApellido()][$cliente->getObraSocial()->getNombre()][$historia->getFecha()->format("Y-m-d")] = $arrHistoria;
             $arrHistorias['totales'][$historia->getFecha()->format("Y-m-d")] = $historiaHabitacionesRepository->countByDate($historia->getFecha()->format("Y-m-d"));
         }
 
