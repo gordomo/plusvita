@@ -167,9 +167,7 @@
                     <td class="fEgreso">{{ cliente.fEgreso ? cliente.fEgreso|date('Y-m-d') : '' }}</td>
                     <td class="motivoEgr">{{ cliente.motivoEgr }}</td>
                     <td class="obraSocial">
-                        {% if obrasSociales[cliente.obraSocial] is defined %}
-                            {{ obrasSociales[cliente.obraSocial] }}
-                        {% endif %}
+                        {{ cliente.obraSocial.nombre }}
                     </td>
                     <td class="obraSocialAfiliado">{{ cliente.obraSocialAfiliado }}</td>
                     {#<td class="tipoDePago">{{ cliente.tipoDePago }}</td>#}
