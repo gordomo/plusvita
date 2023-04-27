@@ -76,10 +76,7 @@
                 <tr>
                     <td class="paciente">{{ evolucion.paciente.nombre }} {{ evolucion.paciente.apellido }}</td>
                     <td class="fecha">
-                        {% set obrasSocialesCliente = evolucion.paciente.obraSocial|split(',') %}
-                        {% for obraSocialCliente in obrasSocialesCliente %}
-                            <div>{{ obrasSociales[obraSocialCliente] }}</div>
-                        {% endfor %}
+                        <div>{{ evolucion.paciente.obraSocial.nombre }}</div>
                     </td>
                     <td class="fecha">{{ evolucion.fecha | date('m/d/Y') }}</td>
                     <td class="desc">{{ (evolucion.description|length > 50 ? evolucion.description|slice(0, 50) ~ '…' : evolucion.description)  }}</td>

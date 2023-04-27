@@ -56,23 +56,25 @@
             </thead>
             <tbody>
             {% for evoluciones_de in evoluciones %}
-                <tr>
-                    <th class="titulo">
-                        Evoluciones de:
-                    </th>
-                    <th class="titulo" colspan="4">
-                        {{ evoluciones_de[0].user }}
-                    </th>
-                </tr>
-                {% for evolucion in evoluciones_de %}
+                {% if evoluciones_de | length > 0 %}
                     <tr>
-                        <td class="paciente">{{ evolucion.paciente.nombre }} {{ evolucion.paciente.apellido }}</td>
-                        <td class="fecha">{{ obrasSociales[evolucion.paciente.obraSocial] }}</td>
-                        <td class="fecha">{{ evolucion.fecha | date('m/d/Y') }}</td>
-                        <td class="desc">{{ (evolucion.description|length > 50 ? evolucion.description|slice(0, 50) ~ '…' : evolucion.description)  }}</td>
-                        <td><a href="{{ path('evolucion_show', {'id': evolucion.id}) }}">ver</a> </td>
+                        <th class="titulo">
+                            Evoluciones de:
+                        </th>
+                        <th class="titulo" colspan="4">
+                            {{ evoluciones_de[0].user }}
+                        </th>
                     </tr>
-                {% endfor %}
+                    {% for evolucion in evoluciones_de %}
+                        <tr>
+                            <td class="paciente">{{ evolucion.paciente.nombre }} {{ evolucion.paciente.apellido }}</td>
+                            <td class="fecha">{{ evolucion.paciente.obraSocial.nombre }}</td>
+                            <td class="fecha">{{ evolucion.fecha | date('m/d/Y') }}</td>
+                            <td class="desc">{{ (evolucion.description|length > 50 ? evolucion.description|slice(0, 50) ~ '…' : evolucion.description)  }}</td>
+                            <td><a href="{{ path('evolucion_show', {'id': evolucion.id}) }}">ver</a> </td>
+                        </tr>
+                    {% endfor %}
+                {% endif %}
             {% endfor %}
             {#{% set cantMediaSesiones = 0 %}
             {% for booking in bookings %}
