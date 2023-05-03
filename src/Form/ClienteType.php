@@ -196,7 +196,7 @@ class ClienteType extends AbstractType
             if(!$options['is_new']) {
                 $builder->add("no_nuevo", HiddenType::class, array("mapped" => false, "label" => false));
             }
-            if($options['egreso'] || $options['is_new']) {
+            if($options['egreso'] || $options['is_new'] || $options['egreso_needed']) {
                 $builder
                     ->add('fEgreso', TextType::class, [
                         'mapped' => false,
@@ -294,6 +294,7 @@ class ClienteType extends AbstractType
             'data_class' => Cliente::class,
             'is_new' => true,
             'egreso' => false,
+            'egreso_needed' => false,
             'obrasSociales' => [],
             'habitaciones' => [],
             'camasDisp' => 0,

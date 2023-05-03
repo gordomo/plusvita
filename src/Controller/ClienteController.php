@@ -8,6 +8,7 @@ use App\Entity\Habitacion;
 use App\Entity\HistoriaEgreso;
 use App\Entity\HistoriaHabitaciones;
 use App\Entity\HistoriaPaciente;
+use App\Entity\ObraSocial;
 use App\Form\ClienteType;
 use App\Form\ReingresoType;
 use App\Repository\AdjuntosPacientesRepository;
@@ -537,6 +538,7 @@ class ClienteController extends AbstractController
             'camasDisp' => $camasDispArray,
             'bloquearHab' => $puedePasarHabPrivada,
             'fechas' => $formFechas,
+            'egreso_needed' => true,
         ]);
 
 
@@ -1525,7 +1527,14 @@ class ClienteController extends AbstractController
         $historial->setModalidad($modalidad);
         $historial->setPatologia($patologia);
         $historial->setPatologiaEspecifica($patologiaEspecifica);
-        $historial->setObraSocial($obraSocial);
+        if ($obraSocial instanceof ObraSocial) {
+            $historial->setObraSocial($obraSocial);
+        } else {
+            $obraSocialRepo = $this->getDoctrine()->getRepository(ObraSocial::class);
+            $obraSocial = $obraSocialRepo->find($obraSocial);
+            $historial->setObraSocial($obraSocial);
+        }
+
         $historial->setNAfiliadoObraSocial($nAfiliadoObraSocial);
         $historial->setSistemaDeEmergencia($sistemaDeEmergencia);
         $historial->setNAfiliadoSistemaDeEmergencia($nAfiliadoSistemaDeEmergencia);
