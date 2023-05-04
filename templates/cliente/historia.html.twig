@@ -25,7 +25,7 @@
             {% endif %}
         </strong><br>
         Nº Afiliado: <strong>{{ cliente.obraSocialAfiliado }}</strong><br>
-        Fecha de Ingreso: <strong>{{ historiaPaciente[0] is defined and historiaPaciente[0].fechaIngreso ? historiaPaciente[0].fechaIngreso|date('d/m/Y') : cliente.fingreso|date('d/m/Y')}}</strong>
+        Fecha de Ingreso: <strong>{{ cliente.fingreso is defined and cliente.fingreso ? cliente.fingreso|date('d/m/Y') : '' }}</strong>
         {% if historiaPaciente | last.habitacion ?? null %} Habitación: <strong> {{ habitacionesArray[historiaPaciente | last.habitacion] ?? 'habitación borrada' }} {% endif %}</strong>
         {% if historiaPaciente | last.cama ?? null %} Cama: <strong> {{ historiaPaciente | last.cama }} {% endif %}</strong><br>
         {% if historiaPaciente[0] is defined and historiaPaciente[0].fechaEngreso %}
