@@ -47,6 +47,12 @@ class DashboardController extends AbstractController
     {
         $isDoctor = $this->isDoctor();
         $isEnfermero = $this->isEnfermero();
+
+        $user = $this->getUser();
+        $modalidad = 'Sin Modalidad - Consulte al Administrador';
+        if (is_callable([$user, 'getModalidad']) && !empty($user->getModalidad()) ) {
+            $modalidad = $user->getModalidad()[0];
+        }
         $habitacionesYpacientes = $this->getHabitacionesYpacientes();
 
         $osArray = $this->getOSarray($obraSocialRepository);
@@ -70,7 +76,8 @@ class DashboardController extends AbstractController
                 'paginaImprimible' => !$isDoctor && !$isEnfermero,
                 'hayContratosVencidos' => $isContratosVencidos,
                 'hayVencenEsteMes' => $vencenEsteMes,
-                'colorCampana' => $colorCampana
+                'colorCampana' => $colorCampana,
+                'modalidad' => $modalidad
             ]);
     }
 
@@ -136,7 +143,7 @@ class DashboardController extends AbstractController
         $user = $this->getUser();
 
         $modalidad = 'sinModalidad';
-        if (is_callable([$user, 'getModalidad'])) {
+        if (is_callable([$user, 'getModalidad']) && !empty($user->getModalidad()) ) {
             $modalidad = $user->getModalidad()[0];
         }
 
@@ -156,7 +163,7 @@ class DashboardController extends AbstractController
         $user = $this->getUser();
 
         $modalidad = 'sinModalidad';
-        if (is_callable([$user, 'getModalidad'])) {
+        if (is_callable([$user, 'getModalidad']) && !empty($user->getModalidad()) ) {
             $modalidad = $user->getModalidad()[0];
         }
 

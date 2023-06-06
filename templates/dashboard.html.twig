@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}Novedades index{% endblock %}
-{% block panelTitle %}Novedades{% endblock %}
+{% block panelTitle %}Novedades <br><span style="font-size: 15px;">{{modalidad}}</span>{% endblock %}
 {% block titleButtons %}
     {% if (hayContratosVencidos or hayVencenEsteMes) and is_granted('ROLE_ADMIN') %}
         <a href="{{ path('doctor_index', {'vencidos': (hayContratosVencidos) ? 1 : 2}) }}">

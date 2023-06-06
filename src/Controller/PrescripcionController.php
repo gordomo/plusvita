@@ -155,7 +155,7 @@ class PrescripcionController extends AbstractController
         $user = $this->getUser();
 
         $modalidad = 'sinModalidad';
-        if (is_callable([$user, 'getModalidad'])) {
+        if (is_callable([$user, 'getModalidad']) && !empty($user->getModalidad()) ) {
             $modalidad = $user->getModalidad()[0];
         }
 
