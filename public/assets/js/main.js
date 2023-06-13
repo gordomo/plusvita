@@ -123,10 +123,16 @@ function getHtmlToPrint(checkboxes, conHead) {
 
     if ( conHead ) {
         htmlToPrint = '<head>' + $('head').html() + '</head>';
+        htmlToPrint += $('.title').html() + "<br>";
+        htmlToPrint += $('.printiable').html();
+    } else {
+        htmlToPrint += $('.title').html() + "<br>";
+        htmlToPrint += "<table>";
+        htmlToPrint += $('.printiable .table').html();
+        htmlToPrint += "</table>";
     }
 
-    htmlToPrint += $('.title').html() + "<br>";
-    htmlToPrint += $('.printiable').html();
+    
 
     return htmlToPrint;
 }
