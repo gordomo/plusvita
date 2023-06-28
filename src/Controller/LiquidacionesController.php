@@ -169,7 +169,9 @@ class LiquidacionesController extends AbstractController
         $desde = $request->query->get('desde') ?? '';
         $hasta = $request->query->get('hasta') ?? '';
         $obraSocialSelected = $request->query->get('obraSocial') ?? '';
+        $estado = $request->query->get('estado') ?? 'activos';
         $completados = $request->query->get('completados') ?? 1;
+        $nombreInput = $request->query->get('nombreInput') ?? '';
         $from = new \DateTime('2000-01-01');
         $to = new \DateTime();
 
@@ -181,10 +183,17 @@ class LiquidacionesController extends AbstractController
         }
 
         $doctor = $doctorRepository->find($id);
-        $clientes = $clienteRepository->findByNombreYobraSocial(null, $obraSocialSelected);
-        $bookings = $bookingRepository->turnosParaAgenda($doctor, $from, '', $clientes, $from, $to, $completados);
 
-        $evoluciones = $evolucionRepository->findByFechaYDoctor($doctor->getEmail(), $from, $to);
+
+        if ($estado == 'activos') {
+            $clientes = $clienteRepository->findActivos(new \DateTime(), $nombreInput, null, null, $obraSocialSelected);
+        } else if ( $estado == 'ambulatorios') {
+            $clientes = $clienteRepository->findAmbulatorios(new \DateTime(), $nombreInput, null, $obraSocialSelected);
+        }
+        
+        //$bookings = $bookingRepository->turnosParaAgenda($doctor, $from, '', $clientes, $from, $to, $completados);
+
+        $evoluciones = $evolucionRepository->findByFechaDoctorYCliente($doctor->getEmail(), $clientes, $from, $to);
 
         $obrasSociales = $obraSocialRepository->findAll();
         $obrasSocialesArray = [];
@@ -195,7 +204,7 @@ class LiquidacionesController extends AbstractController
 
         return $this->render('liquidaciones/liquidar.html.twig',
             [
-                'bookings' => $bookings,
+                //'bookings' => $bookings,
                 'doctor' => $doctor,
                 'desde' => $desde,
                 'hasta' => $hasta,
@@ -203,7 +212,8 @@ class LiquidacionesController extends AbstractController
                 'obraSocialSelected' => $obraSocialSelected,
                 'paginaImprimible' => true,
                 'completados' => $completados,
-                'evoluciones' => $evoluciones
+                'evoluciones' => $evoluciones,
+                'estado' => $estado,
             ]);
     }
 }

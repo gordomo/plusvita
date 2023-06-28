@@ -27,20 +27,20 @@
                             <input id='to' type="date" class="js-datepicker form-control" value="{{ hasta }}">
                         </div>
                     </div>
-                    {#<div class="col-md-2" style="float: left;">
+                    <div class="col-md-2" style="float: left;">
                         <select class="form-control" id="obraSocial">
                             <option value="0">Obra Social</option>
                             {% for key, obrasSocial in obrasSociales %}
                                 <option value="{{ key }}" {% if key == obraSocialSelected %} selected="selected" {% endif %}>{{ obrasSocial }}</option>
                             {% endfor %}
                         </select>
-                    </div>#}
-                    {#<div class="col-md-2" style="float: left;">
-                        <select class="form-control" id="completados">
-                            <option value="1" {% if 1 == completados %} selected="selected" {% endif %}>Si</option>
-                            <option value="0" {% if 0 == completados %} selected="selected" {% endif %}>No</option>
+                    </div>
+                    <div class="col-md-2" style="float: left;">
+                        <select class="form-control" id="estado">
+                            <option value="activos" {% if 'activos' == estado %} selected="selected" {% endif %}>Activos</option>
+                            <option value="ambulatorios" {% if 'ambulatorios' == estado %} selected="selected" {% endif %}>Ambulatorios</option>
                         </select>
-                    </div>#}
+                    </div>
                 </th>
                 <th colspan="2">
                     <div class="col-md-8">
@@ -151,9 +151,9 @@
             let from = $('#from').val();
             let to = $('#to').val();
             let obraSocial = $('#obraSocial').val();
-            let completados = $('#completados').val();
+            let estado = $('#estado').val();
 
-            url = url + '&desde=' + from + '&hasta=' + to + '&obraSocial=' + obraSocial + '&completados=' + completados;
+            url = url + '&desde=' + from + '&hasta=' + to + '&obraSocial=' + obraSocial + '&estado=' + estado;
 
             window.location.href = url;
         })
