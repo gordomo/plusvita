@@ -189,6 +189,8 @@ class LiquidacionesController extends AbstractController
             $clientes = $clienteRepository->findActivos(new \DateTime(), $nombreInput, null, null, $obraSocialSelected);
         } else if ( $estado == 'ambulatorios') {
             $clientes = $clienteRepository->findAmbulatorios(new \DateTime(), $nombreInput, null, $obraSocialSelected);
+        } else {
+            $clientes = $clienteRepository->findByNombreYobraSocial(null, $obraSocialSelected);
         }
         
         //$bookings = $bookingRepository->turnosParaAgenda($doctor, $from, '', $clientes, $from, $to, $completados);

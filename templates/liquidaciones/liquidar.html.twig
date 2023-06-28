@@ -37,6 +37,7 @@
                     </div>
                     <div class="col-md-2" style="float: left;">
                         <select class="form-control" id="estado">
+                            <option value="todos" {% if 'todos' == estado %} selected="selected" {% endif %}>Todos</option>
                             <option value="activos" {% if 'activos' == estado %} selected="selected" {% endif %}>Activos</option>
                             <option value="ambulatorios" {% if 'ambulatorios' == estado %} selected="selected" {% endif %}>Ambulatorios</option>
                         </select>
