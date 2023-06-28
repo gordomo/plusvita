@@ -169,7 +169,7 @@ class LiquidacionesController extends AbstractController
         $desde = $request->query->get('desde') ?? '';
         $hasta = $request->query->get('hasta') ?? '';
         $obraSocialSelected = $request->query->get('obraSocial') ?? '';
-        $estado = $request->query->get('estado') ?? 'activos';
+        $estado = $request->query->get('estado') ?? 'todos';
         $completados = $request->query->get('completados') ?? 1;
         $nombreInput = $request->query->get('nombreInput') ?? '';
         $from = new \DateTime('2000-01-01');
