@@ -87,6 +87,24 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
         return $query->getQuery()->getResult();
     }
 
+    public function findFromTo($from, $to)
+    {
+        $query = $this->createQueryBuilder('h')
+            ->andWhere('h.fecha >= :from')->setParameter('from', $from)
+            ->andWhere('h.fecha <= :to')->setParameter('to', $to);
+
+            return $query->getQuery()->getResult();
+    }
+    public function findLastModalidadChange($clienteId, $to)
+    {
+        $query = $this->createQueryBuilder('h')
+            ->andWhere('h.fecha <= :to')->setParameter('to', $to)
+            ->andWhere('h.cliente = :cliente')->setParameter('cliente', $clienteId)
+            ->orderBy('h.fecha', 'DESC')
+            ->setMaxResults(1);
+
+            return $query->getQuery()->getResult();
+    }
 
     /*
     public function findOneBySomeField($value): ?HistoriaPaciente

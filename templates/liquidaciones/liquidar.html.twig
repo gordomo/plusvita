@@ -30,8 +30,8 @@
                     <div class="col-md-2" style="float: left;">
                         <select class="form-control" id="obraSocial">
                             <option value="0">Obra Social</option>
-                            {% for key, obrasSocial in obrasSociales %}
-                                <option value="{{ key }}" {% if key == obraSocialSelected %} selected="selected" {% endif %}>{{ obrasSocial }}</option>
+                            {% for obrasSocial in obrasSociales %}
+                                <option value="{{ obrasSocial.id }}" {% if obrasSocial.id == obraSocialSelected %} selected="selected" {% endif %}>{{ obrasSocial.nombre }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -80,7 +80,7 @@
                         <div>{{ evolucion.paciente.obraSocial.nombre }}</div>
                     </td>
                     <td class="fecha">{{ evolucion.fecha | date('m/d/Y') }}</td>
-                    <td class="desc">{{ (evolucion.description|length > 50 ? evolucion.description|slice(0, 50) ~ '…' : evolucion.description)  }}</td>
+                    <td class="desc">{{ (evolucion.description|length > 50 ? evolucion.description|slice(0, 50) ~ '…' | striptags  : evolucion.description | striptags )  }}</td>
                     <td><a href="{{ path('evolucion_show', {'id': evolucion.id}) }}">ver</a> </td>
                 </tr>
             {% endfor %}

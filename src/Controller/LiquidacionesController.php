@@ -7,6 +7,7 @@ use App\Repository\ClienteRepository;
 use App\Repository\DoctorRepository;
 use App\Repository\EvolucionRepository;
 use App\Repository\ObraSocialRepository;
+use App\Repository\HistoriaPacienteRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -159,21 +160,26 @@ class LiquidacionesController extends AbstractController
      * @return Response
      * @throws \Exception
      */
-    public function liquidar($id, DoctorRepository $doctorRepository, BookingRepository $bookingRepository, ObraSocialRepository $obraSocialRepository, ClienteRepository $clienteRepository, Request $request, EvolucionRepository $evolucionRepository): Response
+    public function liquidar($id, DoctorRepository $doctorRepository, BookingRepository $bookingRepository, ObraSocialRepository $obraSocialRepository, ClienteRepository $clienteRepository, Request $request, EvolucionRepository $evolucionRepository, HistoriaPacienteRepository $historiaRepository): Response
     {
         $user = $this->getUser();
         if (!$user) {
             return $this->redirectToRoute('app_login');
         }
 
-        $desde = $request->query->get('desde') ?? '';
-        $hasta = $request->query->get('hasta') ?? '';
         $obraSocialSelected = $request->query->get('obraSocial') ?? '';
         $estado = $request->query->get('estado') ?? 'todos';
         $completados = $request->query->get('completados') ?? 1;
         $nombreInput = $request->query->get('nombreInput') ?? '';
-        $from = new \DateTime('2000-01-01');
+
         $to = new \DateTime();
+        $from = new \DateTime();
+        $from->modify('first day of previous month');
+        $to->modify('last day of previous month');
+        
+        $desde = $request->query->get('desde') ?? $from->format('Y-m-d');;
+        $hasta = $request->query->get('hasta') ?? $to->format('Y-m-d');;
+
 
         if($desde != '') {
             $from = (new \DateTime($desde));
@@ -184,22 +190,36 @@ class LiquidacionesController extends AbstractController
 
         $doctor = $doctorRepository->find($id);
 
+        $evolucionesParaVista = [];
+        $evolucionesActivos = [];
+        $evolucionesAmbulatorios = [];
+        $evoluciones = $evolucionRepository->findByFechaDoctorYCliente($doctor->getEmail(), null, $from, $to);
+        
+        foreach ($evoluciones as $evolucion) {
+            $historia = $historiaRepository->findLastModalidadChange($evolucion->getPaciente()->getId(), $to);
+            if (isset($historia[0]) && $historia[0]->getModalidad() == 2 && ($obraSocialSelected == 0 || $evolucion->getPaciente()->getObraSocial()->getId() == $obraSocialSelected ) ) {
+                $evolucionesActivos[] = $evolucion;
+            }
+            if (isset($historia[0]) && $historia[0]->getModalidad() == 1 && ($obraSocialSelected == 0 || $evolucion->getPaciente()->getObraSocial()->getId() == $obraSocialSelected ) ) {
+                $evolucionesAmbulatorios[] = $evolucion;
+            }
+        }
 
         if ($estado == 'activos') {
-            $clientes = $clienteRepository->findActivos(new \DateTime(), $nombreInput, null, null, $obraSocialSelected);
+            $evolucionesParaVista = $evolucionesActivos;
         } else if ( $estado == 'ambulatorios') {
-            $clientes = $clienteRepository->findAmbulatorios(new \DateTime(), $nombreInput, null, $obraSocialSelected);
+            $evolucionesParaVista = $evolucionesAmbulatorios;
         } else {
-            $clientes = $clienteRepository->findByNombreYobraSocial(null, $obraSocialSelected);
+            //$clientes = $clienteRepository->findByNombreYobraSocial(null, $obraSocialSelected);
+            $evolucionesParaVista = $evoluciones;
         }
         
         //$bookings = $bookingRepository->turnosParaAgenda($doctor, $from, '', $clientes, $from, $to, $completados);
 
-        $evoluciones = $evolucionRepository->findByFechaDoctorYCliente($doctor->getEmail(), $clientes, $from, $to);
+        // $evoluciones = $evolucionRepository->findByFechaDoctorYCliente($doctor->getEmail(), $clientes, $from, $to);
 
-        $obrasSociales = $obraSocialRepository->findAll();
-        $obrasSocialesArray = [];
-
+        $obrasSociales = $obraSocialRepository->findBy(array(), array('nombre' => 'ASC'));
+        
         foreach ($obrasSociales as $obrasSocial) {
             $obrasSocialesArray[$obrasSocial->getId()] = $obrasSocial->getNombre();
         }
@@ -210,11 +230,11 @@ class LiquidacionesController extends AbstractController
                 'doctor' => $doctor,
                 'desde' => $desde,
                 'hasta' => $hasta,
-                'obrasSociales' => $obrasSocialesArray,
+                'obrasSociales' => $obrasSociales,
                 'obraSocialSelected' => $obraSocialSelected,
                 'paginaImprimible' => true,
                 'completados' => $completados,
-                'evoluciones' => $evoluciones,
+                'evoluciones' => $evolucionesParaVista,
                 'estado' => $estado,
             ]);
     }
