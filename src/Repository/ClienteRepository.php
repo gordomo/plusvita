@@ -297,7 +297,7 @@ class ClienteRepository extends ServiceEntityRepository
         return $query->getQuery()->getResult();
     }
 
-    public function findByNameDocReferentePaginado($nombre = null, $doc = null, $vto = null, $hc = null, $ob = null)
+    public function findByNameDocReferentePaginado($clientesYaFiltrados = null, $nombre = null, $doc = null, $vto = null, $hc = null, $ob = null, $from = null, $to = null)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQueryBuilder()
@@ -317,6 +317,9 @@ class ClienteRepository extends ServiceEntityRepository
         if (!empty($ob)) {
             $query->andWhere('c.obraSocial = :ob')->setParameter('ob', $ob);
         }
+        if (!empty($clientesYaFiltrados)) {
+            $query->andWhere('c.id in (:ids)')->setParameter('ids', $clientesYaFiltrados);
+        }
         if ( $nombre != '' ) {
             $arrayNombres = explode(' ', $nombre);
             $i = 1;
@@ -325,6 +328,12 @@ class ClienteRepository extends ServiceEntityRepository
                 $i ++;
             }
         }
+
+        if (!empty($to)) {
+            $query->andWhere('c.fEgreso >= :to or c.fEgreso is null')
+                ->setParameter('to', $to);
+        }
+
         return $query->getQuery()->getResult();
 
     }

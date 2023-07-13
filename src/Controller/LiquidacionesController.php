@@ -190,40 +190,49 @@ class LiquidacionesController extends AbstractController
 
         $doctor = $doctorRepository->find($id);
 
-        $evolucionesParaVista = [];
-        $evolucionesActivos = [];
-        $evolucionesAmbulatorios = [];
+        $evolucionesPivotOs = [];
+        $evolucionesPivotOsActivos = [];
+        $evolucionesPivotOsAmbulatorios = [];
         $evoluciones = $evolucionRepository->findByFechaDoctorYCliente($doctor->getEmail(), null, $from, $to);
-        
-        foreach ($evoluciones as $evolucion) {
-            $historia = $historiaRepository->findLastModalidadChange($evolucion->getPaciente()->getId(), $to);
-            if (isset($historia[0]) && $historia[0]->getModalidad() == 2 && ($obraSocialSelected == 0 || $evolucion->getPaciente()->getObraSocial()->getId() == $obraSocialSelected ) ) {
-                $evolucionesActivos[] = $evolucion;
-            }
-            if (isset($historia[0]) && $historia[0]->getModalidad() == 1 && ($obraSocialSelected == 0 || $evolucion->getPaciente()->getObraSocial()->getId() == $obraSocialSelected ) ) {
-                $evolucionesAmbulatorios[] = $evolucion;
-            }
-        }
 
-        if ($estado == 'activos') {
-            $evolucionesParaVista = $evolucionesActivos;
-        } else if ( $estado == 'ambulatorios') {
-            $evolucionesParaVista = $evolucionesAmbulatorios;
-        } else {
-            //$clientes = $clienteRepository->findByNombreYobraSocial(null, $obraSocialSelected);
-            $evolucionesParaVista = $evoluciones;
-        }
-        
-        //$bookings = $bookingRepository->turnosParaAgenda($doctor, $from, '', $clientes, $from, $to, $completados);
-
-        // $evoluciones = $evolucionRepository->findByFechaDoctorYCliente($doctor->getEmail(), $clientes, $from, $to);
+        $evolucionesCount = count($evoluciones);
+        $evolucionesCountActivos = 0;
+        $evolucionesCountAmbulatorios = 0;
 
         $obrasSociales = $obraSocialRepository->findBy(array(), array('nombre' => 'ASC'));
         
         foreach ($obrasSociales as $obrasSocial) {
             $obrasSocialesArray[$obrasSocial->getId()] = $obrasSocial->getNombre();
         }
+        
+        foreach ($evoluciones as $evolucion) {
+            $historia = $historiaRepository->findLastModalidadChange($evolucion->getPaciente()->getId(), $to);
+            if (isset($historia[0]) && $historia[0]->getModalidad() == 2 && ($obraSocialSelected == 0 || $evolucion->getPaciente()->getObraSocial()->getId() == $obraSocialSelected ) ) {
+                $evolucionesCountActivos ++;
+                $evolucionesPivotOsActivos[$evolucion->getPaciente()->getObraSocial()->getNombre()][] = $evolucion;
+            }
+            if (isset($historia[0]) && $historia[0]->getModalidad() == 1 && ($obraSocialSelected == 0 || $evolucion->getPaciente()->getObraSocial()->getId() == $obraSocialSelected ) ) {
+                $evolucionesCountAmbulatorios ++;
+                $evolucionesPivotOsAmbulatorios[$evolucion->getPaciente()->getObraSocial()->getNombre()][] = $evolucion;
+            }
+        }
 
+        if ($estado == 'activos') {
+            $evolucionesPivotOs = $evolucionesPivotOsActivos;
+            $evolucionesCount = $evolucionesCountActivos;
+        } else if ( $estado == 'ambulatorios') {
+            $evolucionesPivotOs = $evolucionesPivotOsAmbulatorios;
+            $evolucionesCount = $evolucionesCountAmbulatorios;
+        } else {
+            //$clientes = $clienteRepository->findByNombreYobraSocial(null, $obraSocialSelected);
+            $evolucionesPivotOs = array_merge($evolucionesPivotOsActivos, $evolucionesPivotOsAmbulatorios);
+        }
+
+        //$bookings = $bookingRepository->turnosParaAgenda($doctor, $from, '', $clientes, $from, $to, $completados);
+
+        // $evoluciones = $evolucionRepository->findByFechaDoctorYCliente($doctor->getEmail(), $clientes, $from, $to);
+
+        
         return $this->render('liquidaciones/liquidar.html.twig',
             [
                 //'bookings' => $bookings,
@@ -234,8 +243,9 @@ class LiquidacionesController extends AbstractController
                 'obraSocialSelected' => $obraSocialSelected,
                 'paginaImprimible' => true,
                 'completados' => $completados,
-                'evoluciones' => $evolucionesParaVista,
                 'estado' => $estado,
+                'evolucionesPivotOs' => $evolucionesPivotOs,
+                'evolucionesCount' => $evolucionesCount,
             ]);
     }
 }

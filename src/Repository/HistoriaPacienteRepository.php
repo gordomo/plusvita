@@ -67,7 +67,7 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
     public function getLastHistorialConModalidad($clientes, $from, $to, $modalidad, $vto)
     {
         $query = $this->createQueryBuilder('h');
-       if (!empty($from)) {
+        if (!empty($from)) {
             $from->setTime(00,00,00);
             $query->andWhere('h.fecha >= :fechaDesde')->setParameter('fechaDesde', $from);
         }

@@ -109,7 +109,7 @@ class ClienteController extends AbstractController
     /**
      * @Route("/historico", name="cliente_historicos", methods={"GET"})
      */
-    public function historico(Request $request, HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, DoctorRepository $doctorRepository, HistoriaPacienteRepository $historiaPacienteRepository): Response
+    public function historico(Request $request, HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, DoctorRepository $doctorRepository, HistoriaPacienteRepository $historiaPacienteRepository, HistoriaHabitacionesRepository $historiaHabitacionesRepository): Response
     {
         $user = $this->getUser();
         if (!$user) {
@@ -147,11 +147,14 @@ class ClienteController extends AbstractController
         $fechaHasta = \DateTime::createFromFormat("d/m/Y", $to);
         $vencimientoAut = \DateTime::createFromFormat("d/m/Y", $vto);
 
-        $clientes = $clienteRepository->findByNameDocReferentePaginado($nombre, $prof, $vto, $hc, $obraSocial);
+        $clientes = $historiaHabitacionesRepository->getClienteIdFromHistHabitacion($fechaDesde, $fechaHasta);
+        $clientes = $clienteRepository->findByNameDocReferentePaginado($clientes, $nombre, $prof, $vto, $hc, $obraSocial);
+
         $historiasDesdeHastaAll = [];
         if ($nombre && $clientes or $nombre === null) {
-            $historiasDesdeHastaAll = $historiaPacienteRepository->getLastHistorialConModalidad($clientes, $fechaDesde, $fechaHasta, $modalidad, $vencimientoAut);
+            $historiasDesdeHastaAll = $historiaPacienteRepository->getLastHistorialConModalidad($clientes, null, null, $modalidad, $vencimientoAut);
         }
+
 
         $histArray = [];
         foreach ($historiasDesdeHastaAll as $historia) {
@@ -296,31 +299,35 @@ class ClienteController extends AbstractController
         $clientesInactivos = $clienteRepository->findInActivosOcupandoCama();
         $em = $this->getDoctrine()->getManager();
         foreach ( $clientesInactivos as $inactivo ) {
-            if ($inactivo->getHabitacion()) {
-                $habitacionActual = $habitacionRepository->find($inactivo->getHabitacion());
+            if($cliente->getFEgreso() <= new \DateTime()) {
+                $habitacionRepository = $this->getDoctrine()->getRepository(Habitacion::class);
 
-                $habPrivada = $inactivo->getHabPrivada();
-                $camasOcupadasPorCliente = $habitacionActual->getCamasOcupadas();
+                if($cliente->getHabitacion()) {
+                    $habitacionActual = $habitacionRepository->find($cliente->getHabitacion());
 
-                if($habPrivada != null && $habPrivada) {
-                    $camasOcupadasPorCliente = [];
-                } else {
-                    unset($camasOcupadasPorCliente[$inactivo->getNCama()]);
+                    $habPrivada = $cliente->getHabPrivada();
+                    $camasOcupadasPorCliente = $habitacionActual->getCamasOcupadas();
+
+                    if($habPrivada != null && $habPrivada) {
+                        $camasOcupadasPorCliente = [];
+                    } else {
+                        unset($camasOcupadasPorCliente[$cliente->getNCama()]);
+                    }
+
+                    $habitacionActual->setCamasOcupadas($camasOcupadasPorCliente);
+
+                    $cliente->setHabitacion(null);
+                    $cliente->setNCama(null);
+                    $cliente->setHabPrivada(0);
+
+                    $entityManager = $this->getDoctrine()->getManager();
+
+                    $entityManager->persist($habitacionActual);
+                    $entityManager->persist($cliente);
+                    $entityManager->flush();
                 }
-
-                $habitacionActual->setCamasOcupadas($camasOcupadasPorCliente);
-                $em->persist($habitacionActual);
             }
-
-            $inactivo->setHabitacion(null);
-            $inactivo->setNCama(null);
-            $inactivo->setHabPrivada(0);
-
-
-            $em->persist($inactivo);
-            $em->flush();
         }
-        dd($clientesInactivos, $clienteRepository->findInActivosOcupandoCama());
     }
 
     /**

@@ -44,6 +44,25 @@ class HistoriaHabitacionesRepository extends ServiceEntityRepository
         return $query->getQuery()->getSingleScalarResult();
     }
 
+    public function getClienteIdFromHistHabitacion($from, $to)
+    {
+        $query = $this->createQueryBuilder('h')->select('identity(h.cliente) as cliente_id, IDENTITY(h.habitacion), h.nCama');
+        if (!empty($from)) {
+            $query->andWhere('h.fecha >= :from')
+                ->setParameter('from', $from);
+        }
+        if (!empty($to)) {
+            $query->andWhere('h.fecha <= :to')
+                ->setParameter('to', $to);
+        }
+        $query->groupBy('h.cliente, h.habitacion, h.nCama');
+        $query->orderBy('h.cliente');
+
+        $ar = $query->getQuery()->getResult();
+
+        return(array_unique(array_column($ar, "cliente_id")));
+    }
+
     // /**
     //  * @return HistoriaHabitaciones[] Returns an array of HistoriaHabitaciones objects
     //  */

@@ -7,11 +7,8 @@
 {% endblock %}
 {% block body %}
     <div class="container-fluid printiable">
-        <table class="table table-responsive table-striped">
-            <thead>
-            <tr>
-                <th colspan="3">
-                    <div class="col-md-4" style="float: left;">
+                <div class="row">
+                    <div class="col-md-3" style="float: left;">
                         <div class="col-md-2" style="float: left;line-height: 35px;">
                             Desde:
                         </div>
@@ -19,7 +16,7 @@
                             <input id='from' type="date" class="js-datepicker form-control" value="{{ desde }}">
                         </div>
                     </div>
-                    <div class="col-md-4" style="float: left;">
+                    <div class="col-md-3" style="float: left;">
                         <div class="col-md-2" style="float: left;line-height: 35px;">
                             Hasta:
                         </div>
@@ -27,14 +24,14 @@
                             <input id='to' type="date" class="js-datepicker form-control" value="{{ hasta }}">
                         </div>
                     </div>
-                    <div class="col-md-2" style="float: left;">
+                    {# <div class="col-md-2" style="float: left;">
                         <select class="form-control" id="obraSocial">
                             <option value="0">Obra Social</option>
                             {% for obrasSocial in obrasSociales %}
                                 <option value="{{ obrasSocial.id }}" {% if obrasSocial.id == obraSocialSelected %} selected="selected" {% endif %}>{{ obrasSocial.nombre }}</option>
                             {% endfor %}
                         </select>
-                    </div>
+                    </div> #}
                     <div class="col-md-2" style="float: left;">
                         <select class="form-control" id="estado">
                             <option value="todos" {% if 'todos' == estado %} selected="selected" {% endif %}>Todos</option>
@@ -42,48 +39,63 @@
                             <option value="ambulatorios" {% if 'ambulatorios' == estado %} selected="selected" {% endif %}>Ambulatorios</option>
                         </select>
                     </div>
-                </th>
-                <th colspan="2">
-                    <div class="col-md-8">
-                        <div class="input-group">
-                            <div class="input-group-append">
-                                <a class="btn btn-success" data-inactivo="false" data-url="{{ path('liquidar', {'periodo': 'mes', 'id': doctor.id}) }}" type="button" id="buscarPorFechas" style="color:white; padding: 10px;">
-                                    <i class="fas fa-search"></i> Buscar
-                                </a>
-                                <a class="btn btn-outline-secondary" data-inactivo="false" type="button" href="{{ path('liquidar', {'periodo': 'mes', 'id': doctor.id}) }}" style="padding: 10px;">
-                                    Limpiar
-                                </a>
-                            </div>
-                        </div>
-
+                
+                    <div class="col-md-2 font-weight-bold" style="padding: 7px;">
+                        total: {{evolucionesCount}} evoluciones
                     </div>
-                </th>
-            </tr>
-            <tr>
-{#                <th scope="col" class="titulo">Titulo</th>#}
-                <th scope="col" class="paciente">Paciente</th>
-                <th scope="col" class="obraSocial">O. Social</th>
-                <th scope="col" class="fecha">Fecha</th>
-                <th scope="col" class="desc">Desc</th>
-                <th scope="col" class="accion">Total: {{ evoluciones | length }} evoluciones</th>
-                {#<th scope="col" class="comenzo">Comenzó</th>
-                <th scope="col" class="finalizo">Finalizó</th>
-                <th scope="col" class="completado">Completado</th>
-                <th scope="col">Notas</th>#}
-            </tr>
-            </thead>
+                    <div class="col-md-2">
+                        <a class="btn btn-success btn-sm" data-inactivo="false" data-url="{{ path('liquidar', {'periodo': 'mes', 'id': doctor.id}) }}" type="button" id="buscarPorFechas" style="color:white; padding: 10px;">
+                            <i class="fas fa-search"></i> Buscar
+                        </a>
+                        <a class="btn btn-outline-secondary btn-sm" data-inactivo="false" type="button" href="{{ path('liquidar', {'periodo': 'mes', 'id': doctor.id}) }}" style="padding: 10px;">
+                            Limpiar
+                        </a>
+                    </div>
+                </div>
+            
+        <table class="table table-responsive" style="display:inline-table">            
             <tbody>
-            {% for evolucion in evoluciones %}
+            {% for nombre, evoluciones in evolucionesPivotOs %}
+                <tr class="font-weight-bold">
+                    <td class="text-uppercase" colspan="4">{{nombre}}</td> 
+                    <td class="text-center">{{evoluciones | length }}</td> 
+                    <td><button data-toggle="collapse" data-target=".multi-collapse-{{nombre | slug}}" aria-expanded="true" aria-controls="multi-collapse-{{nombre | slug}}" class="btn btn-primary btn-sm"><i class="fas fa-chevron-down"></i></button></td>
+                </tr>
+                <tr class="collapse multi-collapse-{{nombre | slug }}">
+                    <th scope="col" class="paciente">Paciente</th>
+                    <th scope="col" class="obraSocial">O. Social</th>
+                    <th scope="col" class="fecha">Fecha</th>
+                    <th scope="col" class="desc">Desc</th>
+                    <th scope="col" class="total">Total: {{ evoluciones | length }} evoluciones</th>
+                    <th scope="col" class="accion"></th>
+                    {#<th scope="col" class="comenzo">Comenzó</th>
+                    <th scope="col" class="finalizo">Finalizó</th>
+                    <th scope="col" class="completado">Completado</th>
+                    <th scope="col">Notas</th>#}
+                </tr>
+                {% for evolucion in evoluciones %}
+                    <tr class="collapse multi-collapse-{{nombre | slug}}">
+                        <td class="paciente">{{ evolucion.paciente.nombre }} {{ evolucion.paciente.apellido }}</td>
+                        <td class="fecha">
+                            <div>{{ evolucion.paciente.obraSocial.nombre }}</div>
+                        </td>
+                        <td class="fecha">{{ evolucion.fecha | date('m/d/Y') }}</td>
+                        <td class="desc">{{ (evolucion.description|length > 50 ? evolucion.description | striptags |slice(0, 50) ~ '…'   : evolucion.description | striptags )  }}</td>
+                        <td><a href="{{ path('evolucion_show', {'id': evolucion.id}) }}">ver</a> </td>
+                    </tr>
+                {% endfor %}        
+            {% endfor %}
+            {# {% for evolucion in evoluciones %}
                 <tr>
                     <td class="paciente">{{ evolucion.paciente.nombre }} {{ evolucion.paciente.apellido }}</td>
                     <td class="fecha">
                         <div>{{ evolucion.paciente.obraSocial.nombre }}</div>
                     </td>
                     <td class="fecha">{{ evolucion.fecha | date('m/d/Y') }}</td>
-                    <td class="desc">{{ (evolucion.description|length > 50 ? evolucion.description|slice(0, 50) ~ '…' | striptags  : evolucion.description | striptags )  }}</td>
+                    <td class="desc">{{ (evolucion.description|length > 50 ? evolucion.description | striptags |slice(0, 50) ~ '…'   : evolucion.description | striptags )  }}</td>
                     <td><a href="{{ path('evolucion_show', {'id': evolucion.id}) }}">ver</a> </td>
                 </tr>
-            {% endfor %}
+            {% endfor %} #}
             {#{% set cantMediaSesiones = 0 %}
             {% for booking in bookings %}
                 {% if booking.cliente.MediaSesion %}

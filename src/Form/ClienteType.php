@@ -89,6 +89,7 @@ class ClienteType extends AbstractType
                     ],
                     'multiple' => false,
                     'expanded' => false,
+                    'required' => true,
                 ])
                 ->add('motivoIng', ChoiceType::class, [
                     'label' => 'Patología de Ingreso',
