@@ -21,7 +21,7 @@ class HabitacionController extends AbstractController
     /**
      * @Route("/", name="habitacion_index", methods={"GET"})
      */
-    public function index(HabitacionRepository $habitacionRepository, Request $request): Response
+    public function index(ClienteRepository $clienteRepository, HabitacionRepository $habitacionRepository, Request $request): Response
     {
         $pestana = $request->query->get('pestana') ?? 'todas';
 
@@ -39,6 +39,8 @@ class HabitacionController extends AbstractController
 
         return $this->render('habitacion/index.html.twig', [
             'habitacions' => $habitaciones,
+            'clienteRepository' => $clienteRepository,
+            'fecha' => new \DateTime(),
             'pestana' => $pestana,
         ]);
     }

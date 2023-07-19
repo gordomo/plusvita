@@ -12,10 +12,10 @@
                             <a class="nav-link {{  pestana == 'todas' ? 'active' : ''  }}" href="{{ path('habitacion_index') }}">Todas</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{  pestana == 'camas-vacias' ? 'active' : ''  }}" href="{{ path('habitacion_index') }}?pestana=camas-vacias">Camas Disponibles</a>
+                            <a class="nav-link {{  pestana == 'camas-vacias' ? 'active' : ''  }}" href="{{ path('habitacion_index') }}?pestana=camas-vacias">Habitaciones con camas Disponibles</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{  pestana == 'completas' ? 'active' : ''  }}"  href="{{ path('habitacion_index') }}?pestana=completas">Completas</a>
+                            <a class="nav-link {{  pestana == 'completas' ? 'active' : ''  }}"  href="{{ path('habitacion_index') }}?pestana=completas">Habitaciones Completas</a>
                         </li>
                     </ul>
                 </div>
@@ -37,25 +37,39 @@
         <thead>
             <tr>
                 <th>Nombre</th>
-                <th>Camas Totales</th>
-                <th>Camas Ocupadas</th>
-                <th>Camas Disponibles</th>
+                <th>Camas Totales: <span id="camasTotales"></span></th>
+                <th>Camas Ocupadas: <span id="ocupadas"></span></th>
+                <th>Camas Disponibles: <span id="disponibles"></span></th>
                 <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
+        {% set camas = 0 %}
+        {% set ocupadas = 0 %}
+        {% set disponibles = 0 %}
         {% for habitacion in habitacions %}
-            <tr>
+            <tr class="bg-light">
                 <td>{{ habitacion.nombre }}</td>
                 <td>{{ habitacion.camasDisponibles }}</td>
-                {% set camasOcupadas = habitacion.camasOcupadas|length%}
+                {% set camasOcupadas = habitacion.camasOcupadas|length %}
                 <td>{{ camasOcupadas ? camasOcupadas : 0 }}</td>
-                {% set camasDisp = habitacion.camasDisponibles - camasOcupadas%}
+                {% set camasDisp = habitacion.camasDisponibles - camasOcupadas %}
                 <td>{{ camasDisp }}</td>
                 <td>
                     <a href="{{ path('habitacion_edit', {'id': habitacion.id}) }}"><i class="fas fa-pencil-alt"></i></a>
                 </td>
             </tr>
+            {% set pacientesEnHab = clienteRepository.findActivos(fecha, '', habitacion.id) %}
+                    {% for paciente in pacientesEnHab %}
+                <tr>
+                    <td colspan="5">
+                        <a href="{{ path('cliente_historial', {id: paciente.id}) }}">{{ paciente.nombre }} {{ paciente.apellido }}</a>
+                    </td>
+                </tr>
+            {% endfor %}
+            {% set camas = camas + camasOcupadas + camasDisp %}
+            {% set ocupadas = ocupadas + camasOcupadas %}
+            {% set disponibles = disponibles + camasDisp %}
         {% else %}
             <tr>
                 <td colspan="5">No existen registros</td>
@@ -63,4 +77,12 @@
         {% endfor %}
         </tbody>
     </table>
+    <script>
+        var camas = "{{camas}}";
+        var ocupadas = "{{ocupadas}}";
+        var disponibles = "{{disponibles}}";
+        document.getElementById('camasTotales').innerHTML = camas;
+        document.getElementById('ocupadas').innerHTML = ocupadas;
+        document.getElementById('disponibles').innerHTML = disponibles;
+    </script>
 {% endblock %}
