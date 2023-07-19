@@ -56,8 +56,8 @@
         <table class="table table-responsive" style="display:inline-table">            
             <tbody>
             {% for nombre, evoluciones in evolucionesPivotOs %}
-                <tr class="font-weight-bold">
-                    <td class="text-uppercase" colspan="4">{{nombre}}</td> 
+                <tr class="font-weight-bold" >
+                    <td class="text-uppercase" colspan="4" style="width: 100%;">{{nombre}}</td> 
                     <td class="text-center">{{evoluciones | length }}</td> 
                     <td><button data-toggle="collapse" data-target=".multi-collapse-{{nombre | slug}}" aria-expanded="true" aria-controls="multi-collapse-{{nombre | slug}}" class="btn btn-primary btn-sm"><i class="fas fa-chevron-down"></i></button></td>
                 </tr>
@@ -66,7 +66,7 @@
                     <th scope="col" class="obraSocial">O. Social</th>
                     <th scope="col" class="fecha">Fecha</th>
                     <th scope="col" class="desc">Desc</th>
-                    <th scope="col" class="total">Total: {{ evoluciones | length }} evoluciones</th>
+                    <th scope="col" class="total"></th>
                     <th scope="col" class="accion"></th>
                     {#<th scope="col" class="comenzo">Comenzó</th>
                     <th scope="col" class="finalizo">Finalizó</th>
@@ -82,6 +82,7 @@
                         <td class="fecha">{{ evolucion.fecha | date('m/d/Y') }}</td>
                         <td class="desc">{{ (evolucion.description|length > 50 ? evolucion.description | striptags |slice(0, 50) ~ '…'   : evolucion.description | striptags )  }}</td>
                         <td><a href="{{ path('evolucion_show', {'id': evolucion.id}) }}">ver</a> </td>
+                        <td></td>
                     </tr>
                 {% endfor %}        
             {% endfor %}

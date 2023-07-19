@@ -324,9 +324,18 @@
                                             {% set cambio = 1 %}
                                             <b class="text-capitalize">Fecha de Ingreso:</b>
                                             de
-                                            <b class="text-capitalize">{{ historiaPaciente[key - 1].fechaIngreso | date('d/m/Y') }}</b>
+                                            <b class="text-capitalize">{% if historiaPaciente[key - 1].fechaIngreso %} {{ historiaPaciente[key - 1].fechaIngreso | date('d/m/Y') }} {% else %} 'sin fecha' {% endif %}</b>
                                             a
-                                            <b class="text-capitalize">{{ historia.fechaIngreso | date('d/m/Y') }}</b>
+                                            <b class="text-capitalize">{% if historia.fechaIngreso %} {{ historia.fechaIngreso | date('d/m/Y') }} {% else %} 'sin fecha' {% endif %}</b>
+                                            <br>
+                                        {% endif %}
+                                        {% if historia.fechaEngreso != historiaPaciente[key - 1].fechaEngreso %}
+                                            {% set cambio = 1 %}
+                                            <b class="text-capitalize">Fecha de Egreso:</b>
+                                            de
+                                            <b class="text-capitalize">{% if historiaPaciente[key - 1].fechaEngreso %} {{ historiaPaciente[key - 1].fechaEngreso | date('d/m/Y') }} {% else %} 'sin fecha' {% endif %}</b>
+                                            a
+                                            <b class="text-capitalize">{% if historia.fechaEngreso %} {{ historia.fechaEngreso | date('d/m/Y') }} {% else %} 'sin fecha' {% endif %}</b>
                                             <br>
                                         {% endif %}
                                         {% if historia.fechaDerivacion != historiaPaciente[key - 1].fechaDerivacion %}
@@ -350,27 +359,18 @@
                                         {% if historia.motivoDerivacion != historiaPaciente[key - 1].motivoDerivacion %}
                                             {% set cambio = 1 %}
                                             <b class="text-capitalize">Motivo de Derivacion:</b>
-                                            de
-                                            <b class="text-capitalize">{{ historiaPaciente[key - 1].motivoDerivacion }}</b>
-                                            a
                                             <b class="text-capitalize">{{ historia.motivoDerivacion }}</b>
                                             <br>
                                         {% endif %}
                                         {% if historia.derivadoEn != historiaPaciente[key - 1].derivadoEn %}
                                             {% set cambio = 1 %}
                                             <b class="text-capitalize">Derivado En:</b>
-                                            de
-                                            <b class="text-capitalize">{{ historiaPaciente[key - 1].derivadoEn }}</b>
-                                            a
                                             <b class="text-capitalize">{{ historia.derivadoEn }}</b>
                                             <br>
                                         {% endif %}
                                         {% if historia.empresaTransporteDerivacion != historiaPaciente[key - 1].empresaTransporteDerivacion %}
                                             {% set cambio = 1 %}
                                             <b class="text-capitalize">Empresa de Transporte de Derivacion:</b>
-                                            de
-                                            <b class="text-capitalize">{{ historiaPaciente[key - 1].empresaTransporteDerivacion }}</b>
-                                            a
                                             <b class="text-capitalize">{{ historia.empresaTransporteDerivacion }}</b>
                                             <br>
                                         {% endif %}

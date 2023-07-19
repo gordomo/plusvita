@@ -59,7 +59,7 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
             $newDate = date("Y/m/d", strtotime($fechaHasta->format('Y/m/d')));
             $query->andWhere('h.fecha <= :fechaHasta')->setParameter('fechaHasta', $newDate);
         }
-        $query->orderBy('h.fecha', 'ASC');
+        $query->orderBy('h.fecha, h.id', 'ASC');
 
         return $query->getQuery()->getResult();
     }

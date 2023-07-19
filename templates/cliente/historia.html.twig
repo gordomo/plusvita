@@ -25,11 +25,11 @@
             {% endif %}
         </strong><br>
         Nº Afiliado: <strong>{{ cliente.obraSocialAfiliado }}</strong><br>
-        Fecha de Ingreso: <strong>{{ cliente.fingreso is defined and cliente.fingreso ? cliente.fingreso|date('d/m/Y') : '' }}</strong>
-        {% if historiaPaciente | last.habitacion ?? null %} Habitación: <strong> {{ habitacionesArray[historiaPaciente | last.habitacion] ?? 'habitación borrada' }} {% endif %}</strong>
-        {% if historiaPaciente | last.cama ?? null %} Cama: <strong> {{ historiaPaciente | last.cama }} {% endif %}</strong><br>
-        {% if historiaPaciente[0] is defined and historiaPaciente[0].fechaEngreso %}
-            Fecha de Egreso: <strong>{{ historiaPaciente[0] and  historiaPaciente[0].fechaEngreso ? historiaPaciente[0].fechaEngreso|date('d/m/Y') : cliente.fegreso|date('d/m/Y') }}</strong>
+        Fecha de Ingreso: <strong>{{ cliente.fingreso is defined and cliente.fingreso ? cliente.fingreso|date('d/m/Y') : '' }}</strong><br>
+        {% if habitacionesArray[cliente.habitacion] ?? null %} Habitación: <strong> {{ habitacionesArray[cliente.habitacion] ?? 'habitación borrada' }} </strong>{% endif %}
+        {% if cliente.nCama ?? null %} cama: <strong> {{ cliente.nCama ?? 'sin cama' }} </strong><br>{% endif %}
+        {% if cliente.fegreso %}
+            Fecha de Egreso: <strong>{{ cliente.fegreso ? cliente.fegreso|date('d/m/Y') : '' }}</strong>
         {% endif %}
     </div>
 {% endblock %}
@@ -406,7 +406,7 @@
                                     <tr>
                                         {% if key > 0 %}
                                             {% set cambio = 0 %}
-                                            <td>{{ historia.fecha ? historia.fecha|date('d/m/Y') : ''}}</td>
+                                            <td>{{ historia.id }}</td>
                                             <td class="lowercase">
                                                 {% if historia.modalidad != historiaPaciente[key - 1].modalidad %}
                                                     {% set cambio = 1 %}
@@ -526,18 +526,27 @@
                                                     {% set cambio = 1 %}
                                                     <b class="text-capitalize">cama:</b>
                                                     de
-                                                    <b class="text-capitalize">{{ historiaPaciente[key - 1].cama ?? 'ninguna' }}</b>
+                                                    <b class="text-capitalize">{{ (historiaPaciente[key - 1].cama) ? historiaPaciente[key - 1].cama : 'ninguna' }}</b>
                                                     a
-                                                    <b class="text-capitalize">{{ historia.cama ?? 'ninguna'}}</b>
+                                                    <b class="text-capitalize">{{ (historia.cama) ? historia.cama : 'ninguna'}}</b>
                                                     <br>
                                                 {% endif %}
                                                 {% if historia.fechaIngreso != historiaPaciente[key - 1].fechaIngreso %}
                                                     {% set cambio = 1 %}
                                                     <b class="text-capitalize">Fecha de Ingreso:</b>
                                                     de
-                                                    <b class="text-capitalize">{{ historiaPaciente[key - 1].fechaIngreso | date('d/m/Y') }}</b>
+                                                    <b class="text-capitalize">{% if historiaPaciente[key - 1].fechaIngreso %} {{ historiaPaciente[key - 1].fechaIngreso | date('d/m/Y') }} {% else %} 'sin fecha' {% endif %}</b>
                                                     a
-                                                    <b class="text-capitalize">{{ historia.fechaIngreso | date('d/m/Y') }}</b>
+                                                    <b class="text-capitalize">{% if historia.fechaIngreso %} {{ historia.fechaIngreso | date('d/m/Y') }} {% else %} 'sin fecha' {% endif %}</b>
+                                                    <br>
+                                                {% endif %}
+                                                {% if historia.fechaEngreso != historiaPaciente[key - 1].fechaEngreso %}
+                                                    {% set cambio = 1 %}
+                                                    <b class="text-capitalize">Fecha de Egreso:</b>
+                                                    de
+                                                    <b class="text-capitalize">{% if historiaPaciente[key - 1].fechaEngreso %} {{ historiaPaciente[key - 1].fechaEngreso | date('d/m/Y') }} {% else %} 'sin fecha' {% endif %}</b>
+                                                    a
+                                                    <b class="text-capitalize">{% if historia.fechaEngreso %} {{ historia.fechaEngreso | date('d/m/Y') }} {% else %} 'sin fecha' {% endif %}</b>
                                                     <br>
                                                 {% endif %}
                                                 {% if historia.fechaDerivacion != historiaPaciente[key - 1].fechaDerivacion %}
@@ -561,27 +570,18 @@
                                                 {% if historia.motivoDerivacion != historiaPaciente[key - 1].motivoDerivacion %}
                                                     {% set cambio = 1 %}
                                                     <b class="text-capitalize">Motivo de Derivacion:</b>
-                                                    de
-                                                    <b class="text-capitalize">{{ historiaPaciente[key - 1].motivoDerivacion }}</b>
-                                                    a
                                                     <b class="text-capitalize">{{ historia.motivoDerivacion }}</b>
                                                     <br>
                                                 {% endif %}
                                                 {% if historia.derivadoEn != historiaPaciente[key - 1].derivadoEn %}
                                                     {% set cambio = 1 %}
                                                     <b class="text-capitalize">Derivado En:</b>
-                                                    de
-                                                    <b class="text-capitalize">{{ historiaPaciente[key - 1].derivadoEn }}</b>
-                                                    a
                                                     <b class="text-capitalize">{{ historia.derivadoEn }}</b>
                                                     <br>
                                                 {% endif %}
                                                 {% if historia.empresaTransporteDerivacion != historiaPaciente[key - 1].empresaTransporteDerivacion %}
                                                     {% set cambio = 1 %}
                                                     <b class="text-capitalize">Empresa de Transporte de Derivacion:</b>
-                                                    de
-                                                    <b class="text-capitalize">{{ historiaPaciente[key - 1].empresaTransporteDerivacion }}</b>
-                                                    a
                                                     <b class="text-capitalize">{{ historia.empresaTransporteDerivacion }}</b>
                                                     <br>
                                                 {% endif %}
