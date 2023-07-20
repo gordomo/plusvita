@@ -920,7 +920,7 @@ class ClienteController extends AbstractController
                 $parametros['dePermiso'] = false;
                 $parametros['fechaReingresoDerivacion'] = new \DateTime(); //$form->get('fechaReingresoDerivacion')->getData();;
                 $parametros['derivadoEn'] = null;
-                $parametros['motivoDerivacion'] = $form->get('motivoReingresoDerivacion')->getData();
+                $parametros['motivoDerivacion'] = $form->has('motivoReingresoDerivacion') ? $form->get('motivoReingresoDerivacion')->getData() : '';
                 $parametros['empresaTransporteDerivacion'] = null;
                 $parametros['habitacion'] = $habitacion != null ? $habitacion->getId() : '';
                 $parametros['cama'] = $ncama != null ? $ncama : '';
