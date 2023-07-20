@@ -147,7 +147,7 @@ class ClienteController extends AbstractController
         $fechaHasta = \DateTime::createFromFormat("d/m/Y", $to);
         $vencimientoAut = \DateTime::createFromFormat("d/m/Y", $vto);
 
-        //$clientes = $historiaHabitacionesRepository->getClienteIdFromHistHabitacion($fechaDesde, $fechaHasta);
+        $clientes = $historiaHabitacionesRepository->getClienteIdFromHistHabitacion($fechaDesde, $fechaHasta);
         $clientes = $clienteRepository->findByNameDocReferentePaginado($clientes, $nombre, $prof, $vto, $hc, $obraSocial);
 
         $historiasDesdeHastaAll = [];

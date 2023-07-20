@@ -406,7 +406,7 @@
                                     <tr>
                                         {% if key > 0 %}
                                             {% set cambio = 0 %}
-                                            <td>{{ historia.id }}</td>
+                                            <td>{{ historia.fecha ? historia.fecha|date('d/m/Y') : ''}}</td>
                                             <td class="lowercase">
                                                 {% if historia.modalidad != historiaPaciente[key - 1].modalidad %}
                                                     {% set cambio = 1 %}
