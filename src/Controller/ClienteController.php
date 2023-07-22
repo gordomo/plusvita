@@ -294,40 +294,20 @@ class ClienteController extends AbstractController
     /**
      * @Route("/testJobs", name="test_jobs", methods={"GET","POST"})
      */
-    public function testJobs(HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository): Response
+    public function testJobs(HabitacionRepository $habitacionRepository): Response
     {
-        $clientesInactivos = $clienteRepository->findInActivosOcupandoCama();
         $em = $this->getDoctrine()->getManager();
-        foreach ( $clientesInactivos as $inactivo ) {
-            if($cliente->getFEgreso() <= new \DateTime()) {
-                $habitacionRepository = $this->getDoctrine()->getRepository(Habitacion::class);
+        $clienteRepo = $em->getRepository(Cliente::class);
+        $clientes = $clienteRepo->findBy(['ambulatorioPresente'=> true]);
 
-                if($cliente->getHabitacion()) {
-                    $habitacionActual = $habitacionRepository->find($cliente->getHabitacion());
-
-                    $habPrivada = $cliente->getHabPrivada();
-                    $camasOcupadasPorCliente = $habitacionActual->getCamasOcupadas();
-
-                    if($habPrivada != null && $habPrivada) {
-                        $camasOcupadasPorCliente = [];
-                    } else {
-                        unset($camasOcupadasPorCliente[$cliente->getNCama()]);
-                    }
-
-                    $habitacionActual->setCamasOcupadas($camasOcupadasPorCliente);
-
-                    $cliente->setHabitacion(null);
-                    $cliente->setNCama(null);
-                    $cliente->setHabPrivada(0);
-
-                    $entityManager = $this->getDoctrine()->getManager();
-
-                    $entityManager->persist($habitacionActual);
-                    $entityManager->persist($cliente);
-                    $entityManager->flush();
-                }
-            }
+        foreach ($clientes as $cliente) {
+            $cliente->setAmbulatorioPresente(false);
+            $em->persist($cliente);
         }
+
+        $em->flush();
+        die('ok');
+        
     }
 
     /**
@@ -1358,7 +1338,7 @@ class ClienteController extends AbstractController
         $entityManager->persist($cliente);
         $entityManager->flush();
 
-        return $this->redirectToRoute('cliente_index');
+        return $this->redirectToRoute('cliente_index', ['pestana' => 'ambulatorios']);
     }
 
     /**
