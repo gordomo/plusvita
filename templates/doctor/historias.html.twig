@@ -43,9 +43,9 @@
                     <li class="nav-item">
                         <a class="nav-link {{  pestana == 'permiso' ? 'active' : ''  }}"  href="{{ path('doctor_historia') }}?pestana=permiso">De Permiso</a>
                     </li>
-                    {# <li class="nav-item">
+                    <li class="nav-item">
                         <a class="nav-link {{  pestana == 'ambulatorios' ? 'active' : ''  }}"  href="{{ path('doctor_historia') }}?pestana=ambulatorios">Ambulatorios</a>
-                    </li> #}
+                    </li>
                 </ul>
             </div>
         </div>
@@ -115,7 +115,8 @@
         </thead>
         <tbody>
         {% for cliente in clientes %}
-            <tr class="editarPaciente {{ cliente.disponibleParaTerapia ? '' : 'noDisp' }}" data-toggle="tooltip" data-placement="top" title="{{ cliente.disponibleParaTerapia ? '' : 'NO disponible para alguna terapia' }}" style="line-height: 35px;">
+            <tr class="editarPaciente {{ pestana == 'ambulatorios' ? cliente.modalidad == 1 ? 'ambulatorio' : 'no-ambulatorio' : '' }} {{ cliente.modalidad == 1 and cliente.ambulatorioPresente and pestana == 'ambulatorios' ? 'ambulatorio-presente' : cliente.modalidad == 1 and cliente.ambulatorioPresente == 0 and pestana == 'ambulatorios' ? 'ambulatorio-ausente' : '' }}" data-toggle="tooltip" data-placement="top"
+                                          {{ cliente.disponibleParaTerapia ? '' : 'noDisp' }}"  title="{{ cliente.disponibleParaTerapia ? '' : 'NO disponible para alguna terapia' }}{{ cliente.modalidad != 1 and pestana == 'ambulatorios' ? ' No está informado como ambulatorio' : ''}}">
                 <div class="editarPacienteInner">
                     <td class="hClinica">{{ cliente.hClinica }}</td>
                     <td class="nombre">{{ cliente.nombre }}</td>
@@ -230,15 +231,22 @@
                                 <a class="dropdown-item" href="{{ path('historia_ingreso_new', {'cliente': cliente.id}) }}">
                                     <i class="far fa-calendar-alt" data-toggle="tooltip" data-placement="top" title="historia"></i> Historia de Ingreso
                                 </a>
-                                <a class="dropdown-item" href="{{ path('evolucion_index', {'cliente': cliente.id}) }}">
-                                    <i class="far fa-eye" data-toggle="tooltip" data-placement="top" title="evoluciones"></i> Evoluciones
-                                </a>
                                 <a class="dropdown-item" href="{{ path('consumible_indicar_view', {'id': cliente.id}) }}">
                                     <i class="fas fa-band-aid" data-toggle="tooltip" data-placement="top" title="evoluciones"></i> Cargar Indicación
                                 </a>
                                 <a class="dropdown-item" href="{{ path('prescripcion_new', {'id': cliente.id}) }}">
                                     <i class="fas fa-user-nurse" data-toggle="tooltip" data-placement="top" title="Prescripciones"></i> Prescripciones
                                 </a>
+                                {% if (pestana == 'ambulatorios' and cliente.modalidad == 1 and cliente.ambulatorioPresente) %} 
+                                    <a class="dropdown-item" href="{{ path('evolucion_index', {'cliente': cliente.id}) }}">
+                                        <i class="far fa-eye" data-toggle="tooltip" data-placement="top" title="evoluciones"></i> Evoluciones
+                                    </a>
+                                {% endif %}
+                                {% if (pestana != 'ambulatorios') %}
+                                    <a class="dropdown-item" href="{{ path('evolucion_index', {'cliente': cliente.id}) }}">
+                                        <i class="far fa-eye" data-toggle="tooltip" data-placement="top" title="evoluciones"></i> Evoluciones
+                                    </a>
+                                {% endif %}
                             </div>
                         </div>
                     </td>

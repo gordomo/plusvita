@@ -1344,6 +1344,20 @@ class ClienteController extends AbstractController
             $this->liberarCamaCliente($cliente);
         }
 
+        return $this->redirectToRoute('cliente_index', ['pestana' => 'ambulatorios']);
+    }
+
+     /**
+     * @Route("/presente/ambulatorio/{id}", name="dar_presente", methods={"GET"})
+     */
+    public function presente(Request $request, Cliente $cliente): Response
+    {
+        $user = $this->security->getUser();
+        $entityManager = $this->getDoctrine()->getManager();
+        $cliente->setAmbulatorioPresente(true);
+        $entityManager->persist($cliente);
+        $entityManager->flush();
+
         return $this->redirectToRoute('cliente_index');
     }
 

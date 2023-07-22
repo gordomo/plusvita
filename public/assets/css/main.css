@@ -102,10 +102,15 @@
 a.dropdown-item:hover {
     background-color: #889cbe;
 }
-.completa {
-    background-color: #f1f1f1;
+.completa, .ambulatorio-ausente {
+    background-color: #b189bf6b !important;
 }
-
+.incompleta, .ambulatorio-presente {
+    background-color: #4bb9b970 !important;
+}
+.no-ambulatorio {
+    background-color: #ff00006e !important;
+}
 .fc-day {
     cursor: pointer;
 }

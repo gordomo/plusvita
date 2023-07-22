@@ -337,6 +337,11 @@ class Cliente
      */
     private $obraSocial;
 
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $ambulatorioPresente;
+
     public function __construct()
     {
         $this->docReferente = new ArrayCollection();
@@ -1283,6 +1288,18 @@ class Cliente
     public function setObraSocial(?ObraSocial $obraSocial): self
     {
         $this->obraSocial = $obraSocial;
+
+        return $this;
+    }
+
+    public function getAmbulatorioPresente(): ?bool
+    {
+        return $this->ambulatorioPresente;
+    }
+
+    public function setAmbulatorioPresente(bool $ambulatorioPresente): self
+    {
+        $this->ambulatorioPresente = $ambulatorioPresente;
 
         return $this;
     }

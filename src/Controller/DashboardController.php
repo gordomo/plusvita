@@ -77,7 +77,8 @@ class DashboardController extends AbstractController
                 'hayContratosVencidos' => $isContratosVencidos,
                 'hayVencenEsteMes' => $vencenEsteMes,
                 'colorCampana' => $colorCampana,
-                'modalidad' => $modalidad
+                'modalidad' => $modalidad,
+                'habitacionRepository' => $habitacionRepository
             ]);
     }
 
@@ -245,19 +246,18 @@ class DashboardController extends AbstractController
     {
         $habitacionRepository = $this->getDoctrine()->getRepository(Habitacion::class);
         $clienteRepository = $this->getDoctrine()->getRepository(Cliente::class);
-        $habitaciones = $habitacionRepository->findAllInNameOrder();
-        $arrayClienteHabitaciones = [];
-        foreach ($habitaciones as $habitacion) {
-            $cliente = $clienteRepository->findActivos(new \DateTime(), '', $habitacion);
-            $data = [
-                'cliente' => $cliente,
-                'ocupadas' => count($habitacion->getCamasOcupadas()),
-                'disponibles' => $habitacion->getCamasDisponibles(),
-            ];
-            if ($cliente) $arrayClienteHabitaciones['habitación ' . $habitacion->getNombre()] = $data;
+
+        $clientesConHabitacion = $clienteRepository->findClienteConHabitacion();
+        $data = [];
+
+        foreach($clientesConHabitacion as $cliente) {
+            $habitacion = $habitacionRepository->find($cliente->getHabitacion());
+            $data[$habitacion->getId()]['clientes'][] = $cliente;
+            $data[$habitacion->getId()]['totales'] = $habitacion->getCamasDisponibles();
+            $data[$habitacion->getId()]['disponibles'] = $cliente->getHabPrivada() ? 0 : isset($data[$habitacion->getId()]['disponibles']) ? $data[$habitacion->getId()]['disponibles'] - 1 : $habitacion->getCamasDisponibles() - 1; 
         }
 
-        return $arrayClienteHabitaciones;
+        return $data;
     }
 
     private function hayContratosVencidos(DoctorRepository $doctorRepository)

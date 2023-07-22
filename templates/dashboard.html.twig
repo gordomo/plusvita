@@ -72,33 +72,37 @@
                         <th class="dieta">Dieta</th>
                     </thead>
                     <tbody>
-                        {% for nombre, habitacion in habitacionesYpacientes %}
-                            {% set nombreHabitacionAnterior = "nuevo"  %}
-                            {% for key, paciente in habitacion.cliente %}
-                                <tr class="{{ ( habitacion.ocupadas is same as (habitacion.disponibles) ) ? 'completa' : 'incompleta' }}">
-                                    <td class="habitacion {{ (habitacion.cliente | length > 1 and key != 0) ? '' : 'border-0' }}">
-                                        {% if (nombre != nombreHabitacionAnterior) %}
-                                            {{ nombre }} - {{ habitacion.ocupadas }} / {{ habitacion.disponibles }}
-                                        {% endif %}
-                                    </td>
-                                    <td class="paciente {{ (habitacion.cliente | length > 1 and key != 0) ? '' : 'border-0' }}" >
+                        {% for key, data in habitacionesYpacientes %}
+                            <tr class="{{ ( data.disponibles ) ? 'incompleta' : 'completa' }}">
+                                <td class="habitacion" colspan="6">
+                                    {% set habitacion = habitacionRepository.find(key) %}
+                                    {% set nombreHabitacion = habitacion.nombre ?? 'habitacion borrada'%}
+                                    {{ nombreHabitacion }} - {{ data.disponibles }} / {{ data.totales }} 
+                                </td>
+                            </tr>
+                                {% for paciente in data.clientes %}
+                                <tr>
+                                    <td class="border-0"></td>
+                                    <td class="paciente border-0" >
                                          <a href="{{ path('cliente_historial', {id: paciente.id}) }}">{{ paciente.nombre }} {{ paciente.apellido }}</a>
                                     </td>
-                                    <td class="obraSocial {{ (habitacion.cliente | length > 1 and key != 0) ? '' : 'border-0' }}">
+                                    <td class="obraSocial {{ (data.clientes | length > 1 and key != 0) ? '' : 'border-0' }}">
                                         <div>{{ paciente.obraSocial.nombre ?? 'No Tiene' }}</div>
                                     </td>
-                                    <td class="patología {{ (habitacion.cliente | length > 1 and key != 0) ? '' : 'border-0' }}">
+                                    <td class="patología {{ (data.clientes | length > 1 and key != 0) ? '' : 'border-0' }}">
                                         {{ paciente.motivoIngEspecifico }}
                                     </td>
-                                    <td class="edad {{ (habitacion.cliente | length > 1 and key != 0) ? '' : 'border-0' }}">
+                                    <td class="edad {{ (data.clientes | length > 1 and key != 0) ? '' : 'border-0' }}">
                                         {{ paciente.edad }}
                                     </td>
-                                    <td class="dieta {{ (habitacion.cliente | length > 1 and key != 0) ? '' : 'border-0' }}">
+                                    <td class="dieta {{ (data.clientes | length > 1 and key != 0) ? '' : 'border-0' }}">
                                         {{ paciente.dieta }}
                                     </td>
                                 </tr>
-                                {% set nombreHabitacionAnterior = nombre %}
-                            {% endfor %}
+                                {% endfor %}
+                            
+                            
+                            
                         {% endfor %}
                     </tbody>
                 </table>

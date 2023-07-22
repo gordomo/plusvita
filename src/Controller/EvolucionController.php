@@ -42,6 +42,11 @@ class EvolucionController extends AbstractController
         }
 
         $cliente = $clienteRepository->find($request->get('cliente'));
+
+        if($cliente->getModalidad() == 1 && !$cliente->getAmbulatorioPresente()) {
+            die('ausente');
+        }
+
         $evoluciones = $evolucionRepository->findByClienteYTipo($cliente, $tipoSeleccionado);
 
         return $this->render('evolucion/index.html.twig', [
