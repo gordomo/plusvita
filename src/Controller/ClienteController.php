@@ -337,7 +337,7 @@ class ClienteController extends AbstractController
         }
         $haArray = array_flip($haArray);
 
-        $cliente ->setHClinica($clienteRepository->findLastHClinica() + 1);
+        $cliente->setHClinica($clienteRepository->findLastHClinica() + 1);
 
         $form = $this->createForm(ClienteType::class, $cliente, ['allow_extra_fields' =>true, 'is_new' => true, 'obrasSociales' => $obArray, 'habitaciones' => $haArray]);
 
@@ -431,15 +431,8 @@ class ClienteController extends AbstractController
 
             $historial = $this->getHistorialActualizado($cliente, $parametros, $user);
 
-/*            $historiaHabitacines = new HistoriaHabitaciones();
-            $historiaHabitacines->setCliente($cliente);
-            $historiaHabitacines->setHabitacion($habitacionRepository->find($cliente->getHabitacion()));
-            $historiaHabitacines->setNCama($cliente->getNCama());
-            $historiaHabitacines->setFecha(new \DateTime());*/
-
             $entityManager->persist($historial);
             $entityManager->persist($cliente);
-            //$entityManager->persist($historiaHabitacines);
 
             $entityManager->flush();
 
@@ -1498,33 +1491,33 @@ class ClienteController extends AbstractController
 
         $historial = new HistoriaPaciente();
 
-        $modalidad = (isset($parametros['modalidad'])) ? $parametros['modalidad'] : (isset($ultimoHistorial) ? $ultimoHistorial[0]->getModalidad() : null);
-        $patologia = (isset($parametros['patologia'])) ? $parametros['patologia'] : (isset($ultimoHistorial) ? $ultimoHistorial[0]->getPatologia() : null);
-        $patologiaEspecifica = (isset($parametros['patologiaEspecifica'])) ? $parametros['patologiaEspecifica'] : (isset($ultimoHistorial) ? $ultimoHistorial[0]->getPatologiaEspecifica() : null);
-        $obraSocial = (isset($parametros['obraSocial'])) ? $parametros['obraSocial'] : (isset($ultimoHistorial) ? $ultimoHistorial[0]->getObraSocial() : null);
-        $nAfiliadoObraSocial = (isset($parametros['nAfiliadoObraSocial'])) ? $parametros['nAfiliadoObraSocial'] : (isset($ultimoHistorial) ? $ultimoHistorial[0]->getNAfiliadoObraSocial() : null);
-        $sistemaDeEmergencia = (isset($parametros['sistemaDeEmergencia'])) ? $parametros['sistemaDeEmergencia'] : (isset($ultimoHistorial) ? $ultimoHistorial[0]->getSistemaDeEmergencia() : null);
-        $nAfiliadoSistemaDeEmergencia = (isset($parametros['nAfiliadoSistemaDeEmergencia'])) ? $parametros['nAfiliadoSistemaDeEmergencia'] : (isset($ultimoHistorial) ? $ultimoHistorial[0]->getNAfiliadoSistemaDeEmergencia() : null);
-        $habitacion = (isset($parametros['habitacion'])) ? $parametros['habitacion'] : (isset($ultimoHistorial) ? $ultimoHistorial[0]->getHabitacion() : null);
-        $cama = (isset($parametros['cama'])) ? $parametros['cama'] : (isset($ultimoHistorial) ? $ultimoHistorial[0]->getCama() : null);
-        $fechaIngreso = (isset($parametros['fechaIngreso'])) ? $parametros['fechaIngreso'] : (isset($ultimoHistorial) ? $ultimoHistorial[0]->getFechaIngreso() : null);
-        $fEgreso = (isset($parametros['fEgreso'])) ? $parametros['fEgreso'] : (isset($ultimoHistorial) ? $ultimoHistorial[0]->getFechaEngreso() : null);
-        $fechaDerivacion = (isset($parametros['fechaDerivacion'])) ? $parametros['fechaDerivacion'] : (isset($ultimoHistorial) ? $ultimoHistorial[0]->getFechaDerivacion() : null);
-        $fechaReingresoDerivacion = (isset($parametros['fechaReingresoDerivacion'])) ? $parametros['fechaReingresoDerivacion'] : (isset($ultimoHistorial) ? $ultimoHistorial[0]->getFechaReingresoDerivacion() : null);
-        $motivoDerivacion = (isset($parametros['motivoDerivacion'])) ? $parametros['motivoDerivacion'] : (isset($ultimoHistorial) ? $ultimoHistorial[0]->getMotivoDerivacion() : null);
-        $derivadoEn = (isset($parametros['derivadoEn'])) ? $parametros['derivadoEn'] : (isset($ultimoHistorial) ? $ultimoHistorial[0]->getDerivadoEn() : null);
-        $empresaTransporteDerivacion = (isset($parametros['empresaTransporteDerivacion'])) ? $parametros['empresaTransporteDerivacion'] : (isset($ultimoHistorial) ? $ultimoHistorial[0]->getEmpresaTransporteDerivacion() : null);
-        $fechaAltaPorPermiso = (isset($parametros['fechaAltaPorPermiso'])) ? $parametros['fechaAltaPorPermiso'] : (isset($ultimoHistorial) ? $ultimoHistorial[0]->getFechaAltaPorPermiso() : null);
-        $fechaBajaPorPermiso = (isset($parametros['fechaBajaPorPermiso'])) ? $parametros['fechaBajaPorPermiso'] : (isset($ultimoHistorial) ? $ultimoHistorial[0]->getFechaBajaPorPermiso() : null);
-        $dePermiso = (isset($parametros['dePermiso'])) ? $parametros['dePermiso'] : (isset($ultimoHistorial) ? $ultimoHistorial[0]->getDePermiso() : null);
-        $ambulatorio = (isset($parametros['ambulatorio'])) ? $parametros['ambulatorio'] : (isset($ultimoHistorial) ? $ultimoHistorial[0]->getAmbulatorio() : null);
+        $modalidad = (isset($parametros['modalidad'])) ? $parametros['modalidad'] : (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getModalidad() : null);
+        $patologia = (isset($parametros['patologia'])) ? $parametros['patologia'] : (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getPatologia() : null);
+        $patologiaEspecifica = (isset($parametros['patologiaEspecifica'])) ? $parametros['patologiaEspecifica'] : (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getPatologiaEspecifica() : null);
+        $obraSocial = (isset($parametros['obraSocial'])) ? $parametros['obraSocial'] : (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getObraSocial() : null);
+        $nAfiliadoObraSocial = (isset($parametros['nAfiliadoObraSocial'])) ? $parametros['nAfiliadoObraSocial'] : (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getNAfiliadoObraSocial() : null);
+        $sistemaDeEmergencia = (isset($parametros['sistemaDeEmergencia'])) ? $parametros['sistemaDeEmergencia'] : (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getSistemaDeEmergencia() : null);
+        $nAfiliadoSistemaDeEmergencia = (isset($parametros['nAfiliadoSistemaDeEmergencia'])) ? $parametros['nAfiliadoSistemaDeEmergencia'] : (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getNAfiliadoSistemaDeEmergencia() : null);
+        $habitacion = (isset($parametros['habitacion'])) ? $parametros['habitacion'] : (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getHabitacion() : null);
+        $cama = (isset($parametros['cama'])) ? $parametros['cama'] : (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getCama() : null);
+        $fechaIngreso = (isset($parametros['fechaIngreso'])) ? $parametros['fechaIngreso'] : (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getFechaIngreso() : null);
+        $fEgreso = (isset($parametros['fEgreso'])) ? $parametros['fEgreso'] : (isset($ultimoHistoria[0]) ? $ultimoHistorial[0]->getFechaEngreso() : null);
+        $fechaDerivacion = (isset($parametros['fechaDerivacion'])) ? $parametros['fechaDerivacion'] : (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getFechaDerivacion() : null);
+        $fechaReingresoDerivacion = (isset($parametros['fechaReingresoDerivacion'])) ? $parametros['fechaReingresoDerivacion'] : (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getFechaReingresoDerivacion() : null);
+        $motivoDerivacion = (isset($parametros['motivoDerivacion'])) ? $parametros['motivoDerivacion'] : (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getMotivoDerivacion() : null);
+        $derivadoEn = (isset($parametros['derivadoEn'])) ? $parametros['derivadoEn'] : (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getDerivadoEn() : null);
+        $empresaTransporteDerivacion = (isset($parametros['empresaTransporteDerivacion'])) ? $parametros['empresaTransporteDerivacion'] : (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getEmpresaTransporteDerivacion() : null);
+        $fechaAltaPorPermiso = (isset($parametros['fechaAltaPorPermiso'])) ? $parametros['fechaAltaPorPermiso'] : (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getFechaAltaPorPermiso() : null);
+        $fechaBajaPorPermiso = (isset($parametros['fechaBajaPorPermiso'])) ? $parametros['fechaBajaPorPermiso'] : (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getFechaBajaPorPermiso() : null);
+        $dePermiso = (isset($parametros['dePermiso'])) ? $parametros['dePermiso'] : (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getDePermiso() : null);
+        $ambulatorio = (isset($parametros['ambulatorio'])) ? $parametros['ambulatorio'] : (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getAmbulatorio() : null);
         $docReferente = null;
         if ((isset($parametros['docReferente']))) {
             foreach ($parametros['docReferente'] as $doc) {
                 $docReferente[] = $doc->getId();
             }
             $docReferente = json_encode($docReferente);
-        } else if (isset($ultimoHistorial)) {
+        } else if (isset($ultimoHistorial[0])) {
             $docReferente = $ultimoHistorial[0]->getDocReferente();
         }
 
