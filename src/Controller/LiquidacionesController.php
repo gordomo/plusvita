@@ -207,13 +207,22 @@ class LiquidacionesController extends AbstractController
         
         foreach ($evoluciones as $evolucion) {
             $historia = $historiaRepository->findLastModalidadChange($evolucion->getPaciente()->getId(), $to);
-            if (isset($historia[0]) && $historia[0]->getModalidad() == 2 && ($obraSocialSelected == 0 || $evolucion->getPaciente()->getObraSocial()->getId() == $obraSocialSelected ) ) {
+
+            if (isset($historia[0]) && $historia[0]->getModalidad() == 2 ) {
                 $evolucionesCountActivos ++;
                 $evolucionesPivotOsActivos[$evolucion->getPaciente()->getObraSocial()->getNombre()][] = $evolucion;
             }
-            if (isset($historia[0]) && $historia[0]->getModalidad() == 1 && ($obraSocialSelected == 0 || $evolucion->getPaciente()->getObraSocial()->getId() == $obraSocialSelected ) ) {
+            else if (isset($historia[0]) && $historia[0]->getModalidad() == 1 ) {
                 $evolucionesCountAmbulatorios ++;
                 $evolucionesPivotOsAmbulatorios[$evolucion->getPaciente()->getObraSocial()->getNombre()][] = $evolucion;
+            } else if (empty($historia)) {
+                if ($evolucion->getPaciente()->getModalidad() == 2) {
+                    $evolucionesCountActivos ++;
+                    $evolucionesPivotOsActivos[$evolucion->getPaciente()->getObraSocial()->getNombre()][] = $evolucion;
+                } else if ($evolucion->getPaciente()->getModalidad() == 1) {
+                    $evolucionesCountAmbulatorios ++;
+                    $evolucionesPivotOsAmbulatorios[$evolucion->getPaciente()->getObraSocial()->getNombre()][] = $evolucion;
+                }
             }
         }
 
@@ -225,7 +234,7 @@ class LiquidacionesController extends AbstractController
             $evolucionesCount = $evolucionesCountAmbulatorios;
         } else {
             //$clientes = $clienteRepository->findByNombreYobraSocial(null, $obraSocialSelected);
-            $evolucionesPivotOs = array_merge($evolucionesPivotOsActivos, $evolucionesPivotOsAmbulatorios);
+            $evolucionesPivotOs = array_merge_recursive($evolucionesPivotOsActivos, $evolucionesPivotOsAmbulatorios);
         }
 
         //$bookings = $bookingRepository->turnosParaAgenda($doctor, $from, '', $clientes, $from, $to, $completados);
