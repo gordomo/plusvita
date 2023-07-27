@@ -323,7 +323,7 @@ class ClienteController extends AbstractController
         $cliente->setActivo(true);
         $cliente->setFIngreso(new \DateTime());
         $cliente->setAmbulatorio(0);
-
+        $cliente->setAmbulatorioPresente(0);
         $obrasSociales = $obraSocialRepository->findAll();
         $obArray = [];
         foreach ( $obrasSociales as $ob ) {
