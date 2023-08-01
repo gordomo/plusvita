@@ -152,7 +152,7 @@ class ClienteController extends AbstractController
 
         $historiasDesdeHastaAll = [];
         if ($nombre && $clientes or $nombre === null) {
-            $historiasDesdeHastaAll = $historiaPacienteRepository->getLastHistorialConModalidad($clientes, null, null, $modalidad, $vencimientoAut);
+            $historiasDesdeHastaAll = $historiaPacienteRepository->getLastHistorialConModalidad($clientes, $from, $fechaHasta, $modalidad, $vto);
         }
 
 

@@ -23,3 +23,4 @@ doctrine:
                 JSON_CONTAINS: Scienta\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonContains
                 MONTH: DoctrineExtensions\Query\Mysql\Month
                 YEAR: DoctrineExtensions\Query\Mysql\Year
+                GROUP_CONCAT: DoctrineExtensions\Query\Mysql\GroupConcat

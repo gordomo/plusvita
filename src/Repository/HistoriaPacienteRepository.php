@@ -83,12 +83,17 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
         //     $query->andWhere('h.cliente in (:ids)')->setParameter('ids', $clientes);
         // }
 
+        if (empty($to)) {
+            $to = new \DateTime();
+        }
 
-        $query->select('h.id as id', 'identity(h.cliente) as cliente', 'MAX(h.fecha) AS fecha')
-                ->where($query->expr()->lte('h.fecha', ':fechaLimite'))
+        $query->select('h.id as id', 'identity(h.cliente) as cliente', 'MAX(h.fecha) AS fecha')->andWhere('h.cliente is not null')
+                ->leftJoin('h.cliente', 'c')->andWhere('c.fEgreso >= :fechaLimite or c.fEgreso is null')
+                ->andWhere($query->expr()->lte('h.fecha', ':fechaLimite'))
+                ->andWhere($query->expr()->eq('h.modalidad', ':modalidad'))
                 ->andWhere($query->expr()->eq('h.modalidad', ':modalidad'))
                 ->groupBy('cliente, id')
-                ->setParameter('fechaLimite', '2023-08-01')
+                ->setParameter('fechaLimite', $to)
                 ->setParameter('modalidad', 1);
 
         $query->orderBy('cliente, fecha', 'ASC');
