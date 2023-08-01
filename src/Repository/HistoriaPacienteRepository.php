@@ -67,22 +67,31 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
     public function getLastHistorialConModalidad($clientes, $from, $to, $modalidad, $vto)
     {
         $query = $this->createQueryBuilder('h');
-        if (!empty($from)) {
-            $from->setTime(00,00,00);
-            $query->andWhere('h.fecha >= :fechaDesde')->setParameter('fechaDesde', $from);
-        }
-        if (!empty($to)) {
-            $to->setTime(23,59,59);
-            $query->andWhere('h.fecha <= :fechaHasta')->setParameter('fechaHasta', $to);
-        }
-        if (!empty($modalidad)) {
-            $query->andWhere('h.modalidad = :modalidad')->setParameter('modalidad', $modalidad);
-        }
+        // if (!empty($from)) {
+        //     $from->setTime(00,00,00);
+        //     $query->andWhere('h.fecha >= :fechaDesde')->setParameter('fechaDesde', $from);
+        // }
+        // if (!empty($to)) {
+        //     $to->setTime(23,59,59);
+        //     $query->andWhere('h.fecha <= :fechaHasta')->setParameter('fechaHasta', $to);
+        // }
+        // if (!empty($modalidad)) {
+        //     $query->andWhere('h.modalidad = :modalidad')->setParameter('modalidad', $modalidad);
+        // }
 
-        if (!empty($clientes)) {
-            $query->andWhere('h.cliente in (:ids)')->setParameter('ids', $clientes);
-        }
-        $query->orderBy('h.cliente, h.fecha', 'ASC');
+        // if (!empty($clientes)) {
+        //     $query->andWhere('h.cliente in (:ids)')->setParameter('ids', $clientes);
+        // }
+
+
+        $query->select('h.id as id', 'identity(h.cliente) as cliente', 'MAX(h.fecha) AS fecha')
+                ->where($query->expr()->lte('h.fecha', ':fechaLimite'))
+                ->andWhere($query->expr()->eq('h.modalidad', ':modalidad'))
+                ->groupBy('cliente, id')
+                ->setParameter('fechaLimite', '2023-08-01')
+                ->setParameter('modalidad', 1);
+
+        $query->orderBy('cliente, fecha', 'ASC');
 
         return $query->getQuery()->getResult();
     }

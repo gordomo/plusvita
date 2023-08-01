@@ -107,9 +107,15 @@ class DashboardController extends AbstractController
         $dateTo = new \DateTime($to);
         $dateTo->modify('+1 day');
         $arrHistorias['clientes'] = [];
+        
         foreach ( $historias as $historia ) {
             $cliente = $historia->getCliente();
-            foreach ($cliente->getDocReferente() as $doc) {
+            try {
+                $docReferente = $cliente->getDocReferente();
+            } catch (\EntityNotFoundException $e) {
+                $docReferente = [];
+            }
+            foreach ($docReferente as $doc) {
                 if (isset ($arrHistorias['docReferentes'][$historia->getFecha()->format("Y-m-d")][$doc->getNombreApellido()])) {
                     $arrHistorias['docReferentes'][$historia->getFecha()->format("Y-m-d")][$doc->getNombreApellido()] = $arrHistorias['docReferentes'][$historia->getFecha()->format("Y-m-d")][$doc->getNombreApellido()] + 1;
                 } else {

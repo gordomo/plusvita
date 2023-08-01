@@ -158,8 +158,13 @@ class ClienteController extends AbstractController
 
         $histArray = [];
         foreach ($historiasDesdeHastaAll as $historia) {
-            if ($historia->getCliente()) {
-                $histArray[$historia->getCliente()->getNombreApellido()][] = $historia;
+            if($historia['cliente']) {
+                $cliente = $clienteRepository->find($historia['cliente']);
+            } else {
+                $cliente = null;
+            }
+            if ($cliente) {
+                $histArray[$cliente->getNombreApellido()][] = $historiaPacienteRepository->find($historia['id']);
             }
         }
 
