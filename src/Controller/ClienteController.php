@@ -1325,14 +1325,34 @@ class ClienteController extends AbstractController
         return $this->redirectToRoute('cliente_index', ['pestana' => 'ambulatorios']);
     }
 
-     /**
-     * @Route("/presente/ambulatorio/{id}", name="dar_presente", methods={"GET"})
-     */
+    /**
+    * @Route("/presente/ambulatorio/{id}", name="dar_presente", methods={"GET"})
+    */
     public function presente(Request $request, Cliente $cliente): Response
     {
         $user = $this->security->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
         $entityManager = $this->getDoctrine()->getManager();
         $cliente->setAmbulatorioPresente(true);
+        $entityManager->persist($cliente);
+        $entityManager->flush();
+
+        return $this->redirectToRoute('cliente_index', ['pestana' => 'ambulatorios']);
+    }
+
+    /**
+    * @Route("/ausente/ambulatorio/{id}", name="dar_ausente", methods={"GET"})
+    */
+    public function ausente(Request $request, Cliente $cliente): Response
+    {
+        $user = $this->security->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+        $entityManager = $this->getDoctrine()->getManager();
+        $cliente->setAmbulatorioPresente(false);
         $entityManager->persist($cliente);
         $entityManager->flush();
 

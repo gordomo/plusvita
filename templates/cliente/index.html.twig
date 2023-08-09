@@ -143,8 +143,8 @@
             </thead>
             <tbody>
             {% for cliente in clientes %}
-                <tr class="editarPaciente {{ pestana == 'ambulatorios' ? cliente.modalidad == 1 ? 'ambulatorio' : 'no-ambulatorio' : '' }} {{ cliente.modalidad == 1 and cliente.ambulatorioPresente and pestana == 'ambulatorios' ? 'ambulatorio-presente' : cliente.modalidad == 1 and cliente.ambulatorioPresente == 0 and pestana == 'ambulatorios' ? 'ambulatorio-ausente' : '' }}" data-toggle="tooltip" data-placement="top"
-                                          {{ cliente.disponibleParaTerapia ? '' : 'noDisp' }}"  title="{{ cliente.disponibleParaTerapia ? '' : 'NO disponible para alguna terapia' }}{{ cliente.modalidad == 1 ? '' : ' No está informado como ambulatorio'}}">
+                <tr class="editarPaciente {{ pestana == 'ambulatorios' ? cliente.modalidad == 1 or cliente.modalidad == 4 ? 'ambulatorio' : 'no-ambulatorio' : '' }} {{ cliente.modalidad == 1 or cliente.modalidad == 4 and cliente.ambulatorioPresente and pestana == 'ambulatorios' ? 'ambulatorio-presente' : cliente.modalidad == 1 or cliente.modalidad == 4 and cliente.ambulatorioPresente == 0 and pestana == 'ambulatorios' ? 'ambulatorio-ausente' : '' }}" data-toggle="tooltip" data-placement="top"
+                                          {{ cliente.disponibleParaTerapia ? '' : 'noDisp' }}"  title="{{ cliente.disponibleParaTerapia ? '' : 'NO disponible para alguna terapia' }}{{ cliente.modalidad == 1 or cliente.modalidad == 4 ? '' : ' No está informado como ambulatorio'}}">
                     
                         <td class="hClinica">{{ cliente.hClinica }}</td>
                         <td class="nombre">{{ cliente.nombre }}</td>
@@ -262,7 +262,7 @@
                         <td class="vtoSesiones">{{ cliente.vtoSesiones ? cliente.vtoSesiones|date('Y-m-d') : ''}} </td>
                         <td class="mediaSesionView">{{ cliente.mediaSesion }} </td>
                         <td class="dieta">{{ cliente.dieta }} </td>
-                        <td>
+                        <td class="acciones">
                             <div class="dropdown show dropleft">
                                 <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     Acciones
@@ -316,10 +316,18 @@
                                         </a>#}
                                     {% endif %}
                                     {% if pestana == 'ambulatorios' %}
-                                        <a class="dropdown-item" href="{{ path('dar_presente', {'id': cliente.id}) }}">
-                                            <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512" style="fill: white;"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M64 80c-8.8 0-16 7.2-16 16V416c0 8.8 7.2 16 16 16H384c8.8 0 16-7.2 16-16V96c0-8.8-7.2-16-16-16H64zM0 96C0 60.7 28.7 32 64 32H384c35.3 0 64 28.7 64 64V416c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V96zM337 209L209 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L303 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/></svg>
-                                            dar presente
-                                        </a>
+                                        {% if not cliente.ambulatorioPresente %}
+                                            <a class="dropdown-item" href="{{ path('dar_presente', {'id': cliente.id}) }}">
+                                                <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512" style="fill: white;"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M64 80c-8.8 0-16 7.2-16 16V416c0 8.8 7.2 16 16 16H384c8.8 0 16-7.2 16-16V96c0-8.8-7.2-16-16-16H64zM0 96C0 60.7 28.7 32 64 32H384c35.3 0 64 28.7 64 64V416c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V96zM337 209L209 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L303 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/></svg>
+                                                dar presente
+                                            </a>
+                                        {% endif %}
+                                        {% if cliente.ambulatorioPresente %}
+                                            <a class="dropdown-item" href="{{ path('dar_ausente', {'id': cliente.id}) }}">
+                                                <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512" style="fill: white;"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M64 80c-8.8 0-16 7.2-16 16V416c0 8.8 7.2 16 16 16H384c8.8 0 16-7.2 16-16V96c0-8.8-7.2-16-16-16H64zM0 96C0 60.7 28.7 32 64 32H384c35.3 0 64 28.7 64 64V416c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V96zM337 209L209 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L303 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/></svg>
+                                                dar ausente
+                                            </a>
+                                        {% endif %}
                                     {% endif %}
                                     {#<a class="dropdown-item" href="{{ path('consumible_imputar_view', {'id': cliente.id}) }}">
                                         <i class="fas fa-band-aid" data-toggle="tooltip" data-placement="top" title="Imputar consumible"></i> Imputar Consumible
@@ -367,7 +375,7 @@
                                 'disponibleParaTerapia', 'derivado', 'dePermiso', 'derivadoEn', 'fechaDerivacion',
                                 'motivoDerivacion', 'empTrasladoDerivacion', 'fechaReingresoDerivacion', 'motivoReingresoDerivacion', 'fechaBajaPorPermiso',
                                 'fechaAltaPorPermiso', 'terapiasHabilitadas', 'terapiasNoHabilitadas', 'sesionesDisp',
-                                'formNum', 'vtoSesiones', 'mediaSesionView', 'dieta'
+                                'formNum', 'vtoSesiones', 'mediaSesionView', 'dieta', 'acciones'
                                 ] %}
 
                                 <div class="form-check">
@@ -383,6 +391,7 @@
                                             {% if fiel == 'tipoDePago' %} checked {% endif %}
                                             {% if fiel == 'motivoIng' %} checked {% endif %}
                                             {% if fiel == 'docReferente' %} checked {% endif %}
+                                            {% if fiel == 'acciones' %} checked {% endif %}
                                            type="checkbox" value="{{ fiel }}" id="{{ fiel }}"
                                     >
                                     <label class="form-check-label" for="{{ fiel }}" style="text-transform: capitalize">
