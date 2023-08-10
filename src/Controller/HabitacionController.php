@@ -83,13 +83,37 @@ class HabitacionController extends AbstractController
     /**
      * @Route("/{id}/edit", name="habitacion_edit", methods={"GET","POST"})
      */
-    public function edit(Request $request, Habitacion $habitacion): Response
+    public function edit(Request $request, Habitacion $habitacion, ClienteRepository $clienteRepository): Response
     {
         $form = $this->createForm(HabitacionType::class, $habitacion);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->getDoctrine()->getManager()->flush();
+            $habitacion = $form->getData();
+            $camasDisponibles = $habitacion->getCamasDisponibles();
+            $camasOcupadas = $habitacion->getCamasOcupadas();
+            
+            if ($camasDisponibles < count($camasOcupadas)) {
+                $clientes = $clienteRepository->findActivos(new \DateTime(), '', $habitacion->getId(), 'nCama', null);
+                
+                $camasOcupadas = [];
+                for($i = 1; $i <= $camasDisponibles; $i ++) {
+                    $camasOcupadas[$i] = $i;
+                }
+                $habitacion->setCamasOcupadas($camasOcupadas);
+
+                while (count($clientes) > count($camasOcupadas)) {
+                    $cliente = array_pop($clientes);
+                    $cliente->setHabitacion(null);
+                    $cliente->setNcama(null);
+                }
+            }
+            
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($habitacion);
+            $entityManager->persist($cliente);
+            $entityManager->flush();
+            
 
             return $this->redirectToRoute('habitacion_index');
         }
