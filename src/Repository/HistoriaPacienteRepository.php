@@ -64,40 +64,27 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
         return $query->getQuery()->getResult();
     }
 
-    public function getLastHistorialConModalidad($clientes, $from, $to, $modalidad, $vto)
+    public function getPacienteConModalidadAntesDeFecha($from, $modalidad, $clientes)
     {
         $query = $this->createQueryBuilder('h');
-        // if (!empty($from)) {
-        //     $from->setTime(00,00,00);
-        //     $query->andWhere('h.fecha >= :fechaDesde')->setParameter('fechaDesde', $from);
-        // }
-        // if (!empty($to)) {
-        //     $to->setTime(23,59,59);
-        //     $query->andWhere('h.fecha <= :fechaHasta')->setParameter('fechaHasta', $to);
-        // }
-        // if (!empty($modalidad)) {
-        //     $query->andWhere('h.modalidad = :modalidad')->setParameter('modalidad', $modalidad);
-        // }
-
-        // if (!empty($clientes)) {
-        //     $query->andWhere('h.cliente in (:ids)')->setParameter('ids', $clientes);
-        // }
-
+        
         if (empty($to)) {
             $to = new \DateTime();
         }
 
-        $query->select('h.id as id', 'identity(h.cliente) as cliente', 'MAX(h.fecha) AS fecha')->andWhere('h.cliente is not null')
-                ->leftJoin('h.cliente', 'c')->andWhere('c.fEgreso >= :fechaLimite or c.fEgreso is null')
-                ->andWhere($query->expr()->lte('h.fecha', ':fechaLimite'))
-                ->andWhere($query->expr()->eq('h.modalidad', ':modalidad'))
-                ->andWhere($query->expr()->eq('h.modalidad', ':modalidad'))
-                ->groupBy('cliente, id')
-                ->setParameter('fechaLimite', $to)
-                ->setParameter('modalidad', 1);
+        $query->select('identity(h.cliente) as cliente')->andWhere('h.cliente is not null');
+        if (!empty($from)) {
+            $query->andWhere('h.fecha <= :fechaDesde')->setParameter('fechaDesde', $from);
+        }
+        if (!empty($modalidad)) {
+            $query->andWhere('h.modalidad <= :modalidad')->setParameter('modalidad', $modalidad);
+        }
+        if (!empty($clientes)) {
+            $query->andWhere('h.cliente in (:ids)')->setParameter('ids', $clientes);
+        }
 
-        $query->orderBy('cliente, fecha', 'ASC');
-
+        $query->groupBy('h.cliente');
+        
         return $query->getQuery()->getResult();
     }
 
@@ -106,6 +93,15 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
         $query = $this->createQueryBuilder('h')
             ->andWhere('h.fecha >= :from')->setParameter('from', $from)
             ->andWhere('h.fecha <= :to')->setParameter('to', $to);
+
+            return $query->getQuery()->getResult();
+    }
+    public function findFromToCliente($from, $to, $cliente)
+    {
+        $query = $this->createQueryBuilder('h')
+            ->andWhere('h.fecha >= :from')->setParameter('from', $from)
+            ->andWhere('h.fecha <= :to')->setParameter('to', $to)
+            ->andWhere('h.cliente = :cliente')->setParameter('cliente', $cliente);
 
             return $query->getQuery()->getResult();
     }

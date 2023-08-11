@@ -105,9 +105,9 @@ class DashboardController extends AbstractController
 
         $dateFrom = new \DateTime($from);
         $dateTo = new \DateTime($to);
-        $dateTo->modify('+1 day');
+
         $arrHistorias['clientes'] = [];
-        
+
         foreach ( $historias as $historia ) {
             $cliente = $historia->getCliente();
             if ( (!empty($cliente->getFEgreso()) && $cliente->getFEgreso() >= $historia->getFecha()) or (empty($cliente->getFEgreso())) ) {

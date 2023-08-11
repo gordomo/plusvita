@@ -147,24 +147,25 @@ class ClienteController extends AbstractController
         $fechaHasta = \DateTime::createFromFormat("d/m/Y", $to);
         $vencimientoAut = \DateTime::createFromFormat("d/m/Y", $vto);
 
-        $clientes = $historiaHabitacionesRepository->getClienteIdFromHistHabitacion($fechaDesde, $fechaHasta);
-        $clientes = $clienteRepository->findByNameDocReferentePaginado($clientes, $nombre, $prof, $vto, $hc, $obraSocial);
-
+        $clientes = $clienteRepository->findByNameDocReferentePaginado([], $nombre, $prof, $vto, $hc, $obraSocial);
+        $clientes = $historiaPacienteRepository->getPacienteConModalidadAntesDeFecha($fechaDesde, $modalidad, $clientes);
         $historiasDesdeHastaAll = [];
-        if ($nombre && $clientes or $nombre === null) {
-            $historiasDesdeHastaAll = $historiaPacienteRepository->getLastHistorialConModalidad($clientes, $from, $fechaHasta, $modalidad, $vto);
-        }
-
+        foreach ( $clientes as $cliente_id ) {
+            $his = $historiaPacienteRepository->findFromToCliente($fechaDesde, $fechaHasta, $cliente_id);
+            if ($his) {
+                $historiasDesdeHastaAll[] = $his;
+            }
+        };
 
         $histArray = [];
         foreach ($historiasDesdeHastaAll as $historia) {
-            if($historia['cliente']) {
-                $cliente = $clienteRepository->find($historia['cliente']);
+            if($historia[0]->getIdPaciente()) {
+                $cliente = $clienteRepository->find($historia[0]->getIdPaciente());
             } else {
                 $cliente = null;
             }
             if ($cliente) {
-                $histArray[$cliente->getNombreApellido()][] = $historiaPacienteRepository->find($historia['id']);
+                $histArray[$cliente->getNombreApellido()][] = $historiaPacienteRepository->find($historia[0]->getId());
             }
         }
 
