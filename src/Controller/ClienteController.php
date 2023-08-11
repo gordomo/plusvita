@@ -150,6 +150,7 @@ class ClienteController extends AbstractController
         $clientes = $clienteRepository->findByNameDocReferentePaginado([], $nombre, $prof, $vto, $hc, $obraSocial);
         $clientes = $historiaPacienteRepository->getPacienteConModalidadAntesDeFecha($fechaDesde, $modalidad, $clientes);
         $historiasDesdeHastaAll = [];
+        
         foreach ( $clientes as $cliente_id ) {
             $his = $historiaPacienteRepository->findFromToCliente($fechaDesde, $fechaHasta, $cliente_id);
             if ($his) {

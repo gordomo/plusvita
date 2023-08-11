@@ -98,6 +98,13 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
     }
     public function findFromToCliente($from, $to, $cliente)
     {
+        if ( empty($from) ) {
+            $from = '1999-01-01';
+        }
+        if ( empty($to) ) {
+            $to = '9999-01-01';
+        }
+
         $query = $this->createQueryBuilder('h')
             ->andWhere('h.fecha >= :from')->setParameter('from', $from)
             ->andWhere('h.fecha <= :to')->setParameter('to', $to)
