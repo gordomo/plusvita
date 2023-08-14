@@ -92,6 +92,7 @@ class HabitacionController extends AbstractController
             $habitacion = $form->getData();
             $camasDisponibles = $habitacion->getCamasDisponibles();
             $camasOcupadas = $habitacion->getCamasOcupadas();
+            $entityManager = $this->getDoctrine()->getManager();
             
             if ($camasDisponibles < count($camasOcupadas)) {
                 $clientes = $clienteRepository->findActivos(new \DateTime(), '', $habitacion->getId(), 'nCama', null);
@@ -106,12 +107,13 @@ class HabitacionController extends AbstractController
                     $cliente = array_pop($clientes);
                     $cliente->setHabitacion(null);
                     $cliente->setNcama(null);
+                    $entityManager->persist($cliente);
                 }
             }
             
-            $entityManager = $this->getDoctrine()->getManager();
+            
             $entityManager->persist($habitacion);
-            $entityManager->persist($cliente);
+            
             $entityManager->flush();
             
 
