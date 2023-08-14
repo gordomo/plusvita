@@ -204,7 +204,7 @@ class LiquidacionesController extends AbstractController
         foreach ($obrasSociales as $obrasSocial) {
             $obrasSocialesArray[$obrasSocial->getId()] = $obrasSocial->getNombre();
         }
-        dd($evoluciones);
+        
         foreach ($evoluciones as $evolucion) {
             
             $historia = $historiaRepository->findLastModalidadChange($evolucion->getPaciente()->getId(), $to);
