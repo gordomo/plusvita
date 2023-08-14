@@ -204,22 +204,23 @@ class LiquidacionesController extends AbstractController
         foreach ($obrasSociales as $obrasSocial) {
             $obrasSocialesArray[$obrasSocial->getId()] = $obrasSocial->getNombre();
         }
-        
+        dd($evoluciones);
         foreach ($evoluciones as $evolucion) {
+            
             $historia = $historiaRepository->findLastModalidadChange($evolucion->getPaciente()->getId(), $to);
 
             if (isset($historia[0]) && $historia[0]->getModalidad() == 2 ) {
                 $evolucionesCountActivos ++;
                 $evolucionesPivotOsActivos[$evolucion->getPaciente()->getObraSocial()->getNombre()][] = $evolucion;
             }
-            else if (isset($historia[0]) && $historia[0]->getModalidad() == 1 ) {
+            else if (isset($historia[0]) && ($historia[0]->getModalidad() == 1 || $historia[0]->getModalidad() == 4 ) ) {
                 $evolucionesCountAmbulatorios ++;
                 $evolucionesPivotOsAmbulatorios[$evolucion->getPaciente()->getObraSocial()->getNombre()][] = $evolucion;
             } else if (empty($historia)) {
                 if ($evolucion->getPaciente()->getModalidad() == 2) {
                     $evolucionesCountActivos ++;
                     $evolucionesPivotOsActivos[$evolucion->getPaciente()->getObraSocial()->getNombre()][] = $evolucion;
-                } else if ($evolucion->getPaciente()->getModalidad() == 1) {
+                } else if ($evolucion->getPaciente()->getModalidad() == 1 || $evolucion->getPaciente()->getModalidad() == 4) {
                     $evolucionesCountAmbulatorios ++;
                     $evolucionesPivotOsAmbulatorios[$evolucion->getPaciente()->getObraSocial()->getNombre()][] = $evolucion;
                 }
