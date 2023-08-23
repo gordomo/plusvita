@@ -624,6 +624,37 @@
                                                 {% if cambio == 0 %}
                                                     <b class="text-capitalize">No se registraron cambios</b>
                                                 {% endif %}
+                                                {% if historia.docReferente != historiaPaciente[key - 1].docReferente %}
+                                                    {% set cambio = 1 %}
+                                                    {% set docsReferenteAnterior = historiaPaciente[key - 1].docReferente %}
+                                                    
+                                                    {% set docReferenteAnteriorNombre = '' %}
+                                                    {% set docReferenteNombre = '' %}
+
+                                                    {% for docId in docsReferenteAnterior %}
+                                                        {% set doc = doctorRepository.find(docId) %}
+                                                        {% set docReferenteAnteriorNombre = (docId) ? docReferenteAnteriorNombre ~ ' ' ~ doc.getNombre() ~ ' ' ~ doc.getApellido() : 'sin referente'%}
+                                                    {% endfor %}
+
+                                                    {% set docsReferente = historia.docReferenteArray %}
+                                                    {% for docId in docsReferente %}
+                                                        {% set doc = doctorRepository.find(docId) %}
+                                                        {% set docReferenteNombre = (docId) ? docReferenteNombre ~ ' ' ~ doc.getNombre() ~ ' ' ~ doc.getApellido() : 'sin referente'%}
+                                                    {% endfor %}
+
+                                                    {% set docReferenteAnteriorNombre = docReferenteAnteriorNombre ? docReferenteAnteriorNombre : 'sin referente' %}
+                                                    {% set docReferenteNombre = docReferenteNombre ? docReferenteNombre : 'sin referente' %}
+                                                    
+                                                    <b class="text-capitalize">Doc Referente:</b>
+                                                    de
+                                                    <b class="text-capitalize">{{ docReferenteAnteriorNombre }}</b>
+                                                    a
+                                                    <b class="text-capitalize">{{ docReferenteNombre }}</b>
+                                                    <br>
+                                                {% endif %}
+                                                {% if cambio == 0 %}
+                                                    <b class="text-capitalize">No se registraron cambios</b>
+                                                {% endif %}
                                             </td>
                                         {% else %}
                                             <td>{{ historia.fecha ? historia.fecha|date('d/m/Y') : ''}}</td>

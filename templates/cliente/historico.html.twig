@@ -81,30 +81,67 @@
     </form>
     <div class="printiable">
         <div class="row mt-4">
-            <table class="table table-responsive">
+            <table class="table">
                 <thead>
                     <tr>
-                        <th colspan="2">
+                        <th colspan="10">
                             {% if maxPages > 1 %}
                             <nav aria-label="Page navigation example">
                                 <ul class="pagination">
                                     {%if thisPage > 1 %}
                                         <li class="page-item" >
-                                            <a class="page-link" href="{{ path('cliente_historicos', {currentPage: thisPage-1 < 1 ? 1 : thisPage-1}) }}">«</a>
+                                            <a class="page-link" href="{{ path('cliente_historicos', {currentPage: (thisPage-1 < 1 ? 1 : thisPage-1),
+                                                                            from: ((from) ? from : ''), 
+                                                                            to: ((to) ? to : ''),
+                                                                            vto: ((vto) ? vto : ''),
+                                                                            nombre: ((nombre) ? nombre : ''),
+                                                                            estado: ((estado) ? estado : ''),
+                                                                            obraSocial: ((obraSocial) ? obraSocial : ''),
+                                                                            prof: ((prof) ? prof : ''),
+                                                                            modalidad: ((modalidad) ? modalidad : ''),
+                                                                            hab: ((hab) ? hab : ''),
+                                                                            hc: ((hc) ? hc : ''),
+                                            }) }}">«</a>
                                         </li>
                                     {% endif %}
 
                                     {# Render each page number #}
                                     {% for i in 1..maxPages %}
                                         <li class="page-item {% if thisPage == i %}active{% endif %}">
-                                            <a class="page-link" href="{{ path('cliente_historicos', {currentPage: i}) }}">{{ i }}</a>
+                                            <a class="page-link" href="{{ path('cliente_historicos', {
+                                                                            currentPage: i, 
+                                                                            from: ((from) ? from : ''), 
+                                                                            to: ((to) ? to : ''),
+                                                                            vto: ((vto) ? vto : ''),
+                                                                            nombre: ((nombre) ? nombre : ''),
+                                                                            estado: ((estado) ? estado : ''),
+                                                                            obraSocial: ((obraSocial) ? obraSocial : ''),
+                                                                            prof: ((prof) ? prof : ''),
+                                                                            modalidad: ((modalidad) ? modalidad : ''),
+                                                                            hab: ((hab) ? hab : ''),
+                                                                            hc: ((hc) ? hc : ''), 
+                                                }) 
+                                            }}">
+                                                {{ i }}
+                                            </a>
                                         </li>
                                     {% endfor %}
 
                                     {# `»` arrow #}
                                     {%if thisPage < maxPages %}
                                         <li class="page-item">
-                                            <a class="page-link" href="{{ path('cliente_historicos', {currentPage: thisPage+1 <= maxPages ? thisPage+1 : thisPage}) }}">»</a>
+                                            <a class="page-link" href="{{ path('cliente_historicos', {currentPage: (thisPage+1 <= maxPages ? thisPage+1 : thisPage),
+                                                                                                    from: ((from) ? from : ''), 
+                                                                                                    to: ((to) ? to : ''),
+                                                                                                    vto: ((vto) ? vto : ''),
+                                                                                                    nombre: ((nombre) ? nombre : ''),
+                                                                                                    estado: ((estado) ? estado : ''),
+                                                                                                    obraSocial: ((obraSocial) ? obraSocial : ''),
+                                                                                                    prof: ((prof) ? prof : ''),
+                                                                                                    modalidad: ((modalidad) ? modalidad : ''),
+                                                                                                    hab: ((hab) ? hab : ''),
+                                                                                                    hc: ((hc) ? hc : ''),
+                                            }) }}">»</a>
                                         </li>
                                     {% endif %}
                                 </ul>
@@ -130,55 +167,73 @@
                                     </a>
                                 {% endif %}
                             </td>
+                            <td class="datos">
                             {% set last = historiaPaciente|last %}
-                            {% if last.cliente.vtoSesiones is not null %}
-                                <td class="datos">
-                                    Vto Sesiones: {{ last.cliente.vtoSesiones | date('d/m/Y')}}
-                                </td>
-                            {% endif %}
                             {% if last.fechaIngreso is not null %}
-                                <td class="datos">
-                                    Ingreso: {{ last.fechaIngreso | date('d/m/Y')}}
-                                </td>
+                                Ingreso: {{ last.fechaIngreso | date('d/m/Y')}}
                             {% endif %}
-                            {% if last.fechaEngreso is not null %}
-                                <td class="datos">
-                                    Egreso: {{ last.fechaEngreso | date('d/m/Y')}}
-                                </td>
+                            </td>
+                            <td class="datos">
+                            {% if last.cliente.vtoSesiones is not null %}
+                                Vto Sesiones: {{ last.cliente.vtoSesiones | date('d/m/Y')}}
+                            
                             {% endif %}
+                            </td>
+                            <td class="datos">
                             {% if last.fechaDerivacion is not null %}
-                                <td class="datos">
-                                    Derivacion: {{ last.fechaDerivacion | date('d/m/Y')}}
-                                </td>
+                                Derivacion: {{ last.fechaDerivacion | date('d/m/Y')}}
                             {% endif %}
+                            </td>
+                            <td class="datos">
                             {% if last.fechaReingresoDerivacion is not null %}
-                                <td class="datos">
-                                    R. Derivacion: {{ last.fechaReingresoDerivacion | date('d/m/Y')}}
-                                </td>
+                                R. Derivacion: {{ last.fechaReingresoDerivacion | date('d/m/Y')}}
                             {% endif %}
+                            </td>
+                            <td class="datos">
                             {% if last.fechaBajaPorPermiso is not null %}
-                                <td class="datos">
-                                    Baja Por Permiso: {{ last.fechaBajaPorPermiso | date('d/m/Y')}}
-                                </td>
+                                Baja Por Permiso: {{ last.fechaBajaPorPermiso | date('d/m/Y')}}
                             {% endif %}
+                            </td>
+                            <td class="datos">
                             {% if last.fechaAltaPorPermiso is not null %}
-                                <td class="datos">
-                                    Alta Por Permiso: {{ last.fechaAltaPorPermiso | date('d/m/Y')}}
-                                </td>
+                                Alta Por Permiso: {{ last.fechaAltaPorPermiso | date('d/m/Y')}}
                             {% endif %}
+                            </td>
+                            <td class="datos">
+                            {% if last.fechaEngreso is not null %}
+                                Egreso: {{ last.fechaEngreso | date('d/m/Y')}}
+                            {% endif %}
+                            </td>
+                            <td class="datos">
+                            Doc Referente:<b>
+                                {% set historia = historiaPaciente | last %}
+                                {% for profesional in profesionales %}
+                                    {% if profesional.id in historia.docReferente %}
+                                        {{ profesional.nombre }} {{ profesional.apellido }}
+                                    {% endif %}
+                                    {% endfor %}
+                                {% if historia.docReferente | length == 0 %}
+                                    Ninguno
+                                {% endif %}
+                                </b>
 
+                                <a href class="btn btn-link abrir" aria-expanded="true" aria-controls="collapseOne" data-toogle="cerrado" data-seccion="novedades-section-{{historiaPaciente[0].cliente.id}}">
+                                    <i class="fas fa-chevron-down"></i>
+                                </a>
+                            </td>
                         </tr>
-                        <tr>
+                        <tr class="novedades-section-{{historiaPaciente[0].cliente.id}}" style="display:none">
                             <th>Fecha</th>
-                            <th>Novedad</th>
+                            <th colspan="8">Novedad</th>
                             <th>Usuario</th>
                         </tr>
+                        
                         {% for key, historia in historiaPaciente %}
-                            <tr>
+                            <tr class="novedades-section-{{historiaPaciente[0].cliente.id}}" style="display:none">
                                 {% if key > 0 %}
                                     {% set cambio = 0 %}
                                     <td class="novedades">{{ historia.fecha ? historia.fecha|date('d/m/Y') : ''}}</td>
-                                    <td class="lowercase">
+                                    <td colspan="8" class="lowercase">
                                         {% if historia.modalidad != historiaPaciente[key - 1].modalidad %}
                                             {% set cambio = 1 %}
                                             <b class="text-capitalize">modalidad:</b> de <b class="text-capitalize">
@@ -441,7 +496,7 @@
                                     </td>
                                 {% else %}
                                     <td class="novedades">{{ historia.fecha ? historia.fecha|date('d/m/Y') : ''}}</td>
-                                    <td class="novedades">
+                                    <td colspan="8" class="novedades">
                                         <b class="text-capitalize">
                                             Primer Registro - modalidad:
                                             {% if(historia.modalidad == 1) %}
@@ -459,15 +514,16 @@
                                 <td class="novedades" class="lowercase">{{ historia.usuario }}</td>
                             </tr>
                         {% endfor %}
+                        
                     {% else %}
                         <tr>
-                            <td colspan="15">No existen registros</td>
+                            <td colspan="10">No existen registros</td>
                         </tr>
                     {% endfor %}
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="15" class="datos">
+                        <td colspan="10" class="datos">
                             Total: {{ total }}
                         </td>
                     </tr>
@@ -505,6 +561,22 @@
         $('.js-datepicker').datepicker({
             format: 'dd/mm/yyyy'
         });
+
+        $('.abrir').click(function (e) {
+            e.preventDefault();
+            let seccion = $(this).data('seccion');
+            
+            if($(this).data('toogle') === 'cerrado') {
+                $('.'+seccion).show();
+                $(this).data('toogle', 'abierto');
+                $(this).html('<i class="fas fa-chevron-up"></i>');
+            } else {
+                $('.'+seccion).hide();
+                $(this).data('toogle', 'cerrado');
+                $(this).html('<i class="fas fa-chevron-down"></i>');
+            }
+        });
+
 
     </script>
 {% endblock %}

@@ -150,6 +150,14 @@ class HistoriaPaciente
         return $this->docReferente;
     }
 
+    public function getDocReferenteArray()
+    {
+        if(is_array($this->docReferente)) {
+            return $this->docReferente;
+        }
+        return json_decode($this->docReferente, true);
+    }
+
     /**
      * @param mixed $docReferente
      */

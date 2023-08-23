@@ -64,20 +64,19 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
         return $query->getQuery()->getResult();
     }
 
-    public function getPacienteConModalidadAntesDeFecha($from, $modalidad, $clientes)
+    public function getPacienteConModalidadAntesDeFecha($from, $to, $modalidad, $clientes)
     {
         $query = $this->createQueryBuilder('h');
         
-        if (empty($to)) {
-            $to = new \DateTime();
-        }
-
         $query->select('identity(h.cliente) as cliente')->andWhere('h.cliente is not null');
         if (!empty($from)) {
-            $query->andWhere('h.fecha <= :fechaDesde')->setParameter('fechaDesde', $from);
+            $query->andWhere('h.fecha >= :from')->setParameter('from', $from);
+        }
+        if (!empty($to)) {
+            $query->andWhere('h.fecha <= :to')->setParameter('to', $to);
         }
         if (!empty($modalidad)) {
-            $query->andWhere('h.modalidad <= :modalidad')->setParameter('modalidad', $modalidad);
+            $query->andWhere('h.modalidad = :modalidad')->setParameter('modalidad', $modalidad);
         }
         if (!empty($clientes)) {
             $query->andWhere('h.cliente in (:ids)')->setParameter('ids', $clientes);
@@ -85,6 +84,9 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
 
         $query->groupBy('h.cliente');
         
+        $clientesConRegistroDesdeHasta = $query->getQuery()->getResult();
+
+
         return $query->getQuery()->getResult();
     }
 
@@ -114,11 +116,27 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
     }
     public function findLastModalidadChange($clienteId, $to)
     {
+        if ( empty($to) ) {
+            $to = '9999-01-01';
+        }
         $query = $this->createQueryBuilder('h')
             ->andWhere('h.fecha <= :to')->setParameter('to', $to)
             ->andWhere('h.cliente = :cliente')->setParameter('cliente', $clienteId)
             ->orderBy('h.fecha', 'DESC')
             ->setMaxResults(1);
+
+            return $query->getQuery()->getResult();
+    }
+
+    public function findLastChange($clienteId, $to)
+    {
+        if ( empty($to) ) {
+            $to = '9999-01-01';
+        }
+        $query = $this->createQueryBuilder('h')
+            ->andWhere('h.fecha <= :to')->setParameter('to', $to)
+            ->andWhere('h.cliente = :cliente')->setParameter('cliente', $clienteId)
+            ->orderBy('h.fecha', 'DESC');
 
             return $query->getQuery()->getResult();
     }

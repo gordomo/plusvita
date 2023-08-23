@@ -300,12 +300,10 @@ class ClienteRepository extends ServiceEntityRepository
     public function findByNameDocReferentePaginado($clientesYaFiltrados = null, $nombre = null, $doc = null, $vto = null, $hc = null, $ob = null, $from = null, $to = null)
     {
         $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQueryBuilder()
-            ->select('c.id')
-            ->from('App\Entity\Cliente', 'c')
-            ->leftJoin('c.docReferente', 'd');
+        $query = $this->createQueryBuilder('c');
+            
         if ( $doc ) {
-            $query->andWhere('d.id = :doctorId')
+            $query->leftJoin('c.docReferente', 'd')->andWhere('d.id = :doctorId')
                 ->setParameter('doctorId', 26);
         }
         if (!empty($vto)) {

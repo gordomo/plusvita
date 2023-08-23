@@ -147,30 +147,33 @@ class ClienteController extends AbstractController
         $fechaHasta = \DateTime::createFromFormat("d/m/Y", $to);
         $vencimientoAut = \DateTime::createFromFormat("d/m/Y", $vto);
 
-        $clientes = $clienteRepository->findByNameDocReferentePaginado([], $nombre, $prof, $vto, $hc, $obraSocial);
-        $clientes = $historiaPacienteRepository->getPacienteConModalidadAntesDeFecha($fechaDesde, $modalidad, $clientes);
+        $clientes = $clienteRepository->findByNameDocReferentePaginado(null, $nombre, null, $vto, $hc, null);
+        
+        //$clientes = $historiaPacienteRepository->getPacienteConModalidadAntesDeFecha($fechaDesde, $fechaHasta, $modalidad, $clientes);
+        
         $historiasDesdeHastaAll = [];
         
-        foreach ( $clientes as $cliente_id ) {
-            $his = $historiaPacienteRepository->findFromToCliente($fechaDesde, $fechaHasta, $cliente_id);
-            if ($his) {
+        foreach ( $clientes as $cliente ) {
+            $his = $historiaPacienteRepository->findLastChange($cliente->getId(), $fechaHasta);
+            if ($his 
+                && ($modalidad == 0 or ($his[0]->getModalidad() == $modalidad))
+                && ($obraSocial == null or ($his[0]->getObraSocial() == $obraSocial))
+                && ($prof == null or ($his[0]->getDocReferenteArray() && in_array($prof, $his[0]->getDocReferenteArray())))
+                ) {
                 $historiasDesdeHastaAll[] = $his;
             }
         };
 
         $histArray = [];
+        
         foreach ($historiasDesdeHastaAll as $historia) {
-            if($historia[0]->getIdPaciente()) {
-                $cliente = $clienteRepository->find($historia[0]->getIdPaciente());
-            } else {
-                $cliente = null;
-            }
-            if ($cliente) {
-                $histArray[$cliente->getNombreApellido()][] = $historiaPacienteRepository->find($historia[0]->getId());
+            $cliente = $historia[0]->getCliente();
+            if ($cliente && (!$cliente->getFEgreso() or $cliente->getFEgreso() >= $fechaHasta)) {
+                $histArray[$cliente->getNombreApellido()] = array_reverse($historia);
             }
         }
 
-        $histArray = array_reverse($histArray);
+        //$histArray = array_reverse($histArray);
 
         $historiasPaginado['results'] = array_slice($histArray, $limit * ($currentPage - 1), $limit);
         $historiasPaginado['total'] = count($histArray);
@@ -193,10 +196,12 @@ class ClienteController extends AbstractController
                 'to' => $to,
                 'vto' => $vto,
                 'nombre' => $nombre,
+                'estado' => $estado,
                 'obraSocial' => $obraSocial,
                 'prof' => $prof,
                 'profesionales' => $docReferentes,
                 'modalidad' => $modalidad,
+                'hab' => $hab,
                 'total' => $historiasPaginado['total'],
                 'habitacionesArray' => $habitacionesArray,
                 'maxPages'=>$maxPages,
@@ -1154,6 +1159,7 @@ class ClienteController extends AbstractController
                 'novedadesDesde' => $novedadesDesde,
                 'novedadesHasta' => $novedadesHasta,
                 'doc' => $doc,
+                'doctorRepository' => $doctorRepository,
         ]);
     }
 
