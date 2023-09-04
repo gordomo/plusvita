@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Cliente;
+use App\Entity\Presentes;
 use App\Entity\FamiliarExtra;
 use App\Entity\Habitacion;
 use App\Entity\HistoriaEgreso;
@@ -25,6 +26,7 @@ use App\Repository\NotasHistoriaClinicaRepository;
 use App\Repository\NotasTurnoRepository;
 use App\Repository\ObraSocialRepository;
 use App\Repository\UserRepository;
+use App\Repository\PresentesRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\Pagination\Paginator;
@@ -38,6 +40,9 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Validator\Constraints\DateTime;
+use DatePeriod;
+use DateInterval;
+
 
 /**
  * @Route("/pacientes")
@@ -147,7 +152,7 @@ class ClienteController extends AbstractController
         $fechaHasta = \DateTime::createFromFormat("d/m/Y", $to);
         $vencimientoAut = \DateTime::createFromFormat("d/m/Y", $vto);
 
-        $clientes = $clienteRepository->findByNameDocReferentePaginado(null, $nombre, null, $vto, $hc, null);
+        $clientes = $clienteRepository->findByNameDocReferentePaginado(null, $nombre, $prof, $vto, $hc, null);
         
         //$clientes = $historiaPacienteRepository->getPacienteConModalidadAntesDeFecha($fechaDesde, $fechaHasta, $modalidad, $clientes);
         
@@ -209,6 +214,122 @@ class ClienteController extends AbstractController
                 'limit' => $limit,
                 'paginaImprimible' => true,
                 'hc' => $hc,
+            ]);
+    }
+
+    /**
+     * @Route("/historico/habitaciones", name="cliente_historicos_habitaciones", methods={"GET"})
+     */
+    public function historicoHabitaciones(Request $request, HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, DoctorRepository $doctorRepository, HistoriaPacienteRepository $historiaPacienteRepository, HistoriaHabitacionesRepository $historiaHabitacionesRepository, PresentesRepository $presenteRepository, EvolucionRepository $evolucionRepository): Response
+    {
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        } else if (!in_array('ROLE_ADMIN', $user->getRoles())) {
+            return $this->redirectToRoute('doctor_historia');
+        }
+
+        $estado = $request->query->get('estado') ?? '1';
+        $nombre = $request->query->get('nombre') ?? '';
+        $nombre = (!empty($nombre)) ? $nombre : null;
+        $prof = $request->query->get('prof') ?? null;
+        $nombreInput = $request->query->get('nombreInput');
+        $modalidad = $request->query->get('modalidad', 0);
+        $limit = $request->query->get('limit', 100);
+        $limit = intval($limit);
+        $currentPage = $request->query->get('currentPage', 1);
+        $hc = $request->query->get('hc', null);
+
+        $hab = $request->query->get('hab') ?? null;
+        $obraSocial = $request->query->get('obraSocial') ?? null;
+
+        $obrasSociales = $obraSocialRepository->findBy(array(), array('nombre' => 'ASC'));
+
+        $obArray = [];
+        foreach ( $obrasSociales as $ob ) {
+            $obArray[$ob->getId()] = $ob->getNombre();
+        }
+
+        $from = $request->get('from', false);
+        $to = $request->get('to', false);
+        $vto = $request->get('vto', null);
+
+        if ( !$from ) {
+            $from = date('d/m/Y',strtotime("first day of last month"));
+        }
+        if ( !$to ) {
+            $to = date('d/m/Y',strtotime("last day of last month"));
+        }
+
+        if($from && $to) {
+            $fechaDesde = \DateTime::createFromFormat("d/m/Y", $from);
+            $fechaHasta = \DateTime::createFromFormat("d/m/Y", $to);
+            $fechaDesde->setTime(00, 00, 00);
+            $fechaHasta->setTime(23, 59, 59);
+            $vencimientoAut = \DateTime::createFromFormat("d/m/Y", $vto);
+
+            $range = [];
+            
+            if ($fechaDesde && $fechaHasta) {
+                $interval = new DateInterval("P1D");
+                $range = new DatePeriod($fechaDesde, $interval, $fechaHasta);
+            }
+
+            if($fechaDesde > $fechaHasta) {
+                $fechaHasta = $fechaDesde;
+            }
+
+            $clientes = [];
+            if($nombre || $prof || $vto || $hc || $obraSocial) {
+                $clientes = $clienteRepository->findByNameDocReferentePaginado(null, $nombre, $prof, $vto, $hc, $obraSocial, null, null);
+            }
+            
+            $clientes = $clienteRepository->getPacienteConModalidadAntesDeFecha($fechaDesde, $fechaHasta, $modalidad, $nombre, $obraSocial, $clientes);
+
+
+            $historialCamas = [];
+            $contador = [] ;
+            foreach ( $clientes as $cliente ) {
+                foreach($range as $fecha) {
+                    $historias = $historiaHabitacionesRepository->findBy(['cliente' => $cliente, 'fecha' => $fecha]);
+                    if(!empty($historias[0])) {
+                        $historialCamas[$cliente->getId()][$fecha->format('d/m/Y')][0] = 'H: ' . $historias[0]->getHabitacion()->getNombre() . ' - C: ' . $historias[0]->getNCama();
+                    } else if($evolucion = $evolucionRepository->findBy(['paciente' => $cliente, 'fecha' => $fecha])) {
+                        $historialCamas[$cliente->getId()][$fecha->format('d/m/Y')][0] = '<a href="/evolucion/' . $evolucion[0]->getId() . '">' . 'Ambulatorio con Evolucion' . '</a>';
+                    } else if ($presenteRepository->findByFechaCliente($fecha, $cliente)) {
+                            $historialCamas[$cliente->getId()][$fecha->format('d/m/Y')][0] = 'Ambulatorio con Presente';
+                    } else {
+                            $historialCamas[$cliente->getId()][$fecha->format('d/m/Y')][0] = $cliente->getAmbulatorio() ? 'Ambulatorio sin Presente' : 'sin E. H. P.';
+                    }
+                }
+            }
+        }
+
+        
+
+        $docReferentes = $doctorRepository->findByContratos(['Fisiatra', 'Director medico', 'Sub director medico'], false);
+        return $this->render('cliente/historico_habitacion.html.twig',
+            [
+                'obraSociales' => $obArray,
+                'historialCamas' => $historialCamas,
+                'from' => $from,
+                'to' => $to,
+                'vto' => $vto,
+                'nombre' => $nombre,
+                'estado' => $estado,
+                'obraSocial' => $obraSocial,
+                'prof' => $prof,
+                'profesionales' => $docReferentes,
+                'modalidad' => $modalidad,
+                'hab' => $hab,
+                'paginaImprimible' => true,
+                'hc' => $hc,
+                'total' => count($clientes),
+                'historiaPacienteRepository' => $historiaPacienteRepository,
+                'habitacionRepository' => $habitacionRepository,
+                'doctorRepository' => $doctorRepository,
+                'clienteRepository' => $clienteRepository,
+                'range' => $range,
             ]);
     }
 
@@ -1336,7 +1457,7 @@ class ClienteController extends AbstractController
     /**
     * @Route("/presente/ambulatorio/{id}", name="dar_presente", methods={"GET"})
     */
-    public function presente(Request $request, Cliente $cliente): Response
+    public function presente(Request $request, Cliente $cliente, PresentesRepository $presenteRepository): Response
     {
         $user = $this->security->getUser();
         if (!$user) {
@@ -1344,7 +1465,20 @@ class ClienteController extends AbstractController
         }
         $entityManager = $this->getDoctrine()->getManager();
         $cliente->setAmbulatorioPresente(true);
+
+        $presente = $presenteRepository->findBy(['fecha' => new \DateTime(), 'paciente' => $cliente]);
+        if (empty($presente[0])) {
+            $presente = new Presentes();
+        } else {
+            $presente = $presente[0];
+        }
+        
+        $presente->setPaciente($cliente);
+        $presente->setFecha(new \DateTime());
+        $presente->setValor(true);
+
         $entityManager->persist($cliente);
+        $entityManager->persist($presente);
         $entityManager->flush();
 
         return $this->redirectToRoute('cliente_index', ['pestana' => 'ambulatorios']);
@@ -1353,7 +1487,7 @@ class ClienteController extends AbstractController
     /**
     * @Route("/ausente/ambulatorio/{id}", name="dar_ausente", methods={"GET"})
     */
-    public function ausente(Request $request, Cliente $cliente): Response
+    public function ausente(Request $request, Cliente $cliente, PresentesRepository $presenteRepository): Response
     {
         $user = $this->security->getUser();
         if (!$user) {
@@ -1361,6 +1495,14 @@ class ClienteController extends AbstractController
         }
         $entityManager = $this->getDoctrine()->getManager();
         $cliente->setAmbulatorioPresente(false);
+
+        $presente = $presenteRepository->findBy(['fecha' => new \DateTime(), 'paciente' => $cliente]);
+
+        if (isset($presente[0])) {
+            $presente = $presente[0];
+            $presente->setValor(false);
+        }
+
         $entityManager->persist($cliente);
         $entityManager->flush();
 

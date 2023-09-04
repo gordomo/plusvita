@@ -342,6 +342,11 @@ class Cliente
      */
     private $ambulatorioPresente;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Presentes::class, mappedBy="paciente")
+     */
+    private $presentes;
+
     public function __construct()
     {
         $this->docReferente = new ArrayCollection();
@@ -351,6 +356,7 @@ class Cliente
         $this->evolucions = new ArrayCollection();
         $this->historiaEgresos = new ArrayCollection();
         $this->prescripcion = new ArrayCollection();
+        $this->presentes = new ArrayCollection();
     }
 
     public function getNombreApellido(): ?string
@@ -1300,6 +1306,36 @@ class Cliente
     public function setAmbulatorioPresente(bool $ambulatorioPresente): self
     {
         $this->ambulatorioPresente = $ambulatorioPresente;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Presentes[]
+     */
+    public function getPresentes(): Collection
+    {
+        return $this->presentes;
+    }
+
+    public function addPresentes(Presentes $presentes): self
+    {
+        if (!$this->presentes->contains($presentes)) {
+            $this->presentes[] = $presentes;
+            $presentes->setPaciente($this);
+        }
+
+        return $this;
+    }
+
+    public function removePresentes(Presentes $presentes): self
+    {
+        if ($this->presentes->removeElement($presentes)) {
+            // set the owning side to null (unless already changed)
+            if ($presentes->getPaciente() === $this) {
+                $presentes->setPaciente(null);
+            }
+        }
 
         return $this;
     }

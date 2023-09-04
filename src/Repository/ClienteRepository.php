@@ -304,7 +304,7 @@ class ClienteRepository extends ServiceEntityRepository
             
         if ( $doc ) {
             $query->leftJoin('c.docReferente', 'd')->andWhere('d.id = :doctorId')
-                ->setParameter('doctorId', 26);
+                ->setParameter('doctorId', $doc);
         }
         if (!empty($vto)) {
             $query->andWhere('c.vtoSesiones <= :vto')->setParameter('vto', $vto);
@@ -332,6 +332,40 @@ class ClienteRepository extends ServiceEntityRepository
                 ->setParameter('to', $to);
         }
 
+        return $query->getQuery()->getResult();
+
+    }
+
+    public function getPacienteConModalidadAntesDeFecha($fechaDesde, $fechaHasta, $modalidad, $nombre, $os, $clientesYaFiltrados) {
+        $query = $this->createQueryBuilder('c');
+
+        if ($modalidad) {
+            if($modalidad == 2) {
+                $query->leftJoin('c.historiaHabitaciones', 'hi')->andWhere('hi.cliente  = c.id');
+                $query->andWhere('hi.fecha >= :desde');
+                $query->andWhere('hi.fecha <= :hasta');
+            } else {
+                if ( !$os ) {
+                    $query->leftJoin('c.historia', 'h')->andWhere('h.cliente  = c.id');
+                }
+                $query->andWhere('h.fecha <= :hasta');
+                $query->andWhere(':desde = :desde');
+                $query->andWhere('h.modalidad != 2');
+                $query->andWhere('c.fIngreso <= :hasta');
+                $query->andWhere('c.fEgreso >= :desde')->orWhere('c.fEgreso is null');
+            }
+        } else {
+            $query->andWhere('c.fIngreso <= :hasta');
+            $query->andWhere('(c.fEgreso >= :desde or c.fEgreso is null)');
+        }
+
+        if (!empty($clientesYaFiltrados)) {
+            $query->andWhere('c.id in (:ids)')->setParameter('ids', $clientesYaFiltrados);
+        }
+        
+        $query->setParameter('desde', $fechaDesde);
+        $query->setParameter('hasta', $fechaHasta);
+        
         return $query->getQuery()->getResult();
 
     }

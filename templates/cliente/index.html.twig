@@ -143,7 +143,7 @@
             </thead>
             <tbody>
             {% for cliente in clientes %}
-                <tr class="editarPaciente {{ pestana == 'ambulatorios' ? cliente.modalidad == 1 or cliente.modalidad == 4 ? 'ambulatorio' : 'no-ambulatorio' : '' }} {{ cliente.modalidad == 1 or cliente.modalidad == 4 and cliente.ambulatorioPresente and pestana == 'ambulatorios' ? 'ambulatorio-presente' : cliente.modalidad == 1 or cliente.modalidad == 4 and cliente.ambulatorioPresente == 0 and pestana == 'ambulatorios' ? 'ambulatorio-ausente' : '' }}" data-toggle="tooltip" data-placement="top"
+                <tr class="editarPaciente {{ pestana == 'ambulatorios' ? cliente.modalidad == 1 or cliente.modalidad == 4 ? 'ambulatorio' : 'no-ambulatorio' : '' }} {{ (cliente.modalidad == 1 or cliente.modalidad == 4) and cliente.ambulatorioPresente and pestana == 'ambulatorios' ? 'ambulatorio-presente' : cliente.modalidad == 1 or cliente.modalidad == 4 and cliente.ambulatorioPresente == 0 and pestana == 'ambulatorios' ? 'ambulatorio-ausente' : '' }}" data-toggle="tooltip" data-placement="top"
                                           {{ cliente.disponibleParaTerapia ? '' : 'noDisp' }}"  title="{{ cliente.disponibleParaTerapia ? '' : 'NO disponible para alguna terapia' }}{{ cliente.modalidad == 1 or cliente.modalidad == 4 ? '' : ' No está informado como ambulatorio'}}">
                     
                         <td class="hClinica">{{ cliente.hClinica }}</td>

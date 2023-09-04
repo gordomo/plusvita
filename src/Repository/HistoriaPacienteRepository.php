@@ -63,28 +63,51 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
 
         return $query->getQuery()->getResult();
     }
+    public function getLastHistoriaAnterior($id, $cliente) {
+        $query = $this->createQueryBuilder('h');
+        $query->andWhere('h.id < :id')
+        ->andWhere('h.cliente = :cliente')
+        ->setParameter('id', $id)
+        ->setParameter('cliente', $cliente)
+        ->orderBy('h.id', 'DESC')
+        ->setMaxResults(1);
+        return $query->getQuery()->getOneOrNullResult();
+    }
 
-    public function getPacienteConModalidadAntesDeFecha($from, $to, $modalidad, $clientes)
+    public function getLastHistoriaPacienteHasta($to, $cliente) {
+        $query = $this->createQueryBuilder('h');
+        $query->andWhere('h.fechaEngreso >= :to or h.fechaEngreso is null');
+        $query->andWhere('h.fecha <= :to')->setParameter('to', $to);
+        $query->andWhere('h.cliente = :cliente')->setParameter('cliente', $cliente);
+        $query->setMaxResults(1);
+        $query->orderBy('h.fecha', 'DESC');
+        return $query->getQuery()->getResult();
+    }
+
+    public function getPacienteConModalidadAntesDeFecha($desde, $hasta, $modalidad)
     {
         $query = $this->createQueryBuilder('h');
-        
         $query->select('identity(h.cliente) as cliente')->andWhere('h.cliente is not null');
-        if (!empty($from)) {
-            $query->andWhere('h.fecha >= :from')->setParameter('from', $from);
+        $query->leftJoin('h.cliente', 'c');
+        
+        if (!empty($desde)) {
+            $query->andWhere('h.fechaEngreso >= :desde or h.fechaEngreso is null');
+            $query->andWhere('c.fEgreso >= :desde or c.fEgreso is null')->setParameter('desde', $desde);
         }
-        if (!empty($to)) {
-            $query->andWhere('h.fecha <= :to')->setParameter('to', $to);
+        if (!empty($hasta)) {
+            $query->andWhere('h.fechaIngreso <= :hasta or h.fechaIngreso is null');
+            $query->andWhere('c.fIngreso <= :hasta or c.fIngreso is null');
+            $query->andWhere('h.fecha <= :hasta')->setParameter('hasta', $hasta);
         }
         if (!empty($modalidad)) {
-            $query->andWhere('h.modalidad = :modalidad')->setParameter('modalidad', $modalidad);
+            if($modalidad == 1) {
+                $query->andWhere('h.modalidad != :modalidad')->setParameter('modalidad', 2);
+            } else {
+                $query->andWhere('h.modalidad = :modalidad')->setParameter('modalidad', $modalidad);
+            }
+            
         }
-        if (!empty($clientes)) {
-            $query->andWhere('h.cliente in (:ids)')->setParameter('ids', $clientes);
-        }
-
         $query->groupBy('h.cliente');
-        
-        $clientesConRegistroDesdeHasta = $query->getQuery()->getResult();
 
 
         return $query->getQuery()->getResult();

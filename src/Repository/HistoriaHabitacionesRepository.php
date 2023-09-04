@@ -63,6 +63,40 @@ class HistoriaHabitacionesRepository extends ServiceEntityRepository
         return(array_unique(array_column($ar, "cliente_id")));
     }
 
+    public function findByDateAndClient($from, $to, $cliente)
+    {
+        
+        if ( !$from ) {
+            $from = date('d/m/Y',strtotime("first day of this month"));
+            $from = \DateTime::createFromFormat("d/m/Y", $from);
+        }
+        if ( !$to ) {
+            $to = date('d/m/Y',strtotime("last day of this month"));
+            $to = \DateTime::createFromFormat("d/m/Y", $to);
+        }
+
+
+        $from = $from->setTime(00,00,00);
+        $to = $to->setTime(23,59,59);
+
+        $query = $this->createQueryBuilder('h');
+        if (!empty($from)) {
+            $query->andWhere('h.fecha >= :from')
+                ->setParameter('from', $from);
+        }
+        if (!empty($to)) {
+            $query->andWhere('h.fecha <= :to')
+                ->setParameter('to', $to);
+        }
+        if (!empty($cliente)) {
+            $query->andWhere('h.cliente = :cliente')
+                ->setParameter('cliente', $cliente);
+        }
+        $query->orderBy('h.fecha', 'ASC');
+
+        return $query->getQuery()->getResult();
+    }
+
     // /**
     //  * @return HistoriaHabitaciones[] Returns an array of HistoriaHabitaciones objects
     //  */

@@ -1,7 +1,9 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}Cliente{% endblock %}
-{% block panelTitle %}Datos del Paciente{% endblock %}
+{% block panelTitle %}
+    Datos del Paciente <a href="{{path('cliente_edit', {id: cliente.id})}}" class="btn btn-default">Editar</a> <a href="{{path('cliente_historial', {id: cliente.id})}}" class="btn btn-default">H. C.</a>
+{% endblock %}
 {% block body %}
     <table class="table">
         <tbody>
@@ -163,7 +165,7 @@
         {% endfor %}
     </table>
 
-    <a class="btn btn-default" href="{{ path('cliente_index') }}">Volver</a>
+    <a class="btn btn-default" href="javascript:history.back();">Volver</a>
     {% if epicrisis is not defined %}
         <a class="btn btn-success" href="{{ path('cliente_edit', {'id': cliente.id}) }}">Editar</a>
     {% endif %}
