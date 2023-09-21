@@ -509,7 +509,6 @@ class ClienteController extends AbstractController
             }
 
             $entityManager->persist($cliente);
-            $entityManager->flush();
 
             $familiarResponsableExtraNombres = $familiarResponsableExtraNombres ?? [];
             foreach ($familiarResponsableExtraNombres as $key => $item) {
@@ -1700,9 +1699,10 @@ class ClienteController extends AbstractController
         $historial->setModalidad($modalidad);
         $historial->setPatologia($patologia);
         $historial->setPatologiaEspecifica($patologiaEspecifica);
+        
         if ($obraSocial instanceof ObraSocial) {
             $historial->setObraSocial($obraSocial);
-        } else {
+        } else if ( $obraSocial ) {
             $obraSocialRepo = $this->getDoctrine()->getRepository(ObraSocial::class);
             $obraSocial = $obraSocialRepo->find($obraSocial);
             $historial->setObraSocial($obraSocial);
