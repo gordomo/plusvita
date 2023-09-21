@@ -108,8 +108,7 @@ class ClienteRepository extends ServiceEntityRepository
     public function findDerivados($value, $nombre, $orderBy = null, $os = null)
     {
         $query = $this->createQueryBuilder('c')
-            ->andWhere('c.fEgreso > :val')->setParameter('val', $value)
-            ->orWhere('c.fEgreso IS NULL');
+            ->andWhere('c.fEgreso > :val or c.fEgreso IS NULL')->setParameter('val', $value);
 
         if ( $nombre != '' ) {
             $arrayNombres = explode(' ', $nombre);
@@ -163,8 +162,7 @@ class ClienteRepository extends ServiceEntityRepository
     public function findAmbulatorios($value, $nombre, $orderBy = null, $os = null)
     {
         $query = $this->createQueryBuilder('c')
-            ->andWhere('c.fEgreso > :val')->setParameter('val', $value)
-            ->orWhere('c.fEgreso IS NULL');
+            ->andWhere('c.fEgreso > :val or c.fEgreso IS NULL')->setParameter('val', $value);
 
         if ( $nombre != '' ) {
             $arrayNombres = explode(' ', $nombre);
@@ -182,7 +180,7 @@ class ClienteRepository extends ServiceEntityRepository
         if ( $os ) {
             $query->orWhere('c.obraSocial = :os')->setParameter("os", $os);
         }
-        return $query->andWhere('c.ambulatorio = 1 or c.habitacion is null')->getQuery()->getResult();
+        return $query->andWhere('c.ambulatorio = 1 or (c.habitacion is null and c.derivado != 1)')->getQuery()->getResult();
     }
 
     public function findInActivos($value, $nombre, $orderBy = null, $os = null)

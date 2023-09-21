@@ -70,7 +70,8 @@ class EvolucionController extends AbstractController
         $evolucion = new Evolucion();
 
         $cliente = $clienteRepository->find($request->get('cliente'));
-        if($cliente->getDerivado() && $cliente->getId() != 920) die('paciente derivado, no se puede evolucionar');
+        if($cliente->getDerivado()) die('paciente derivado, no se puede evolucionar');
+        //solo activos
         $evolucion->setPaciente($cliente);
         $evolucion->setUser($user->getEmail());
         $evolucion->setFecha(new \DateTime());
