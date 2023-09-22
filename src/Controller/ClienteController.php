@@ -567,8 +567,6 @@ class ClienteController extends AbstractController
             $historial = $this->getHistorialActualizado($cliente, $parametros, $user);
 
             $entityManager->persist($historial);
-            
-
             $entityManager->flush();
 
             return $this->redirectToRoute('cliente_index');
