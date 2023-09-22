@@ -561,10 +561,13 @@ class ClienteController extends AbstractController
                 'ambulatorio' => $cliente->getAmbulatorio(),
             ];
 
+            $entityManager->persist($cliente);
+            $entityManager->flush();
+
             $historial = $this->getHistorialActualizado($cliente, $parametros, $user);
 
             $entityManager->persist($historial);
-            $entityManager->persist($cliente);
+            
 
             $entityManager->flush();
 
