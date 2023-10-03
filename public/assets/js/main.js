@@ -118,22 +118,23 @@ function getHtmlToPrint(checkboxes, conHead) {
     });
     $('.table td').not('.notRemove').remove();
     $('.table th').not('.notRemove').remove();
+    $('.remover').remove();
     $('.collapse').addClass('show');
     let htmlToPrint = '';
 
-    if ( conHead ) {
-        htmlToPrint = '<head>' + $('head').html() + '</head>';
-        htmlToPrint += $('.title').html() + "<br>";
-        htmlToPrint += $('.printiable').html();
-    } else {
-        htmlToPrint += $('.title').html() + "<br>";
-        htmlToPrint += "<table>";
-        htmlToPrint += $('.printiable .table').html();
-        htmlToPrint += "</table>";
-    }
-
+    setTimeout(() => {
+        if ( conHead ) {
+            htmlToPrint = '<head>' + $('head').html() + '</head>';
+            htmlToPrint += $('.title').html() + "<br>";
+            htmlToPrint += $('.printiable').html();
+        } else {
+            htmlToPrint += $('.title').html() + "<br>";
+            htmlToPrint += "<table>";
+            htmlToPrint += $('.printiable .table').html();
+            htmlToPrint += "</table>";
+        }
+    }, 1000);
     
-
     return htmlToPrint;
 }
 
