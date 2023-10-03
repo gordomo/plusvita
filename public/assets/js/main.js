@@ -122,19 +122,19 @@ function getHtmlToPrint(checkboxes, conHead) {
     $('.collapse').addClass('show');
     let htmlToPrint = '';
 
-    setTimeout(() => {
-        if ( conHead ) {
-            htmlToPrint = '<head>' + $('head').html() + '</head>';
-            htmlToPrint += $('.title').html() + "<br>";
-            htmlToPrint += $('.printiable').html();
-        } else {
-            htmlToPrint += $('.title').html() + "<br>";
-            htmlToPrint += "<table>";
-            htmlToPrint += $('.printiable .table').html();
-            htmlToPrint += "</table>";
-        }
-    }, 1000);
+    if ( conHead ) {
+        htmlToPrint = '<head>' + $('head').html() + '</head>';
+        htmlToPrint += $('.title').html() + "<br>";
+        htmlToPrint += $('.printiable').html();
+    } else {
+        htmlToPrint += $('.title').html() + "<br>";
+        htmlToPrint += "<table>";
+        htmlToPrint += $('.printiable .table').html();
+        htmlToPrint += "</table>";
+    }
+
     
+
     return htmlToPrint;
 }
 
