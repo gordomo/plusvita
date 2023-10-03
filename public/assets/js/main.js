@@ -118,7 +118,7 @@ function getHtmlToPrint(checkboxes, conHead) {
     });
     $('.table td').not('.notRemove').remove();
     $('.table th').not('.notRemove').remove();
-
+    $('.collapse').addClass('show');
     let htmlToPrint = '';
 
     if ( conHead ) {
