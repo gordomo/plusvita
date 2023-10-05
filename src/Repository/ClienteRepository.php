@@ -350,11 +350,16 @@ class ClienteRepository extends ServiceEntityRepository
                 $query->andWhere(':desde = :desde');
                 $query->andWhere('h.modalidad != 2');
                 $query->andWhere('c.fIngreso <= :hasta');
-                $query->andWhere('c.fEgreso >= :desde')->orWhere('c.fEgreso is null');
+                
+                $query->andWhere($query->expr()->orX(
+                    'c.fEgreso >= :desde',
+                    'c.fEgreso is null'
+                ));
             }
+
         } else {
             $query->andWhere('c.fIngreso <= :hasta');
-            $query->andWhere('(c.fEgreso >= :desde or c.fEgreso is null)');
+            $query->andWhere($query->expr()->orX('c.fEgreso >= :desde','c.fEgreso is null'));
         }
 
         if (!empty($clientesYaFiltrados)) {

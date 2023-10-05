@@ -164,6 +164,42 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
             return $query->getQuery()->getResult();
     }
 
+    public function getHistoricoDesdeHasta($desde, $hasta, $nombre = null, $modalidad = 0, $obraSocial = null, $prof = null, $hc = null) {
+        $query = $this->createQueryBuilder('h')->where('h.fecha <= :hasta')->setParameter('hasta', $hasta);
+        $query->andWhere($query->expr()->orX('h.fechaFin >= :desde','h.fechaFin is null'))->setParameter('desde', $desde);
+
+        if ( $modalidad ) {
+            $query->andWhere('h.modalidad = :modalidad')->setParameter('modalidad', $modalidad);
+        }
+        if ( $obraSocial ) {
+           $query->andWhere('h.obra_social = :obraSocial')->setParameter('obraSocial', $obraSocial);
+        }
+        
+        if ( $prof ) {
+            $prof = '%'.$prof.'%';
+            $query->andWhere('h.docReferente like :prof')->setParameter('prof', $prof);
+        }
+
+        if ( $nombre || $hc) {
+            $query->leftJoin('h.cliente', 'c');
+            
+            if ( $nombre ) {
+                $i = 1;
+                $arrayNombres = explode(' ', $nombre);
+                foreach ( $arrayNombres as $nombre ) {
+                    $query->andWhere("c.nombre like :nombre$i OR c.apellido like :nombre$i")->setParameter("nombre$i",'%'. $nombre .'%');
+                    $i++;
+                }
+            }
+
+            if ( $hc ) {
+                $query->andWhere('c.hClinica = :hc')->setParameter('hc', $hc);
+            }
+        }
+
+        return $query->getQuery()->getResult();
+    }
+
     /*
     public function findOneBySomeField($value): ?HistoriaPaciente
     {

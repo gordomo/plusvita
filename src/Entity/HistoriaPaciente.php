@@ -68,9 +68,14 @@ class HistoriaPaciente
     private $id_paciente;
 
     /**
-     * @ORM\Column(type="date")
+     * @ORM\Column(type="datetime")
      */
     private $fecha;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $fechaFin;
 
     /**
      * @ORM\Column(type="date", nullable=true)
@@ -476,6 +481,18 @@ class HistoriaPaciente
     public function setAmbulatorio(?bool $ambulatorio): self
     {
         $this->ambulatorio = $ambulatorio;
+
+        return $this;
+    }
+
+    public function getFechaFin(): ?\DateTimeInterface
+    {
+        return $this->fechaFin;
+    }
+
+    public function setFechaFin(?\DateTimeInterface $fechaFin): self
+    {
+        $this->fechaFin = $fechaFin;
 
         return $this;
     }
