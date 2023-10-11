@@ -70,7 +70,7 @@ class EvolucionController extends AbstractController
         $evolucion = new Evolucion();
 
         $cliente = $clienteRepository->find($request->get('cliente'));
-        if($cliente->getDerivado()) die('paciente derivado, no se puede evolucionar');
+        if($cliente->getDerivado() and $user->getEmail() != 'danielabraida77@hotmail.com') die('paciente derivado, no se puede evolucionar');
         //solo activos
         $evolucion->setPaciente($cliente);
         $evolucion->setUser($user->getEmail());
@@ -90,6 +90,11 @@ class EvolucionController extends AbstractController
                 $entityManager = $this->getDoctrine()->getManager();
 
                 $adjuntos = $form->get('adjunto')->getData();
+
+                if($cliente->getFegreso() < $evolucion->getFecha()) {
+                    die('paciente con fecha egreso anterior a la fecha de la evolución, no se puede evolucionar');
+                }
+
                 foreach($adjuntos as $adjunto) {
                     $originalFilename = pathinfo($adjunto->getClientOriginalName(), PATHINFO_FILENAME);
                     $safeFilename = $slugger->slug($originalFilename);

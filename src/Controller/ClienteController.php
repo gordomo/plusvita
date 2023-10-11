@@ -395,15 +395,14 @@ class ClienteController extends AbstractController
                 $fechaHasta = $fechaDesde;
             }
 
-            $historias = $historiaPacienteRepository->getHistoricoDesdeHasta($fechaDesde, $fechaHasta, $nombre, $modalidad, $obraSocial, $prof, $hc);
+
+            $historias = $historiaPacienteRepository->getHistoricoDesdeHasta($fechaDesde->format('Y-m-d'), $fechaHasta->format('Y-m-d'), $nombre, $modalidad, $obraSocial, $prof, $hc);
 
             $arrayParaLaVista = [];
 
             foreach ($historias as $historia) {
-                $arrayParaLaVista[$historia->getCliente()->getId()][$historia->getId()] = $historia;
+                $arrayParaLaVista[$historia['cliente_id']][$historia['fecha_posta']] = $historia;
             }
-
-           
         }
 
         

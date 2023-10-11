@@ -88,7 +88,18 @@
                         </a> 
                     </td>
                     {% for fecha in range %}
-                        <td>1</td>
+                        <td>
+                            {% if data[fecha | date('Y-m-d')] is defined %}
+                                {% if data[fecha | date('Y-m-d')]['habitacion_id'] is defined %}
+                                    H: {{ data[fecha | date('Y-m-d')]['habitacion_id'] }}
+                                {% endif %}
+                                {% if data[fecha | date('Y-m-d')]['n_cama'] is defined %}
+                                    C: {{ data[fecha | date('Y-m-d')]['n_cama'] }}
+                                {% endif %}
+                            {% else %}
+                                sin datos
+                            {% endif %}
+                        </td>
                     {% endfor %}    
                 </tr>
                 {% endfor %}
