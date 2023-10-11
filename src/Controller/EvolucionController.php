@@ -91,7 +91,7 @@ class EvolucionController extends AbstractController
 
                 $adjuntos = $form->get('adjunto')->getData();
 
-                if($cliente->getFegreso() < $evolucion->getFecha()) {
+                if(!empty($cliente->getFegreso()) && $cliente->getFegreso() < $evolucion->getFecha()) {
                     die('paciente con fecha egreso anterior a la fecha de la evolución, no se puede evolucionar');
                 }
 
