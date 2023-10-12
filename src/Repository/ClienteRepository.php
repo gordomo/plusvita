@@ -183,7 +183,7 @@ class ClienteRepository extends ServiceEntityRepository
         return $query->andWhere('c.ambulatorio = 1 or (c.habitacion is null and c.derivado != 1)')->getQuery()->getResult();
     }
 
-    public function findInActivos($value, $nombre, $orderBy = null, $os = null)
+    public function findInActivos($value, $nombre, $currentPage, $limit, $orderBy = null, $os = null)
     {
         $query = $this->createQueryBuilder('c')
             ->andWhere('c.fEgreso <= :val')->setParameter('val', $value);
@@ -209,9 +209,10 @@ class ClienteRepository extends ServiceEntityRepository
             if ( $os ) {
                 $query->orWhere('c.obraSocial = :os')->setParameter("os", $os);
             }
-
-
-            return $query->getQuery()->getResult();
+            
+            $paginator = $this->paginate($query, $currentPage, $limit);
+            return array('paginator' => $paginator, 'query' => $query);
+            //return $query->getQuery()->getResult();
     }
 
 

@@ -74,6 +74,10 @@ class ClienteController extends AbstractController
         $nombreInput = $request->query->get('nombreInput');
         $hab = $request->query->get('hab') ?? null;
         $idObra = $request->query->get('idObra') ?? null;
+        $currentPage = $request->query->get('currentPage') ?? 1;
+        $idObra = $request->query->get('idObra') ?? null;
+        $maxPages = null;
+        $query = '';
 
         $obrasSociales = $obraSocialRepository->findBy(array(), array('nombre' => 'ASC'));
         $obArray = [];
@@ -82,7 +86,13 @@ class ClienteController extends AbstractController
         }
 
         if ($pestana == 'inactivos') {
-            $clientes = $clienteRepository->findInActivos(new \DateTime(), $nombreInput, null, $idObra);
+            
+            $limit = 1;
+            $clientePaginados = $clienteRepository->findInActivos(new \DateTime(), $nombreInput, $currentPage, 10, null, $idObra);
+            $clientes = $clientePaginados['paginator'];
+            $query =  $clientePaginados['query'];
+            $maxPages = ceil($clientes->count() / $limit);
+
         } else if ( $pestana == 'derivados') {
             $clientes = $clienteRepository->findDerivados(new \DateTime(), $nombreInput, null, $idObra);
         } else if ( $pestana == 'permiso') {
@@ -108,6 +118,9 @@ class ClienteController extends AbstractController
             'paginaImprimible' => true,
             'oSociales' => $obArray,
             'idObraSelected' => $idObra,
+            'maxPages'=>$maxPages,
+            'thisPage' => $currentPage,
+            'all_items' => $query
         ]);
     }
 
