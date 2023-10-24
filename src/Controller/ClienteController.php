@@ -508,12 +508,12 @@ class ClienteController extends AbstractController
                         $arrayParaLaVista[$historia->getCliente()->getId()][$date->format('d/m/Y')] = $texto;
                         $totalDia[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
                         
-                    } else if ($historia->getFechaReingresoDerivacion() == null && $historia->getFechaDerivacion() != null && $historia->getFechaDerivacion() <= $date) {
+                    } else if ($historia->getFechaReingresoDerivacion() == null && $historia->getFechaDerivacion() != null && $historia->getFechaDerivacion() <= $date && $historia->getFechaDerivacion() >= $fechaDesde && $historia->getFechaDerivacion() <= $fechaHasta) {
                         $range3 = new DatePeriod($historia->getFechaDerivacion(), $interval, $date);
                         foreach ( $range3 as $date ) {
                             $arrayParaLaVista[$historia->getCliente()->getId()][$date->format('d/m/Y')] = 'Derivado';
                         }
-                    } else if ($historia->getFechaReingresoDerivacion() != null && $historia->getFechaReingresoDerivacion() <= $date) {
+                    } else if ($historia->getFechaReingresoDerivacion() != null && $historia->getFechaReingresoDerivacion() <= $date && $historia->getFechaReingresoDerivacion() >= $fechaDesde && $historia->getFechaReingresoDerivacion() <= $fechaHasta) {
                         $range3 = new DatePeriod($historia->getFechaReingresoDerivacion(), $interval, $date);
                         foreach ( $range3 as $date ) {
                             switch ($historia->getModalidad()) {
@@ -598,6 +598,7 @@ class ClienteController extends AbstractController
         $egresosCount = 0;
 
         foreach ($totales['internados'] as $data) {
+            //dd($totales['internados']);
             $internadosCount += count($data);
         }
 
