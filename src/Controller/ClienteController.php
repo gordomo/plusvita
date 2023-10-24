@@ -233,121 +233,121 @@ class ClienteController extends AbstractController
     /**
      * @Route("/historico/habitaciones", name="cliente_historicos_habitaciones", methods={"GET"})
      */
-    public function historicoHabitaciones(Request $request, HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, DoctorRepository $doctorRepository, HistoriaPacienteRepository $historiaPacienteRepository, HistoriaHabitacionesRepository $historiaHabitacionesRepository, PresentesRepository $presenteRepository, EvolucionRepository $evolucionRepository): Response
-    {
-        $user = $this->getUser();
-        if (!$user) {
-            return $this->redirectToRoute('app_login');
-        } else if (!in_array('ROLE_ADMIN', $user->getRoles())) {
-            return $this->redirectToRoute('doctor_historia');
-        }
+    // public function historicoHabitaciones(Request $request, HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, DoctorRepository $doctorRepository, HistoriaPacienteRepository $historiaPacienteRepository, HistoriaHabitacionesRepository $historiaHabitacionesRepository, PresentesRepository $presenteRepository, EvolucionRepository $evolucionRepository): Response
+    // {
+    //     $user = $this->getUser();
+    //     if (!$user) {
+    //         return $this->redirectToRoute('app_login');
+    //     } else if (!in_array('ROLE_ADMIN', $user->getRoles())) {
+    //         return $this->redirectToRoute('doctor_historia');
+    //     }
 
-        $estado = $request->query->get('estado') ?? '1';
-        $nombre = $request->query->get('nombre') ?? '';
-        $nombre = (!empty($nombre)) ? $nombre : null;
-        $prof = $request->query->get('prof') ?? null;
-        $nombreInput = $request->query->get('nombreInput');
-        $modalidad = $request->query->get('modalidad', 0);
-        $limit = $request->query->get('limit', 100);
-        $limit = intval($limit);
-        $currentPage = $request->query->get('currentPage', 1);
-        $hc = $request->query->get('hc', null);
+    //     $estado = $request->query->get('estado') ?? '1';
+    //     $nombre = $request->query->get('nombre') ?? '';
+    //     $nombre = (!empty($nombre)) ? $nombre : null;
+    //     $prof = $request->query->get('prof') ?? null;
+    //     $nombreInput = $request->query->get('nombreInput');
+    //     $modalidad = $request->query->get('modalidad', 0);
+    //     $limit = $request->query->get('limit', 100);
+    //     $limit = intval($limit);
+    //     $currentPage = $request->query->get('currentPage', 1);
+    //     $hc = $request->query->get('hc', null);
 
-        $hab = $request->query->get('hab') ?? null;
-        $obraSocial = $request->query->get('obraSocial') ?? null;
+    //     $hab = $request->query->get('hab') ?? null;
+    //     $obraSocial = $request->query->get('obraSocial') ?? null;
 
-        $obrasSociales = $obraSocialRepository->findBy(array(), array('nombre' => 'ASC'));
+    //     $obrasSociales = $obraSocialRepository->findBy(array(), array('nombre' => 'ASC'));
 
-        $obArray = [];
-        foreach ( $obrasSociales as $ob ) {
-            $obArray[$ob->getId()] = $ob->getNombre();
-        }
+    //     $obArray = [];
+    //     foreach ( $obrasSociales as $ob ) {
+    //         $obArray[$ob->getId()] = $ob->getNombre();
+    //     }
 
-        $from = $request->get('from', false);
-        $to = $request->get('to', false);
-        $vto = $request->get('vto', null);
+    //     $from = $request->get('from', false);
+    //     $to = $request->get('to', false);
+    //     $vto = $request->get('vto', null);
 
-        if ( !$from ) {
-            $from = date('d/m/Y',strtotime("first day of last month"));
-        }
-        if ( !$to ) {
-            $to = date('d/m/Y',strtotime("last day of last month"));
-        }
+    //     if ( !$from ) {
+    //         $from = date('d/m/Y',strtotime("first day of last month"));
+    //     }
+    //     if ( !$to ) {
+    //         $to = date('d/m/Y',strtotime("last day of last month"));
+    //     }
 
-        if($from && $to) {
-            $fechaDesde = \DateTime::createFromFormat("d/m/Y", $from);
-            $fechaHasta = \DateTime::createFromFormat("d/m/Y", $to);
-            $fechaDesde->setTime(00, 00, 00);
-            $fechaHasta->setTime(23, 59, 59);
-            $vencimientoAut = \DateTime::createFromFormat("d/m/Y", $vto);
+    //     if($from && $to) {
+    //         $fechaDesde = \DateTime::createFromFormat("d/m/Y", $from);
+    //         $fechaHasta = \DateTime::createFromFormat("d/m/Y", $to);
+    //         $fechaDesde->setTime(00, 00, 00);
+    //         $fechaHasta->setTime(23, 59, 59);
+    //         $vencimientoAut = \DateTime::createFromFormat("d/m/Y", $vto);
 
-            $range = [];
+    //         $range = [];
             
-            if ($fechaDesde && $fechaHasta) {
-                $interval = new DateInterval("P1D");
-                $range = new DatePeriod($fechaDesde, $interval, $fechaHasta);
-            }
+    //         if ($fechaDesde && $fechaHasta) {
+    //             $interval = new DateInterval("P1D");
+    //             $range = new DatePeriod($fechaDesde, $interval, $fechaHasta);
+    //         }
 
-            if($fechaDesde > $fechaHasta) {
-                $fechaHasta = $fechaDesde;
-            }
+    //         if($fechaDesde > $fechaHasta) {
+    //             $fechaHasta = $fechaDesde;
+    //         }
 
-            $clientes = [];
-            if($nombre || $prof || $vto || $hc || $obraSocial) {
-                $clientes = $clienteRepository->findByNameDocReferentePaginado(null, $nombre, $prof, $vto, $hc, $obraSocial, null, null);
-            }
+    //         $clientes = [];
+    //         if($nombre || $prof || $vto || $hc || $obraSocial) {
+    //             $clientes = $clienteRepository->findByNameDocReferentePaginado(null, $nombre, $prof, $vto, $hc, $obraSocial, null, null);
+    //         }
             
-            $clientes = $clienteRepository->getPacienteConModalidadAntesDeFecha($fechaDesde, $fechaHasta, $modalidad, $nombre, $obraSocial, $clientes);
+    //         $clientes = $clienteRepository->getPacienteConModalidadAntesDeFecha($fechaDesde, $fechaHasta, $modalidad, $nombre, $obraSocial, $clientes);
 
-            $historialCamas = [];
-            $contador = [] ;
-            foreach ( $clientes as $cliente ) {
-                foreach($range as $fecha) {
-                    $historias = $historiaHabitacionesRepository->findBy(['cliente' => $cliente, 'fecha' => $fecha]);
-                    if(!empty($historias[0])) {
-                        $historialCamas[$cliente->getId()][$fecha->format('d/m/Y')][0] = 'H: ' . $historias[0]->getHabitacion()->getNombre() . ' - C: ' . $historias[0]->getNCama();
-                    } else if($evolucion = $evolucionRepository->findBy(['paciente' => $cliente, 'fecha' => $fecha])) {
-                        $historialCamas[$cliente->getId()][$fecha->format('d/m/Y')][0] = '<a href="/evolucion/' . $evolucion[0]->getId() . '">' . 'Ambulatorio con Evolucion' . '</a>';
-                    } else if ($presenteRepository->findByFechaCliente($fecha, $cliente)) {
-                            $historialCamas[$cliente->getId()][$fecha->format('d/m/Y')][0] = 'Ambulatorio con Presente';
-                    } else {
-                            $historialCamas[$cliente->getId()][$fecha->format('d/m/Y')][0] = $cliente->getAmbulatorio() ? 'Ambulatorio sin Presente' : 'sin E. H. P.';
-                    }
-                }
-            }
-        }
+    //         $historialCamas = [];
+    //         $contador = [] ;
+    //         foreach ( $clientes as $cliente ) {
+    //             foreach($range as $fecha) {
+    //                 $historias = $historiaHabitacionesRepository->findBy(['cliente' => $cliente, 'fecha' => $fecha]);
+    //                 if(!empty($historias[0])) {
+    //                     $historialCamas[$cliente->getId()][$fecha->format('d/m/Y')][0] = 'H: ' . $historias[0]->getHabitacion()->getNombre() . ' - C: ' . $historias[0]->getNCama();
+    //                 } else if($evolucion = $evolucionRepository->findBy(['paciente' => $cliente, 'fecha' => $fecha])) {
+    //                     $historialCamas[$cliente->getId()][$fecha->format('d/m/Y')][0] = '<a href="/evolucion/' . $evolucion[0]->getId() . '">' . 'Ambulatorio con Evolucion' . '</a>';
+    //                 } else if ($presenteRepository->findByFechaCliente($fecha, $cliente)) {
+    //                         $historialCamas[$cliente->getId()][$fecha->format('d/m/Y')][0] = 'Ambulatorio con Presente';
+    //                 } else {
+    //                         $historialCamas[$cliente->getId()][$fecha->format('d/m/Y')][0] = $cliente->getAmbulatorio() ? 'Ambulatorio sin Presente' : 'sin E. H. P.';
+    //                 }
+    //             }
+    //         }
+    //     }
 
         
 
-        $docReferentes = $doctorRepository->findByContratos(['Fisiatra', 'Director medico', 'Sub director medico'], false);
-        return $this->render('cliente/historico_habitacion.html.twig',
-            [
-                'obraSociales' => $obArray,
-                'historialCamas' => $historialCamas,
-                'from' => $from,
-                'to' => $to,
-                'vto' => $vto,
-                'nombre' => $nombre,
-                'estado' => $estado,
-                'obraSocial' => $obraSocial,
-                'prof' => $prof,
-                'profesionales' => $docReferentes,
-                'modalidad' => $modalidad,
-                'hab' => $hab,
-                'paginaImprimible' => true,
-                'hc' => $hc,
-                'total' => count($clientes),
-                'historiaPacienteRepository' => $historiaPacienteRepository,
-                'habitacionRepository' => $habitacionRepository,
-                'doctorRepository' => $doctorRepository,
-                'clienteRepository' => $clienteRepository,
-                'range' => $range,
-            ]);
-    }
+    //     $docReferentes = $doctorRepository->findByContratos(['Fisiatra', 'Director medico', 'Sub director medico'], false);
+    //     return $this->render('cliente/historico_habitacion.html.twig',
+    //         [
+    //             'obraSociales' => $obArray,
+    //             'historialCamas' => $historialCamas,
+    //             'from' => $from,
+    //             'to' => $to,
+    //             'vto' => $vto,
+    //             'nombre' => $nombre,
+    //             'estado' => $estado,
+    //             'obraSocial' => $obraSocial,
+    //             'prof' => $prof,
+    //             'profesionales' => $docReferentes,
+    //             'modalidad' => $modalidad,
+    //             'hab' => $hab,
+    //             'paginaImprimible' => true,
+    //             'hc' => $hc,
+    //             'total' => count($clientes),
+    //             'historiaPacienteRepository' => $historiaPacienteRepository,
+    //             'habitacionRepository' => $habitacionRepository,
+    //             'doctorRepository' => $doctorRepository,
+    //             'clienteRepository' => $clienteRepository,
+    //             'range' => $range,
+    //         ]);
+    // }
 
 
     /**
-     * @Route("/historico/prueba", name="cliente_historicos_prueba", methods={"GET"})
+     * @Route("/historico/prueba", name="cliente_historicos_habitaciones", methods={"GET"})
      */
     public function historicoPrueba(Request $request, HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, DoctorRepository $doctorRepository, HistoriaPacienteRepository $historiaPacienteRepository, HistoriaHabitacionesRepository $historiaHabitacionesRepository, PresentesRepository $presenteRepository, EvolucionRepository $evolucionRepository): Response
     {
@@ -364,7 +364,7 @@ class ClienteController extends AbstractController
         $prof = $request->query->get('prof') ?? null;
         $nombreInput = $request->query->get('nombreInput');
         $modalidad = $request->query->get('modalidad', 0);
-        $limit = $request->query->get('limit', 100);
+        $limit = $request->query->get('limit', 10);
         $limit = intval($limit);
         $currentPage = $request->query->get('currentPage', 1);
         $hc = $request->query->get('hc', null);
@@ -411,15 +411,116 @@ class ClienteController extends AbstractController
 
             $historias = $historiaPacienteRepository->getHistoricoDesdeHasta($fechaDesde->format('Y-m-d'), $fechaHasta->format('Y-m-d'), $nombre, $modalidad, $obraSocial, $prof, $hc);
 
+            // $historiasPaginado['results'] = array_slice($historias, $limit * ($currentPage - 1), $limit);
+            // $historiasPaginado['total'] = count($historias);
+            // $maxPages = ceil($historiasPaginado['total'] / $limit);
+
             $arrayParaLaVista = [];
+            $ambulatorios = [];
+            $internados = [];
+            $sinModalidad = [];
+            $egresos = [];
+            $totalDia = [];
+            $referentes = [];
+            $obrasSocialesTotales = [];
 
             foreach ($historias as $historia) {
-                $arrayParaLaVista[$historia['cliente_id']][$historia['fecha_posta']] = $historia;
+                $cliente = $historia->getCliente();
+                $fechaDesde2 = (!empty ($historia->getFecha()) && $historia->getFecha() >= $fechaDesde) ? $historia->getFecha() : $fechaDesde;
+                $fechaDesde2 = (($cliente->getFIngreso() != null) && $fechaDesde2 < $cliente->getFIngreso()) ? $cliente->getFIngreso()->format('d-m-Y') : $fechaDesde2->format('d-m-Y');
+                $fechaHasta2 = (!empty ($historia->getFechaFin()) && $historia->getFechaFin() <= $fechaHasta) ? $historia->getFechaFin() : $fechaHasta;
+                $fechaHasta2 = (($cliente->getFEgreso() != null) && $fechaHasta2 > $cliente->getFEgreso()) ? $cliente->getFEgreso()->format('d-m-Y') : $fechaHasta2->format('d-m-Y');
+                $fechaDesde2 = new \DateTime($fechaDesde2);
+                $fechaHasta2 = new \DateTime($fechaHasta2);
+                $fechaHasta2->modify('+1 day');
+
+                $interval = new DateInterval("P1D");
+                $range2 = new DatePeriod($fechaDesde2, $interval, $fechaHasta2);
+                
+                foreach ( $range2 as $date ) {
+                    $texto = '';
+                    if ( $historia->getFecha() <= $date && ($historia->getFechaFin() >= $date or $historia->getFechaFin() == null)) {
+                        if ($cliente->getFEgreso() == $date ) {
+                            $texto = 'Egreso';
+                            $egresos[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
+                        } else if ( $historia->getModalidad() != 2 ) {
+                            //$totalDia[$date->format('d/m/Y')] = !empty($totalDia[$date->format('d/m/Y')] ) ? $totalDia[$date->format('d/m/Y')] + 1 : 1;
+                                                  
+                            switch ($historia->getModalidad()) {
+                                case 1:
+                                    $texto = 'Ambulatorio';
+                                    $ambulatorios[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
+                                    break;
+                                case 3:
+                                    $texto = 'Hospital de día';
+                                    $ambulatorios[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
+                                    break;
+                                case 4:
+                                    $texto = 'ART';
+                                    $ambulatorios[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
+                                    break;
+                                default:
+                                    $texto = 'Sin modalidad registrada';
+                                    $sinModalidad[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
+                                    break;
+                            }
+                            $presente = $presenteRepository->findBy(['fecha' => $date, 'paciente' => $historia->getCliente()]);
+                            if(!empty( $presente )) {
+                                $texto .= ' ' . $presente[0]->getValor() == 1 ? '<br>presente' : '<br>ausente';
+                            } else {
+                                $habitacion = $historiaHabitacionesRepository->findBy(['fecha' => $date, 'cliente' => $historia->getCliente()]);
+                                if(!empty( $habitacion )) {
+                                    $texto .= '<br>H:' . $habitacion[0]->getHabitacion()->getNombre() . ' C: ' . $habitacion[0]->getNCama();
+                                } else {
+                                    $texto .= '<br>sin datos';
+                                }
+                            }
+                        } else {
+                            $texto .= 'Internado';
+                            $habitacion = $historiaHabitacionesRepository->findBy(['fecha' => $date, 'cliente' => $historia->getCliente()]);
+                            if(!empty( $habitacion )) {
+                                $texto .= '<br>H:' . $habitacion[0]->getHabitacion()->getNombre() . ' C: ' . $habitacion[0]->getNCama();
+                            } else {
+                                $texto .= '<br>sin datos';
+                            }
+                            $internados[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
+                        }
+                        
+                        $ref = json_decode($historia->getDocReferente()) ?? [];
+                        foreach( $ref as $docReferente ) {
+                            $doc = $doctorRepository->find($docReferente);
+                            if ($doc) {
+                                $texto .= '<br>' . $doc->getNombreApellido();
+                                $referentes[$date->format('d/m/Y')][$doc->getNombreApellido()][$historia->getCliente()->getId()] = "1";
+                            }
+                        }
+                        
+                        if (isset($obArray[$historia->getObraSocial()])) {
+                            $texto .= '<br><small><b>' . $obArray[$historia->getObraSocial()] . '</b></small>';
+                            $obrasSocialesTotales[$date->format('d/m/Y')][$obArray[$historia->getObraSocial()]][$historia->getCliente()->getId()] = "1";
+                        }
+                        
+                        
+                        $arrayParaLaVista[$historia->getCliente()->getId()][$date->format('d/m/Y')] = $texto;
+                        $totalDia[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
+                        
+                    }  else {
+                        $arrayParaLaVista[$historia->getCliente()->getId()][$date->format('d/m/Y')] = $texto;
+                    }
+                }
             }
+            
         }
 
-        
+        $totales = [
+            'totalDia' => $totalDia,
+            'internados' => $internados,
+            'sinModalidad' => $sinModalidad,
+            'ambulatorios' => $ambulatorios,
+            'egresos' => $egresos,            
+        ];
 
+        
         $docReferentes = $doctorRepository->findByContratos(['Fisiatra', 'Director medico', 'Sub director medico'], false);
         return $this->render('cliente/historico_2.html.twig',
             [
@@ -445,6 +546,9 @@ class ClienteController extends AbstractController
                 'currentPage' => $currentPage,
                 'total' => count($arrayParaLaVista),
                 'pacientes' => $arrayParaLaVista,
+                'totales' => $totales,
+                'referentes' => $referentes,
+                'obrasSocialesTotales' => $obrasSocialesTotales,
             ]);
     }
 
@@ -1725,22 +1829,22 @@ class ClienteController extends AbstractController
      **/
     public function actualizarDb(Request $request, ClienteRepository $clienteRepository, HistoriaPacienteRepository $historiaPacienteRepository) {
         
-        // $clientes = $clienteRepository->findAll();
-        // $entityManager = $this->getDoctrine()->getManager();
-        // set_time_limit(3000);
-        // foreach ( $clientes as $cliente ) {
-        //     $historias = $historiaPacienteRepository->findBy(['cliente' => $cliente], ['fecha' => 'asc']);
+        $clientes = $clienteRepository->findAll();
+        $entityManager = $this->getDoctrine()->getManager();
+        set_time_limit(3000);
+        foreach ( $clientes as $cliente ) {
+            $historias = $historiaPacienteRepository->findBy(['cliente' => $cliente], ['fecha' => 'asc']);
             
-        //     foreach ( $historias as $index => $historia ) {
-        //         if ( isset($historias[$index + 1]) ) {
-        //             $historia->setFechaFin($historias[$index + 1]->getFecha());
+            foreach ( $historias as $index => $historia ) {
+                if ( isset($historias[$index + 1]) ) {
+                    $historia->setFechaFin($historias[$index + 1]->getFecha());
                     
-        //             $entityManager->persist($historia);
-        //             $entityManager->flush();
-        //         }
-        //     }
+                    $entityManager->persist($historia);
+                    $entityManager->flush();
+                }
+            }
 
-        // }
+        }
         die('todo joya!');
     }
 
@@ -1878,6 +1982,9 @@ class ClienteController extends AbstractController
                 $fecha = $fEgreso;
             }
             $ultimoHistorial[0]->setFechaFin($fecha);
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($ultimoHistorial[0]);
+            $entityManager->flush();
         }
 
         return $historial;

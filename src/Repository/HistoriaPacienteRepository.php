@@ -168,59 +168,68 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
     }
 
     public function getHistoricoDesdeHasta($desde, $hasta, $nombre = null, $modalidad = 0, $obraSocial = null, $prof = null, $hc = null) {
-        // $query = $this->createQueryBuilder('h')->where('h.fecha <= :hasta')->setParameter('hasta', $hasta);
-        // $query->andWhere($query->expr()->orX('h.fechaFin >= :desde','h.fechaFin is null'))->setParameter('desde', $desde);
-
-        // if ( $modalidad ) {
-        //     $query->andWhere('h.modalidad = :modalidad')->setParameter('modalidad', $modalidad);
-        // }
-        // if ( $obraSocial ) {
-        //    $query->andWhere('h.obra_social = :obraSocial')->setParameter('obraSocial', $obraSocial);
-        // }
+        $query = $this->createQueryBuilder('h')->where('h.fecha <= :hasta');
+        $query->andWhere($query->expr()->orX('h.fechaFin >= :desde or h.fechaFin is null'));
         
-        // if ( $prof ) {
-        //     $prof = '%'.$prof.'%';
-        //     $query->andWhere('h.docReferente like :prof')->setParameter('prof', $prof);
-        // }
+        $query->leftJoin('h.cliente', 'c');
 
-        // if ( $nombre || $hc) {
-        //     $query->leftJoin('h.cliente', 'c');
-            
-        //     if ( $nombre ) {
-        //         $i = 1;
-        //         $arrayNombres = explode(' ', $nombre);
-        //         foreach ( $arrayNombres as $nombre ) {
-        //             $query->andWhere("c.nombre like :nombre$i OR c.apellido like :nombre$i")->setParameter("nombre$i",'%'. $nombre .'%');
-        //             $i++;
-        //         }
-        //     }
+        $query->andWhere($query->expr()->orX('c.fEgreso >= :desde or c.fEgreso is null'))->setParameter('hasta', $hasta);
+        $query->andWhere($query->expr()->orX('c.fIngreso <= :hasta or c.fIngreso is null'))->setParameter('desde', $desde);
 
-        //     if ( $hc ) {
-        //         $query->andWhere('c.hClinica = :hc')->setParameter('hc', $hc);
-        //     }
-        // }
+        if ( $nombre ) {
+            $i = 1;
+            $arrayNombres = explode(' ', $nombre);
+            foreach ( $arrayNombres as $nombre ) {
+                $query->andWhere("c.nombre like :nombre$i OR c.apellido like :nombre$i")->setParameter("nombre$i",'%'. $nombre .'%');
+                $i++;
+            }
+        }
 
+        if ( $hc ) {
+            $query->andWhere('c.hClinica = :hc')->setParameter('hc', $hc);
+        }
 
-        $sql = "SELECT *, s.fecha as fecha_posta from (
-            SELECT h.cliente_id, h.fecha, h.habitacion_id, h.n_cama, null
-                FROM historia_habitaciones h
+        if ( $modalidad ) {
+            $newQuery = "Select DISTINCT historia_paciente.cliente_id from historia_paciente where fecha <= '" . $hasta . "' and ( fecha_fin >= '". $desde . "' or fecha_fin is null ) and modalidad = " . $modalidad;
+            $ids = $this->em->getConnection()->prepare($newQuery)->executeQuery()->fetchFirstColumn();
+            $query->andWhere('c.id in (:newQuery)')->setParameter('newQuery', $ids);
+        }
+
+        if ( $prof ) {
+            $prof = '%'.$prof.'%';
+            $newQuery = "Select DISTINCT historia_paciente.cliente_id from historia_paciente where fecha <= '" . $hasta . "' and ( fecha_fin >= '". $desde . "' or fecha_fin is null ) and doc_referente like '" . $prof ."'";
+            $ids = $this->em->getConnection()->prepare($newQuery)->executeQuery()->fetchFirstColumn();
+            $query->andWhere('c.id in (:newQuery)')->setParameter('newQuery', $ids);
+        }
         
-                UNION 
+        if ( $obraSocial ) {
+            $newQuery = "Select DISTINCT historia_paciente.cliente_id from historia_paciente where fecha <= '" . $hasta . "' and ( fecha_fin >= '". $desde . "' or fecha_fin is null ) and obra_social = " . $obraSocial;
+            $ids = $this->em->getConnection()->prepare($newQuery)->executeQuery()->fetchFirstColumn();
+            $query->andWhere('c.id in (:newQuery)')->setParameter('newQuery', $ids);
+        }
         
-            SELECT p.paciente_id, p.fecha, null, null, p.valor
-                FROM presentes p
-            ) as s  
+        return $query->getQuery()->getResult();
+
+        // $sql = "SELECT *, s.fecha as fecha_posta from (
+        //     SELECT h.cliente_id, h.fecha, h.habitacion_id, h.n_cama, null
+        //         FROM historia_habitaciones h
         
-        JOIN historia_paciente hist 
-        on s.cliente_id = hist.cliente_id
-        WHERE s.fecha >= hist.fecha and (s.fecha <= hist.fecha_fin or hist.fecha_fin is null)
-        and hist.fecha <= '$hasta' and (hist.fecha_fin >= '$desde' or hist.fecha_fin is null)
-        and s.fecha >= '$desde' and s.fecha <= '$hasta'
-        ORDER BY `s`.`fecha` DESC";
+        //         UNION 
+        
+        //     SELECT p.paciente_id, p.fecha, null, null, p.valor
+        //         FROM presentes p
+        //     ) as s  
+        
+        // LEFT JOIN historia_paciente hist 
+        // on s.cliente_id = hist.cliente_id
+        // WHERE s.fecha >= hist.fecha and (s.fecha <= hist.fecha_fin or hist.fecha_fin is null)
+        // and hist.fecha <= '$hasta' and (hist.fecha_fin >= '$desde' or hist.fecha_fin is null)
+        // and s.fecha >= '$desde' and s.fecha <= '$hasta'
+        // ORDER BY `s`.`fecha` DESC";
 
-        $result = $this->em->getConnection()->prepare($sql)->executeQuery();
+        // $result = $this->em->getConnection()->prepare($sql)->executeQuery();
 
-        return $result->fetchAllAssociative();
+        // return $result->fetchAllAssociative();
     }
 
     /*

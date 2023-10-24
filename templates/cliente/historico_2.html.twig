@@ -49,10 +49,10 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-2">
+            {# <div class="col-2">
                 <label for="vto">Vto. Autorizaciones</label>
                 <input class="form-control js-datepicker" type="text" id="vto" autocomplete="off" name="vto" value="{{ vto }}">
-            </div>
+            </div> #}
             
             <div class="col-2">
                 <label for="vto">H. C.</label>
@@ -62,7 +62,7 @@
         <div class="row mt-4">
             <div class="col">
                 <button type="submit" class="btn btn-primary deshabilitar">Buscar</button>
-                <a id="limpiar" href="{{ path('cliente_historicos_habitaciones') }}" class="deshabilitar btn btn-action">Limpiar</a>
+                <a id="limpiar" href="{{ path('cliente_historicos_prueba') }}" class="deshabilitar btn btn-action">Limpiar</a>
             </div>
             <div class="col">
                 <h5>Total: <span class="badge badge-secondary">{{ total }}</span></h5>
@@ -77,27 +77,44 @@
             <table class="table">
                 <th>
                     {% for fecha in range %}
-                        <td><b>{{fecha | date('d/m/Y')}}</b></td>
+                        <td>
+                            <b>{{fecha | date('d/m/Y')}}</b><br>
+                            <span class="small">
+                                Int: {{ totales['internados'][fecha | date('d/m/Y')] is defined ? totales['internados'][fecha | date('d/m/Y')] | length  : 0 }}
+                                Amb: {{ totales['ambulatorios'][fecha | date('d/m/Y')] is defined ? totales['ambulatorios'][fecha | date('d/m/Y')] | length : 0 }}
+                                S/M: {{ totales['sinModalidad'][fecha | date('d/m/Y')] is defined ? totales['sinModalidad'][fecha | date('d/m/Y')] | length : 0 }}
+                                Egr: {{ totales['egresos'][fecha | date('d/m/Y')] is defined ? totales['egresos'][fecha | date('d/m/Y')] | length : 0 }}
+                                Total: {{ totales['totalDia'][fecha | date('d/m/Y')] is defined ? totales['totalDia'][fecha | date('d/m/Y')] | length : 0 }}<br>
+                            </span><br>
+                            <span class="small">
+                            {% if referentes[fecha | date('d/m/Y')] is defined %}
+                                {% for nombre, cantidad in referentes[fecha | date('d/m/Y')] %}
+                                    {{ nombre }}: {{ cantidad | length }}<br>
+                                {% endfor %}
+                            {% endif %}
+                            </span>
+                            <span class="small">
+                            {% if obrasSocialesTotales[fecha | date('d/m/Y')] is defined %}
+                                {% for nombre, cantidad in obrasSocialesTotales[fecha | date('d/m/Y')] %}
+                                    {{ nombre }}: {{ cantidad | length }}<br>
+                                {% endfor %}
+                            {% endif %}
+                            </span>
+                        </td>
                     {% endfor %}
                 </th>
                 {% for clienteId, data in pacientes %}
                 <tr>
                     <td>
                         <a href={{path('cliente_show', {id: clienteId})}}>
+                            {{clienteId}}
                             {{clienteRepository.find(clienteId).nombreApellido}}
                         </a> 
                     </td>
                     {% for fecha in range %}
                         <td>
-                            {% if data[fecha | date('Y-m-d')] is defined %}
-                                {% if data[fecha | date('Y-m-d')]['habitacion_id'] is defined %}
-                                    H: {{ data[fecha | date('Y-m-d')]['habitacion_id'] }}
-                                {% endif %}
-                                {% if data[fecha | date('Y-m-d')]['n_cama'] is defined %}
-                                    C: {{ data[fecha | date('Y-m-d')]['n_cama'] }}
-                                {% endif %}
-                            {% else %}
-                                sin datos
+                            {% if (data[fecha | date('d/m/Y')] is defined) %}
+                                {{ data[fecha | date('d/m/Y')] | raw}}
                             {% endif %}
                         </td>
                     {% endfor %}    
