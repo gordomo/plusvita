@@ -423,6 +423,7 @@ class ClienteController extends AbstractController
             $totalDia = [];
             $referentes = [];
             $obrasSocialesTotales = [];
+            $totalReferentes = [];
 
             foreach ($historias as $historia) {
                 $cliente = $historia->getCliente();
@@ -520,6 +521,15 @@ class ClienteController extends AbstractController
             'egresos' => $egresos,            
         ];
 
+        foreach ($referentes as $data) {
+            foreach ($data as $prof => $data2) {
+                if (isset($totalReferentes[$prof])) {
+                    $totalReferentes[$prof] = $totalReferentes[$prof] + count($data2);
+                } else {
+                    $totalReferentes[$prof] = count($data2);
+                }
+            }
+        }
         
         $docReferentes = $doctorRepository->findByContratos(['Fisiatra', 'Director medico', 'Sub director medico'], false);
         return $this->render('cliente/historico_2.html.twig',
@@ -549,6 +559,7 @@ class ClienteController extends AbstractController
                 'totales' => $totales,
                 'referentes' => $referentes,
                 'obrasSocialesTotales' => $obrasSocialesTotales,
+                'totalReferentes' => $totalReferentes,
             ]);
     }
 

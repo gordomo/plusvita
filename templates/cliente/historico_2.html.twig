@@ -65,7 +65,10 @@
                 <a id="limpiar" href="{{ path('cliente_historicos_habitaciones') }}" class="deshabilitar btn btn-action">Limpiar</a>
             </div>
             <div class="col">
-                <h5>Total: <span class="badge badge-secondary">{{ total }}</span></h5>
+                {% for nombres, total in totalReferentes %}
+                    <h5>Total: <span class="badge badge-secondary">{{ nombres }}: {{ total }}</span></h5>
+                {% endfor %}
+                
             </div>
         </div>
     </form>
@@ -107,7 +110,6 @@
                 <tr>
                     <td>
                         <a href={{path('cliente_show', {id: clienteId})}}>
-                            {{clienteId}}
                             {{clienteRepository.find(clienteId).nombreApellido}}
                         </a> 
                     </td>
