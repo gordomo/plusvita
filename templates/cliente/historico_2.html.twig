@@ -64,15 +64,23 @@
                 <button type="submit" class="btn btn-primary deshabilitar">Buscar</button>
                 <a id="limpiar" href="{{ path('cliente_historicos_habitaciones') }}" class="deshabilitar btn btn-action">Limpiar</a>
             </div>
+        </div>
+        <div class="row mt-4">
             <div class="col">
                 {% for nombres, total in totalReferentes %}
-                    <h5>Total: <span class="badge badge-secondary">{{ nombres }}: {{ total }}</span></h5>
+                <b>{{ nombres }}:</b> <span class="badge badge-secondary">{{ total }}</span>
                 {% endfor %}
-                <h5>Total Ambu: <span class="badge badge-secondary">{{ ambulatoriosCount }}</span></h5>
-                <h5>Total Int: <span class="badge badge-secondary">{{ internadosCount }}</span></h5>
-                <h5>Total S/M: <span class="badge badge-secondary">{{ sinModalidadCount }}</span></h5>
-                <h5>Total Egresados: <span class="badge badge-secondary">{{ egresosCount }}</span></h5>
-                
+                <b>Ambu:</b> <span class="badge badge-secondary">{{ ambulatoriosCount }}</span>
+                <b>Int:</b> <span class="badge badge-secondary">{{ internadosCount }}</span>
+                <b>S/M:</b> <span class="badge badge-secondary">{{ sinModalidadCount }}</span>
+                <b>Egresados:</b> <span class="badge badge-secondary">{{ egresosCount }}</span>
+            </div>
+        </div>
+        <div class="row mt-4" >
+            <div class="col">
+            {% for nombres, total in osTotal %}
+                <b>{{ nombres }}:</b> <span class="badge badge-secondary">{{ total }}</span> -
+            {% endfor %}
             </div>
         </div>
     </form>

@@ -439,8 +439,10 @@ class ClienteController extends AbstractController
                 $range2 = new DatePeriod($fechaDesde2, $interval, $fechaHasta2);
                 
                 foreach ( $range2 as $date ) {
+                    $date->setTime('23', '59', '59');
+                    
                     $texto = '';
-                    if ( $historia->getFecha() <= $date && ($historia->getFechaFin() >= $date or $historia->getFechaFin() == null)) {
+                    if ( $historia->getFecha() <= $date && ($historia->getFechaFin() >= $date or $historia->getFechaFin() == null) && ($historia->getFechaDerivacion() >= $date or $historia->getFechaDerivacion() == null)) {
                         if ($cliente->getFEgreso() == $date ) {
                             $texto = 'Egreso';
                             $egresos[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
@@ -465,6 +467,7 @@ class ClienteController extends AbstractController
                                     $sinModalidad[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
                                     break;
                             }
+
                             $presente = $presenteRepository->findBy(['fecha' => $date, 'paciente' => $historia->getCliente()]);
                             if(!empty( $presente )) {
                                 $texto .= ' ' . $presente[0]->getValor() == 1 ? '<br>presente' : '<br>ausente';
@@ -505,7 +508,52 @@ class ClienteController extends AbstractController
                         $arrayParaLaVista[$historia->getCliente()->getId()][$date->format('d/m/Y')] = $texto;
                         $totalDia[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
                         
-                    }  else {
+                    } else if ($historia->getFechaReingresoDerivacion() == null && $historia->getFechaDerivacion() != null && $historia->getFechaDerivacion() <= $date) {
+                        $range3 = new DatePeriod($historia->getFechaDerivacion(), $interval, $date);
+                        foreach ( $range3 as $date ) {
+                            $arrayParaLaVista[$historia->getCliente()->getId()][$date->format('d/m/Y')] = 'Derivado';
+                        }
+                    } else if ($historia->getFechaReingresoDerivacion() != null && $historia->getFechaReingresoDerivacion() <= $date) {
+                        $range3 = new DatePeriod($historia->getFechaReingresoDerivacion(), $interval, $date);
+                        foreach ( $range3 as $date ) {
+                            switch ($historia->getModalidad()) {
+                                case 1:
+                                    $texto = 'Ambulatorio';
+                                    $ambulatorios[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
+                                    break;
+                                case 2:
+                                    $texto = 'Internado';
+                                    $habitacion = $historiaHabitacionesRepository->findBy(['fecha' => $date, 'cliente' => $historia->getCliente()]);
+                                    if(!empty( $habitacion )) {
+                                        $texto .= '<br>H:' . $habitacion[0]->getHabitacion()->getNombre() . ' C: ' . $habitacion[0]->getNCama();
+                                    } else {
+                                        $texto .= '<br>sin datos';
+                                    }
+                                    $internados[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
+                                    break;
+                                case 3:
+                                    $texto = 'Hospital de día';
+                                    $ambulatorios[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
+                                    break;
+                                case 4:
+                                    $texto = 'ART';
+                                    $ambulatorios[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
+                                    break;
+                                default:
+                                    $texto = 'Sin modalidad registrada';
+                                    $sinModalidad[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
+                                    break;
+                            }
+
+                            $presente = $presenteRepository->findBy(['fecha' => $date, 'paciente' => $historia->getCliente()]);
+                            if(!empty( $presente )) {
+                                $texto .= ' ' . $presente[0]->getValor() == 1 ? '<br>presente' : '<br>ausente';
+                            } 
+
+                            $arrayParaLaVista[$historia->getCliente()->getId()][$date->format('d/m/Y')] = $texto;
+                        }
+                    }
+                     else {
                         $arrayParaLaVista[$historia->getCliente()->getId()][$date->format('d/m/Y')] = $texto;
                     }
                 }
@@ -529,6 +577,19 @@ class ClienteController extends AbstractController
                     $totalReferentes[$prof] = count($data2);
                 }
             }
+        }
+
+        $osTotal = [];
+        
+        foreach ($obrasSocialesTotales as $data) {
+            foreach ($data as $key => $data2) {
+                if (isset($osTotal[$key])) {
+                    $osTotal[$key] = $osTotal[$key] + count($data2);
+                } else {
+                    $osTotal[$key] = count($data2);
+                }
+            }
+            
         }
         
         $internadosCount = 0;
@@ -584,6 +645,7 @@ class ClienteController extends AbstractController
                 'ambulatoriosCount' => $ambulatoriosCount,
                 'sinModalidadCount' => $sinModalidadCount,
                 'egresosCount' => $egresosCount,
+                'osTotal' => $osTotal,
             ]);
     }
 
