@@ -531,6 +531,26 @@ class ClienteController extends AbstractController
             }
         }
         
+        $internadosCount = 0;
+        $ambulatoriosCount = 0;
+        $sinModalidadCount = 0;
+        $egresosCount = 0;
+
+        foreach ($totales['internados'] as $data) {
+            $internadosCount += count($data);
+        }
+
+        foreach ($totales['ambulatorios'] as $data) {
+            $ambulatoriosCount += count($data);
+        }
+        foreach ($totales['sinModalidad'] as $data) {
+            $sinModalidadCount += count($data);
+        }
+        foreach ($totales['egresos'] as $data) {
+            $egresosCount += count($data);
+        }
+
+        
         $docReferentes = $doctorRepository->findByContratos(['Fisiatra', 'Director medico', 'Sub director medico'], false);
         return $this->render('cliente/historico_2.html.twig',
             [
@@ -560,6 +580,10 @@ class ClienteController extends AbstractController
                 'referentes' => $referentes,
                 'obrasSocialesTotales' => $obrasSocialesTotales,
                 'totalReferentes' => $totalReferentes,
+                'internadosCount' => $internadosCount,
+                'ambulatoriosCount' => $ambulatoriosCount,
+                'sinModalidadCount' => $sinModalidadCount,
+                'egresosCount' => $egresosCount,
             ]);
     }
 
