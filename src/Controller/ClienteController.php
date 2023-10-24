@@ -1831,7 +1831,7 @@ class ClienteController extends AbstractController
         
         $clientes = $clienteRepository->findAll();
         $entityManager = $this->getDoctrine()->getManager();
-        set_time_limit(3000);
+        set_time_limit(30000);
         foreach ( $clientes as $cliente ) {
             $historias = $historiaPacienteRepository->findBy(['cliente' => $cliente], ['fecha' => 'asc']);
             
@@ -1977,7 +1977,7 @@ class ClienteController extends AbstractController
         $historial->setAmbulatorio($ambulatorio);
         $historial->setDocReferente($docReferente);
 
-        if( $ultimoHistorial[0] ) {
+        if( isset($ultimoHistorial[0]) ) {
             if (!empty($fEgreso)) {
                 $fecha = $fEgreso;
             }
