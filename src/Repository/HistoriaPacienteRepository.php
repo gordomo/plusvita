@@ -189,25 +189,25 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
             $query->andWhere('c.hClinica = :hc')->setParameter('hc', $hc);
         }
 
-        if ( $modalidad ) {
-            $newQuery = "Select DISTINCT historia_paciente.cliente_id from historia_paciente where fecha <= '" . $hasta . "' and ( fecha_fin >= '". $desde . "' or fecha_fin is null ) and modalidad = " . $modalidad;
+        if ( $modalidad || $prof || $obraSocial) {
+            $newQuery = "Select DISTINCT historia_paciente.cliente_id from historia_paciente where fecha <= '" . $hasta . "' and ( fecha_fin >= '". $desde . "' or fecha_fin is null )";
+            
+            if ( $modalidad ) { 
+                $newQuery .= " and modalidad = " . $modalidad;
+            }
+            if ( $prof ) { 
+                $prof = '%'.$prof.'%';
+                $newQuery .= " and doc_referente like '" . $prof ."'";
+            }
+            if ( $obraSocial ) { 
+                $newQuery .= " and obra_social = " . $obraSocial;
+            }
+            
             $ids = $this->em->getConnection()->prepare($newQuery)->executeQuery()->fetchFirstColumn();
+            
             $query->andWhere('c.id in (:newQuery)')->setParameter('newQuery', $ids);
         }
 
-        if ( $prof ) {
-            $prof = '%'.$prof.'%';
-            $newQuery = "Select DISTINCT historia_paciente.cliente_id from historia_paciente where fecha <= '" . $hasta . "' and ( fecha_fin >= '". $desde . "' or fecha_fin is null ) and doc_referente like '" . $prof ."'";
-            $ids = $this->em->getConnection()->prepare($newQuery)->executeQuery()->fetchFirstColumn();
-            $query->andWhere('c.id in (:newQuery)')->setParameter('newQuery', $ids);
-        }
-        
-        if ( $obraSocial ) {
-            $newQuery = "Select DISTINCT historia_paciente.cliente_id from historia_paciente where fecha <= '" . $hasta . "' and ( fecha_fin >= '". $desde . "' or fecha_fin is null ) and obra_social = " . $obraSocial;
-            $ids = $this->em->getConnection()->prepare($newQuery)->executeQuery()->fetchFirstColumn();
-            $query->andWhere('c.id in (:newQuery)')->setParameter('newQuery', $ids);
-        }
-        
         return $query->getQuery()->getResult();
 
         // $sql = "SELECT *, s.fecha as fecha_posta from (
