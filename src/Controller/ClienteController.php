@@ -490,6 +490,10 @@ class ClienteController extends AbstractController
                             $internados[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
                         }
                         
+                        if($historia->getCliente()->getId() == 996) {
+                            dd($historia->getCliente()->getId());
+                        }
+                        
                         $ref = json_decode($historia->getDocReferente()) ?? [];
                         foreach( $ref as $docReferente ) {
                             $doc = $doctorRepository->find($docReferente);
@@ -512,6 +516,7 @@ class ClienteController extends AbstractController
                         $range3 = new DatePeriod($historia->getFechaDerivacion(), $interval, $date);
                         foreach ( $range3 as $date ) {
                             $arrayParaLaVista[$historia->getCliente()->getId()][$date->format('d/m/Y')] = 'Derivado';
+                            $totalDia[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
                         }
                     } else if ($historia->getFechaReingresoDerivacion() != null && $historia->getFechaReingresoDerivacion() <= $date && $historia->getFechaReingresoDerivacion() >= $fechaDesde && $historia->getFechaReingresoDerivacion() <= $fechaHasta) {
                         $range3 = new DatePeriod($historia->getFechaReingresoDerivacion(), $interval, $date);
@@ -551,6 +556,7 @@ class ClienteController extends AbstractController
                             } 
 
                             $arrayParaLaVista[$historia->getCliente()->getId()][$date->format('d/m/Y')] = $texto;
+                            $totalDia[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
                         }
                     }
                      else {
@@ -570,11 +576,11 @@ class ClienteController extends AbstractController
         ];
 
         foreach ($referentes as $data) {
-            foreach ($data as $prof => $data2) {
-                if (isset($totalReferentes[$prof])) {
-                    $totalReferentes[$prof] = $totalReferentes[$prof] + count($data2);
+            foreach ($data as $profName => $data2) {
+                if (isset($totalReferentes[$profName])) {
+                    $totalReferentes[$profName] = $totalReferentes[$profName] + count($data2);
                 } else {
-                    $totalReferentes[$prof] = count($data2);
+                    $totalReferentes[$profName] = count($data2);
                 }
             }
         }
