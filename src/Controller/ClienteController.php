@@ -447,7 +447,7 @@ class ClienteController extends AbstractController
                             $texto = 'Egreso';
                             $egresos[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
                         } else if ( $historia->getModalidad() != 2 ) {
-                            //$totalDia[$date->format('d/m/Y')] = !empty($totalDia[$date->format('d/m/Y')] ) ? $totalDia[$date->format('d/m/Y')] + 1 : 1;
+                            
                                                   
                             switch ($historia->getModalidad()) {
                                 case 1:
@@ -490,9 +490,6 @@ class ClienteController extends AbstractController
                             $internados[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
                         }
                         
-                        if($historia->getCliente()->getId() == 996) {
-                            dd($historia->getCliente()->getId());
-                        }
                         
                         $ref = json_decode($historia->getDocReferente()) ?? [];
                         foreach( $ref as $docReferente ) {
@@ -511,6 +508,7 @@ class ClienteController extends AbstractController
                         
                         $arrayParaLaVista[$historia->getCliente()->getId()][$date->format('d/m/Y')] = $texto;
                         $totalDia[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
+                        
                         
                     } else if ($historia->getFechaReingresoDerivacion() == null && $historia->getFechaDerivacion() != null && $historia->getFechaDerivacion() <= $date && $historia->getFechaDerivacion() >= $fechaDesde && $historia->getFechaDerivacion() <= $fechaHasta) {
                         $range3 = new DatePeriod($historia->getFechaDerivacion(), $interval, $date);
@@ -556,7 +554,6 @@ class ClienteController extends AbstractController
                             } 
 
                             $arrayParaLaVista[$historia->getCliente()->getId()][$date->format('d/m/Y')] = $texto;
-                            $totalDia[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
                         }
                     }
                      else {
