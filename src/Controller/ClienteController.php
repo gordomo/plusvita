@@ -442,7 +442,7 @@ class ClienteController extends AbstractController
                     $date->setTime('23', '59', '59');
                     
                     $texto = '';
-                    if ( $historia->getFecha() <= $date && ($historia->getFechaFin() >= $date or $historia->getFechaFin() == null) && ($historia->getFechaDerivacion() >= $date or $historia->getFechaDerivacion() == null)) {
+                    if ( ($historia->getFecha() <= $date && ($historia->getFechaFin() >= $date) or ($historia->getFechaFin() == null) && ($historia->getFechaDerivacion() >= $date or $historia->getFechaDerivacion() == null))) {
                         if ($cliente->getFEgreso() == $date ) {
                             $texto = 'Egreso';
                             $egresos[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
