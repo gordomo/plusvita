@@ -96,6 +96,9 @@
                         <td class="totales">
                             <b>Egresados:</b> <span class="">{{ egresosCount }}</span>
                         </td>
+                        <td class="totales">
+                            <b>Derivados:</b> <span class="">{{ derivadosCount }}</span>
+                        </td>
                     </tr>
                     <th class="diarios">
                         {% for fecha in range %}
@@ -106,6 +109,7 @@
                                     Amb: {{ totales['ambulatorios'][fecha | date('d/m/Y')] is defined ? totales['ambulatorios'][fecha | date('d/m/Y')] | length : 0 }}
                                     S/M: {{ totales['sinModalidad'][fecha | date('d/m/Y')] is defined ? totales['sinModalidad'][fecha | date('d/m/Y')] | length : 0 }}
                                     Egr: {{ totales['egresos'][fecha | date('d/m/Y')] is defined ? totales['egresos'][fecha | date('d/m/Y')] | length : 0 }}
+                                    Der: {{ totales['derivados'][fecha | date('d/m/Y')] is defined ? totales['derivados'][fecha | date('d/m/Y')] | length : 0 }}
                                     Total: {{ totales['totalDia'][fecha | date('d/m/Y')] is defined ? totales['totalDia'][fecha | date('d/m/Y')] | length : 0 }}<br>
                                 </span><br>
                                 <span class="small">

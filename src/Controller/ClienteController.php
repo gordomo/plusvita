@@ -418,6 +418,7 @@ class ClienteController extends AbstractController
             $arrayParaLaVista = [];
             $ambulatorios = [];
             $internados = [];
+            $derivados = [];
             $sinModalidad = [];
             $egresos = [];
             $totalDia = [];
@@ -442,10 +443,13 @@ class ClienteController extends AbstractController
                     $date->setTime('23', '59', '59');
                     
                     $texto = '';
-                    if ( ($historia->getFecha() <= $date && ($historia->getFechaFin() >= $date) or ($historia->getFechaFin() == null) && ($historia->getFechaDerivacion() >= $date or $historia->getFechaDerivacion() == null))) {
+                    if ($historia->getFecha() <= $date && ($historia->getFechaFin() >= $date) or ($historia->getFechaFin() == null) ) {
                         if ($cliente->getFEgreso() == $date ) {
                             $texto = 'Egreso';
                             $egresos[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
+                        } else if ( $historia->getFechaDerivacion() != null && $date >= $historia->getFechaDerivacion() && ( $historia->getFechaReingresoDerivacion() == null or $historia->getFechaReingresoDerivacion() <= $historia->getFechaDerivacion() or $date <= $historia->getFechaReingresoDerivacion()) ) {
+                            $texto = 'Derivado';
+                            $derivados[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
                         } else if ( $historia->getModalidad() != 2 ) {
                             
                                                   
@@ -494,7 +498,7 @@ class ClienteController extends AbstractController
                         $ref = json_decode($historia->getDocReferente()) ?? [];
                         foreach( $ref as $docReferente ) {
                             $doc = $doctorRepository->find($docReferente);
-                            if ($doc) {
+                            if ($doc && $texto != 'Derivado') {
                                 $texto .= '<br>' . $doc->getNombreApellido();
                                 $referentes[$date->format('d/m/Y')][$doc->getNombreApellido()][$historia->getCliente()->getId()] = "1";
                             }
@@ -510,53 +514,7 @@ class ClienteController extends AbstractController
                         $totalDia[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
                         
                         
-                    } else if ($historia->getFechaReingresoDerivacion() == null && $historia->getFechaDerivacion() != null && $historia->getFechaDerivacion() <= $date && $historia->getFechaDerivacion() >= $fechaDesde && $historia->getFechaDerivacion() <= $fechaHasta) {
-                        $range3 = new DatePeriod($historia->getFechaDerivacion(), $interval, $date);
-                        foreach ( $range3 as $date ) {
-                            $arrayParaLaVista[$historia->getCliente()->getId()][$date->format('d/m/Y')] = 'Derivado';
-                            $totalDia[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
-                        }
-                    } else if ($historia->getFechaReingresoDerivacion() != null && $historia->getFechaReingresoDerivacion() <= $date && $historia->getFechaReingresoDerivacion() >= $fechaDesde && $historia->getFechaReingresoDerivacion() <= $fechaHasta) {
-                        $range3 = new DatePeriod($historia->getFechaReingresoDerivacion(), $interval, $date);
-                        foreach ( $range3 as $date ) {
-                            switch ($historia->getModalidad()) {
-                                case 1:
-                                    $texto = 'Ambulatorio';
-                                    $ambulatorios[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
-                                    break;
-                                case 2:
-                                    $texto = 'Internado';
-                                    $habitacion = $historiaHabitacionesRepository->findBy(['fecha' => $date, 'cliente' => $historia->getCliente()]);
-                                    if(!empty( $habitacion )) {
-                                        $texto .= '<br>H:' . $habitacion[0]->getHabitacion()->getNombre() . ' C: ' . $habitacion[0]->getNCama();
-                                    } else {
-                                        $texto .= '<br>sin datos';
-                                    }
-                                    $internados[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
-                                    break;
-                                case 3:
-                                    $texto = 'Hospital de día';
-                                    $ambulatorios[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
-                                    break;
-                                case 4:
-                                    $texto = 'ART';
-                                    $ambulatorios[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
-                                    break;
-                                default:
-                                    $texto = 'Sin modalidad registrada';
-                                    $sinModalidad[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
-                                    break;
-                            }
-
-                            $presente = $presenteRepository->findBy(['fecha' => $date, 'paciente' => $historia->getCliente()]);
-                            if(!empty( $presente )) {
-                                $texto .= ' ' . $presente[0]->getValor() == 1 ? '<br>presente' : '<br>ausente';
-                            } 
-
-                            $arrayParaLaVista[$historia->getCliente()->getId()][$date->format('d/m/Y')] = $texto;
-                        }
-                    }
-                     else {
+                    } else {
                         $arrayParaLaVista[$historia->getCliente()->getId()][$date->format('d/m/Y')] = $texto;
                     }
                 }
@@ -567,6 +525,7 @@ class ClienteController extends AbstractController
         $totales = [
             'totalDia' => $totalDia,
             'internados' => $internados,
+            'derivados' => $derivados,
             'sinModalidad' => $sinModalidad,
             'ambulatorios' => $ambulatorios,
             'egresos' => $egresos,            
@@ -596,12 +555,12 @@ class ClienteController extends AbstractController
         }
         
         $internadosCount = 0;
+        $derivadosCount = 0;
         $ambulatoriosCount = 0;
         $sinModalidadCount = 0;
         $egresosCount = 0;
 
         foreach ($totales['internados'] as $data) {
-            //dd($totales['internados']);
             $internadosCount += count($data);
         }
 
@@ -613,6 +572,9 @@ class ClienteController extends AbstractController
         }
         foreach ($totales['egresos'] as $data) {
             $egresosCount += count($data);
+        }
+        foreach ($totales['derivados'] as $data) {
+            $derivadosCount += count($data);
         }
 
         
@@ -646,6 +608,7 @@ class ClienteController extends AbstractController
                 'obrasSocialesTotales' => $obrasSocialesTotales,
                 'totalReferentes' => $totalReferentes,
                 'internadosCount' => $internadosCount,
+                'derivadosCount' => $derivadosCount,
                 'ambulatoriosCount' => $ambulatoriosCount,
                 'sinModalidadCount' => $sinModalidadCount,
                 'egresosCount' => $egresosCount,
@@ -1108,7 +1071,8 @@ class ClienteController extends AbstractController
     {
         $user = $this->security->getUser();
         $derivadoEn = ($request->get('derivadoEn')) ?? '';
-        $fechaDerivacion = new \DateTime(); //($request->get('fechaDerivacion')) ? new \DateTime($request->get('fechaDerivacion')) : new \DateTime();
+        //guardo la fecha que ponene en el formulario, antes guardaba la fecha del día, pero después no coinciden en el histórico
+        $fechaDerivacion = ($request->get('fechaDerivacion')) ? new \DateTime($request->get('fechaDerivacion')) : new \DateTime();
         $motivo = ($request->get('motivo')) ?? '';
         $empDeTraslado = ($request->get('empDeTraslado')) ?? '';
 
