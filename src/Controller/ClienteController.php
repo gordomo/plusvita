@@ -812,7 +812,7 @@ class ClienteController extends AbstractController
                 $doctor->addCliente($cliente);
                 $entityManager->persist($doctor);
             }
-            $cliente->setFIngreso(null);
+
             if (!empty($form->get('fIngreso')->getData())) {
                 $cliente->setFIngreso(\DateTime::createFromFormat('d/m/Y', $form->get('fIngreso')->getData()));
             }
@@ -2086,6 +2086,9 @@ class ClienteController extends AbstractController
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($ultimoHistorial[0]);
             $entityManager->flush();
+        } else {
+            $fechaIngreso = $fechaIngreso ? $fechaIngreso : $fecha;
+            $historial->setFecha($fechaIngreso);
         }
 
         return $historial;

@@ -74,7 +74,7 @@ class ClienteType extends AbstractType
                 ->add('sistemaDeEmergenciaAfiliado', TextType::class, ['required' => false, 'label' => 'N Afiliado'])
                 ->add('fIngreso', TextType::class, [
                     'label' => 'Fecha de Ingreso',
-                    'required' => false,
+                    'required' => true,
                     'mapped' => false,
                     'attr' => ['class' => 'js-datepicker', 'autocomplete'=>'off', 'value' => $fechas['fIngreso']]],
                 )
@@ -114,7 +114,7 @@ class ClienteType extends AbstractType
                             ->orWhere("JSON_CONTAINS (u.modalidad, '\"Sub director medico\"', '$') = 1");
                     },
                     'by_reference' => false,
-
+                    'required' => true,
                     'multiple' => true,
                     'expanded' => true,
                     'label' => 'Profesionales Referentes',
