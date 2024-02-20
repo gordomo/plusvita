@@ -1333,7 +1333,7 @@ class ClienteController extends AbstractController
 
             if ($tipo == 'inactivos') {
                 $parametros['fechaIngreso'] = new \DateTime();
-                $parametros['fEgreso'] = '';
+                $parametros['fEgreso'] = 'null';
                 $cliente->setFEgreso(null);
             }
 
@@ -1986,7 +1986,7 @@ class ClienteController extends AbstractController
         $habitacion = (isset($parametros['habitacion'])) ? $parametros['habitacion'] : (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getHabitacion() : null);
         $cama = (isset($parametros['cama'])) ? $parametros['cama'] : (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getCama() : null);
         $fechaIngreso = (isset($parametros['fechaIngreso'])) ? $parametros['fechaIngreso'] : (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getFechaIngreso() : null);
-        $fEgreso = (isset($parametros['fEgreso'])) ? $parametros['fEgreso'] : (isset($ultimoHistoria[0]) ? $ultimoHistorial[0]->getFechaEngreso() : null);
+        $fEgreso = (isset($parametros['fEgreso'])) ? ($parametros['fEgreso'] === 'null' ? null : $parametros['fEgreso']) : (isset($ultimoHistoria[0]) ? $ultimoHistorial[0]->getFechaEngreso() : null);
         $fechaDerivacion = (isset($parametros['fechaDerivacion'])) ? $parametros['fechaDerivacion'] : (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getFechaDerivacion() : null);
         $fechaReingresoDerivacion = (isset($parametros['fechaReingresoDerivacion'])) ? $parametros['fechaReingresoDerivacion'] : (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getFechaReingresoDerivacion() : null);
         $motivoDerivacion = (isset($parametros['motivoDerivacion'])) ? $parametros['motivoDerivacion'] : (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getMotivoDerivacion() : null);
