@@ -1245,10 +1245,10 @@ class ClienteController extends AbstractController
     /**
      * @Route("/reingresar/{id}", name="cliente_reingresar", methods={"GET", "POST"})
      */
-    public function reingresar(Cliente $cliente, Request $request, HabitacionRepository $habitacionRepository): Response
+    public function reingresar(Cliente $cliente, Request $request, HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository): Response
     {
         $user = $this->security->getUser();
-        $habitaciones = $habitacionRepository->findHabitacionConCamasDisponibles();
+        $habitaciones = $habitacionRepository->findHabitacionConCamasDisponibles($clienteRepository);
 
         $haArray = [];
         foreach ( $habitaciones as $ha ) {

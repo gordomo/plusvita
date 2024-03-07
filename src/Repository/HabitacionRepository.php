@@ -28,16 +28,32 @@ class HabitacionRepository extends ServiceEntityRepository
                     ->getResult();
     }
 
-    public function findHabitacionConCamasDisponibles()
+    // public function findHabitacionConCamasDisponibles()
+    // {
+    //     $resp = [];
+    //     $todas = $this->findAll();
+    //     foreach ($todas as $habitacion) {
+    //         $arrayCamas = $habitacion->getCamasOcupadas();
+
+    //         if ($habitacion->getCamasDisponibles() > count($arrayCamas)) {
+    //            $resp[]  = $habitacion;
+
+    //         }
+    //     }
+    //     return $resp;
+
+    // }
+
+    public function findHabitacionConCamasDisponibles($clienteRepository)
     {
         $resp = [];
         $todas = $this->findAll();
         foreach ($todas as $habitacion) {
-            $arrayCamas = $habitacion->getCamasOcupadas();
+            $totalCamas = $habitacion->getCamasDisponibles();
 
-            if ($habitacion->getCamasDisponibles() > count($arrayCamas)) {
-               $resp[]  = $habitacion;
-
+            $cli = $clienteRepository->findClienteEnHabitacion($habitacion);
+            if (count($cli) < $totalCamas) {
+                $resp[]  = $habitacion;
             }
         }
         return $resp;

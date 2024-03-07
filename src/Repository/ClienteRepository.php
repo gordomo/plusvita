@@ -227,6 +227,17 @@ class ClienteRepository extends ServiceEntityRepository
             ;
     }
 
+    public function findClienteEnHabitacion($habitacion) {
+        $hoy = new \DateTime();
+        return $this->createQueryBuilder('c')
+            ->andWhere('(c.fEgreso is null or c.fEgreso >= :hoy) and (c.habitacion is not null and c.habitacion = :habitacion)')
+            ->setParameter(':hoy', $hoy)
+            ->setParameter(':habitacion', $habitacion->getId())
+            ->getQuery()
+            ->getResult()
+            ;
+    }
+
     public function findAllInactivos($value)
     {
         return $this->createQueryBuilder('c')
