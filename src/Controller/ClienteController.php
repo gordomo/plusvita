@@ -735,7 +735,7 @@ class ClienteController extends AbstractController
         $user = $this->security->getUser();
 
         $cliente = new Cliente();
-        $habitaciones = $habitacionRepository->findHabitacionConCamasDisponibles();
+        $habitaciones = $habitacionRepository->findHabitacionConCamasDisponibles($clienteRepository);
 
         $cliente->setActivo(true);
         $cliente->setFIngreso(new \DateTime());
@@ -866,13 +866,13 @@ class ClienteController extends AbstractController
     /**
      * @Route("/{id}/edit", name="cliente_edit", methods={"GET","POST"})
      */
-    public function edit(Request $request, Cliente $cliente, ObraSocialRepository $obraSocialRepository, FamiliarExtraRepository $familiarExtraRepository, HabitacionRepository $habitacionRepository, DoctorRepository $doctorRepository): Response
+    public function edit(Request $request, Cliente $cliente, ObraSocialRepository $obraSocialRepository, FamiliarExtraRepository $familiarExtraRepository, HabitacionRepository $habitacionRepository, DoctorRepository $doctorRepository, ClienteRepository $clienteRepository): Response
     {
         $user = $this->security->getUser();
 
         $docReferentesList = $doctorRepository->findDocReferente();
 
-        $habitacionesDisp = $habitacionRepository->findHabitacionConCamasDisponibles();
+        $habitacionesDisp = $habitacionRepository->findHabitacionConCamasDisponibles($clienteRepository);
         $obrasSociales = $obraSocialRepository->findAll();
         $familiarExtraActuales = $familiarExtraRepository->findBy(['cliente_id' => $cliente->getId()]);
 
@@ -1648,10 +1648,10 @@ class ClienteController extends AbstractController
     /**
      * @Route("/{id}/reingreso", name="cliente_reingreso", methods={"GET","POST"})
      */
-    public function reingreso(Request $request, Cliente $cliente, HistoriaPacienteRepository $historiaPacienteRepository, HabitacionRepository $habitacionRepository, BookingRepository $bookingRepository): Response
+    public function reingreso(Request $request, Cliente $cliente, HistoriaPacienteRepository $historiaPacienteRepository, HabitacionRepository $habitacionRepository, BookingRepository $bookingRepository, ClienteRepository $clienteRepository): Response
     {
         $user = $this->security->getUser();
-        $habitaciones = $habitacionRepository->findHabitacionConCamasDisponibles();
+        $habitaciones = $habitacionRepository->findHabitacionConCamasDisponibles($clienteRepository);
 
         $haArray = [];
         foreach ( $habitaciones as $ha ) {
