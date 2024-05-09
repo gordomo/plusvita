@@ -287,15 +287,51 @@ class DoctorController extends AbstractController
         $email = $request->query->get('email');
         $id = $request->query->get('id');
 
+   
+
         $doctor = $doctorRepository->findBy(['email' => $email], ['id'=>'DESC'], 1);
         $cliente = $clienteRepository->findBy(['email' => $email], ['id'=>'DESC'], 1);
         $user = $userRepository->findBy(['email' => $email], ['id'=>'DESC'], 1);
+
+        dump($id);
+        dump($doctor);
+        die;
 
         if( (count($doctor) > 0 && $doctor[0]->getId() != $id) ||
             (count($cliente) && $cliente[0]->getId() != $id) ||
             (count($user) && $user[0]->getId() != $id)) {
             $libre = false;
             $message = 'el email ingresado se encuentra en uso';
+        }
+
+        return new JsonResponse(['libre' => $libre, 'message' => $message]);
+
+    }
+
+    /**
+     * Validate if dni exist
+     * 
+     * @Route("/check-dni/", name="staff_check_dni")
+     * 
+     * @param Request $request
+     * @param DoctorRepository $doctorRepository
+     * @param ClienteRepository $clienteRepository
+     * @return JsonResponse
+     */
+    public function checkDni(Request $request, DoctorRepository $doctorRepository, ClienteRepository $clienteRepository)
+    {
+        $libre      = true;
+        $message    = '';
+        $dni        = $request->query->get('dni');
+        $id         = $request->query->get('id');
+
+        $doctor     = $doctorRepository->findBy(['dni' => $dni], ['id'=>'DESC'], 1);
+        $cliente    = $clienteRepository->findBy(['dni' => $dni], ['id'=>'DESC'], 1);
+
+        if( (count($doctor) > 0 && $doctor[0]->getId() != $id) ||
+            (count($cliente) && $cliente[0]->getId() != $id)) {
+            $libre      = false;
+            $message    = 'el dni ingresado se encuentra en uso';
         }
 
         return new JsonResponse(['libre' => $libre, 'message' => $message]);

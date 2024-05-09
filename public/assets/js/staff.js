@@ -183,6 +183,35 @@ $('#doctor_email').on('keyup', function () {
     }
 });
 
+$('#doctor_dni').on('keyup', function () {
+    let dniField = $(this);
+    let id = (dniField.data('doc-id')) ? dniField.data('doc-id') : 0;
+
+    if(dniField.val().length > 6 ) {
+        $.ajax({
+            url: dniField.data('staff_check_dni-url'),
+            data: {
+                dni: dniField.val(),
+                id: id,
+            },
+            success: function (response) {
+                if(response.libre) {
+                    dniField.removeClass('is-invalid');
+                    dniField.next().hide();
+                } else {
+                    dniField.addClass('is-invalid');
+                    dniField.next().html(response.message);
+                    dniField.next().show();
+                }
+            }
+        });
+    } else {
+        dniField.addClass('is-invalid');
+        dniField.next().html('El dni no es válido');
+        dniField.next().show();
+    }
+});
+
 
 
 if($('#doctor_modalidad').is(':visible')) {

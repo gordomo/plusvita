@@ -12,7 +12,10 @@
     </div>
     <div class="col-sm">
         {{ form_label(form.dni, 'DNI') }}
-        {{ form_widget(form.dni) }}
+        {{ form_widget(form.dni, {'attr': { 'data-staff_check_dni-url' : path('staff_check_dni'), 'data-doc-id' : cliente.id }}) }}
+            <div class="invalid-feedback">
+                El dni no es válido.
+            </div>
     </div>
     <div class="col-sm">
         {{ form_label(form.telefono, 'Teléfono') }}
