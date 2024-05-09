@@ -287,15 +287,9 @@ class DoctorController extends AbstractController
         $email = $request->query->get('email');
         $id = $request->query->get('id');
 
-   
-
         $doctor = $doctorRepository->findBy(['email' => $email], ['id'=>'DESC'], 1);
         $cliente = $clienteRepository->findBy(['email' => $email], ['id'=>'DESC'], 1);
         $user = $userRepository->findBy(['email' => $email], ['id'=>'DESC'], 1);
-
-        dump($id);
-        dump($doctor);
-        die;
 
         if( (count($doctor) > 0 && $doctor[0]->getId() != $id) ||
             (count($cliente) && $cliente[0]->getId() != $id) ||
