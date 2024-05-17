@@ -120,7 +120,8 @@ class ClienteController extends AbstractController
             'idObraSelected' => $idObra,
             'maxPages'=>$maxPages,
             'thisPage' => $currentPage,
-            'all_items' => $query
+            'all_items' => $query,
+            'puedenEditarEvoluciones' => in_array('ROLE_EDIT_HC', $this->getUser()->getRoles())
         ]);
     }
 
@@ -222,7 +223,7 @@ class ClienteController extends AbstractController
                 'hab' => $hab,
                 'total' => $historiasPaginado['total'],
                 'habitacionesArray' => $habitacionesArray,
-                'maxPages'=>$maxPages,
+                'maxPages'=> $maxPages,
                 'thisPage' => $currentPage,
                 'limit' => $limit,
                 'paginaImprimible' => true,

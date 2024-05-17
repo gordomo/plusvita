@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Evolucion;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 
 /**
  * @method Evolucion|null find($id, $lockMode = null, $lockVersion = null)
@@ -19,7 +20,7 @@ class EvolucionRepository extends ServiceEntityRepository
         parent::__construct($registry, Evolucion::class);
     }
 
-    public function findByClienteYTipo($cliente, $tipo)
+    public function findByClienteYTipo($cliente, $tipo, $currentPage, $limit, $from, $to)
     {
         $query = $this->createQueryBuilder('e')
             ->andWhere('e.paciente = :paciente')
@@ -29,7 +30,22 @@ class EvolucionRepository extends ServiceEntityRepository
                 ->setParameter('tipo', $tipo);
         }
 
-        return $query->orderBy('e.fecha', 'ASC')->getQuery()->getResult();
+        if ( $from ) {
+            $query->andWhere('e.fecha >= :from')
+                ->setParameter('from', $from);
+        }
+
+        if ( $to ) {
+            $query->andWhere('e.fecha <= :to')
+                ->setParameter('to', $to);
+        }
+        
+        $query->orderBy('e.fecha', 'DESC');
+        $paginator = $this->paginate($query, $currentPage, $limit);
+
+        return array('paginator' => $paginator, 'query' => $query);
+
+        
 
     }
 
@@ -125,6 +141,17 @@ class EvolucionRepository extends ServiceEntityRepository
 
         return $query->orderBy('e.fecha, e.tipo', 'DESC')->getQuery()->getResult();
 
+    }
+
+    public function paginate($dql, $page = 1, $limit = 3)
+    {
+        $paginator = new Paginator($dql);
+
+        $paginator->getQuery()
+            ->setFirstResult($limit * ($page - 1)) // Offset
+            ->setMaxResults($limit); // Limit
+
+        return $paginator;
     }
 
     

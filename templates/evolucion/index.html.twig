@@ -5,45 +5,122 @@
 {% block body %}
     <h1>Evoluciones de {{ nombreCliente }}</h1>
     <div class="row">
-        <div class="col-md-8 col-sm-12 mb-5 mt-4 text-right"></div>
-        <div class="col-md-2 col-sm-12 mb-5 mt-4 text-right">
-            <span>Filtrar por Tipo:</span>
-            <select class="form-control" id="filtrarPorTipo">
-                <option {% if tipoSeleccionado == 'todos'  %} selected {% endif %} value="todos">Todos</option>
-                <option {% if tipoSeleccionado == 'Nutricionista'  %} selected {% endif %} value='Nutricionista'>Nutricionista</option>
-                <option {% if tipoSeleccionado == 'Director medico'  %} selected {% endif %} value='Director medico'>Director medico</option>
-                <option {% if tipoSeleccionado == 'Sub director medico'  %} selected {% endif %} value='Sub director medico'>Sub director medico</option>
-                <option {% if tipoSeleccionado == 'Trabajadora social'  %} selected {% endif %} value='Trabajadora social'>Trabajadora social</option>
-                <option {% if tipoSeleccionado == 'Psiquiatra'  %} selected {% endif %} value='Psiquiatra'>Psiquiatra</option>
-                <option {% if tipoSeleccionado == 'Infectologo'  %} selected {% endif %} value='Infectologo'>Infectologo</option>
-                <option {% if tipoSeleccionado == 'Medico de guardia'  %} selected {% endif %} value='Medico de guardia'>Medico de guardia</option>
-                <option {% if tipoSeleccionado == 'Medico Clínico'  %} selected {% endif %} value='Medico Clínico'>Medico Clínico</option>
-                <option {% if tipoSeleccionado == 'Kinesiologo'  %} selected {% endif %} value='Kinesiologo'>Kinesiologo</option>
-                <option {% if tipoSeleccionado == 'Kinesiologo respiratorio'  %} selected {% endif %} value='Kinesiologo respiratorio'>Kinesiologo respiratorio</option>
-                <option {% if tipoSeleccionado == 'Terapista ocupacional'  %} selected {% endif %} value='Terapista ocupacional'>Terapista ocupacional</option>
-                <option {% if tipoSeleccionado == 'Fonoaudiologo'  %} selected {% endif %} value='Fonoaudiologo'>Fonoaudiologo</option>
-                <option {% if tipoSeleccionado == 'Psicologo'  %} selected {% endif %} value='Psicologo'>Psicologo</option>
-                <option {% if tipoSeleccionado == 'Fisiatra'  %} selected {% endif %} value='Fisiatra'>Fisiatra</option>
-                <option {% if tipoSeleccionado == 'Neurologo'  %} selected {% endif %} value='Neurologo'>Neurologo</option>
-                <option {% if tipoSeleccionado == 'Cardiologo'  %} selected {% endif %} value='Cardiologo'>Cardiologo</option>
-                <option {% if tipoSeleccionado == 'Urologo'  %} selected {% endif %} value='Urologo'>Urologo</option>
-                <option {% if tipoSeleccionado == 'Hematologo'  %} selected {% endif %} value='Hematologo'>Hematologo</option>
-                <option {% if tipoSeleccionado == 'Neumonologo'  %} selected {% endif %} value='Neumonologo'>Neumonologo</option>
-                <option {% if tipoSeleccionado == 'Cirujano'  %} selected {% endif %} value='Cirujano'>Cirujano</option>
-                <option {% if tipoSeleccionado == 'Traumatologo'  %} selected {% endif %} value='Traumatologo'>Traumatologo</option>
-                <option {% if tipoSeleccionado == 'Neumonologo'  %} selected {% endif %} value='Neumonologo'>Neumonologo</option>
-            </select>
+        <div class="col-8 m-4">
+            <form method="GET" action="{{ path('evolucion_index')}}">
+                <input type="hidden" name="cliente" value="{{clientId}}">
+                <input type="hidden" name="currentPage" value="1">
+                <div class="row">
+                    <div class="col-2">
+                        <span>Tipo:</span>
+                    </div>
+                    <div class="col-4">
+                        <select class="form-control" name="tipoSeleccionado">
+                            <option {% if tipoSeleccionado == 'todos'  %} selected {% endif %} value="todos">Todos</option>
+                            <option {% if tipoSeleccionado == 'Nutricionista'  %} selected {% endif %} value='Nutricionista'>Nutricionista</option>
+                            <option {% if tipoSeleccionado == 'Director medico'  %} selected {% endif %} value='Director medico'>Director medico</option>
+                            <option {% if tipoSeleccionado == 'Sub director medico'  %} selected {% endif %} value='Sub director medico'>Sub director medico</option>
+                            <option {% if tipoSeleccionado == 'Trabajadora social'  %} selected {% endif %} value='Trabajadora social'>Trabajadora social</option>
+                            <option {% if tipoSeleccionado == 'Psiquiatra'  %} selected {% endif %} value='Psiquiatra'>Psiquiatra</option>
+                            <option {% if tipoSeleccionado == 'Infectologo'  %} selected {% endif %} value='Infectologo'>Infectologo</option>
+                            <option {% if tipoSeleccionado == 'Medico de guardia'  %} selected {% endif %} value='Medico de guardia'>Medico de guardia</option>
+                            <option {% if tipoSeleccionado == 'Medico Clínico'  %} selected {% endif %} value='Medico Clínico'>Medico Clínico</option>
+                            <option {% if tipoSeleccionado == 'Kinesiologo'  %} selected {% endif %} value='Kinesiologo'>Kinesiologo</option>
+                            <option {% if tipoSeleccionado == 'Kinesiologo respiratorio'  %} selected {% endif %} value='Kinesiologo respiratorio'>Kinesiologo respiratorio</option>
+                            <option {% if tipoSeleccionado == 'Terapista ocupacional'  %} selected {% endif %} value='Terapista ocupacional'>Terapista ocupacional</option>
+                            <option {% if tipoSeleccionado == 'Fonoaudiologo'  %} selected {% endif %} value='Fonoaudiologo'>Fonoaudiologo</option>
+                            <option {% if tipoSeleccionado == 'Psicologo'  %} selected {% endif %} value='Psicologo'>Psicologo</option>
+                            <option {% if tipoSeleccionado == 'Fisiatra'  %} selected {% endif %} value='Fisiatra'>Fisiatra</option>
+                            <option {% if tipoSeleccionado == 'Neurologo'  %} selected {% endif %} value='Neurologo'>Neurologo</option>
+                            <option {% if tipoSeleccionado == 'Cardiologo'  %} selected {% endif %} value='Cardiologo'>Cardiologo</option>
+                            <option {% if tipoSeleccionado == 'Urologo'  %} selected {% endif %} value='Urologo'>Urologo</option>
+                            <option {% if tipoSeleccionado == 'Hematologo'  %} selected {% endif %} value='Hematologo'>Hematologo</option>
+                            <option {% if tipoSeleccionado == 'Neumonologo'  %} selected {% endif %} value='Neumonologo'>Neumonologo</option>
+                            <option {% if tipoSeleccionado == 'Cirujano'  %} selected {% endif %} value='Cirujano'>Cirujano</option>
+                            <option {% if tipoSeleccionado == 'Traumatologo'  %} selected {% endif %} value='Traumatologo'>Traumatologo</option>
+                            <option {% if tipoSeleccionado == 'Neumonologo'  %} selected {% endif %} value='Neumonologo'>Neumonologo</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-2">
+                        <span>Desde:</span>
+                    </div>
+                    <div class="col-4">
+                        <input class="form-control js-datepicker" type="text" name="from" autocomplete="off" value="{{fechaDesde}}">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-2">
+                        <span>Hasta:</span>
+                    </div>
+                    <div class="col-4">
+                        <input class="form-control js-datepicker" type="text" name="to" autocomplete="off" value="{{fechaHasta}}">
+                    </div>
+                    <div class="col-2">
+                        <button class="btn btn-success"type="submit">buscar</button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
     <div class="row" style="overflow-x: auto;">
         <table class="table mb-4">
         <thead>
-        <tr>
-            <th>Tipo</th>
-            <th>Fecha</th>
-            <th>Tiene adjuntos?</th>
-            <th>Usuario</th>
-        </tr>
+            <tr>
+                <th colspan="10">
+                {% if maxPages > 1 %}
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination">
+                            {% if thisPage > 1 %}
+                                <li class="page-item" >
+                                    <a class="page-link" href="{{ path('evolucion_index', {currentPage: (thisPage-1 < 1 ? 1 : thisPage-1),
+                                                                            cliente: ((clientId) ? clientId : ''), 
+                                                                            tipoSeleccionado: ((tipoSeleccionado) ? tipoSeleccionado : ''), 
+                                                                            from: ((fechaDesde) ? fechaDesde : ''), 
+                                                                            to: ((fechaHasta) ? fechaHasta : ''), 
+                                            }) }}">«</a>
+                                        </li>
+                            {% endif %}
+
+                            {# Render each page number #}
+                            {% for i in 1..maxPages %}
+                            <li class="page-item {% if thisPage == i %}active{% endif %}">
+                                <a class="page-link" href="{{ path('evolucion_index', {
+                                                                            currentPage: i, 
+                                                                            cliente: ((clientId) ? clientId : ''), 
+                                                                            tipoSeleccionado: ((tipoSeleccionado) ? tipoSeleccionado : ''), 
+                                                                            from: ((fechaDesde) ? fechaDesde : ''), 
+                                                                            to: ((fechaHasta) ? fechaHasta : ''), 
+                                            }) 
+                                        }}">
+                                    {{ i }}
+                                </a>
+                            </li>
+                            {% endfor %}
+
+                            {# `»` arrow #}
+                            {% if thisPage < maxPages %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ path('cliente_historicos', {currentPage: (thisPage+1 <= maxPages ? thisPage+1 : thisPage),
+                                                                                                    cliente: ((clientId) ? clientId : ''), 
+                                                                                                    tipoSeleccionado: ((tipoSeleccionado) ? tipoSeleccionado : ''),
+                                                                                                    from: ((fechaDesde) ? fechaDesde : ''), 
+                                                                                                    to: ((fechaHasta) ? fechaHasta : ''), 
+                                    }) }}">»</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+                </th>
+            </tr>
+            <tr>
+            <tr>
+                <th>Tipo</th>
+                <th>Fecha</th>
+                <th>Tiene adjuntos?</th>
+                <th>Usuario</th>
+            </tr>
         </thead>
         <tbody>
         {% for evolucion in evolucions %}
@@ -77,9 +154,8 @@
 {% block javascripts %}
     {{ parent() }}
     <script>
-        $('#filtrarPorTipo').on('change', function() {
-            let path = "{{ path('evolucion_index', {'cliente': clienteId}) }}";
-            location.href =  path + '&tipoSeleccionado=' + $(this).val();
+        $('.js-datepicker').datepicker({
+            format: 'dd/mm/yyyy'
         });
 
         $('.tr-link').click(function() {

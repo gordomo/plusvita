@@ -31,6 +31,13 @@ class EvolucionController extends AbstractController
     {
         $user = $this->getUser();
         $tipoSeleccionado = $request->query->get('tipoSeleccionado', 0);
+        $limit = $request->query->get('limit', 100);
+        $currentPage = $request->query->get('currentPage', 1);
+        $from = $request->get('from', null);
+        $to = $request->get('to', null);
+        
+        $fechaDesde = \DateTime::createFromFormat("d/m/Y", $from);
+        $fechaHasta = \DateTime::createFromFormat("d/m/Y", $to);
 
         $modalidades = [];
         if($user instanceOf Doctor) {
@@ -41,19 +48,30 @@ class EvolucionController extends AbstractController
             $tipoSeleccionado = $modalidades[0];
         }
 
-        $cliente = $clienteRepository->find($request->get('cliente'));
+        $clientId = $request->get('cliente');
+        $cliente = $clienteRepository->find($clientId);
 
         if($cliente->getModalidad() == 1 && !$cliente->getAmbulatorioPresente()) {
             die('ausente');
         }
 
-        $evoluciones = $evolucionRepository->findByClienteYTipo($cliente, $tipoSeleccionado);
+        $evoluciones = $evolucionRepository->findByClienteYTipo($cliente, $tipoSeleccionado, $currentPage, $limit, $fechaDesde, $fechaHasta);
+        
+
+        $maxPages = ceil($evoluciones['paginator']->count() / $limit);
+        
 
         return $this->render('evolucion/index.html.twig', [
             'nombreCliente' => $cliente->getNombre() . ' ' . $cliente->getApellido(),
-            'evolucions' => $evoluciones,
+            'evolucions' => $evoluciones['paginator'],
+            'all_items' => $evoluciones['query'],
             'clienteId' => $cliente->getId(),
             'tipoSeleccionado' => $tipoSeleccionado,
+            'maxPages'=> $maxPages,
+            'thisPage' => $currentPage,
+            'clientId' => $clientId,
+            'fechaDesde' => $from ?? 'elija una fecha',
+            'fechaHasta' => $to ?? 'elija una fecha',
         ]);
     }
 
@@ -63,6 +81,7 @@ class EvolucionController extends AbstractController
     public function new(SluggerInterface $slugger, ValidatorInterface $validator, Request $request, ClienteRepository $clienteRepository, EvolucionRepository $evolucionRepository): Response
     {
         $user = $this->getUser();
+        $puedenEditarEvoluciones = in_array('ROLE_EDIT_HC', $this->getUser()->getRoles());
         $error = '';
         if (!$user) {
             return $this->redirectToRoute('app_login');
@@ -91,7 +110,7 @@ class EvolucionController extends AbstractController
 
                 $adjuntos = $form->get('adjunto')->getData();
 
-                if(!empty($cliente->getFegreso()) && $cliente->getFegreso() < $evolucion->getFecha()) {
+                if(!empty($cliente->getFegreso()) && $cliente->getFegreso() < $evolucion->getFecha() && !$puedenEditarEvoluciones) {
                     die('paciente con fecha egreso anterior a la fecha de la evolución, no se puede evolucionar');
                 }
 

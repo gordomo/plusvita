@@ -205,6 +205,11 @@ class User implements UserInterface
         return $this;
     }
 
+    public function getModalidad(): ?array
+    {
+        return [];
+    }
+
     public function getHabilitado(): ?bool
     {
         return $this->habilitado;

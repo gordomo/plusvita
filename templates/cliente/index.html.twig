@@ -281,6 +281,11 @@
                                     <a class="dropdown-item" href="{{ path('cliente_historial', {'id': cliente.id}) }}">
                                         <i class="far fa-calendar-alt" data-toggle="tooltip" data-placement="top" title="historia"></i> Ver Historia
                                     </a>
+                                    {% if (puedenEditarEvoluciones) %} 
+                                    <a class="dropdown-item" href="{{ path('evolucion_index', {'cliente': cliente.id}) }}">
+                                        <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="evoluciones"></i> Evoluciones
+                                    </a>
+                                    {% endif %}
                                     <a class="dropdown-item" href="{{ path('consumible_historico', {'id': cliente.id}) }}">
                                         <i class="fas fa-eye" data-toggle="tooltip" data-placement="top" title="consumos"></i> Consumos
                                     </a>
