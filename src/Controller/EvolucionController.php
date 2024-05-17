@@ -33,8 +33,10 @@ class EvolucionController extends AbstractController
         $tipoSeleccionado = $request->query->get('tipoSeleccionado', 0);
         $limit = $request->query->get('limit', 100);
         $currentPage = $request->query->get('currentPage', 1);
-        $from = $request->get('from', null);
-        $to = $request->get('to', null);
+        $f = new \DateTime('first day of this month');
+        $l = new \DateTime('last day of this month');
+        $from = $request->get('from', $f->format('d/m/Y'));
+        $to = $request->get('to', $l->format('d/m/Y'));
         
         $fechaDesde = \DateTime::createFromFormat("d/m/Y", $from);
         $fechaHasta = \DateTime::createFromFormat("d/m/Y", $to);
