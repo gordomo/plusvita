@@ -20,6 +20,8 @@ class EvolucionType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $modalidad = $options['modalidad'];
+        $doctores = $options['doctores'];
+        $puedenEditarEvoluciones = $options['puedenEditarEvoluciones'];
         $today = new \DateTime();
 
         $builder
@@ -33,8 +35,15 @@ class EvolucionType extends AbstractType
                             return [];
                         }
                     },
-                ])
-            ->add('description', TextareaType::class, [
+                ]);
+            if($puedenEditarEvoluciones) {
+                $builder->add('doctor', ChoiceType::class, [
+                    'required' => true,
+                    'choices' => $doctores,
+                    'mapped' => false,
+                ]);
+            }  
+            $builder->add('description', TextareaType::class, [
                 'attr' => ['style' => 'min-height:12rem', 'class' => 'ckeditor']
             ])
             ->add('fecha', DateType::class, ['label' => 'Fecha', 'required' => true, 'widget' => 'single_text', 'html5' => true, 'attr' => ['class' => 'js-datepicker', "max" => $today->format('Y-m-d')]])
@@ -76,6 +85,8 @@ class EvolucionType extends AbstractType
         $resolver->setDefaults([
             'data_class' => Evolucion::class,
             'modalidad' => '',
+            'doctores' => '',
+            'puedenEditarEvoluciones' => '',
         ]);
     }
 

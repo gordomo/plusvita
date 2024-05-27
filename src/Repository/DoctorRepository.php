@@ -80,4 +80,10 @@ class DoctorRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function findEmails() {
+        return $this->createQueryBuilder('d')
+        ->select('d.email')
+        ->getQuery()->getResult();
+    }
 }
