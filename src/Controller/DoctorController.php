@@ -640,7 +640,7 @@ class DoctorController extends AbstractController
 
         switch ($pestana) {
             case 'inactivos':
-                $otrosPacientes = $clienteRepository->findInActivos(new \DateTime(), $nombreInput, 'apellido');
+                $otrosPacientes = $clienteRepository->findInActivos(new \DateTime(), $nombreInput, 1, 10, 'apellido');
                 break;
             case 'derivados':
                 $otrosPacientes = $clienteRepository->findDerivados(new \DateTime(), $nombreInput, 'apellido');

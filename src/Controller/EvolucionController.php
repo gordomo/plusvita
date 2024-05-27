@@ -84,7 +84,7 @@ class EvolucionController extends AbstractController
     public function new(SluggerInterface $slugger, ValidatorInterface $validator, Request $request, ClienteRepository $clienteRepository, EvolucionRepository $evolucionRepository, DoctorRepository $doctorRepository): Response
     {
         $user = $this->getUser();
-        $puedenEditarEvoluciones = in_array('ROLE_EDIT_HC', $this->getUser()->getRoles());
+        $puedenEditarEvoluciones = in_array('ROLE_EDIT_HC', $user->getRoles());
         $doctores = $doctorRepository->findEmails();
         $docArr = [];
         foreach ( $doctores as $doc ) {
@@ -118,13 +118,20 @@ class EvolucionController extends AbstractController
                 $entityManager = $this->getDoctrine()->getManager();
 
                 $adjuntos = $form->get('adjunto')->getData();
-                $doctor = $form->get('doctor')->getData();
-                if ( $doctor ) $evolucion->setUser($doctor);
-
+                
+                if ($form->has('doctor')) {
+                    $evolucion->setUser($form->get('doctor')->getData());
+                }
                 if(!empty($cliente->getFegreso()) && $cliente->getFegreso() < $evolucion->getFecha() && !$puedenEditarEvoluciones) {
                     die('paciente con fecha egreso anterior a la fecha de la evolución, no se puede evolucionar');
                 }
-
+                
+                $hoy = new \DateTime();
+                
+                if ($evolucion->getFecha()->diff($hoy)->days > 0 && !$puedenEditarEvoluciones) {
+                    die('la fecha de la evolución es anterior al día de la fecha, no se puede evolucionar');
+                }
+                
                 foreach($adjuntos as $adjunto) {
                     $originalFilename = pathinfo($adjunto->getClientOriginalName(), PATHINFO_FILENAME);
                     $safeFilename = $slugger->slug($originalFilename);

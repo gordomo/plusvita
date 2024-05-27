@@ -44,7 +44,8 @@ class EvolucionType extends AbstractType
                 ]);
             }  
             $builder->add('description', TextareaType::class, [
-                'attr' => ['style' => 'min-height:12rem', 'class' => 'ckeditor']
+                'attr' => ['style' => 'min-height:12rem', 'class' => 'ckeditor'],
+                'required' => true,
             ])
             ->add('fecha', DateType::class, ['label' => 'Fecha', 'required' => true, 'widget' => 'single_text', 'html5' => true, 'attr' => ['class' => 'js-datepicker', "max" => $today->format('Y-m-d')]])
             ->add('adjunto', FileType::class, [
