@@ -6,6 +6,7 @@ use App\Entity\Doctor;
 use App\Entity\Evolucion;
 use App\Form\EvolucionType;
 use App\Repository\ClienteRepository;
+use App\Repository\DoctorRepository;
 use App\Repository\EvolucionRepository;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use http\Client;
@@ -80,10 +81,16 @@ class EvolucionController extends AbstractController
     /**
      * @Route("/new", name="evolucion_new", methods={"GET","POST"})
      */
-    public function new(SluggerInterface $slugger, ValidatorInterface $validator, Request $request, ClienteRepository $clienteRepository, EvolucionRepository $evolucionRepository): Response
+    public function new(SluggerInterface $slugger, ValidatorInterface $validator, Request $request, ClienteRepository $clienteRepository, EvolucionRepository $evolucionRepository, DoctorRepository $doctorRepository): Response
     {
         $user = $this->getUser();
         $puedenEditarEvoluciones = in_array('ROLE_EDIT_HC', $this->getUser()->getRoles());
+        $doctores = $doctorRepository->findEmails();
+        $docArr = [];
+        foreach ( $doctores as $doc ) {
+            $docArr[$doc['email']] = $doc['email'];
+        }
+        
         $error = '';
         if (!$user) {
             return $this->redirectToRoute('app_login');
@@ -103,7 +110,7 @@ class EvolucionController extends AbstractController
             $modalidad = $modalidades[0];
         }
 
-        $form = $this->createForm(EvolucionType::class, $evolucion, ['modalidad' => $modalidad]);
+        $form = $this->createForm(EvolucionType::class, $evolucion, ['modalidad' => $modalidad, 'doctores' => $docArr, 'puedenEditarEvoluciones' => $puedenEditarEvoluciones]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -111,6 +118,8 @@ class EvolucionController extends AbstractController
                 $entityManager = $this->getDoctrine()->getManager();
 
                 $adjuntos = $form->get('adjunto')->getData();
+                $doctor = $form->get('doctor')->getData();
+                if ( $doctor ) $evolucion->setUser($doctor);
 
                 if(!empty($cliente->getFegreso()) && $cliente->getFegreso() < $evolucion->getFecha() && !$puedenEditarEvoluciones) {
                     die('paciente con fecha egreso anterior a la fecha de la evolución, no se puede evolucionar');
