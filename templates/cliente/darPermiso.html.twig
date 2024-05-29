@@ -27,7 +27,7 @@
                             <span>Horarios</span>
                             {% for turno in turnos %}
                                 <br>
-                                <span> {{ turno.beginAt |date('m/d/Y - h:m') }}hs</span>
+                                <span> {{ turno.beginAt |date('d/m/Y - h:m') }}hs</span>
                             {% endfor %}
                         </div>
                     </div>

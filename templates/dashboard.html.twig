@@ -30,9 +30,9 @@
                     <div class="modal-body">
                         <div class="form-group columnas-de-dos">
                             <label for="contrato">Desde</label>
-                                <input class="form-control js-datepicker" type="text" id="from" autocomplete="off" value="selecione una fecha">
+                                <input class="form-control" type="date" id="from" name="from">
                             <label for="contrato">Hasta</label>
-                                <input class="form-control js-datepicker" type="text" id="to" autocomplete="off" value="selecione una fecha">
+                                <input class="form-control" type="date" id="to" name="to">
                         </div>
                         <div class="form-group text-right">
                             <button type="button" id="filtrarPorFecha" class="btn btn-primary">Buscar</button>
@@ -225,11 +225,8 @@
                 return 0;
             }
 
-            var FromDateParts = from.split("/");
-            var ToDateParts = to.split("/");
-
-            var headerFrom = new Date(+FromDateParts[2], FromDateParts[1] - 1, +FromDateParts[0]);
-            var headerTo = new Date(+ToDateParts[2], ToDateParts[1] - 1, +ToDateParts[0]);
+            var headerFrom = new Date(from);
+            var headerTo = new Date(to);
 
             if (headerTo < headerFrom) {
                 alert('La fecha desde debe ser mayor a la fecha hasta');

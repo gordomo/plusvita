@@ -103,19 +103,14 @@ class LiquidacionesController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        $desde = $request->query->get('desde') ?? '';
-        $hasta = $request->query->get('hasta') ?? '';
         $obraSocialSelected = $request->query->get('obraSocial') ?? '';
-        $completados = $request->query->get('completados') ?? 1;
-        $from = new \DateTime('2000-01-01');
-        $to = new \DateTime();
-
-        if($desde != '') {
-            $from = (new \DateTime($desde));
-        }
-        if($hasta != '') {
-            $to = (new \DateTime($hasta));
-        }
+        $completados        = $request->query->get('completados') ?? 1;
+        $f          = new \DateTime('first day of this month');
+        $l          = new \DateTime('last day of this month');
+        $from       = $request->get('from' , $f->format('Y-m-d'));
+        $to         = $request->get('to', $l->format('Y-m-d'));
+        $fechaDesde = $from ? new \DateTime($from. '0:0:0') : $from;
+        $fechaHasta = $to   ? new \DateTime($to. '23:59:59'): $to;
 
         $ids = $request->query->get('ids');
 
@@ -124,7 +119,7 @@ class LiquidacionesController extends AbstractController
         $clientes = $clienteRepository->findByNombreYobraSocial(null, $obraSocialSelected);
 
         foreach ($doctores as $doctor) {
-            $bookings[] = $bookingRepository->turnosParaAgenda($doctor, $from, '', $clientes, $from, $to, $completados);
+            $bookings[] = $bookingRepository->turnosParaAgenda($doctor, $fechaDesde, '', $clientes, $fechaDesde, $fechaHasta, $completados);
             $evoluciones[] = $evolucionRepository->findByFechaYDoctor($doctor->getEmail(), $from, $to);
 
         }
@@ -138,15 +133,15 @@ class LiquidacionesController extends AbstractController
 
         return $this->render('liquidaciones/liquidar_varios.html.twig',
             [
-                'bookings' => $bookings,
-                'doctor' => $doctor,
-                'desde' => $desde,
-                'hasta' => $hasta,
-                'obrasSociales' => $obrasSocialesArray,
-                'obraSocialSelected' => $obraSocialSelected,
-                'paginaImprimible' => true,
-                'completados' => $completados,
-                'evoluciones' => $evoluciones
+                'bookings'              => $bookings,
+                'doctor'                => $doctor,
+                'fechaDesde'            => $from,
+                'fechaHasta'            => $to,
+                'obrasSociales'         => $obrasSocialesArray,
+                'obraSocialSelected'    => $obraSocialSelected,
+                'paginaImprimible'      => true,
+                'completados'           => $completados,
+                'evoluciones'           => $evoluciones
             ]);
     }
 
@@ -172,28 +167,19 @@ class LiquidacionesController extends AbstractController
         $completados = $request->query->get('completados') ?? 1;
         $nombreInput = $request->query->get('nombreInput') ?? '';
 
-        $to = new \DateTime();
-        $from = new \DateTime();
-        $from->modify('first day of previous month');
-        $to->modify('last day of previous month');
-        
-        $desde = $request->query->get('desde') ?? $from->format('Y-m-d');;
-        $hasta = $request->query->get('hasta') ?? $to->format('Y-m-d');;
-
-
-        if($desde != '') {
-            $from = (new \DateTime($desde));
-        }
-        if($hasta != '') {
-            $to = (new \DateTime($hasta));
-        }
+        $f          = new \DateTime('first day of this month');
+        $l          = new \DateTime('last day of this month');
+        $from       = $request->get('from' , $f->format('Y-m-d'));
+        $to         = $request->get('to', $l->format('Y-m-d'));
+        $fechaDesde = $from ? new \DateTime($from. '0:0:0') : $from;
+        $fechaHasta = $to   ? new \DateTime($to. '23:59:59'): $to;
 
         $doctor = $doctorRepository->find($id);
 
         $evolucionesPivotOs = [];
         $evolucionesPivotOsActivos = [];
         $evolucionesPivotOsAmbulatorios = [];
-        $evoluciones = $evolucionRepository->findByFechaDoctorYCliente($doctor->getEmail(), null, $from, $to);
+        $evoluciones = $evolucionRepository->findByFechaDoctorYCliente($doctor->getEmail(), null, $fechaDesde, $fechaHasta);
 
         $evolucionesCount = count($evoluciones);
         $evolucionesCountActivos = 0;
@@ -247,8 +233,8 @@ class LiquidacionesController extends AbstractController
             [
                 //'bookings' => $bookings,
                 'doctor' => $doctor,
-                'desde' => $desde,
-                'hasta' => $hasta,
+                'fechaDesde' => $from,
+                'fechaHasta' => $to,
                 'obrasSociales' => $obrasSociales,
                 'obraSocialSelected' => $obraSocialSelected,
                 'paginaImprimible' => true,

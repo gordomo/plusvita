@@ -46,7 +46,7 @@
                         <span>Desde:</span>
                     </div>
                     <div class="col-4">
-                        <input class="form-control js-datepicker" type="text" name="from" autocomplete="off" value="{{fechaDesde}}">
+                        <input class="form-control" type="date" name="from" value="{{fechaDesde}}">
                     </div>
                 </div>
                 <div class="row">
@@ -54,7 +54,7 @@
                         <span>Hasta:</span>
                     </div>
                     <div class="col-4">
-                        <input class="form-control js-datepicker" type="text" name="to" autocomplete="off" value="{{fechaHasta}}">
+                        <input class="form-control" type="date" name="to" value="{{fechaHasta}}">
                     </div>
                     <div class="col-2">
                         <button class="btn btn-success"type="submit">buscar</button>
@@ -126,7 +126,7 @@
         {% for evolucion in evolucions %}
             <tr class="tr-link" data-link="{{ path('evolucion_show', {'id': evolucion.id}) }}">
                 <th>{{ evolucion.tipo }}</th>
-                <th>{{ evolucion.fecha ? evolucion.fecha|date('Y-m-d') : '' }}</th>
+                <th>{{ evolucion.fecha ? evolucion.fecha|date('d/m/Y') : '' }}</th>
                 {#<td>{{ evolucion.description|striptags|length > 25 ? evolucion.description|striptags|slice(0, 25) ~ '...' : evolucion.description|striptags }}</td>#}
                 <td>
                     {% if evolucion.adjuntoUrl is not empty %}
@@ -154,10 +154,6 @@
 {% block javascripts %}
     {{ parent() }}
     <script>
-        $('.js-datepicker').datepicker({
-            format: 'dd/mm/yyyy'
-        });
-
         $('.tr-link').click(function() {
             let url = $(this).data('link');
             window.location = url;

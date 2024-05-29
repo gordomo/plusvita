@@ -8,11 +8,11 @@
         <tbody>
             <tr>
                 <th>Comienza</th>
-                <td>{{ booking.beginAt ? booking.beginAt|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ booking.beginAt ? booking.beginAt|date('d/m/Y H:i:s') : '' }}</td>
             </tr>
             <tr>
                 <th>Finaliza</th>
-                <td>{{ booking.endAt ? booking.endAt|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ booking.endAt ? booking.endAt|date('d/m/Y H:i:s') : '' }}</td>
             </tr>
             <tr>
                 <th>Titulo</th>
@@ -53,7 +53,7 @@
             </tr>
             <tr>
                 <th>Hasta</th>
-                <td>{{ booking.hasta ? booking.hasta|date('Y-m-d') : '' }}</td>
+                <td>{{ booking.hasta ? booking.hasta|date('d/m/Y') : '' }}</td>
             </tr>
         </tbody>
     </table>

@@ -11,11 +11,11 @@
         <div class="row">
             <div class="col">
                 <label for="from">Desde</label>
-                <input class="form-control js-datepicker" type="text" id="from" autocomplete="off" name="from" value="{{ from }}">
+                <input class="form-control" type="date" id="from" name="from" value="{{ from }}">
             </div>
             <div class="col">
                 <label for="to">Hasta</label>
-                <input class="form-control js-datepicker" type="text" id="to" autocomplete="off" name="to" value="{{ to }}">
+                <input class="form-control" type="date" id="to" name="to" value="{{ to }}">
             </div>
             <div class="col">
                 <label for="modalidad">Estado</label>
@@ -181,9 +181,6 @@
 {% block javascripts %}
     {{ parent() }}
     <script>
-        $('.js-datepicker').datepicker({
-            format: 'dd/mm/yyyy'
-        });
         
         $('form').submit(function(e) {
             $(".deshabilitar").attr('disabled', true);

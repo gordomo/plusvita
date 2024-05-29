@@ -149,7 +149,7 @@
                         <td class="hClinica">{{ cliente.hClinica }}</td>
                         <td class="nombre">{{ cliente.nombre }}</td>
                         <td class="apellido">{{ cliente.apellido }}</td>
-                        <td class="fNacimiento">{{ cliente.fNacimiento ? cliente.fNacimiento|date('Y-m-d') : '' }}</td>
+                        <td class="fNacimiento">{{ cliente.fNacimiento ? cliente.fNacimiento|date('d/m/Y') : '' }}</td>
                         <td class="edad">{{ cliente.edad }}</td>
                         <td class="dni">{{ cliente.dni }}</td>
                         <td class="ultimaEvolucion" style="text-align: center">
@@ -167,7 +167,7 @@
                         </td>
                         <td class="lowercase email">{{ cliente.email }}</td>
                         <td class="telefono">{{ cliente.telefono }}</td>
-                        <td class="fIngreso">{{ cliente.fIngreso ? cliente.fIngreso|date('Y-m-d') : '' }}</td>
+                        <td class="fIngreso">{{ cliente.fIngreso ? cliente.fIngreso|date('d/m/Y') : '' }}</td>
                         <td class="motivoIng">
                             {% if(cliente.motivoIng == 1) %}
                                 Neurologicas
@@ -193,7 +193,7 @@
                                 ART
                             {% endif %}
                         </td>
-                        <td class="fEgreso">{{ cliente.fEgreso ? cliente.fEgreso|date('Y-m-d') : '' }}</td>
+                        <td class="fEgreso">{{ cliente.fEgreso ? cliente.fEgreso|date('d/m/Y') : '' }}</td>
                         <td class="motivoEgr">{{ cliente.motivoEgr }}</td>
                         <td class="obraSocial">
                             {{ cliente.obraSocial.nombre ?? 'no tiene' }}
@@ -247,19 +247,19 @@
                         <td class="disponibleParaTerapia">{{ cliente.disponibleParaTerapia }} </td>
                         <td class="derivado">{{ cliente.derivado }} </td>
                         <td class="derivadoEn">{{ cliente.derivadoEn }} </td>
-                        <td class="fechaDerivacion">{{ cliente.fechaDerivacion ? cliente.fechaDerivacion|date('Y-m-d') : ''  }} </td>
+                        <td class="fechaDerivacion">{{ cliente.fechaDerivacion ? cliente.fechaDerivacion|date('d/m/Y') : ''  }} </td>
                         <td class="motivoDerivacion">{{ cliente.motivoDerivacion }} </td>
-                        <td class="fechaReingresoDerivacion">{{ cliente.fechaReingresoDerivacion ? cliente.fechaReingresoDerivacion|date('Y-m-d') : '' }} </td>
+                        <td class="fechaReingresoDerivacion">{{ cliente.fechaReingresoDerivacion ? cliente.fechaReingresoDerivacion|date('d/m/Y') : '' }} </td>
                         <td class="empTrasladoDerivacion">{{ cliente.empTrasladoDerivacion }} </td>
                         <td class="motivoReingresoDerivacion">{{ cliente.motivoReingresoDerivacion }} </td>
                         <td class="dePermiso">{{ cliente.dePermiso }} </td>
-                        <td class="fechaBajaPorPermiso">{{ cliente.fechaBajaPorPermiso ? cliente.fechaBajaPorPermiso|date('Y-m-d') : '' }} </td>
-                        <td class="fechaAltaPorPermiso">{{ cliente.fechaAltaPorPermiso ? cliente.fechaAltaPorPermiso|date('Y-m-d') : '' }} </td>
+                        <td class="fechaBajaPorPermiso">{{ cliente.fechaBajaPorPermiso ? cliente.fechaBajaPorPermiso|date('d/m/Y') : '' }} </td>
+                        <td class="fechaAltaPorPermiso">{{ cliente.fechaAltaPorPermiso ? cliente.fechaAltaPorPermiso|date('d/m/Y') : '' }} </td>
                         <td class="terapiasHabilitadas">{{ cliente.terapiasHabilitadas ? cliente.terapiasHabilitadas|json_encode : '' }} </td>
                         <td class="terapiasNoHabilitadas">{{ cliente.terapiasNoHabilitadas ? cliente.terapiasNoHabilitadas|json_encode : ''  }} </td>
                         <td class="sesionesDisp">{{ cliente.sesionesDisp }} </td>
                         <td class="formNum">{{ cliente.formNum }} </td>
-                        <td class="vtoSesiones">{{ cliente.vtoSesiones ? cliente.vtoSesiones|date('Y-m-d') : ''}} </td>
+                        <td class="vtoSesiones">{{ cliente.vtoSesiones ? cliente.vtoSesiones|date('d/m/Y') : ''}} </td>
                         <td class="mediaSesionView">{{ cliente.mediaSesion }} </td>
                         <td class="dieta">{{ cliente.dieta }} </td>
                         <td class="acciones">

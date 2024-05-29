@@ -13,7 +13,7 @@
                             Desde:
                         </div>
                         <div class="col-md-10" style="float: left;">
-                            <input id='from' type="date" class="js-datepicker form-control" value="{{ desde }}">
+                            <input id="from" name="from" type="date" class="form-control" value="{{ fechaDesde }}">
                         </div>
                     </div>
                     <div class="col-md-3" style="float: left;">
@@ -21,7 +21,7 @@
                             Hasta:
                         </div>
                         <div class="col-md-10" style="float: left;">
-                            <input id='to' type="date" class="js-datepicker form-control" value="{{ hasta }}">
+                            <input id="to" name="to" type="date" class="form-control" value="{{ fechaHasta }}">
                         </div>
                     </div>
                     {# <div class="col-md-2" style="float: left;">
@@ -79,7 +79,7 @@
                         <td class="fecha">
                             <div>{{ evolucion.paciente.obraSocial.nombre }}</div>
                         </td>
-                        <td class="fecha">{{ evolucion.fecha | date('m/d/Y') }}</td>
+                        <td class="fecha">{{ evolucion.fecha | date('d/m/Y') }}</td>
                         <td class="desc">{{ (evolucion.description|length > 50 ? evolucion.description | striptags |slice(0, 50) ~ '…'   : evolucion.description | striptags )  }}</td>
                         <td><a href="{{ path('evolucion_show', {'id': evolucion.id}) }}">ver</a> </td>
                         <td></td>
@@ -167,7 +167,7 @@
             let obraSocial = $('#obraSocial').val();
             let estado = $('#estado').val();
 
-            url = url + '&desde=' + from + '&hasta=' + to + '&obraSocial=' + obraSocial + '&estado=' + estado;
+            url = url + '&from=' + from + '&to=' + to + '&obraSocial=' + obraSocial + '&estado=' + estado;
 
             window.location.href = url;
         })

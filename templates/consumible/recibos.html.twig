@@ -22,7 +22,7 @@
             {% for recibo in recibos %}
                     <tr>
                         <td >
-                            {{ recibo.fecha ? recibo.fecha|date('Y-m-d') : ''}}
+                            {{ recibo.fecha ? recibo.fecha|date('d/m/Y') : ''}}
                         </td>
                         <td >
                             {{ recibo.count }}

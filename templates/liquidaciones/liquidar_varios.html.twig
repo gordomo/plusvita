@@ -13,7 +13,7 @@
                             Desde:
                         </div>
                         <div class="col-md-10" style="float: left;">
-                            <input id='from' type="date" class="js-datepicker form-control" value="{{ desde }}">
+                            <input id="from" name="from" type="date" class="form-control" value="{{ fechaDesde }}">
                         </div>
                     </div>
                     <div class="col-md-4" style="float: left;">
@@ -21,7 +21,7 @@
                             Hasta:
                         </div>
                         <div class="col-md-10" style="float: left;">
-                            <input id='to' type="date" class="js-datepicker form-control" value="{{ hasta }}">
+                            <input id="to" name="to" type="date" class="form-control" value="{{ fechaHasta }}">
                         </div>
                     </div>
                 </th>
@@ -69,7 +69,7 @@
                         <tr>
                             <td class="paciente">{{ evolucion.paciente.nombre }} {{ evolucion.paciente.apellido }}</td>
                             <td class="fecha">{{ evolucion.paciente.obraSocial.nombre }}</td>
-                            <td class="fecha">{{ evolucion.fecha | date('m/d/Y') }}</td>
+                            <td class="fecha">{{ evolucion.fecha | date('d/m/Y') }}</td>
                             <td class="desc">{{ (evolucion.description|length > 50 ? evolucion.description|slice(0, 50) ~ '…' : evolucion.description)  }}</td>
                             <td><a href="{{ path('evolucion_show', {'id': evolucion.id}) }}">ver</a> </td>
                         </tr>
@@ -147,7 +147,7 @@
             let obraSocial = $('#obraSocial').val();
             let completados = $('#completados').val();
 
-            url = url + '&desde=' + from + '&hasta=' + to + '&obraSocial=' + obraSocial + '&completados=' + completados;
+            url = url + '&from=' + from + '&to=' + to + '&obraSocial=' + obraSocial + '&completados=' + completados;
 
             window.location.href = url;
         })

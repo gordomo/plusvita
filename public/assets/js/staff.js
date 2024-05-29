@@ -226,10 +226,6 @@ if($('#doctor_modalidad').is(':visible')) {
     });
 }
 
-$('.js-datepicker').datepicker({
-    format: 'yyyy-mm-dd'
-});
-
 $('.predictivo').chosen();
 $( "#buscarContrato" ).on('click', function(){
     location.href = '?ctr=' + $('#contrato').val();

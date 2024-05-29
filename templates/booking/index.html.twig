@@ -16,13 +16,13 @@
                             Desde:
                         </div>
                         <div class="col-5">
-                            <input name='from' type="date" class="js-datepicker form-control" value="{{ desde }}">
+                            <input name='from' type="date" class="form-control" value="{{ desde }}">
                         </div>
                         <div class="col-1" style="display: flex;align-items: center;justify-content: flex-end;">
                             Hasta:
                         </div>
                         <div class="col-5">
-                            <input name='to' type="date" class="js-datepicker form-control" value="{{ hasta }}">
+                            <input name='to' type="date" class="form-control" value="{{ hasta }}">
                         </div>
                     </div>
                 </div>
@@ -106,8 +106,8 @@
                 <td class="profesional" style="text-transform: capitalize">{{ booking.doctor.nombre }} {{ booking.doctor.apellido }}</td>
                 <td class="paciente" style="text-transform: capitalize">{{ booking.cliente.nombre }} {{ booking.cliente.apellido }}</td>
                 <td class="obraSocial">{{ obrasSociales[booking.cliente.obraSocial] }}{% if booking.cliente.MediaSesion %} (Media Sesion) {% endif %}</td>
-                <td class="comenzo">{{ booking.beginAt | date('Y-m-d H:i:s') }}</td>
-                <td class="finalizo">{{ booking.endAt | date('Y-m-d H:i:s') }}</td>
+                <td class="comenzo">{{ booking.beginAt | date('d/m/Y H:i:s') }}</td>
+                <td class="finalizo">{{ booking.endAt | date('d/m/Y H:i:s') }}</td>
                 <td class="titulo">{{ booking.completado ? 'si' : 'no' }}</td>
                 <td>
                     {% if not booking.completado %}

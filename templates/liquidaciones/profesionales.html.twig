@@ -61,10 +61,10 @@
                     {#<a href="{{ asset('uploads/firmas/' ~ doctor.firma) }}" target="_blank">Ver firma digital</a>#}
                 </td>
                 <td>
-                    {{ doctor.inicioContrato | date('Y-m-d') }}
+                    {{ doctor.inicioContrato | date('d/m/Y') }}
                 </td>
                 <td>
-                    {{ doctor.vtoContrato | date('Y-m-d') }}
+                    {{ doctor.vtoContrato | date('d/m/Y') }}
                 </td>
                 <td class="">
                     {{ doctor.cbu }}

@@ -12,11 +12,11 @@
         <div class="row">
             <div class="col">
                 <label for="contrato">Desde</label>
-                <input class="form-control js-datepicker" type="text" id="from" autocomplete="off" name="from" value="{{ from }}">
+                <input class="form-control" type="date" id="from" name="from" value="{{ from }}">
             </div>
             <div class="col">
                 <label for="contrato">Hasta</label>
-                <input class="form-control js-datepicker" type="text" id="to" autocomplete="off" name="to" value="{{ to }}">
+                <input class="form-control" type="date" id="to" name="to" value="{{ to }}">
             </div>
             <div class="col">
                 <label for="estado">Estado</label>
@@ -105,7 +105,7 @@
                         ART
                     {% endif %}
                 </td>
-                <td class="obraSocial">{{ oSociales[cliente.obraSocial] }}</td>
+                <td class="obraSocial"></td>
                 <td><a href="{{ path('cliente_historial', {'id': cliente.id}) }}" class="btn btn-primary btn-sm">HC</a> </td>
             </tr>
             {% if historiasArray[cliente.id] is defined %}

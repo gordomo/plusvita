@@ -29,7 +29,7 @@
                                 Desde:
                             </div>
                             <div class="col-md-9" style="float: left;">
-                                <input id='from' type="date" class="js-datepicker form-control" value="{{ desde }}">
+                                <input id='from' type="date" class="form-control" value="{{ desde }}">
                             </div>
                         </div>
                         <div class="col-md-6" style="float: left; padding: 0">
@@ -37,7 +37,7 @@
                                 Hasta:
                             </div>
                             <div class="col-md-10" style="float: left;">
-                                <input id='to' type="date" class="js-datepicker form-control" value="{{ hasta }}" data-url="{{ path('doctor_agenda', {'periodo': 'anteriores'}) }}">
+                                <input id='to' type="date" class="form-control" value="{{ hasta }}" data-url="{{ path('doctor_agenda', {'periodo': 'anteriores'}) }}">
                             </div>
                         </div>
                     </div>
@@ -82,8 +82,8 @@
                 {% endif %}
                 <tr class="{% if turno.cliente.MediaSesion %} mediaSesion {% endif %}">
                     <td class="numero">{{ key + 1 }}</td>
-                    <td class="beginAt">{{ turno.beginAt ?  turno.beginAt | date('Y-m-d H:i:s') : '' }}</th>
-                    <td class="endAt">{{ turno.endAt ?  turno.endAt | date('Y-m-d H:i:s') : '' }}</th>
+                    <td class="beginAt">{{ turno.beginAt ?  turno.beginAt | date('d/m/Y H:i:s') : '' }}</th>
+                    <td class="endAt">{{ turno.endAt ?  turno.endAt | date('d/m/Y H:i:s') : '' }}</th>
                     <td class="paciente">{{ turno.cliente.nombre }} {{ turno.cliente.apellido }}</td>
                     <td class="obraSocial">{{ obrasSociales[turno.cliente.obraSocial] }} {% if turno.cliente.MediaSesion %} (Media Sesion) {% endif %}</td>
                     <td class="completado">

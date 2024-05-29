@@ -98,16 +98,16 @@
                         {{ doctor.matricula }}
                     </td>
                     <td class="vtoMatricula">
-                        {{ doctor.vtoMatricula | date('Y-m-d')}}
+                        {{ doctor.vtoMatricula | date('d/m/Y')}}
                     </td>
                     <td class="libretaSanitaria">
                         {{ doctor.libretaSanitaria }}
                     </td>
                     <td class="emisionLibretaSanitaria">
-                        {{ doctor.emisionLibretaSanitaria | date('Y-m-d')}}
+                        {{ doctor.emisionLibretaSanitaria | date('d/m/Y')}}
                     </td>
                     <td class="vtoLibretaSanitaria">
-                        {{ doctor.vtoLibretaSanitaria | date('Y-m-d') }}
+                        {{ doctor.vtoLibretaSanitaria | date('d/m/Y') }}
                     </td>
                     <td class="posicionEnArchivo">
                         {{ doctor.posicionEnArchivo }}
@@ -116,10 +116,10 @@
                         {{ doctor.email }}
                     </td>
                     <td class="inicioContrato">
-                        {{ doctor.inicioContrato | date('Y-m-d') }}
+                        {{ doctor.inicioContrato | date('d/m/Y') }}
                     </td>
                     <td class="vtoContrato">
-                        {{ doctor.vtoContrato | date('Y-m-d') }}
+                        {{ doctor.vtoContrato | date('d/m/Y') }}
                     </td>
                     <td class="cbu">
                         {{ doctor.cbu }}

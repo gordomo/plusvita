@@ -23,7 +23,7 @@
                 {% set total = total - dato.cantidad %}
             {% endif %}
             <tr>
-                <td>{{ dato.fecha | date('Y-m-d') }}</td>
+                <td>{{ dato.fecha | date('d/m/Y') }}</td>
                 <td>{{ dato.accion ? 'ingreso' : 'egreso' }}</td>
                 <td style="text-align: right;">{{ dato.cantidad }}</td>
                 <td>{{ pacientes[dato.clienteId] is defined ? pacientes[dato.clienteId] : 'no registrado'}}</td>
