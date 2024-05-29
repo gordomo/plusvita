@@ -129,7 +129,8 @@ class EvolucionController extends AbstractController
                 $hoy = new \DateTime();
                 
                 if ($evolucion->getFecha()->diff($hoy)->days > 0 && !$puedenEditarEvoluciones) {
-                    die('la fecha de la evolución es anterior al día de la fecha, no se puede evolucionar');
+                    //die('la fecha de la evolución es anterior al día de la fecha, no se puede evolucionar');
+                    //hay que volver a poner esto el lunes
                 }
                 
                 foreach($adjuntos as $adjunto) {
