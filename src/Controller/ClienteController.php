@@ -429,19 +429,24 @@ class ClienteController extends AbstractController
                 $fechaHasta2 = (($cliente->getFEgreso() != null) && $fechaHasta2 > $cliente->getFEgreso()) ? $cliente->getFEgreso()->format('d-m-Y') : $fechaHasta2->format('d-m-Y');
                 $fechaDesde2 = new \DateTime($fechaDesde2. '0:0:0');
                 $fechaHasta2 = new \DateTime($fechaHasta2. '23:59:59');
-                $fechaHasta2->modify('+1 day');
+                //$fechaHasta2->modify('+1 day');
 
                 $interval = new DateInterval("P1D");
                 $range2 = new DatePeriod($fechaDesde2, $interval, $fechaHasta2);
                 
                 foreach ( $range2 as $date ) {
-                    
+                    $date->setTime(23, 59, 59);
                     $texto = '';
+                    if($historia->getFechaFin()) $historia->getFechaFin()->setTime(23, 59, 59);
+                    if($historia->getFecha()) $historia->getFecha()->setTime(23, 59, 59);
+                    
                     if ($historia->getFecha() <= $date && ($historia->getFechaFin() >= $date) or ($historia->getFechaFin() == null) ) {
+                        if($cliente->getFEgreso()) $cliente->getFEgreso()->setTime(23, 59, 59);
+                        
                         if ($cliente->getFEgreso() == $date ) {
                             $texto = 'Egreso';
                             $egresos[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
-                        } else if ( $historia->getFechaDerivacion() != null && $date >= $historia->getFechaDerivacion() && ( $historia->getFechaReingresoDerivacion() == null or $historia->getFechaReingresoDerivacion() <= $historia->getFechaDerivacion() or $date <= $historia->getFechaReingresoDerivacion()) ) {
+                        } else if ( $historia->getFechaDerivacion() != null && $date >= $historia->getFechaDerivacion()->setTime(23, 59, 59) && ( $historia->getFechaReingresoDerivacion() == null or $historia->getFechaReingresoDerivacion()->setTime(23, 59, 59) <= $historia->getFechaDerivacion() or $date <= $historia->getFechaReingresoDerivacion()) ) {
                             $texto = 'Derivado';
                             $derivados[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
                         } else if ( $historia->getModalidad() != 2 ) {
