@@ -18,3 +18,9 @@
     width: 50%;
     min-width: 300px;
 }
+
+.dateHeaders {
+    position: fixed;
+    top: 14px;
+    background: lightgrey;
+}

@@ -1,11 +1,12 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Historico (prueba) {% endblock %}
+{% block title %}Historico{% endblock %}
 {% block stylesheets %}
     {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('assets/css/cliente.css') }}">
 
 {% endblock %}
-{% block panelTitle %}Historico (prueba){% endblock %}
+{% block panelTitle %}Historico{% endblock %}
 {% block body %}
     <form>
         <div class="row">
@@ -103,7 +104,7 @@
                     <th class="diarios">
                         {% for fecha in range %}
                             <td class="diarios">
-                                <b>{{fecha | date('d/m/Y')}}</b><br>
+                                <b class="fechas">{{fecha | date('d/m/Y')}}</b><br>
                                 <span class="small">
                                     Int: {{ totales['internados'][fecha | date('d/m/Y')] is defined ? totales['internados'][fecha | date('d/m/Y')] | length  : 0 }}
                                     Amb: {{ totales['ambulatorios'][fecha | date('d/m/Y')] is defined ? totales['ambulatorios'][fecha | date('d/m/Y')] | length : 0 }}
@@ -180,6 +181,7 @@
 
 {% block javascripts %}
     {{ parent() }}
+    <script src="{{ asset('assets/js/historico.js') }}"></script>
     <script>
         
         $('form').submit(function(e) {
