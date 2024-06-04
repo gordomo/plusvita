@@ -1561,15 +1561,19 @@ class ClienteController extends AbstractController
                 $entityManager->persist($doctor);
             }
             if ($form->has('fEgreso') && !empty($form->get('fEgreso')->getData())) {
-                $cliente->setFEgreso(\DateTime::createFromFormat('d/m/Y', $form->get('fEgreso')->getData()));
+                $cliente->setFEgreso($form->get('fEgreso')->getData());
             }
+            
+            $fEgresoCliente = $cliente->getFEgreso();
 
-            $fechaDeEgresoString = $cliente->getFEgreso()->setTime(00, 00, 00)->format('Y-m-d H:i:s');
+            if ( $fEgresoCliente instanceof \DateTime ) {
+                $fechaDeEgresoString = $fEgresoCliente->setTime(00, 00, 00)->format('Y-m-d H:i:s');
 
-            $turnos = $bookingRepository->turnosConFiltro('', $cliente, $fechaDeEgresoString);
-
-            foreach ($turnos as $turno) {
-                $entityManager->remove($turno);
+                $turnos = $bookingRepository->turnosConFiltro('', $cliente, $fechaDeEgresoString);
+    
+                foreach ($turnos as $turno) {
+                    $entityManager->remove($turno);
+                }
             }
 
             $entityManager->persist($cliente);
