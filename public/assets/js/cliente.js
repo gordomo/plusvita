@@ -85,10 +85,10 @@ $( document ).on('change', '#cliente_modalidad', function () {
 })
 
 function _calculateAge(birthday) {
-    const dateParts = birthday.split('/'); // split the string by '/'
-    const day = parseInt(dateParts[0]); // extract the day as an integer
+    const dateParts = birthday.split('-'); // split the string by '/'
+    const day = parseInt(dateParts[2]); // extract the day as an integer
     const month = parseInt(dateParts[1]) - 1; // extract the month as an integer (subtract 1 as January is month 0)
-    const year = parseInt(dateParts[2]); // extract the year as an integer
+    const year = parseInt(dateParts[0]); // extract the year as an integer
 
     birthday = new Date(year, month, day)
     var ageDifMs = Date.now() - birthday.getTime();
@@ -123,10 +123,6 @@ $( document ).ready(function () {
     $('[data-toggle="tooltip"]').tooltip();
 
     $('#cliente_familiarResponsableAcompanante').find('.radio').addClass('form-check form-check-inline');
-
-    $('.js-datepicker').datepicker({
-        format: 'dd/mm/yyyy'
-    });
 
 });
 

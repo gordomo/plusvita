@@ -26,8 +26,8 @@ class BookingType extends AbstractType
         $this->isNew = $options['isNew'];
 
         $builder
-            ->add('beginAt', DateTimeType::class, ['label' => 'Hora de Inicio', 'required' => true, 'widget' => 'single_text', 'html5' => true, 'attr' => ['class' => 'js-datepicker'],])
-            ->add('endAt', DateTimeType::class, ['label' => 'Hora de Inicio', 'required' => true, 'widget' => 'single_text', 'html5' => true, 'attr' => ['class' => 'js-datepicker'],])
+            ->add('beginAt', DateTimeType::class, ['label' => 'Hora de Inicio', 'required' => true, 'widget' => 'single_text', 'html5' => true])
+            ->add('endAt', DateTimeType::class, ['label' => 'Hora de Inicio', 'required' => true, 'widget' => 'single_text', 'html5' => true])
             ->add('title', TextType::class, ['label' => 'Titulo'])
             ->add('doctor', EntityType::class, [
                 'class' => Doctor::class,
@@ -69,8 +69,8 @@ class BookingType extends AbstractType
                     'multiple'=>true,
                     'expanded'=>true,
                 ])
-                    ->add('desde', DateType::class, ['label' => 'Desde', 'required' => false, 'widget' => 'single_text', 'html5' => true, 'attr' => ['class' => 'js-datepicker'],])
-                    ->add('hasta', DateType::class, ['label' => 'Hasta', 'required' => false, 'widget' => 'single_text', 'html5' => true, 'attr' => ['class' => 'js-datepicker'],]);
+                    ->add('desde', DateType::class, ['label' => 'Desde', 'required' => false, 'widget' => 'single_text', 'html5' => true])
+                    ->add('hasta', DateType::class, ['label' => 'Hasta', 'required' => false, 'widget' => 'single_text', 'html5' => true]);
             };
             $builder
             ->add('save', SubmitType::class, ['label' => 'Guardar', 'attr' => ['class' => 'btn-success']])

@@ -406,7 +406,7 @@ class DoctorType extends AbstractType
         //campos a mostrar para staff existente
         elseif($options['egreso']) {
             $builder
-                ->add('fechaBaja', DateType::class, [ 'widget' => 'single_text', 'required' => false, 'attr' => ['class' => 'js-datepicker']])
+                ->add('fechaBaja', DateType::class, [ 'widget' => 'single_text', 'required' => false])
                 ->add('motivoBaja', ChoiceType::class,
                     [
                         'label' => 'Motivo de la Baja',

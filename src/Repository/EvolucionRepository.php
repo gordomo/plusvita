@@ -30,12 +30,12 @@ class EvolucionRepository extends ServiceEntityRepository
                 ->setParameter('tipo', $tipo);
         }
 
-        if ( $from ) {
+        if (!empty($from)) {
             $query->andWhere('e.fecha >= :from')
                 ->setParameter('from', $from);
         }
 
-        if ( $to ) {
+        if (!empty($to)) {
             $query->andWhere('e.fecha <= :to')
                 ->setParameter('to', $to);
         }
@@ -83,11 +83,9 @@ class EvolucionRepository extends ServiceEntityRepository
     {
         $query = $this->createQueryBuilder('e')->where('e.user = :doctor')->setParameter('doctor', $doctor);
             if (!empty($fechaDesde)) {
-                $fechaDesde->setTime(0,0,0);
                 $query->andWhere('e.fecha >= :fechaDesde')->setParameter('fechaDesde', $fechaDesde);
             }
             if (!empty($fechaHasta)) {
-                $fechaHasta->setTime(23,59,59);
                 $query->andWhere('e.fecha <= :fechaHasta')->setParameter('fechaHasta', $fechaHasta);
             }
             if (!empty($cliente)) {
@@ -124,16 +122,10 @@ class EvolucionRepository extends ServiceEntityRepository
 
 
         if (!empty($fechaDesde)) {
-
-            $fechaDesde = \DateTime::createFromFormat("d/m/Y", $fechaDesde);
-            $newDate = date("Y/m/d", strtotime($fechaDesde->format('Y/m/d')));
-            $query->andWhere('e.fecha >= :fechaDesde')->setParameter('fechaDesde', $newDate);
+            $query->andWhere('e.fecha >= :fechaDesde')->setParameter('fechaDesde', $fechaDesde);
         }
         if (!empty($fechaHasta)) {
-            $fechaHasta = \DateTime::createFromFormat("d/m/Y", $fechaHasta);
-            $fechaHasta->setTime(23,59,59);
-            $newDate = date("Y/m/d", strtotime($fechaHasta->format('Y/m/d')));
-            $query->andWhere('e.fecha <= :fechaHasta')->setParameter('fechaHasta', $newDate);
+            $query->andWhere('e.fecha <= :fechaHasta')->setParameter('fechaHasta', $fechaHasta);
         }
         if ( !empty($tipos) ) {
             $query->andWhere('e.tipo IN (:tipos)')->setParameter('tipos', $tipos);

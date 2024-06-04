@@ -61,10 +61,14 @@ class ClienteRepository extends ServiceEntityRepository
     // modalidad 1 es ambulatorio
     public function findActivosDesdeHasta($from, $to, $nombre, $estado, $obraSocial)
     {
-        $query = $this->createQueryBuilder('c')
-            ->andWhere('c.fIngreso >= :from')->setParameter('from', $from)
-            ->andWhere('c.fEgreso <= :to')->setParameter('to', $to)
-            ->orWhere('c.fEgreso IS NULL');
+        $query = $this->createQueryBuilder('c');
+        if (!empty($from)){
+            $query->andWhere('c.fIngreso >= :from')->setParameter('from', $from);
+        }
+        if (!empty($to)){
+            $query->andWhere('c.fEgreso <= :to')->setParameter('to', $to);
+        }          
+        $query->orWhere('c.fEgreso IS NULL');
 
         if ( $nombre != '' ) {
             $arrayNombres = explode(' ', $nombre);

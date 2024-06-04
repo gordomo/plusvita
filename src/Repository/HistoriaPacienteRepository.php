@@ -52,15 +52,10 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
             ->andWhere('h.cliente = :cliente')
             ->setParameter('cliente', $cliente);
         if (!empty($from)) {
-            $fechaDesde = \DateTime::createFromFormat("d/m/Y", $from);
-            $newDate = date("Y/m/d", strtotime($fechaDesde->format('Y/m/d')));
-            $query->andWhere('h.fecha >= :fechaDesde')->setParameter('fechaDesde', $newDate);
+            $query->andWhere('h.fecha >= :fechaDesde')->setParameter('fechaDesde', $from);
         }
         if (!empty($to)) {
-            $fechaHasta = \DateTime::createFromFormat("d/m/Y", $to);
-            $fechaHasta->setTime(23,59,59);
-            $newDate = date("Y/m/d", strtotime($fechaHasta->format('Y/m/d')));
-            $query->andWhere('h.fecha <= :fechaHasta')->setParameter('fechaHasta', $newDate);
+            $query->andWhere('h.fecha <= :fechaHasta')->setParameter('fechaHasta', $to);
         }
         $query->orderBy('h.fecha, h.id', 'ASC');
 
@@ -156,15 +151,15 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
 
     public function findLastChange($clienteId, $to)
     {
-        if ( empty($to) ) {
-            $to = '9999-01-01';
-        }
-        $query = $this->createQueryBuilder('h')
-            ->andWhere('h.fecha <= :to')->setParameter('to', $to)
-            ->andWhere('h.cliente = :cliente')->setParameter('cliente', $clienteId)
+        $query = $this->createQueryBuilder('h');
+        
+        if (!empty($to) ) {
+            $query->andWhere('h.fecha <= :to')->setParameter('to', $to);
+        }   
+        $query->andWhere('h.cliente = :cliente')->setParameter('cliente', $clienteId)
             ->orderBy('h.fecha', 'DESC');
 
-            return $query->getQuery()->getResult();
+        return $query->getQuery()->getResult();
     }
 
     public function getHistoricoDesdeHasta($desde, $hasta, $nombre = null, $modalidad = 0, $obraSocial = null, $prof = null, $hc = null) {

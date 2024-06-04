@@ -19,7 +19,7 @@
             <tr>
                 <td>{{ notas_historia_clinica.id }}</td>
                 <td>{{ notas_historia_clinica.text }}</td>
-                <td>{{ notas_historia_clinica.fecha ? notas_historia_clinica.fecha|date('Y-m-d') : '' }}</td>
+                <td>{{ notas_historia_clinica.fecha ? notas_historia_clinica.fecha|date('d/m/Y') : '' }}</td>
                 <td>
                     <a href="{{ path('notas_historia_clinica_show', {'id': notas_historia_clinica.id}) }}">show</a>
                     <a href="{{ path('notas_historia_clinica_edit', {'id': notas_historia_clinica.id}) }}">edit</a>

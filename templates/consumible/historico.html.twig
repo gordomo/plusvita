@@ -121,7 +121,7 @@
                                 </select>
                             </td>
                             <td >
-                                <input class="form-control" id='fecha-{{ key }}' type="date" value="{{ dato.fecha ? dato.fecha|date('Y-m-d') : ''}}">
+                                <input class="form-control" id='fecha-{{ key }}' type="date" value="{{ dato.fecha ? dato.fecha|date('d/m/Y') : ''}}">
                             </td>
                             <td >
                                 <select class="form-control" id="mes-{{ key }}">
@@ -153,7 +153,7 @@
                                 {{ consumibles[dato.consumibleId].tipo ? consumibles[dato.consumibleId].tipo.nombre }}
                             </td>
                             <td class="fecha">
-                                {{ dato.fecha ? dato.fecha|date('Y-m-d') : ''}}
+                                {{ dato.fecha ? dato.fecha|date('d/m/Y') : ''}}
                             </td>
                             <td class="mes">
                                 {% for nombre, num in meses %}

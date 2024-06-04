@@ -88,20 +88,12 @@ class BookingRepository extends ServiceEntityRepository
         }
 
         if(!empty($desde)) {
-            $from = (new \DateTime($desde));
-            $from->setTime(00, 00, 00);
-            $desde = $from->format("Y-m-d H:i:s");
-
             $query = $query
                 ->andWhere('b.beginAt >= :desde')
                 ->setParameter('desde', $desde);
         }
 
         if(!empty($hasta)) {
-            $to = (new \DateTime($hasta));
-            $to->setTime(23, 59, 59);
-            $hasta = $to->format("Y-m-d H:i:s");
-
             $query = $query
                 ->andWhere('b.endAt <= :hasta')
                 ->setParameter('hasta', $hasta);

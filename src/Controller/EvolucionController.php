@@ -30,17 +30,17 @@ class EvolucionController extends AbstractController
      */
     public function index(Request $request, EvolucionRepository $evolucionRepository, ClienteRepository $clienteRepository): Response
     {
-        $user = $this->getUser();
-        $tipoSeleccionado = $request->query->get('tipoSeleccionado', 0);
-        $limit = $request->query->get('limit', 100);
-        $currentPage = $request->query->get('currentPage', 1);
-        $f = new \DateTime('first day of this month');
-        $l = new \DateTime('last day of this month');
-        $from = $request->get('from', $f->format('d/m/Y'));
-        $to = $request->get('to', $l->format('d/m/Y'));
-        
-        $fechaDesde = \DateTime::createFromFormat("d/m/Y", $from);
-        $fechaHasta = \DateTime::createFromFormat("d/m/Y", $to);
+        $user               = $this->getUser();
+        $tipoSeleccionado   = $request->query->get('tipoSeleccionado', 0);
+        $limit              = $request->query->get('limit', 100);
+        $currentPage        = $request->query->get('currentPage', 1);
+
+        $f          = new \DateTime('first day of this month');
+        $l          = new \DateTime('last day of this month');
+        $from       = $request->get('from' , $f->format('Y-m-d'));
+        $to         = $request->get('to', $l->format('Y-m-d'));  
+        $fechaDesde = $from ? new \DateTime($from. '0:0:0') : $from;
+        $fechaHasta = $to   ? new \DateTime($to. '23:59:59'): $to;
 
         $modalidades = [];
         if($user instanceOf Doctor) {
@@ -65,16 +65,16 @@ class EvolucionController extends AbstractController
         
 
         return $this->render('evolucion/index.html.twig', [
-            'nombreCliente' => $cliente->getNombre() . ' ' . $cliente->getApellido(),
-            'evolucions' => $evoluciones['paginator'],
-            'all_items' => $evoluciones['query'],
-            'clienteId' => $cliente->getId(),
-            'tipoSeleccionado' => $tipoSeleccionado,
-            'maxPages'=> $maxPages,
-            'thisPage' => $currentPage,
-            'clientId' => $clientId,
-            'fechaDesde' => $from ?? 'elija una fecha',
-            'fechaHasta' => $to ?? 'elija una fecha',
+            'nombreCliente'     => $cliente->getNombre() . ' ' . $cliente->getApellido(),
+            'evolucions'        => $evoluciones['paginator'],
+            'all_items'         => $evoluciones['query'],
+            'clienteId'         => $cliente->getId(),
+            'tipoSeleccionado'  => $tipoSeleccionado,
+            'maxPages'          => $maxPages,
+            'thisPage'          => $currentPage,
+            'clientId'          => $clientId,
+            'fechaDesde'        => $from,
+            'fechaHasta'        => $to,
         ]);
     }
 
