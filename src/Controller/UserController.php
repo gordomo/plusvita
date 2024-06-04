@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Form\UserType;
+use App\Repository\BookingRepository;
 use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -120,13 +121,25 @@ class UserController extends AbstractController
     /**
      * @Route("/{id}", name="user_delete", methods={"DELETE"})
      */
-    public function delete(Request $request, User $user): Response
+    public function delete(Request $request, User $user_to_delete, BookingRepository $bookingRepository): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$user->getId(), $request->request->get('_token'))) {
-            $entityManager = $this->getDoctrine()->getManager();
-            $user->setHabilitado(false);
-            $entityManager->flush();
+        $user = $this->getUser();
+        if($user && in_array('ROLE_ADMIN', $user->getRoles())) {
+            if ($this->isCsrfTokenValid('delete'.$user_to_delete->getId(), $request->request->get('_token'))) {
+                $entityManager = $this->getDoctrine()->getManager();
+                
+                $bookingsDelUsuario = $bookingRepository->findBy(['user' => $user_to_delete]);
+                foreach ( $bookingsDelUsuario as $book ) {
+                    $book->setUser($user);
+                }
+                $entityManager->remove($user_to_delete);
+                $entityManager->flush();
+            }    
+        } else {
+            die('el usuario no tiene los permisos suficientes para borrar otro usuario');
         }
+
+        
 
         return $this->redirectToRoute('user_index');
     }
