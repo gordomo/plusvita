@@ -185,7 +185,7 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
         }
 
         if ( $modalidad || $prof || $obraSocial) {
-            $newQuery = "Select DISTINCT historia_paciente.cliente_id from historia_paciente where fecha <= '" . $hasta . "' and ( fecha_fin >= '". $desde . "' or fecha_fin is null )";
+            $newQuery = "Select DISTINCT historia_paciente.cliente_id from historia_paciente where fecha <= '" . $hasta->format('Y-m-d') . "' and ( fecha_fin >= '". $desde->format('Y-m-d') . "' or fecha_fin is null )";
             
             if ( $modalidad ) { 
                 $newQuery .= " and modalidad = " . $modalidad;
