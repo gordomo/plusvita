@@ -3,23 +3,26 @@
 namespace App\Controller;
 
 use App\Entity\Doctor;
+use App\Entity\PresentesDoctores;
 use App\Form\DoctorType;
+use App\Repository\UserRepository;
+use App\Repository\DoctorRepository;
 use App\Repository\BookingRepository;
 use App\Repository\ClienteRepository;
-use App\Repository\DoctorRepository;
 use App\Repository\HabitacionRepository;
 use App\Repository\ObraSocialRepository;
-use App\Repository\UserRepository;
 use DoctrineExtensions\Query\Mysql\Date;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\HttpFoundation\File\Exception\FileException;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpFoundation\Response;
+use App\Repository\PresentesDoctoresRepository;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
 
 /**
@@ -177,6 +180,16 @@ class DoctorController extends AbstractController
     ];
 
     private $dias =  [1 => 'lunes', 2 => 'martes', 3 => 'miercoles', 4 => 'jueves', 5 => 'viernes', 6 => 'sabado', 7 => 'domingo'];
+
+    /**
+     * @var Security
+     */
+    private $security;
+    
+    public function __construct(Security $security)
+    {
+        $this->security = $security;
+    }
 
     /**
      * @Route("/", name="doctor_index", methods={"GET"})
@@ -512,6 +525,62 @@ class DoctorController extends AbstractController
         ]);
     }
 
+        /**
+    * @Route("/presente/{id}", name="dar_presente_doctor", methods={"GET"})
+    */
+    public function presente(Request $request, Doctor $doctor, PresentesDoctoresRepository $presentesDoctoresRepository): Response
+    {
+        $user = $this->security->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+        $entityManager = $this->getDoctrine()->getManager();
+        $doctor->setPresente(true);
+
+        $presente = $presentesDoctoresRepository->findBy(['fecha' => new \DateTime(), 'doctor' => $doctor]);
+        
+        if (empty($presente[0])) {
+            $presente = new PresentesDoctores();
+        } else {
+            $presente = $presente[0];
+        }
+        
+        $presente->setDoctor($doctor);
+        $presente->setFecha(new \DateTime());
+        $presente->setValor(true);
+
+        $entityManager->persist($doctor);
+        $entityManager->persist($presente);
+        $entityManager->flush();
+
+        return $this->redirectToRoute('doctor_index');
+    }
+
+    /**
+    * @Route("/ausente/{id}", name="dar_ausente_doctor", methods={"GET"})
+    */
+    public function ausente(Request $request, Doctor $doctor, PresentesDoctoresRepository $presentesDoctoresRepository): Response
+    {
+        $user = $this->security->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+        $entityManager = $this->getDoctrine()->getManager();
+        $doctor->setPresente(false);
+
+        $presente = $presentesDoctoresRepository->findBy(['fecha' => new \DateTime(), 'doctor' => $doctor]);
+
+        if (isset($presente[0])) {
+            $presente = $presente[0];
+            $presente->setValor(false);
+        }
+
+        $entityManager->persist($doctor);
+        $entityManager->flush();
+
+        return $this->redirectToRoute('doctor_index');
+    }
+
     /**
      * @Route("/{id}/egreso", name="staff_egreso", methods={"GET","POST"})
      */
@@ -670,6 +739,7 @@ class DoctorController extends AbstractController
             'pestana' => $pestana,
             'obrasSociales' => $obrasSocialesArray,
             'habitacionesArray' => $habitacionesArray,
+            'presenteDoctor' => $user->getPresente()
         ]);
 
     }

@@ -186,26 +186,22 @@ class Doctor implements UserInterface
     private $habilitado;
 
     /**
-     * @return mixed
+     * @ORM\Column(type="boolean")
      */
-    public function getMaxCliTurno()
-    {
-        return $this->max_cli_turno;
-    }
+    private $presente;
 
     /**
-     * @param mixed $max_cli_turno
+     * @ORM\OneToMany(targetEntity=PresentesDoctores::class, mappedBy="doctor")
      */
-    public function setMaxCliTurno($max_cli_turno): void
-    {
-        $this->max_cli_turno = $max_cli_turno;
-    }
+    private $presentes;
+
 
     public function __construct()
     {
-        $this->clientes = new ArrayCollection();
-        $this->bookings = new ArrayCollection();
-        $this->doctor = new ArrayCollection();
+        $this->clientes             = new ArrayCollection();
+        $this->bookings             = new ArrayCollection();
+        $this->doctor               = new ArrayCollection();
+        $this->presentes            = new ArrayCollection();
     }
 
     public function getNombreApellido(): ?string
@@ -618,6 +614,22 @@ class Doctor implements UserInterface
         return $this;
     }
 
+    /**
+     * @return mixed
+     */
+    public function getMaxCliTurno()
+    {
+        return $this->max_cli_turno;
+    }
+
+    /**
+     * @param mixed $max_cli_turno
+     */
+    public function setMaxCliTurno($max_cli_turno): void
+    {
+        $this->max_cli_turno = $max_cli_turno;
+    }
+
     public function getColor(): ?string
     {
         return $this->color;
@@ -680,6 +692,48 @@ class Doctor implements UserInterface
     public function setHabilitado(bool $habilitado): self
     {
         $this->habilitado = $habilitado;
+
+        return $this;
+    }
+
+    public function getPresente(): ?bool
+    {
+        return $this->presente;
+    }
+
+    public function setPresente(bool $presente): self
+    {
+        $this->presente = $presente;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|PresentesDoctores[]
+     */
+    public function getPresentes(): Collection
+    {
+        return $this->presentes;
+    }
+
+    public function addPresentes(PresentesDoctores $presentes): self
+    {
+        if (!$this->presentes->contains($presentes)) {
+            $this->presentes[] = $presentes;
+            $presentes->setDoctor($this);
+        }
+
+        return $this;
+    }
+
+    public function removePresentes(PresentesDoctores $presentes): self
+    {
+        if ($this->presentes->removeElement($presentes)) {
+            // set the owning side to null (unless already changed)
+            if ($presentes->getDoctor() === $this) {
+                $presentes->setDoctor(null);
+            }
+        }
 
         return $this;
     }
