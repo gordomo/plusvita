@@ -237,7 +237,7 @@
                                 <a class="dropdown-item" href="{{ path('prescripcion_new', {'id': cliente.id}) }}">
                                     <i class="fas fa-user-nurse" data-toggle="tooltip" data-placement="top" title="Prescripciones"></i> Prescripciones
                                 </a>
-                                {% if (pestana == 'ambulatorios' and cliente.modalidad == 1 and cliente.ambulatorioPresente) %} 
+                                {% if (pestana == 'ambulatorios' and cliente.ambulatorioPresente) %} 
                                     <a class="dropdown-item" href="{{ path('evolucion_index', {'cliente': cliente.id}) }}">
                                         <i class="far fa-eye" data-toggle="tooltip" data-placement="top" title="evoluciones"></i> Evoluciones
                                     </a>
