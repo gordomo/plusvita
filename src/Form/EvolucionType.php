@@ -21,6 +21,7 @@ class EvolucionType extends AbstractType
     {
         $modalidad = $options['modalidad'];
         $doctores = $options['doctores'];
+        $usuarioActual = $options['usuarioActual'];
         $puedenEditarEvoluciones = $options['puedenEditarEvoluciones'];
         $today = new \DateTime();
 
@@ -41,6 +42,13 @@ class EvolucionType extends AbstractType
                     'required' => true,
                     'choices' => $doctores,
                     'mapped' => false,
+                    'choice_attr' => function($choice, $key, $value) use ($usuarioActual) {
+                        if ($value == $usuarioActual) {
+                            return ['selected' => 'selected'];
+                        } else {
+                            return [];
+                        }
+                    },
                 ]);
             }  
             $builder->add('description', TextareaType::class, [
@@ -87,6 +95,7 @@ class EvolucionType extends AbstractType
             'data_class' => Evolucion::class,
             'modalidad' => '',
             'doctores' => '',
+            'usuarioActual' => '',
             'puedenEditarEvoluciones' => '',
         ]);
     }

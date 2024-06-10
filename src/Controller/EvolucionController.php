@@ -188,15 +188,29 @@ class EvolucionController extends AbstractController
     /**
      * @Route("/{id}/edit", name="evolucion_edit", methods={"GET","POST"})
      */
-    public function edit(Request $request, Evolucion $evolucion): Response
+    public function edit(Request $request, Evolucion $evolucion, DoctorRepository $doctorRepository): Response
     {
-        $userName = $this->getUser()->getUsername();
+        $user = $this->getUser();
+        $modalidades = $user->getModalidad();
+        $usuarioActual = $evolucion->getUser();
+
+        $modalidad = '';
+        if( count($modalidades) === 1 ) {
+            $modalidad = $modalidades[0];
+        }
+
+        $doctores = $doctorRepository->findEmails();
+        $docArr = [];
+        foreach ( $doctores as $doc ) {
+            $docArr[$doc['email']] = $doc['email'];
+        }
+
         $redirect = $request->get('redirect', '');
 
-        $puedenEditarEvoluciones = in_array('ROLE_EDIT_HC', $this->getUser()->getRoles());
+        $puedenEditarEvoluciones = in_array('ROLE_EDIT_HC', $user->getRoles());
 
         if ( $puedenEditarEvoluciones ) {
-            $form = $this->createForm(EvolucionType::class, $evolucion);
+            $form = $this->createForm(EvolucionType::class, $evolucion, ['usuarioActual'=>$usuarioActual, 'modalidad' => $modalidad, 'doctores' => $docArr, 'puedenEditarEvoluciones' => $puedenEditarEvoluciones]);
             $form->handleRequest($request);
 
             if ($form->isSubmitted() && $form->isValid()) {
