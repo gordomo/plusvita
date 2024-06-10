@@ -83,7 +83,7 @@
             </thead>
             <tbody>
             {% for doctor in doctors %}
-                <tr class="editarStaff" data-url="{{ path('doctor_edit', {'id': doctor.id}) }}">
+                <tr class="editarStaff {{ doctor.presente ? 'ambulatorio-presente' : '' }}" data-url="{{ path('doctor_edit', {'id': doctor.id}) }}">
                     <td class="nombre">{{ doctor.nombre }}</td>
                     <td class="apellido">{{ doctor.apellido }}</td>
                     <td class="dni">{{ doctor.dni }}</td>
@@ -153,9 +153,15 @@
                         {% endfor %}
                     </td>
                     <td class="acciones">
-                        <a href="{{ path('doctor_edit', {'id': doctor.id}) }}"><i class="fas fa-pencil-alt"></i></a>
-                        <a href="{{ path('adjuntos_staff_new', {'id': doctor.id}) }}"><i class="fas fa-paperclip"></i></a>
-                        <a href="{{ path('staff_egreso', {'id': doctor.id}) }}"><i class="far fa-calendar-times"></i></a>
+                        <a href="{{ path('doctor_edit', {'id': doctor.id}) }}" title="modificar datos"><i class="fas fa-pencil-alt"></i></a>
+                        <a href="{{ path('adjuntos_staff_new', {'id': doctor.id}) }}" title="nuevo adjunto"><i class="fas fa-paperclip"></i></a>
+                        <a href="{{ path('staff_egreso', {'id': doctor.id}) }}" title="egreso"><i class="far fa-calendar-times"></i></a>
+                        {% if not doctor.presente %}
+                            <a href="{{ path('dar_presente_doctor', {'id': doctor.id}) }}" title="dar presente"><i class="fa fa-check-square" aria-hidden="true"></i></a>
+                        {% endif %}
+                        {% if doctor.presente %}
+                            <a href="{{ path('dar_ausente_doctor', {'id': doctor.id}) }}" title="dar ausente"><i class="fa fa-window-close" aria-hidden="true"></i></a>                               
+                        {% endif %}
                     </td>
                 </tr>
             {% else %}
