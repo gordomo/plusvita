@@ -3,7 +3,7 @@ services:
   www:
     build: .
     ports:
-      - "80:80"
+      - "8080:80"
     volumes:
       - ./www/:/var/www/html/
     links:
@@ -12,7 +12,8 @@ services:
       - default
     environment:
       APP_ENV: dev
-      DATABASE_URL: mysql://vitaplus:1ajd2OnnauhGfvlURTg2@plusvita_db_1:3306/myDb?serverVersion=5.7
+      DATABASE_URL: mysql://vitaplus:1ajd2OnnauhGfvlURTg2@plusvita-db-1:3306/myDb?serverVersion=5.7
+      TZ: America/Argentina/Buenos_Aires
   db:
     image: mysql:8.0
     ports:
@@ -39,5 +40,6 @@ services:
       MYSQL_USER: vitaplus
       MYSQL_PASSWORD: 1ajd2OnnauhGfvlURTg2
       MYSQL_ROOT_PASSWORD: 1ajd2OnnauhGfvlURTg2
+      UPLOAD_LIMIT: 300M
 volumes:
   persistent:

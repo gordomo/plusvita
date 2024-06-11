@@ -25,3 +25,16 @@ RUN a2dissite 000-default.conf
 RUN a2ensite symfony.conf
 RUN rm -rf /var/lib/apt/lists/*
 RUN export PATH="$HOME/.symfony/bin:$PATH"
+
+RUN  apt-get update \
+&& apt-get -y install cron \
+&& touch /var/log/cron-1.log \
+&& (crontab -l ; echo "59 23 * * * cd /var/www/html && /usr/local/bin/php bin/console update-historico-habitaciones >> /var/log/cron-1.log 2>&1") | crontab \
+&& (crontab -l ; echo "59 23 * * * cd /var/www/html && /usr/local/bin/php bin/console controlar-presentes-command >> /var/log/cron-1.log 2>&1") | crontab \
+&& (crontab -l ; echo "30 11 * * * cd /var/www/html && /usr/local/bin/php bin/console resetear-presentes-doctores-command >> /var/log/cron-1.log 2>&1") | crontab \
+&& (crontab -l ; echo "59 23 * * * cd /var/www/html && /usr/local/bin/php bin/console resetear-presentes-doctores-command >> /var/log/cron-1.log 2>&1") | crontab \
+&& (crontab -l ; echo "59 23 * * * cd /var/www/html && /usr/local/bin/php bin/console liberar-camas-command >> /var/log/cron-1.log 2>&1") | crontab
+
+COPY www/entrypoint.sh /var/www/html/entrypoint.sh
+RUN chmod +x /var/www/html/entrypoint.sh
+CMD ["bash","/var/www/html/entrypoint.sh"]
