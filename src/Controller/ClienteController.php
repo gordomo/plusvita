@@ -53,6 +53,7 @@ class ClienteController extends AbstractController
      * @var Security
      */
     private $security;
+    
     public function __construct(Security $security)
     {
         $this->security = $security;
