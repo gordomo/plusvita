@@ -3,6 +3,7 @@
 namespace App\Command;
 
 use App\Entity\Doctor;
+use App\Entity\Cliente;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -57,12 +58,19 @@ class ResetearPresentesDoctoresCommand extends Command
         $em = $this->entityManager;
 
         // A. Access repositories
-        $doctorRepo = $em->getRepository(Doctor::class);
-        $doctores   = $doctorRepo->findBy(['presente'=> true]);
+        $doctorRepo  = $em->getRepository(Doctor::class);
+        $clienteRepo = $em->getRepository(Cliente::class);
+        $doctores    = $doctorRepo->findBy(['presente'=> true]);
+        $clientes    = $clienteRepo->findBy(['ambulatorioPresente'=>true, 'ambulatorio'=>false]);
 
         foreach ($doctores as $doctor) {
             $doctor->setPresente(false);
             $em->persist($doctor);
+        }
+        
+        foreach ($clientes as $cliente) {
+            $cliente->setAmbulatorioPresente(false);
+            $em->persist($cliente);
         }
 
         $em->flush();
