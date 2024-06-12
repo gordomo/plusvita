@@ -142,8 +142,9 @@
                 </tr>
             </thead>
             <tbody>
+            {% set pestanasPresente = ['ambulatorios','activos','todos']%}
             {% for cliente in clientes %}
-                <tr class="editarPaciente {{ pestana == 'ambulatorios' ? cliente.modalidad == 1 or cliente.modalidad == 4 ? 'ambulatorio' : 'no-ambulatorio' : '' }} {{ (cliente.modalidad == 1 or cliente.modalidad == 4) and cliente.ambulatorioPresente and pestana == 'ambulatorios' ? 'ambulatorio-presente' : cliente.modalidad == 1 or cliente.modalidad == 4 and cliente.ambulatorioPresente == 0 and pestana == 'ambulatorios' ? 'ambulatorio-ausente' : '' }}" data-toggle="tooltip" data-placement="top"
+                <tr class="editarPaciente {{ pestana == 'ambulatorios' ? cliente.modalidad == 1 or cliente.modalidad == 4 ? 'ambulatorio' : 'no-ambulatorio' : '' }} {{ pestana in pestanasPresente ? ( cliente.ambulatorioPresente  ? 'ambulatorio-presente' :  'ambulatorio-ausente' ) : '' }}" data-toggle="tooltip" data-placement="top"
                                           {{ cliente.disponibleParaTerapia ? '' : 'noDisp' }}"  title="{{ cliente.disponibleParaTerapia ? '' : 'NO disponible para alguna terapia' }}{{ (cliente.modalidad != 1 and cliente.modalidad != 4) and pestana == 'ambulatorios' ? ' No está informado como ambulatorio' : ''}}">
                     
                         <td class="hClinica">{{ cliente.hClinica }}</td>
@@ -320,14 +321,14 @@
                                             <i class="fas fa-arrow-left" data-toggle="tooltip" data-placement="top" title="reingresar de permiso"></i> Reingresar
                                         </a>#}
                                     {% endif %}
-                                    {% if pestana == 'ambulatorios' %}
+                                    {% if pestana == 'ambulatorios' or pestana == 'activos' %}
                                         {% if not cliente.ambulatorioPresente %}
-                                            <a class="dropdown-item" href="{{ path('dar_presente', {'id': cliente.id}) }}">
+                                            <a class="dropdown-item" href="{{ path('dar_presente', {'id': cliente.id, 'pestana': pestana}) }}">
                                                 <i class="fa fa-check-square-o" aria-hidden="true"></i> dar presente
                                             </a>
                                         {% endif %}
                                         {% if cliente.ambulatorioPresente %}
-                                            <a class="dropdown-item" href="{{ path('dar_ausente', {'id': cliente.id}) }}">
+                                            <a class="dropdown-item" href="{{ path('dar_ausente', {'id': cliente.id, 'pestana': pestana}) }}">
                                                 <i class="fa fa-window-close-o" aria-hidden="true"></i> dar ausente
                                             </a>
                                         {% endif %}

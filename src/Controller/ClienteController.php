@@ -1731,7 +1731,9 @@ class ClienteController extends AbstractController
         $entityManager->persist($presente);
         $entityManager->flush();
 
-        return $this->redirectToRoute('cliente_index', ['pestana' => 'ambulatorios']);
+        $pestana = $request->query->get('pestana') ?? 'activos';
+
+        return $this->redirectToRoute('cliente_index', ['pestana' => $pestana]);
     }
 
     /**
@@ -1756,7 +1758,9 @@ class ClienteController extends AbstractController
         $entityManager->persist($cliente);
         $entityManager->flush();
 
-        return $this->redirectToRoute('cliente_index', ['pestana' => 'ambulatorios']);
+        $pestana = $request->query->get('pestana') ?? 'activos';
+
+        return $this->redirectToRoute('cliente_index', ['pestana' => $pestana]);
     }
 
     /**

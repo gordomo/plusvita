@@ -2,23 +2,24 @@
 
 namespace App\Controller;
 
+use http\Client;
 use App\Entity\Doctor;
 use App\Entity\Evolucion;
 use App\Form\EvolucionType;
-use App\Repository\ClienteRepository;
+use App\Service\DoctorService;
 use App\Repository\DoctorRepository;
+use App\Repository\ClienteRepository;
 use App\Repository\EvolucionRepository;
-use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
-use http\Client;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
-use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
-use Symfony\Component\Validator\Exception\UnexpectedValueException;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\Validator\Exception\UnexpectedValueException;
 
 /**
  * @Route("/evolucion")
@@ -28,7 +29,7 @@ class EvolucionController extends AbstractController
     /**
      * @Route("/", name="evolucion_index", methods={"GET"})
      */
-    public function index(Request $request, EvolucionRepository $evolucionRepository, ClienteRepository $clienteRepository): Response
+    public function index(Request $request, EvolucionRepository $evolucionRepository, ClienteRepository $clienteRepository, DoctorService $DoctorService): Response
     {
         $user               = $this->getUser();
         $tipoSeleccionado   = $request->query->get('tipoSeleccionado', 0);
@@ -54,8 +55,8 @@ class EvolucionController extends AbstractController
         $clientId = $request->get('cliente');
         $cliente = $clienteRepository->find($clientId);
 
-        if($cliente->getModalidad() == 1 && !$cliente->getAmbulatorioPresente()) {
-            die('ausente');
+        if(!$DoctorService->puedeEvolucionar() && !$cliente->getAmbulatorioPresente()) {
+            die('No puede evolucionar');
         }
 
         $evoluciones = $evolucionRepository->findByClienteYTipo($cliente, $tipoSeleccionado, $currentPage, $limit, $fechaDesde, $fechaHasta);

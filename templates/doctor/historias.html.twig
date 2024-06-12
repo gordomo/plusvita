@@ -114,8 +114,9 @@
         </tr>
         </thead>
         <tbody>
+        {% set pestanasPresente = ['ambulatorios','activos','todos']%}
         {% for cliente in clientes %}
-            <tr class="editarPaciente {{ pestana == 'ambulatorios' ? cliente.modalidad == 1 ? 'ambulatorio' : 'no-ambulatorio' : '' }} {{ cliente.modalidad == 1 and cliente.ambulatorioPresente and pestana == 'ambulatorios' ? 'ambulatorio-presente' : cliente.modalidad == 1 and cliente.ambulatorioPresente == 0 and pestana == 'ambulatorios' ? 'ambulatorio-ausente' : '' }}" data-toggle="tooltip" data-placement="top"
+            <tr class="editarPaciente {{ pestana == 'ambulatorios' ? cliente.modalidad == 1 or cliente.modalidad == 4 ? 'ambulatorio' : 'no-ambulatorio' : '' }} {{ pestana in pestanasPresente ? ( cliente.ambulatorioPresente  ? 'ambulatorio-presente' :  'ambulatorio-ausente' ) : '' }}" data-toggle="tooltip" data-placement="top"
                                           {{ cliente.disponibleParaTerapia ? '' : 'noDisp' }}"  title="{{ cliente.disponibleParaTerapia ? '' : 'NO disponible para alguna terapia' }}{{ cliente.modalidad != 1 and pestana == 'ambulatorios' ? ' No está informado como ambulatorio' : ''}}">
                 <div class="editarPacienteInner">
                     <td class="hClinica">{{ cliente.hClinica }}</td>
@@ -237,8 +238,7 @@
                                 <a class="dropdown-item" href="{{ path('prescripcion_new', {'id': cliente.id}) }}">
                                     <i class="fas fa-user-nurse" data-toggle="tooltip" data-placement="top" title="Prescripciones"></i> Prescripciones
                                 </a>
-                                {% if (presenteDoctor and ((pestana != 'ambulatorios') or (pestana == 'ambulatorios' and cliente.ambulatorioPresente))) %}
-
+                                {% if (puedeEvolucionar and cliente.ambulatorioPresente) %}
                                     <a class="dropdown-item" href="{{ path('evolucion_index', {'cliente': cliente.id}) }}">
                                         <i class="far fa-eye" data-toggle="tooltip" data-placement="top" title="evoluciones"></i> Evoluciones
                                     </a>

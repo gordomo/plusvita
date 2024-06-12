@@ -11,6 +11,7 @@ use App\Repository\BookingRepository;
 use App\Repository\ClienteRepository;
 use App\Repository\HabitacionRepository;
 use App\Repository\ObraSocialRepository;
+use App\Service\DoctorService;
 use DoctrineExtensions\Query\Mysql\Date;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\Request;
@@ -675,7 +676,7 @@ class DoctorController extends AbstractController
     /**
      * @Route("/doctor/historia/", name="doctor_historia", methods={"GET"})
      */
-    public function historia(Request $request, BookingRepository $bookingRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, HabitacionRepository $habitacionRepository)
+    public function historia(Request $request, BookingRepository $bookingRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, HabitacionRepository $habitacionRepository, DoctorService $DoctorService)
     {
         $user = $this->getUser();
         $nombreInput = $request->query->get('nombreInput', '');
@@ -729,7 +730,6 @@ class DoctorController extends AbstractController
                 break;
         }
 
-
         return $this->render('doctor/historias.html.twig', [
             'clientes' => $otrosPacientes,
             'pacientesDelDoctor' => $pacientes,
@@ -739,7 +739,7 @@ class DoctorController extends AbstractController
             'pestana' => $pestana,
             'obrasSociales' => $obrasSocialesArray,
             'habitacionesArray' => $habitacionesArray,
-            'presenteDoctor' => $user->getPresente()
+            'puedeEvolucionar' => $DoctorService->puedeEvolucionar()
         ]);
 
     }
