@@ -30,10 +30,10 @@ class HabitacionController extends AbstractController
                 $habitaciones = $habitacionRepository->findHabitacionSinCamasDisponibles();
                 break;
             case 'camas-vacias':
-                $habitaciones = $habitacionRepository->findHabitacionConCamasDisponibles();
+                $habitaciones = $habitacionRepository->findHabitacionConCamasDisponibles($clienteRepository);
                 break;
             default:
-                $habitaciones = $habitacionRepository->findAll();
+                $habitaciones = $habitacionRepository->findBy(array(), array('nombre' => 'ASC'));
                 break;
         }
 

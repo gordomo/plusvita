@@ -52,6 +52,6 @@ class DoctorService
                     'Traumatologo',
                     'Neumonologo'];
 
-        return in_array($this->security->getUser()->getModalidad(), $medicos);                         
+        return in_array($this->security->getUser()->getModalidad()[0], $medicos);                         
     }
 }

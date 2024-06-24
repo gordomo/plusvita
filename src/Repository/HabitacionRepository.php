@@ -47,7 +47,7 @@ class HabitacionRepository extends ServiceEntityRepository
     public function findHabitacionConCamasDisponibles($clienteRepository)
     {
         $resp = [];
-        $todas = $this->findAll();
+        $todas = $this->findBy(array(), array('nombre' => 'ASC'));
         foreach ($todas as $habitacion) {
             $totalCamas = $habitacion->getCamasDisponibles();
 
@@ -63,7 +63,7 @@ class HabitacionRepository extends ServiceEntityRepository
     public function findHabitacionSinCamasDisponibles()
     {
         $resp = [];
-        $todas = $this->findAll();
+        $todas = $this->findBy(array(), array('nombre' => 'ASC'));
         foreach ($todas as $habitacion) {
             $arrayCamas = $habitacion->getCamasOcupadas();
 
