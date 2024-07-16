@@ -161,11 +161,6 @@ class Doctor implements UserInterface
     private $cbu;
 
     /**
-     * @ORM\Column(type="integer", length=2, nullable=true)
-     */
-    private $max_cli_turno;
-
-    /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $color;
@@ -186,6 +181,8 @@ class Doctor implements UserInterface
     private $habilitado;
 
     /**
+     * Si el doctor esta presente
+     * 
      * @ORM\Column(type="boolean")
      */
     private $presente;
@@ -194,6 +191,30 @@ class Doctor implements UserInterface
      * @ORM\OneToMany(targetEntity=PresentesDoctores::class, mappedBy="doctor")
      */
     private $presentes;
+
+    /**
+     * Numero de pacientes internados atendidos por hora
+     * 
+     * @ORM\Column(type="integer", length=1, nullable=true)
+     */
+    private $internadosAtendidos;
+
+    /**
+     * Numero de pacientes ambulatorios atendidos por hora
+     * 
+     * @ORM\Column(type="integer", length=1, nullable=true)
+     */
+    private $ambulatoriosAtendidos;
+
+    /**
+     * Maximo de pacientes ambulatorios que puede atender por hora
+     */
+    const MAX_AMBULATORIOS_ATENDIDOS = 5;
+
+    /**
+     * Maximo de pacientes internados que puede atender por hora
+     */
+    const MAX_INTERNADOS_ATENDIDOS = 3;
 
 
     public function __construct()
@@ -614,22 +635,6 @@ class Doctor implements UserInterface
         return $this;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getMaxCliTurno()
-    {
-        return $this->max_cli_turno;
-    }
-
-    /**
-     * @param mixed $max_cli_turno
-     */
-    public function setMaxCliTurno($max_cli_turno): void
-    {
-        $this->max_cli_turno = $max_cli_turno;
-    }
-
     public function getColor(): ?string
     {
         return $this->color;
@@ -734,6 +739,46 @@ class Doctor implements UserInterface
                 $presentes->setDoctor(null);
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * Get numero de pacientes internados atendidos por hora
+     */ 
+    public function getInternadosAtendidos()
+    {
+        return $this->internadosAtendidos;
+    }
+
+    /**
+     * Set numero de pacientes internados atendidos por hora
+     *
+     * @return  self
+     */ 
+    public function setInternadosAtendidos($internadosAtendidos)
+    {
+        $this->internadosAtendidos = $internadosAtendidos;
+
+        return $this;
+    }
+
+    /**
+     * Get numero de pacientes ambulatorios atendidos por hora
+     */ 
+    public function getAmbulatoriosAtendidos()
+    {
+        return $this->ambulatoriosAtendidos;
+    }
+
+    /**
+     * Set numero de pacientes ambulatorios atendidos por hora
+     *
+     * @return  self
+     */ 
+    public function setAmbulatoriosAtendidos($ambulatoriosAtendidos)
+    {
+        $this->ambulatoriosAtendidos = $ambulatoriosAtendidos;
 
         return $this;
     }

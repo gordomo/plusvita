@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use DateTime;
 use http\Client;
+use DateInterval;
 use App\Entity\Doctor;
 use App\Entity\Evolucion;
 use App\Form\EvolucionType;
@@ -84,21 +86,56 @@ class EvolucionController extends AbstractController
      */
     public function new(SluggerInterface $slugger, ValidatorInterface $validator, Request $request, ClienteRepository $clienteRepository, EvolucionRepository $evolucionRepository, DoctorRepository $doctorRepository): Response
     {
-        $user = $this->getUser();
-        $puedenEditarEvoluciones = in_array('ROLE_EDIT_HC', $user->getRoles());
-        $doctores = $doctorRepository->findEmails();
-        $docArr = [];
+        $user                       = $this->getUser();
+        $puedenEditarEvoluciones    = in_array('ROLE_EDIT_HC', $user->getRoles());
+
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+        
+        $cliente = $clienteRepository->find($request->get('cliente'));
+
+        if($user instanceOf Doctor){
+            $limitReched = false;
+
+            if($clienteRepository->isPacienteAmbulatorio($cliente) && 
+            (int) $user->getAmbulatoriosAtendidos() >= Doctor::MAX_AMBULATORIOS_ATENDIDOS){
+
+                $limitReched    = true;
+                $message        = 'No puede evolucionar mas de '.Doctor::MAX_INTERNADOS_ATENDIDOS.' pacientes internados por hora';
+            }
+
+            if($clienteRepository->isPacienteInternado($cliente) && 
+                (int) $user->getInternadosAtendidos() >= Doctor::MAX_INTERNADOS_ATENDIDOS){
+
+                /*$date      = new DateTime();
+                $dateStart = clone $date;
+
+                $tosub = new DateInterval('PT1H');
+                $dateStart->sub($tosub);*/
+
+                $limitReched    = true;
+                $message        =  'No puede evolucionar mas de '.Doctor::MAX_INTERNADOS_ATENDIDOS.' pacientes internados por hora';
+            }
+
+            if($limitReched){
+
+                $this->addFlash('info', $message);
+
+                return $this->redirectToRoute('evolucion_index',['cliente'=> $cliente->getId()], Response::HTTP_SEE_OTHER);    
+            }
+
+        }
+
+        $doctores   = $doctorRepository->findEmails();
+        $docArr     = [];
+        
         foreach ( $doctores as $doc ) {
             $docArr[$doc['email']] = $doc['email'];
         }
         
-        $error = '';
-        if (!$user) {
-            return $this->redirectToRoute('app_login');
-        }
         $evolucion = new Evolucion();
 
-        $cliente = $clienteRepository->find($request->get('cliente'));
         if($cliente->getDerivado() and $user->getEmail() != 'danielabraida77@hotmail.com') die('paciente derivado, no se puede evolucionar');
         //solo activos
         $evolucion->setPaciente($cliente);
@@ -111,7 +148,8 @@ class EvolucionController extends AbstractController
             $modalidad = $modalidades[0];
         }
 
-        $form = $this->createForm(EvolucionType::class, $evolucion, ['modalidad' => $modalidad, 'doctores' => $docArr, 'puedenEditarEvoluciones' => $puedenEditarEvoluciones]);
+        $error  = '';
+        $form   = $this->createForm(EvolucionType::class, $evolucion, ['modalidad' => $modalidad, 'doctores' => $docArr, 'puedenEditarEvoluciones' => $puedenEditarEvoluciones]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -149,6 +187,16 @@ class EvolucionController extends AbstractController
                     }
 
                     $evolucion->addAdjuntoUrl($newFilename);
+                }
+                //si es doctor incrementar en 1 los pacientes ambulatorios o internados atendidos
+                if($user instanceOf Doctor){
+                    if($clienteRepository->isPacienteAmbulatorio($cliente)){
+                        $user->setAmbulatoriosAtendidos((int)$user->getAmbulatoriosAtendidos() +1);
+                    }
+                    if($clienteRepository->isPacienteInternado($cliente)){
+                        $user->setInternadosAtendidos((int)$user->getInternadosAtendidos() +1);
+                    }
+                    $entityManager->persist($user);
                 }
 
                 $entityManager->persist($evolucion);

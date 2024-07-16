@@ -99,7 +99,6 @@ class DoctorType extends AbstractType
                     ],
                 ])
                 ->add('matricula', TextType::class, ['required' => false])
-                ->add('max_cli_turno', NumberType::class, ['html5' => true, 'required' => false])
                 ->add('habilitado', ChoiceType::class, [
                     'choices' => [
                         'Si' => 1,

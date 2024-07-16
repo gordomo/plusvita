@@ -3,6 +3,11 @@
 {% block title %}Evolucion index{% endblock %}
 
 {% block body %}
+    {% for message in app.flashes('info') %}
+        <div class="alert alert-info">
+            {{ message }}
+        </div>
+    {% endfor %}
     <h1>Evoluciones de {{ nombreCliente }}</h1>
     <div class="row">
         <div class="col-8 m-4">

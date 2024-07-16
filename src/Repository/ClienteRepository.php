@@ -399,4 +399,42 @@ class ClienteRepository extends ServiceEntityRepository
 
         return $paginator;
     }
+
+    /**
+     * Devuelve los identificadores de paciente ambulatorio
+     * 
+     * @return array
+     */
+    public function getModalidadAmbulatorio(){
+        return [1,4];
+    }
+
+    /**
+     * Devuelve los identificadores de paciente internado
+     * 
+     * @return array
+     */
+    public function getModalidadInternado(){
+        return [2,3];
+    }
+
+    /**
+     * Chequea si el paciente es ambulatorio
+     * 
+     * @param Cliente
+     * @return bool
+     */
+    public function isPacienteAmbulatorio(Cliente $cliente){
+        return in_array($cliente->getModalidad(), $this->getModalidadAmbulatorio());
+    }
+
+    /**
+     * Chequea si el paciente es internado
+     * 
+     * @param Cliente
+     * @return bool
+     */
+    public function isPacienteInternado(Cliente $cliente){
+        return in_array($cliente->getModalidad(), $this->getModalidadInternado());
+    }
 }
