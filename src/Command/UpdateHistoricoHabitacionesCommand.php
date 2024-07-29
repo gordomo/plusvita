@@ -76,28 +76,34 @@ class UpdateHistoricoHabitacionesCommand extends Command
         $clientesInactivos = $clienteRepo->findInActivosOcupandoCama();
 
         foreach ($clientes as $cliente) {
-            $historia = new HistoriaHabitaciones();
-            $historia->setFecha(new \DateTime());
-            $historia->setHabitacion($habRepo->find($cliente->getHabitacion()));
-            $historia->setNCama($cliente->getNcama());
-            $historia->setCliente($cliente);
-            $em->persist($historia);
-            $em->flush();
+            if($habRepo->find($cliente->getHabitacion())) {
+                $historia = new HistoriaHabitaciones();
+                $historia->setFecha(new \DateTime());
+                $historia->setHabitacion($habRepo->find($cliente->getHabitacion()));
+                $historia->setNCama($cliente->getNcama());
+                $historia->setCliente($cliente);
+                $em->persist($historia);
+                $em->flush();
+            }
         }
 
         foreach ( $clientesInactivos as $inactivo ) {
-            $habitacionActual = $historiaHabRepo->find($inactivo->getHabitacion());
 
-            $habPrivada = $inactivo->getHabPrivada();
-            $camasOcupadasPorCliente = $habitacionActual->getCamasOcupadas();
+            if ( $inactivo->getHabitacion() ) {
+                $habitacionActual = $historiaHabRepo->find($inactivo->getHabitacion());
 
-            if($habPrivada != null && $habPrivada) {
-                $camasOcupadasPorCliente = [];
-            } else {
-                unset($camasOcupadasPorCliente[$inactivo->getNCama()]);
+                $habPrivada = $inactivo->getHabPrivada();
+                $camasOcupadasPorCliente = $habitacionActual->getCamasOcupadas();
+
+                if($habPrivada != null && $habPrivada) {
+                    $camasOcupadasPorCliente = [];
+                } else {
+                    unset($camasOcupadasPorCliente[$inactivo->getNCama()]);
+                }
+
+                $habitacionActual->setCamasOcupadas($camasOcupadasPorCliente);
+                $em->persist($habitacionActual);
             }
-
-            $habitacionActual->setCamasOcupadas($camasOcupadasPorCliente);
 
             $inactivo->setHabitacion(null);
             $inactivo->setNCama(null);
@@ -106,14 +112,17 @@ class UpdateHistoricoHabitacionesCommand extends Command
             $historial = new HistoriaPaciente();
             $historial->setHabitacion(null);
             $historial->setCama(null);
+            $historial->setFecha($inactivo->getFEgreso());
+            $historial->setIdPaciente($inactivo->getId());
+            $historial->setUsuario('cronJobs');
 
-            $em->persist($historial);
-            $em->persist($habitacionActual);
+            $em->persist($historial);            
             $em->persist($inactivo);
             $em->flush();
         }
 
-        $io->success('You have a new command! Now make it your own! Pass --help to see your options.');
+        $hoy = new \DateTime();
+        $io->success('### ' . $hoy->format('d-m-Y:hh:mm:ss'). ' /// update-historico-habitaciones ###');
 
         return Command::SUCCESS;
     }

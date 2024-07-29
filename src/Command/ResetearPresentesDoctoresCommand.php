@@ -74,7 +74,8 @@ class ResetearPresentesDoctoresCommand extends Command
         }
 
         $em->flush();
-        $io->success('You have a new command! Now make it your own! Pass --help to see your options.');
+        $hoy = new \DateTime();
+        $io->success('### ' . $hoy->format('d-m-Y:hh:mm:ss'). ' /// resetear-presentes-doctores-command ###');
 
         return Command::SUCCESS;
     }

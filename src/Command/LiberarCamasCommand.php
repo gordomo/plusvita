@@ -79,7 +79,8 @@ class LiberarCamasCommand extends Command
             }
         }
 
-        $io->success('camas liberadas.');
+        $hoy = new \DateTime();
+        $io->success('### ' . $hoy->format('d-m-Y:hh:mm:ss'). ' /// liberar-camas-command ###');
 
         return Command::SUCCESS;
     }    
