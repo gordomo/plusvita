@@ -193,28 +193,18 @@ class Doctor implements UserInterface
     private $presentes;
 
     /**
-     * Numero de pacientes internados atendidos por hora
+     * Numero de pacientes maximo internados que puede atender por hora
      * 
      * @ORM\Column(type="integer", length=1, nullable=true)
      */
-    private $internadosAtendidos;
+    private $maxInternados;
 
     /**
-     * Numero de pacientes ambulatorios atendidos por hora
+     * Numero de pacientes maximo ambulatorios que puede atender por hora
      * 
      * @ORM\Column(type="integer", length=1, nullable=true)
      */
-    private $ambulatoriosAtendidos;
-
-    /**
-     * Maximo de pacientes ambulatorios que puede atender por hora
-     */
-    const MAX_AMBULATORIOS_ATENDIDOS = 5;
-
-    /**
-     * Maximo de pacientes internados que puede atender por hora
-     */
-    const MAX_INTERNADOS_ATENDIDOS = 3;
+    private $maxAmbulatorios;
 
 
     public function __construct()
@@ -744,41 +734,41 @@ class Doctor implements UserInterface
     }
 
     /**
-     * Get numero de pacientes internados atendidos por hora
+     * Get numero maximo de pacientes internados que puede atender por hora
      */ 
-    public function getInternadosAtendidos()
+    public function getMaxInternados()
     {
-        return $this->internadosAtendidos;
+        return $this->maxInternados;
     }
 
     /**
-     * Set numero de pacientes internados atendidos por hora
+     * Set numero maximo de pacientes internados que puede atender por hora
      *
      * @return  self
      */ 
-    public function setInternadosAtendidos($internadosAtendidos)
+    public function setMaxInternados($maxInternados)
     {
-        $this->internadosAtendidos = $internadosAtendidos;
+        $this->maxInternados = $maxInternados;
 
         return $this;
     }
 
     /**
-     * Get numero de pacientes ambulatorios atendidos por hora
+     * Get numero maximo de pacientes ambulatorios que puede atender por hora
      */ 
-    public function getAmbulatoriosAtendidos()
+    public function getMaxAmbulatorios()
     {
-        return $this->ambulatoriosAtendidos;
+        return $this->maxAmbulatorios;
     }
 
     /**
-     * Set numero de pacientes ambulatorios atendidos por hora
+     * Set numero maximo de pacientes ambulatorios que puede atender por hora
      *
      * @return  self
      */ 
-    public function setAmbulatoriosAtendidos($ambulatoriosAtendidos)
+    public function setMaxAmbulatorios($maxAmbulatorios)
     {
-        $this->ambulatoriosAtendidos = $ambulatoriosAtendidos;
+        $this->maxAmbulatorios = $maxAmbulatorios;
 
         return $this;
     }

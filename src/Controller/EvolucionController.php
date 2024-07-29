@@ -98,30 +98,34 @@ class EvolucionController extends AbstractController
         if($user instanceOf Doctor){
             $limitReched = false;
 
+            $date      = new DateTime();
+            $dateStart = clone $date;
+
+            $tosub = new DateInterval('PT1H');
+            $dateStart->sub($tosub);
+
+            $modalidad = $clienteRepository->isPacienteInternado($cliente) ? $clienteRepository->getModalidadInternado() : $clienteRepository->getModalidadAmbulatorio();
+
+            $pEvolucionadosUltHora = $evolucionRepository->findByDoctorDateModalidad($user->getEmail(), $dateStart, $date, $modalidad);
+            
+
             if($clienteRepository->isPacienteAmbulatorio($cliente) && 
-            (int) $user->getAmbulatoriosAtendidos() >= Doctor::MAX_AMBULATORIOS_ATENDIDOS){
+                count($pEvolucionadosUltHora) >= $user->getMaxAmbulatorios()){
 
                 $limitReched    = true;
-                $message        = 'No puede evolucionar mas de '.Doctor::MAX_INTERNADOS_ATENDIDOS.' pacientes internados por hora';
+                $message        = 'No puede evolucionar más de '.$user->getMaxAmbulatorios().' pacientes ambulatorio por hora';
             }
 
             if($clienteRepository->isPacienteInternado($cliente) && 
-                (int) $user->getInternadosAtendidos() >= Doctor::MAX_INTERNADOS_ATENDIDOS){
-
-                /*$date      = new DateTime();
-                $dateStart = clone $date;
-
-                $tosub = new DateInterval('PT1H');
-                $dateStart->sub($tosub);*/
+                count($pEvolucionadosUltHora) >= $user->getMaxInternados()){
 
                 $limitReched    = true;
-                $message        =  'No puede evolucionar mas de '.Doctor::MAX_INTERNADOS_ATENDIDOS.' pacientes internados por hora';
+                $message        = 'No puede evolucionar más de '.$user->getMaxInternados().' pacientes internados por hora';
             }
 
             if($limitReched){
 
                 $this->addFlash('info', $message);
-
                 return $this->redirectToRoute('evolucion_index',['cliente'=> $cliente->getId()], Response::HTTP_SEE_OTHER);    
             }
 
@@ -165,12 +169,6 @@ class EvolucionController extends AbstractController
                     die('paciente con fecha egreso anterior a la fecha de la evolución, no se puede evolucionar');
                 }
                 
-                $hoy = new \DateTime();
-                
-                if ($evolucion->getFecha()->diff($hoy)->days > 0 && !$puedenEditarEvoluciones) {
-                    die('la fecha de la evolución es anterior al día de la fecha, no se puede evolucionar');
-                }
-                
                 foreach($adjuntos as $adjunto) {
                     $originalFilename = pathinfo($adjunto->getClientOriginalName(), PATHINFO_FILENAME);
                     $safeFilename = $slugger->slug($originalFilename);
@@ -187,17 +185,7 @@ class EvolucionController extends AbstractController
                     }
 
                     $evolucion->addAdjuntoUrl($newFilename);
-                }
-                //si es doctor incrementar en 1 los pacientes ambulatorios o internados atendidos
-                if($user instanceOf Doctor){
-                    if($clienteRepository->isPacienteAmbulatorio($cliente)){
-                        $user->setAmbulatoriosAtendidos((int)$user->getAmbulatoriosAtendidos() +1);
-                    }
-                    if($clienteRepository->isPacienteInternado($cliente)){
-                        $user->setInternadosAtendidos((int)$user->getInternadosAtendidos() +1);
-                    }
-                    $entityManager->persist($user);
-                }
+                }               
 
                 $entityManager->persist($evolucion);
                 $entityManager->flush();

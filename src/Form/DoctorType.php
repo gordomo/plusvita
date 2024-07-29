@@ -78,6 +78,8 @@ class DoctorType extends AbstractType
                 ->add('inicioContrato', DateType::class, ['widget' => 'single_text'])
                 ->add('vtoContrato', DateType::class, ['widget' => 'single_text', 'required' => false])
                 ->add('vtoMatricula', DateType::class, ['widget' => 'single_text', 'required' => false])
+                ->add('maxInternados', NumberType::class, ['html5' => true])
+                ->add('maxAmbulatorios', NumberType::class, ['html5' => true])
                 ->add('libretaSanitaria', NumberType::class, ['html5' => true, 'required' => false])
                 ->add('vtoLibretaSanitaria', DateType::class, ['widget' => 'single_text', 'required' => false])
                 ->add('emisionLibretaSanitaria', DateType::class, ['widget' => 'single_text', 'required' => false])

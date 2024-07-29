@@ -261,6 +261,17 @@
     <hr>
     <br>
     <div class="form-row">
+        <div class="col-sm maxInternados">
+        {{ form_label(form.maxInternados, 'Maximo internados por hora') }}
+        {{ form_widget(form.maxInternados) }}
+        </div>
+        <div class="col-sm maxAmbulatorios">
+            {{ form_label(form.maxAmbulatorios, 'Maximo ambulatorios por hora') }}
+            {{ form_widget(form.maxAmbulatorios) }}
+        </div>
+    </div>
+    <br>
+    <div class="form-row">
         <div class="col-sm d-none vtoMatricula">
         {{ form_label(form.matricula, 'Matricula') }}
         {{ form_widget(form.matricula) }}

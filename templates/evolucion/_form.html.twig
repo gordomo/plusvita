@@ -5,11 +5,11 @@
         {{ form_label(form.tipo, 'Tipo') }}
         {{ form_widget(form.tipo) }}
     </div>
+    {% if (is_granted('ROLE_EDIT_HC')) %}
     <div class="col-sm">
         {{ form_label(form.fecha, 'Fecha') }}
         {{ form_widget(form.fecha) }}
     </div>
-    {% if (is_granted('ROLE_EDIT_HC')) %}
     <div class="col-sm">
         {{ form_label(form.doctor, 'Doctor') }}
         {{ form_widget(form.doctor) }}

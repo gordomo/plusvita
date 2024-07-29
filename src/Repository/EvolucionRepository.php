@@ -79,6 +79,24 @@ class EvolucionRepository extends ServiceEntityRepository
 
     }
 
+    public function findByDoctorDateModalidad($doctor, $fechaDesde, $fechaHasta, $modalidad = null)
+    {
+        $query = $this->createQueryBuilder('e')->where('e.user = :doctor')->setParameter('doctor', $doctor);
+            if (!empty($fechaDesde)) {
+                $query->andWhere('e.fecha >= :fechaDesde')->setParameter('fechaDesde', $fechaDesde);
+            }
+            if (!empty($fechaHasta)) {
+                $query->andWhere('e.fecha <= :fechaHasta')->setParameter('fechaHasta', $fechaHasta);
+            }
+            if (!empty($modalidad)) {
+                $query->innerJoin('e.paciente', 'cli')->andWhere('cli.modalidad in (:modalidad)')
+                ->setParameter('modalidad', $modalidad);
+            }
+            
+       return $query->orderBy('e.fecha', 'ASC')->getQuery()->getResult();
+
+    }
+
     public function findByFechaDoctorYCliente($doctor, $cliente, $fechaDesde, $fechaHasta)
     {
         $query = $this->createQueryBuilder('e')->where('e.user = :doctor')->setParameter('doctor', $doctor);
