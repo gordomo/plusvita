@@ -424,6 +424,9 @@ class ClienteController extends AbstractController
 
             foreach ($historias as $historia) {
                 $cliente = $historia->getCliente();
+                if (!$cliente) {
+                    $cliente = $clienteRepository->find($historia->getIdPaciente());
+                }
                 $fechaDesde2 = (!empty ($historia->getFecha()) && $historia->getFecha() >= $fechaDesde) ? $historia->getFecha() : $fechaDesde;
                 $fechaDesde2 = (($cliente->getFIngreso() != null) && $fechaDesde2 < $cliente->getFIngreso()) ? $cliente->getFIngreso()->format('d-m-Y') : $fechaDesde2->format('d-m-Y');
                 $fechaHasta2 = (!empty ($historia->getFechaFin()) && $historia->getFechaFin() <= $fechaHasta) ? $historia->getFechaFin() : $fechaHasta;
