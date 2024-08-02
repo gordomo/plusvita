@@ -406,7 +406,9 @@ class ClienteController extends AbstractController
 
         if($from && $to) {
             $vencimientoAut = \DateTime::createFromFormat("d/m/Y", $vto);   
-            
+            if ($fechaHasta > new \DateTime()) {
+                $fechaHasta = new \DateTime();
+            }
             if ($fechaDesde && $fechaHasta) {
                 $interval = new DateInterval("P1D");
                 $range = new DatePeriod($fechaDesde, $interval, $fechaHasta);
