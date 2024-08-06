@@ -406,7 +406,7 @@ class DoctorController extends AbstractController
             }
 
             $doctor->setBusinessHours($horarios);
-
+            $doctor->setPresente(false);
 
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($doctor);
