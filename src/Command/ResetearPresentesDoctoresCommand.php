@@ -75,7 +75,7 @@ class ResetearPresentesDoctoresCommand extends Command
 
         $em->flush();
         $hoy = new \DateTime();
-        $io->success('### ' . $hoy->format('d-m-Y:hh:mm:ss'). ' /// resetear-presentes-doctores-command ###');
+        $io->success('### ' . $hoy->format('Y-m-d H:i:s'). ' /// resetear-presentes-doctores-command ###');
 
         return Command::SUCCESS;
     }

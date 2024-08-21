@@ -68,7 +68,7 @@ class ControlarPresentesCommand extends Command
 
         $em->flush();
         $hoy = new \DateTime();
-        $io->success('### ' . $hoy->format('d-m-Y:hh:mm:ss'). ' /// controlar-presentes-command ###');
+        $io->success('### ' . $hoy->format('Y-m-d H:i:s'). ' /// controlar-presentes-command ###');
 
         return Command::SUCCESS;
     }

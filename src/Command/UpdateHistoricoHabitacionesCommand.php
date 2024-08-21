@@ -122,7 +122,7 @@ class UpdateHistoricoHabitacionesCommand extends Command
         }
 
         $hoy = new \DateTime();
-        $io->success('### ' . $hoy->format('d-m-Y:hh:mm:ss'). ' /// update-historico-habitaciones ###');
+        $io->success('### ' . $hoy->format('Y-m-d H:i:s'). ' /// update-historico-habitaciones ###');
 
         return Command::SUCCESS;
     }
