@@ -80,7 +80,7 @@ class LiberarCamasCommand extends Command
         }
 
         $hoy = new \DateTime();
-        $io->success('### ' . $hoy->format('d-m-Y:hh:mm:ss'). ' /// liberar-camas-command ###');
+        $io->success('### ' . $hoy->format('Y-m-d H:i:s'). ' /// liberar-camas-command ###');
 
         return Command::SUCCESS;
     }    
