@@ -99,7 +99,7 @@ class EvolucionController extends AbstractController
         $evolucion = new Evolucion();
 
         $cliente = $clienteRepository->find($request->get('cliente'));
-        if($cliente->getDerivado() and $user->getEmail() != 'danielabraida77@hotmail.com') die('paciente derivado, no se puede evolucionar');
+        if($cliente->getDerivado() and !$puedenEditarEvoluciones) die('paciente derivado, no se puede evolucionar');
         //solo activos
         $evolucion->setPaciente($cliente);
         $evolucion->setUser($user->getEmail());

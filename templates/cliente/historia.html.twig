@@ -106,54 +106,44 @@
             <table class="table table-responsive table-striped">
                 {% if ingreso is not empty %}
                     <tr>
-                        <th>Antecedentes:</th>
+                        <td><b>Antecedentes:</b> {{ ingreso.antecedentesTexto }}</td>
                     </tr>
                     <tr>
-                        <td>{{ ingreso.antecedentesTexto }}</td>
+                        <td><b> Enfermedad Actual:</b> {{ ingreso.enfermedadActual }}</td>
                     </tr>
                     <tr>
-                        <th>Enfermedad Actual:</th>
+                        <td><b> Exámen Físico al ingreso:</b> {{ ingreso.examenFisicoAlIngreso }}</td>
                     </tr>
                     <tr>
-                        <td>{{ ingreso.enfermedadActual }}</td>
+                        <td><b> Exámen Complementario:</b> {{ ingreso.examenComplementarioDesc }}</td>
                     </tr>
                     <tr>
-                        <th>Exámen Físico al ingreso:</th>
+                        <td><b> Indicaciones:</b> {{ ingreso.indicaciones }}</td>
                     </tr>
                     <tr>
-                        <td>{{ ingreso.examenFisicoAlIngreso }}</td>
-                    </tr>
-                    <tr>
-                        <th>Exámen Complementario:</th>
-                    </tr>
-                    <tr>
-                        <td>{{ ingreso.examenComplementarioDesc }}</td>
-                    </tr>
-                    <tr>
-                        <th>Indicaciones:</th>
-                    </tr>
-                    <tr>
-                        <td>{{ ingreso.indicaciones }}</td>
-                    </tr>
-                    <tr>
-                        <th>Adjuntos:</th>
-                    </tr>
-                    <tr>
-                        <td>
+                        <td><b> Adjuntos:</b> 
                             {% if ingreso.examenesComplementeriosFiles is not empty %}
                             {% for examenes in ingreso.examenesComplementeriosFiles %}
                             {% set url = 'uploads/adjuntos/pacientes/' ~ cliente.id ~ "/complementerios/" ~ examenes %}
                                 <a href={{ path('download_pdf_adjunto', {'path': url, 'nombre': examenes}) }} >{{ examenes }}</a><br>
                                 {% endfor %}
-                                {% else %}
-                                    No tiene
-                                {% endif %}
+                            {% else %}
+                                No tiene
+                            {% endif %}
                         </td>
                     </tr>
                 {% else %}
                     <tr>
                         No existen registros
                     </tr>
+                {% endif %}
+                {% if epicrisisIngreso is not empty %}
+                <tr>
+                    <td><b>Epicrisis de Ingreso:</b> 
+                    {% set nombre = 'epicrisis-ingreso-' ~ cliente.getApellido ~ '.pdf' %}
+                        <a href={{ path('download_pdf_adjunto', {'path': epicrisisIngreso, 'nombre': nombre}) }} >{{ nombre }}</a><br>
+                    <td>
+                </tr>
                 {% endif %}
             </table>
         </div>

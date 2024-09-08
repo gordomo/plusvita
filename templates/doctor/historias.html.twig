@@ -233,12 +233,12 @@
                                     <i class="far fa-calendar-alt" data-toggle="tooltip" data-placement="top" title="historia"></i> Historia de Ingreso
                                 </a>
                                 <a class="dropdown-item" href="{{ path('consumible_indicar_view', {'id': cliente.id}) }}">
-                                    <i class="fas fa-band-aid" data-toggle="tooltip" data-placement="top" title="evoluciones"></i> Cargar Indicación
+                                    <i class="fas fa-band-aid" data-toggle="tooltip" data-placement="top" title="consumible"></i> Cargar Indicación
                                 </a>
                                 <a class="dropdown-item" href="{{ path('prescripcion_new', {'id': cliente.id}) }}">
                                     <i class="fas fa-user-nurse" data-toggle="tooltip" data-placement="top" title="Prescripciones"></i> Prescripciones
                                 </a>
-                                {% if (puedeEvolucionar and cliente.ambulatorioPresente) %}
+                                {% if (puedeEvolucionar and cliente.ambulatorioPresente or ( app.user and 'ROLE_EDIT_HC' in app.user.roles )) %}
                                     <a class="dropdown-item" href="{{ path('evolucion_index', {'cliente': cliente.id}) }}">
                                         <i class="far fa-eye" data-toggle="tooltip" data-placement="top" title="evoluciones"></i> Evoluciones
                                     </a>
@@ -250,9 +250,87 @@
             </tr>
         {% else %}
             <tr>
-                <td colspan="15">No existen registros</td>
+                <td colspan="10">No existen registros</td>
             </tr>
         {% endfor %}
+        <tr>
+            <th colspan="10">
+                {% if maxPages > 1 %}
+                    <nav aria-label="nav">
+                        <ul class="pagination">
+                            {% if currentPage > 1 %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ path('doctor_historia', {
+                                        currentPage: (currentPage-1 < 1 ? 1 : currentPage-1),
+                                        pestana: ((pestana) ? pestana : ''), 
+                                        nombreInput: ((nombreInput) ? nombreInput : ''),
+                                        limit: ((limit) ? limit : ''), 
+                                    }) }}">«</a>
+                                </li>
+                            {% endif %}
+
+                            {# Definir el rango de páginas a mostrar #}
+                            {% set startPage = max(1, currentPage - 4) %}
+                            {% set endPage = min(maxPages, currentPage + 5) %}
+
+                            {# Mostrar la primera página si no está en el rango #}
+                            {% if startPage > 1 %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ path('doctor_historia', {
+                                        currentPage: 1,
+                                        pestana: ((pestana) ? pestana : ''), 
+                                        nombreInput: ((nombreInput) ? nombreInput : ''),
+                                        limit: ((limit) ? limit : ''),
+                                    }) }}">1</a>
+                                </li>
+                                {% if startPage > 2 %}
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                {% endif %}
+                            {% endif %}
+
+                            {# Mostrar las páginas en el rango definido #}
+                            {% for i in startPage..endPage %}
+                                <li class="page-item {% if currentPage == i %}active{% endif %}">
+                                    <a class="page-link" href="{{ path('doctor_historia', {
+                                        currentPage: i,
+                                        pestana: ((pestana) ? pestana : ''), 
+                                        nombreInput: ((nombreInput) ? nombreInput : ''),
+                                        limit: ((limit) ? limit : ''),
+                                    }) }}">{{ i }}</a>
+                                </li>
+                            {% endfor %}
+
+                            {# Mostrar la última página si no está en el rango #}
+                            {% if endPage < maxPages %}
+                                {% if endPage < maxPages - 1 %}
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                {% endif %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ path('doctor_historia', {
+                                        currentPage: maxPages,
+                                        pestana: ((pestana) ? pestana : ''), 
+                                        nombreInput: ((nombreInput) ? nombreInput : ''),
+                                        limit: ((limit) ? limit : ''),
+                                    }) }}">{{ maxPages }}</a>
+                                </li>
+                            {% endif %}
+
+                            {% if currentPage < maxPages %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ path('doctor_historia', {
+                                        currentPage: (currentPage+1 <= maxPages ? currentPage+1 : currentPage),
+                                        pestana: ((pestana) ? pestana : ''), 
+                                        nombreInput: ((nombreInput) ? nombreInput : ''),
+                                        limit: ((limit) ? limit : ''),
+                                    }) }}">»</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            </th>
+        </tr>
+
         </tbody>
     </table>
 

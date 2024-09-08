@@ -347,6 +347,11 @@ class Cliente
      */
     private $presentes;
 
+    /**
+     * @ORM\Column(type="text")
+     */
+    private $epicrisis_ingreso;
+
     public function __construct()
     {
         $this->docReferente = new ArrayCollection();
@@ -1336,6 +1341,18 @@ class Cliente
                 $presentes->setPaciente(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getEpicrisisIngreso(): ?string
+    {
+        return $this->epicrisis_ingreso;
+    }
+
+    public function setEpicrisisIngreso(string $epicrisis_ingreso): self
+    {
+        $this->epicrisis_ingreso = $epicrisis_ingreso;
 
         return $this;
     }

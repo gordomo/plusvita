@@ -21,6 +21,8 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Validator\Constraints\File;
 
 class ClienteType extends AbstractType
 {
@@ -32,9 +34,27 @@ class ClienteType extends AbstractType
         ksort($obrasSociales);
         if (!$options['egreso']) {
             $builder
+                //->add('epicrisis_ingreso', TextareaType::class)
+                ->add('epicrisisIngreso', FileType::class, [
+                    'label' => 'Epicrisis Ingreso (PDF file)',
+                    'mapped' => false,
+                    'required' => true,
+                    'constraints' => [
+                        new File([
+                            'maxSize' => '5625k',
+                            'mimeTypes' => [
+                                'application/pdf',
+                                'application/x-pdf',
+                                'image/*',
+
+                            ],
+                            'mimeTypesMessage' => 'Solo archivos con formato PDF son permitidos',
+                        ])
+                    ],
+                ])
                 ->add('nombre', TextType::class)
                 ->add('apellido', TextType::class)
-                ->add('dni', TextType::class, ['label' => 'Número de Documento', 'required' => false,])
+                ->add('dni', TextType::class, ['label' => 'Número de Documento', 'required' => true,])
                 ->add('email', EmailType::class, ['required' => false,])
                 ->add('telefono', TextType::class, ['label' => 'Teléfono', 'required' => false,])
                 ->add('fNacimiento', DateType::class, [

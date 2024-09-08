@@ -40,6 +40,8 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Validator\Constraints\DateTime;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\String\Slugger\SluggerInterface;
 use DatePeriod;
 use DateInterval;
 
@@ -76,7 +78,7 @@ class ClienteController extends AbstractController
         $hab = $request->query->get('hab') ?? null;
         $idObra = $request->query->get('idObra') ?? null;
         $currentPage = $request->query->get('currentPage') ?? 1;
-        $idObra = $request->query->get('idObra') ?? null;
+        $limit = $request->query->get('limit', 100);
         $maxPages = null;
         $query = '';
 
@@ -87,22 +89,19 @@ class ClienteController extends AbstractController
         }
 
         if ($pestana == 'inactivos') {
-            
-            $limit = 1;
-            $clientePaginados = $clienteRepository->findInActivos(new \DateTime(), $nombreInput, $currentPage, 10, null, $idObra);
-            $clientes = $clientePaginados['paginator'];
-            $query =  $clientePaginados['query'];
-            $maxPages = ceil($clientes->count() / $limit);
-
-        } else if ( $pestana == 'derivados') {
-            $clientes = $clienteRepository->findDerivados(new \DateTime(), $nombreInput, null, $idObra);
+            $clientes = $clienteRepository->findInActivos(new \DateTime(), $nombreInput, $currentPage, $limit, null, $idObra);
+            } else if ( $pestana == 'derivados') {
+            $clientes = $clienteRepository->findDerivados(new \DateTime(), $nombreInput, $currentPage, $limit, null, $idObra);
         } else if ( $pestana == 'permiso') {
-            $clientes = $clienteRepository->findDePermiso(new \DateTime(), $nombreInput, null, $idObra);
+            $clientes = $clienteRepository->findDePermiso(new \DateTime(), $nombreInput, $currentPage, $limit, null, $idObra);
         } else if ( $pestana == 'ambulatorios') {
-            $clientes = $clienteRepository->findAmbulatorios(new \DateTime(), $nombreInput, null, $idObra);
+            $clientes = $clienteRepository->findAmbulatorios(new \DateTime(), $nombreInput, $currentPage, $limit, null, $idObra);
         } else {
-            $clientes = $clienteRepository->findActivos(new \DateTime(), $nombreInput, $hab, null, $idObra);
+            $clientes = $clienteRepository->findActivos(new \DateTime(), $nombreInput, $currentPage, $limit, $hab, null, $idObra);
         }
+
+        $clientes = $clientes['paginator'];
+        $maxPages = intval(ceil($clientes->count() / $limit));
 
         $habitaciones = $habitacionRepository->getHabitacionesConPacientes();
 
@@ -116,11 +115,14 @@ class ClienteController extends AbstractController
             'pestana' => $pestana,
             'nombreInput' => $nombreInput,
             'habitacionesArray'=>$habitacionesArray,
+            'hab'=>$hab,
             'paginaImprimible' => true,
             'oSociales' => $obArray,
             'idObraSelected' => $idObra,
+            'idObra' => $idObra,
             'maxPages'=>$maxPages,
-            'thisPage' => $currentPage,
+            'currentPage' => $currentPage,
+            'limit' => $limit,
             'all_items' => $query,
             'puedenEditarEvoluciones' => in_array('ROLE_EDIT_HC', $this->getUser()->getRoles())
         ]);
@@ -232,122 +234,6 @@ class ClienteController extends AbstractController
                 'hc'                => $hc,
             ]);
     }
-
-    /**
-     * @Route("/historico/habitaciones", name="cliente_historicos_habitaciones", methods={"GET"})
-     */
-    // public function historicoHabitaciones(Request $request, HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, DoctorRepository $doctorRepository, HistoriaPacienteRepository $historiaPacienteRepository, HistoriaHabitacionesRepository $historiaHabitacionesRepository, PresentesRepository $presenteRepository, EvolucionRepository $evolucionRepository): Response
-    // {
-    //     $user = $this->getUser();
-    //     if (!$user) {
-    //         return $this->redirectToRoute('app_login');
-    //     } else if (!in_array('ROLE_ADMIN', $user->getRoles())) {
-    //         return $this->redirectToRoute('doctor_historia');
-    //     }
-
-    //     $estado = $request->query->get('estado') ?? '1';
-    //     $nombre = $request->query->get('nombre') ?? '';
-    //     $nombre = (!empty($nombre)) ? $nombre : null;
-    //     $prof = $request->query->get('prof') ?? null;
-    //     $nombreInput = $request->query->get('nombreInput');
-    //     $modalidad = $request->query->get('modalidad', 0);
-    //     $limit = $request->query->get('limit', 100);
-    //     $limit = intval($limit);
-    //     $currentPage = $request->query->get('currentPage', 1);
-    //     $hc = $request->query->get('hc', null);
-
-    //     $hab = $request->query->get('hab') ?? null;
-    //     $obraSocial = $request->query->get('obraSocial') ?? null;
-
-    //     $obrasSociales = $obraSocialRepository->findBy(array(), array('nombre' => 'ASC'));
-
-    //     $obArray = [];
-    //     foreach ( $obrasSociales as $ob ) {
-    //         $obArray[$ob->getId()] = $ob->getNombre();
-    //     }
-
-    //     $from = $request->get('from', false);
-    //     $to = $request->get('to', false);
-    //     $vto = $request->get('vto', null);
-
-    //     if ( !$from ) {
-    //         $from = date('d/m/Y',strtotime("first day of last month"));
-    //     }
-    //     if ( !$to ) {
-    //         $to = date('d/m/Y',strtotime("last day of last month"));
-    //     }
-
-    //     if($from && $to) {
-    //         $fechaDesde = \DateTime::createFromFormat("d/m/Y", $from);
-    //         $fechaHasta = \DateTime::createFromFormat("d/m/Y", $to);
-    //         $fechaDesde->setTime(00, 00, 00);
-    //         $fechaHasta->setTime(23, 59, 59);
-    //         $vencimientoAut = \DateTime::createFromFormat("d/m/Y", $vto);
-
-    //         $range = [];
-            
-    //         if ($fechaDesde && $fechaHasta) {
-    //             $interval = new DateInterval("P1D");
-    //             $range = new DatePeriod($fechaDesde, $interval, $fechaHasta);
-    //         }
-
-    //         if($fechaDesde > $fechaHasta) {
-    //             $fechaHasta = $fechaDesde;
-    //         }
-
-    //         $clientes = [];
-    //         if($nombre || $prof || $vto || $hc || $obraSocial) {
-    //             $clientes = $clienteRepository->findByNameDocReferentePaginado(null, $nombre, $prof, $vto, $hc, $obraSocial, null, null);
-    //         }
-            
-    //         $clientes = $clienteRepository->getPacienteConModalidadAntesDeFecha($fechaDesde, $fechaHasta, $modalidad, $nombre, $obraSocial, $clientes);
-
-    //         $historialCamas = [];
-    //         $contador = [] ;
-    //         foreach ( $clientes as $cliente ) {
-    //             foreach($range as $fecha) {
-    //                 $historias = $historiaHabitacionesRepository->findBy(['cliente' => $cliente, 'fecha' => $fecha]);
-    //                 if(!empty($historias[0])) {
-    //                     $historialCamas[$cliente->getId()][$fecha->format('d/m/Y')][0] = 'H: ' . $historias[0]->getHabitacion()->getNombre() . ' - C: ' . $historias[0]->getNCama();
-    //                 } else if($evolucion = $evolucionRepository->findBy(['paciente' => $cliente, 'fecha' => $fecha])) {
-    //                     $historialCamas[$cliente->getId()][$fecha->format('d/m/Y')][0] = '<a href="/evolucion/' . $evolucion[0]->getId() . '">' . 'Ambulatorio con Evolucion' . '</a>';
-    //                 } else if ($presenteRepository->findByFechaCliente($fecha, $cliente)) {
-    //                         $historialCamas[$cliente->getId()][$fecha->format('d/m/Y')][0] = 'Ambulatorio con Presente';
-    //                 } else {
-    //                         $historialCamas[$cliente->getId()][$fecha->format('d/m/Y')][0] = $cliente->getAmbulatorio() ? 'Ambulatorio sin Presente' : 'sin E. H. P.';
-    //                 }
-    //             }
-    //         }
-    //     }
-
-        
-
-    //     $docReferentes = $doctorRepository->findByContratos(['Fisiatra', 'Director medico', 'Sub director medico'], false);
-    //     return $this->render('cliente/historico_habitacion.html.twig',
-    //         [
-    //             'obraSociales' => $obArray,
-    //             'historialCamas' => $historialCamas,
-    //             'from' => $from,
-    //             'to' => $to,
-    //             'vto' => $vto,
-    //             'nombre' => $nombre,
-    //             'estado' => $estado,
-    //             'obraSocial' => $obraSocial,
-    //             'prof' => $prof,
-    //             'profesionales' => $docReferentes,
-    //             'modalidad' => $modalidad,
-    //             'hab' => $hab,
-    //             'paginaImprimible' => true,
-    //             'hc' => $hc,
-    //             'total' => count($clientes),
-    //             'historiaPacienteRepository' => $historiaPacienteRepository,
-    //             'habitacionRepository' => $habitacionRepository,
-    //             'doctorRepository' => $doctorRepository,
-    //             'clienteRepository' => $clienteRepository,
-    //             'range' => $range,
-    //         ]);
-    // }
-
 
     /**
      * @Route("/historico/prueba", name="cliente_historicos_habitaciones", methods={"GET"})
@@ -622,7 +508,6 @@ class ClienteController extends AbstractController
     }
 
 
-
     /**
      * @Route("/novedades", name="cliente_novedades", methods={"GET"})
      */
@@ -732,7 +617,7 @@ class ClienteController extends AbstractController
     /**
      * @Route("/new", name="cliente_new", methods={"GET","POST"})
      */
-    public function new(Request $request, ObraSocialRepository $obraSocialRepository, HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository): Response
+    public function new(Request $request, ObraSocialRepository $obraSocialRepository, SluggerInterface $slugger, HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository): Response
     {
         $user = $this->security->getUser();
 
@@ -762,13 +647,36 @@ class ClienteController extends AbstractController
 
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ( $form->isSubmitted() ) {
+
+            if ( !$form->isValid() ) {
+                dd($form->getErrors());
+            }
             $cliente->setAmbulatorio($form->get('modalidad')->getData() == 1);
             $familiarResponsableExtraNombres = $request->request->get('familiarResponsableExtraNombre');
             $familiarResponsableExtraTel = $request->request->get('familiarResponsableExtraTel');
             $familiarResponsableExtraMail = $request->request->get('familiarResponsableExtraMail');
             $familiarResponsableExtraVinculo = $request->request->get('familiarResponsableExtraVinculo');
             $familiarResponsableExtraAcompanante = $request->request->get('familiarResponsableExtraAcompanante');
+
+
+            $epicrisisIngreso = $form->get('epicrisisIngreso')->getData();
+            if ($epicrisisIngreso) {
+                $originalFilename = pathinfo($epicrisisIngreso->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFilename);
+                $newFilename = $safeFilename.'-'.uniqid().'.'.$epicrisisIngreso->guessExtension();
+                $path = $this->getParameter('adjuntos_pacientes_directory')."/".$form->get('dni')->getData();
+                try {
+                    $epicrisisIngreso->move(
+                        $path,
+                        $newFilename
+                    );
+                } catch (FileException $e) {
+                    // ... handle exception if something happens during file upload
+                    dd($e);
+                }
+                $cliente->setEpicrisisIngreso($path."/".$newFilename);
+            }
 
             $entityManager = $this->getDoctrine()->getManager();
             $doctoresReferentes = $cliente->getDocReferente();
@@ -840,7 +748,7 @@ class ClienteController extends AbstractController
             $entityManager->flush();
 
             return $this->redirectToRoute('cliente_index');
-        }
+        } 
 
         return $this->render('cliente/new.html.twig', [
             'cliente' => $cliente,
@@ -852,7 +760,7 @@ class ClienteController extends AbstractController
     /**
      * @Route("/{id}/edit", name="cliente_edit", methods={"GET","POST"})
      */
-    public function edit(Request $request, Cliente $cliente, ObraSocialRepository $obraSocialRepository, FamiliarExtraRepository $familiarExtraRepository, HabitacionRepository $habitacionRepository, DoctorRepository $doctorRepository, ClienteRepository $clienteRepository): Response
+    public function edit(Request $request, Cliente $cliente, ObraSocialRepository $obraSocialRepository, SluggerInterface $slugger, FamiliarExtraRepository $familiarExtraRepository, HabitacionRepository $habitacionRepository, DoctorRepository $doctorRepository, ClienteRepository $clienteRepository): Response
     {
         $user = $this->security->getUser();
 
@@ -971,6 +879,24 @@ class ClienteController extends AbstractController
                 $habVieja = $habitacionRepository->find($habitacionActualId);
 
                 $this->acomodarHabitacion($habitacionNueva, $nuevaCamaId, $habVieja, $camaActualId, $habPrivada, $habPrivadaNueva, $entityManager);
+
+                $epicrisisIngreso = $form->get('epicrisisIngreso')->getData();
+                if ($epicrisisIngreso) {
+                    $originalFilename = pathinfo($epicrisisIngreso->getClientOriginalName(), PATHINFO_FILENAME);
+                    $safeFilename = $slugger->slug($originalFilename);
+                    $newFilename = $safeFilename.'-'.uniqid().'.'.$epicrisisIngreso->guessExtension();
+                    $path = $this->getParameter('adjuntos_pacientes_directory')."/".$form->get('dni')->getData();
+                    try {
+                        $epicrisisIngreso->move(
+                            $path,
+                            $newFilename
+                        );
+                    } catch (FileException $e) {
+                        // ... handle exception if something happens during file upload
+                        dd($e);
+                    }
+                    $cliente->setEpicrisisIngreso($path."/".$newFilename);
+                }
 
                 $parametros = [
                     'cama' => $cliente->getNCama(),
@@ -1532,6 +1458,7 @@ class ClienteController extends AbstractController
                 'novedadesHasta'        => $novedadesHasta,
                 'doc'                   => $doc,
                 'doctorRepository'      => $doctorRepository,
+                'epicrisisIngreso'      => $cliente->getEpicrisisIngreso(),
         ]);
     }
 

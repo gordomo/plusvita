@@ -331,6 +331,9 @@ class DoctorController extends AbstractController
         $libre      = true;
         $message    = '';
         $dni        = $request->query->get('dni');
+        if ( !is_numeric($dni) ) {
+            return new JsonResponse(['libre' => false, 'message' => 'el dni debe ser un número']);    
+        }
         $id         = $request->query->get('id');
 
         $doctor     = $doctorRepository->findBy(['dni' => $dni], ['id'=>'DESC'], 1);
@@ -681,6 +684,9 @@ class DoctorController extends AbstractController
         $user = $this->getUser();
         $nombreInput = $request->query->get('nombreInput', '');
         $pestana = $request->query->get('pestana') ?? 'todos';
+        $currentPage = $request->query->get('currentPage') ?? 1;
+        $maxPages = null;
+        $limit = $request->query->get('limit', 100);
 
         $obrasSociales = $obraSocialRepository->findAll();
         $obrasSocialesArray = [];
@@ -710,31 +716,35 @@ class DoctorController extends AbstractController
 
         switch ($pestana) {
             case 'inactivos':
-                $otrosPacientes = $clienteRepository->findInActivos(new \DateTime(), $nombreInput, 1, 10, 'apellido');
-                $otrosPacientes = $otrosPacientes['paginator'];
+                $otrosPacientes = $clienteRepository->findInActivos(new \DateTime(), $nombreInput, $currentPage, $limit, 'apellido');
                 break;
             case 'derivados':
-                $otrosPacientes = $clienteRepository->findDerivados(new \DateTime(), $nombreInput, 'apellido');
+                $otrosPacientes = $clienteRepository->findDerivados(new \DateTime(), $nombreInput, $currentPage, $limit, 'apellido');
                 break;
             case 'permiso':
-                $otrosPacientes = $clienteRepository->findDePermiso(new \DateTime(), $nombreInput, 'apellido');
+                $otrosPacientes = $clienteRepository->findDePermiso(new \DateTime(), $nombreInput, $currentPage, $limit, 'apellido');
                 break;
             case 'ambulatorios':
-                $otrosPacientes = $clienteRepository->findAmbulatorios(new \DateTime(), $nombreInput, 'apellido');
+                $otrosPacientes = $clienteRepository->findAmbulatorios(new \DateTime(), $nombreInput, $currentPage, $limit, 'apellido');
                 break;
             case 'activos':
-                $otrosPacientes = $clienteRepository->findActivos(new \DateTime(), $nombreInput, null, 'apellido');
+                $otrosPacientes = $clienteRepository->findActivos(new \DateTime(), $nombreInput, $currentPage, $limit, null, 'apellido');
                 break;
             default:
-                $otrosPacientes = $clienteRepository->findAllByName($nombreInput, 'apellido');
+                $otrosPacientes = $clienteRepository->findAllByName($nombreInput, $currentPage, $limit, 'apellido');
                 break;
         }
 
+        $otrosPacientes = $otrosPacientes['paginator'];
+        $maxPages = intval(ceil($otrosPacientes->count() / $limit));
+
         return $this->render('doctor/historias.html.twig', [
             'clientes' => $otrosPacientes,
+            'limit' => $limit,
             'pacientesDelDoctor' => $pacientes,
-            'todosClientes' => $otrosPacientes,
             'paginaImprimible' => true,
+            'currentPage' => $currentPage,
+            'maxPages' => $maxPages,
             'nombreInput' => $nombreInput,
             'pestana' => $pestana,
             'obrasSociales' => $obrasSocialesArray,

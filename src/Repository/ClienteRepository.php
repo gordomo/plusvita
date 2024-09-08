@@ -19,8 +19,8 @@ class ClienteRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Cliente::class);
     }
-
-    public function findActivos($value, $nombre, $hab = null, $orderBy = null, $os = null)
+                                        
+    public function findActivos($value, $nombre, $currentPage, $limit, $hab = null, $orderBy = null, $os = null)
     {
         $query = $this->createQueryBuilder('c')
             ->andWhere('c.fEgreso > :val')->setParameter('val', $value)
@@ -55,7 +55,9 @@ class ClienteRepository extends ServiceEntityRepository
             $query->andWhere('c.obraSocial = :os')->setParameter("os", $os);
         }
 
-        return $query->getQuery()->getResult();
+        $paginator = $this->paginate($query, $currentPage, $limit);
+        return array('paginator' => $paginator, 'query' => $query);
+        
     }
 
     // modalidad 1 es ambulatorio
@@ -109,7 +111,7 @@ class ClienteRepository extends ServiceEntityRepository
             ;
     }
 
-    public function findDerivados($value, $nombre, $orderBy = null, $os = null)
+    public function findDerivados($value, $nombre, $currentPage, $limit, $orderBy = null, $os = null)
     {
         $query = $this->createQueryBuilder('c')
             ->andWhere('c.fEgreso > :val or c.fEgreso IS NULL')->setParameter('val', $value);
@@ -133,13 +135,12 @@ class ClienteRepository extends ServiceEntityRepository
             $query->orWhere('c.obraSocial = :os')->setParameter("os", $os);
         }
 
-        return $query->andWhere('c.derivado = 1')
-            ->getQuery()
-            ->getResult()
-            ;
+        $query->andWhere('c.derivado = 1');
+        $paginator = $this->paginate($query, $currentPage, $limit);
+        return array('paginator' => $paginator, 'query' => $query);
     }
 
-    public function findDePermiso($value, $nombre, $orderBy = null, $os = null)
+    public function findDePermiso($value, $nombre, $currentPage, $limit, $orderBy = null, $os = null)
     {
         $query = $this->createQueryBuilder('c')
             ->andWhere('c.fEgreso > :val')->setParameter('val', $value)
@@ -160,10 +161,13 @@ class ClienteRepository extends ServiceEntityRepository
         if ( $os ) {
             $query->orWhere('c.obraSocial = :os')->setParameter("os", $os);
         }
-        return $query->andWhere('c.dePermiso = 1')->getQuery()->getResult();
+        $query->andWhere('c.dePermiso = 1');
+
+        $paginator = $this->paginate($query, $currentPage, $limit);
+        return array('paginator' => $paginator, 'query' => $query);
     }
 
-    public function findAmbulatorios($value, $nombre, $orderBy = null, $os = null)
+    public function findAmbulatorios($value, $nombre, $currentPage, $limit, $orderBy = null, $os = null)
     {
         $query = $this->createQueryBuilder('c')
             ->andWhere('c.fEgreso > :val or c.fEgreso IS NULL')->setParameter('val', $value);
@@ -184,7 +188,10 @@ class ClienteRepository extends ServiceEntityRepository
         if ( $os ) {
             $query->orWhere('c.obraSocial = :os')->setParameter("os", $os);
         }
-        return $query->andWhere('c.ambulatorio = 1 or (c.habitacion is null and c.derivado != 1)')->getQuery()->getResult();
+        $query->andWhere('c.ambulatorio = 1 or (c.habitacion is null and c.derivado != 1)');
+        
+        $paginator = $this->paginate($query, $currentPage, $limit);
+        return array('paginator' => $paginator, 'query' => $query);
     }
 
     public function findInActivos($value, $nombre, $currentPage, $limit, $orderBy = null, $os = null)
@@ -289,7 +296,7 @@ class ClienteRepository extends ServiceEntityRepository
             ->getQuery()->getResult();
     }
 
-    public function findAllByName($nombre, $orderBy = null)
+    public function findAllByName($nombre, $currentPage, $limit, $orderBy = null)
     {
         $query = $this->createQueryBuilder('c');
 
@@ -308,7 +315,8 @@ class ClienteRepository extends ServiceEntityRepository
             $query = $query->orderBy('c.hClinica', 'ASC');
         }
 
-        return $query->getQuery()->getResult();
+        $paginator = $this->paginate($query, $currentPage, $limit);
+        return array('paginator' => $paginator, 'query' => $query);
     }
 
     public function findByNameDocReferentePaginado($clientesYaFiltrados = null, $nombre = null, $doc = null, $vto = null, $hc = null, $ob = null, $from = null, $to = null)

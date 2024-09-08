@@ -60,7 +60,7 @@ security:
         - { path: ^/staff/doctor/agenda/mes/, roles: [IS_AUTHENTICATED_FULLY] }
         - { path: ^/staff/doctor/agenda/anteriores/, roles: [IS_AUTHENTICATED_FULLY] }
         - { path: ^/staff/doctor/historia/, roles: [ROLE_STAFF] }
-        - { path: ^/pacientes/^/historia, roles: [ROLE_STAFF] }
+        - { path: ^/pacientes, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/staff, roles: [ROLE_ADMIN] }
         - { path: ^/liquidaciones/profesionales, roles: [ROLE_ADMIN] }
         - { path: ^/liquidaciones/profesional, roles: [IS_AUTHENTICATED_FULLY] }

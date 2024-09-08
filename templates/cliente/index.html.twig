@@ -282,6 +282,9 @@
                                     <a class="dropdown-item" href="{{ path('cliente_historial', {'id': cliente.id}) }}">
                                         <i class="far fa-calendar-alt" data-toggle="tooltip" data-placement="top" title="historia"></i> Ver Historia
                                     </a>
+                                    <a class="dropdown-item" href="{{ path('make_qr_historia', {'id': cliente.id}) }}">
+                                        <i class="fa fa-qrcode" data-toggle="tooltip" data-placement="top" title="QR"></i> Códigos QR
+                                    </a>
                                     {% if (puedenEditarEvoluciones) %} 
                                     <a class="dropdown-item" href="{{ path('evolucion_index', {'cliente': cliente.id}) }}">
                                         <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="evoluciones"></i> Evoluciones
@@ -349,6 +352,93 @@
                     <td colspan="15">No existen registros</td>
                 </tr>
             {% endfor %}
+                <tr>
+                    <th colspan="11">
+                        {% if maxPages > 1 %}
+                            <nav aria-label="nav">
+                                <ul class="pagination">
+                                    {% if currentPage > 1 %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ path('cliente_index', {
+                                                currentPage: (currentPage-1 < 1 ? 1 : currentPage-1),
+                                                pestana: ((pestana) ? pestana : null), 
+                                                nombreInput: ((nombreInput) ? nombreInput : null),
+                                                limit: ((limit) ? limit : null), 
+                                                hab: ((hab) ? hab : null), 
+                                                idObra: ((idObra) ? idObra : null), 
+                                            }) }}">«</a>
+                                        </li>
+                                    {% endif %}
+
+                                    {# Definir el rango de páginas a mostrar #}
+                                    {% set startPage = max(1, currentPage - 4) %}
+                                    {% set endPage = min(maxPages, currentPage + 5) %}
+
+                                    {# Mostrar la primera página si no está en el rango #}
+                                    {% if startPage > 1 %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ path('cliente_index', {
+                                                currentPage: 1,
+                                                pestana: ((pestana) ? pestana : null), 
+                                                nombreInput: ((nombreInput) ? nombreInput : null),
+                                                limit: ((limit) ? limit : null), 
+                                                hab: ((hab) ? hab : null), 
+                                                idObra: ((idObra) ? idObra : null), 
+                                            }) }}">1</a>
+                                        </li>
+                                        {% if startPage > 2 %}
+                                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                                        {% endif %}
+                                    {% endif %}
+
+                                    {# Mostrar las páginas en el rango definido #}
+                                    {% for i in startPage..endPage %}
+                                        <li class="page-item {% if currentPage == i %}active{% endif %}">
+                                            <a class="page-link" href="{{ path('cliente_index', {
+                                                currentPage: i,
+                                                pestana: ((pestana) ? pestana : null), 
+                                                nombreInput: ((nombreInput) ? nombreInput : null),
+                                                limit: ((limit) ? limit : null), 
+                                                hab: ((hab) ? hab : null), 
+                                                idObra: ((idObra) ? idObra : null), 
+                                            }) }}">{{ i }}</a>
+                                        </li>
+                                    {% endfor %}
+
+                                    {# Mostrar la última página si no está en el rango #}
+                                    {% if endPage < maxPages %}
+                                        {% if endPage < maxPages - 1 %}
+                                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                                        {% endif %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ path('cliente_index', {
+                                                currentPage: maxPages,
+                                                pestana: ((pestana) ? pestana : null), 
+                                                nombreInput: ((nombreInput) ? nombreInput : null),
+                                                limit: ((limit) ? limit : null), 
+                                                hab: ((hab) ? hab : null), 
+                                                idObra: ((idObra) ? idObra : null), 
+                                            }) }}">{{ maxPages }}</a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% if currentPage < maxPages %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ path('cliente_index', {
+                                                currentPage: (currentPage+1 <= maxPages ? currentPage+1 : currentPage),
+                                                pestana: ((pestana) ? pestana : null), 
+                                                nombreInput: ((nombreInput) ? nombreInput : null),
+                                                limit: ((limit) ? limit : null), 
+                                                hab: ((hab) ? hab : null), 
+                                                idObra: ((idObra) ? idObra : null), 
+                                            }) }}">»</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    </th>
+            </tr>
             </tbody>
         </table>
 
