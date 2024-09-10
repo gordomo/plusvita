@@ -652,15 +652,25 @@ class ClienteController extends AbstractController
             if ( !$form->isValid() ) {
                 dd($form->getErrors());
             }
-            $cliente->setAmbulatorio($form->get('modalidad')->getData() == 1);
+            $modalidad = $form->get('modalidad')->getData();
+
+            $cliente->setAmbulatorio($modalidad == 1);
             $familiarResponsableExtraNombres = $request->request->get('familiarResponsableExtraNombre');
             $familiarResponsableExtraTel = $request->request->get('familiarResponsableExtraTel');
             $familiarResponsableExtraMail = $request->request->get('familiarResponsableExtraMail');
             $familiarResponsableExtraVinculo = $request->request->get('familiarResponsableExtraVinculo');
             $familiarResponsableExtraAcompanante = $request->request->get('familiarResponsableExtraAcompanante');
 
-
             $epicrisisIngreso = $form->get('epicrisisIngreso')->getData();
+            
+            if( $modalidad == 2 &&  $epicrisisIngreso == null ) {
+                return $this->render('cliente/new.html.twig', [
+                    'cliente' => $cliente,
+                    'form' => $form->createView(),
+                    'error' => 'La Epicrisis de ingreso es obligatoria para Internados',
+                ]);
+            }
+
             if ($epicrisisIngreso) {
                 $originalFilename = pathinfo($epicrisisIngreso->getClientOriginalName(), PATHINFO_FILENAME);
                 $safeFilename = $slugger->slug($originalFilename);
@@ -753,7 +763,7 @@ class ClienteController extends AbstractController
         return $this->render('cliente/new.html.twig', [
             'cliente' => $cliente,
             'form' => $form->createView(),
-
+            'error' => null,
         ]);
     }
 
@@ -830,8 +840,8 @@ class ClienteController extends AbstractController
                 $cliente->setNCama($request->request->get('cliente')['nCama'] ?? 0);
             }
             try {
-
-                $cliente->setAmbulatorio($form->get('modalidad')->getData() == 1);
+                $modalidad = $form->get('modalidad')->getData();
+                $cliente->setAmbulatorio($modalidad == 1);
                 $entityManager = $this->getDoctrine()->getManager();
 
                 $familiarResponsableExtraNombres = $request->request->get('familiarResponsableExtraNombre');
@@ -881,6 +891,15 @@ class ClienteController extends AbstractController
                 $this->acomodarHabitacion($habitacionNueva, $nuevaCamaId, $habVieja, $camaActualId, $habPrivada, $habPrivadaNueva, $entityManager);
 
                 $epicrisisIngreso = $form->get('epicrisisIngreso')->getData();
+
+                if( $modalidad == 2 &&  $epicrisisIngreso == null ) {
+                    return $this->render('cliente/new.html.twig', [
+                        'cliente' => $cliente,
+                        'form' => $form->createView(),
+                        'error' => 'La Epicrisis de ingreso es obligatoria para Internados',
+                    ]);
+                }
+
                 if ($epicrisisIngreso) {
                     $originalFilename = pathinfo($epicrisisIngreso->getClientOriginalName(), PATHINFO_FILENAME);
                     $safeFilename = $slugger->slug($originalFilename);
