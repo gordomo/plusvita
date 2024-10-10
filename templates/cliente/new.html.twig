@@ -11,4 +11,11 @@
 {% block javascripts %}
     {{ parent() }}
     <script src="{{ asset('assets/js/cliente.js') }}"></script>
+    <script>
+        {% if error is not empty %}
+            alert("{{ error }}");
+            var oldHabitacion = document.getElementById("cliente_habitacion"); 
+            $('#cliente_habitacion').val(oldHabitacion.value).trigger('change');
+        {% endif %}
+    </script>
 {% endblock %}

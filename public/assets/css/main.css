@@ -488,3 +488,32 @@ tbody td, thead th {
 thead th:last-child {
     width: 256px; !* 140px + 16px scrollbar width *!
 }*/
+
+
+.estado-iniciado {
+    background-color: #B3E5FC; /* Azul */
+    color: black; /* Texto en blanco */
+    padding: 5px 10px; /* Espaciado interno */
+    border-radius: 4px; /* Bordes redondeados */
+}
+
+.estado-visto {
+    background-color: #FFF9C4; /* Verde */
+    color: black; /* Texto en blanco */
+    padding: 5px 10px; /* Espaciado interno */
+    border-radius: 4px; /* Bordes redondeados */
+}
+
+.estado-resuelto {
+    background-color: #C8E6C9; /* Amarillo */
+    color: black; /* Texto en negro */
+    padding: 5px 10px; /* Espaciado interno */
+    border-radius: 4px; /* Bordes redondeados */
+}
+
+.estado-observado {
+    background-color: #FFCCBC; /* Rojo */
+    color: black; /* Texto en blanco */
+    padding: 5px 10px; /* Espaciado interno */
+    border-radius: 4px; /* Bordes redondeados */
+}

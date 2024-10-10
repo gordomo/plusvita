@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .container {
+            font-family: Arial, sans-serif;
+            color: #333;
+            padding: 20px;
+            border: 1px solid #e2e2e2;
+            border-radius: 5px;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header img {
+            max-width: 200px;
+        }
+        .content {
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        .content p {
+            margin-bottom: 15px;
+        }
+        .content a {
+            color: #1d72b8;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .footer {
+            font-size: 12px;
+            color: #999;
+            text-align: center;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://plusvita.innovateglobal.es/assets/images/plusVitaLogo.png" alt="Plus Vita Logo">
+        </div>
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+        <div class="footer">
+            <p>Este correo es generado automáticamente. Por favor, no responda.</p>
+        </div>
+    </div>
+</body>
+</html>

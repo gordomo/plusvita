@@ -36,9 +36,10 @@ class ClienteType extends AbstractType
             $builder
                 //->add('epicrisis_ingreso', TextareaType::class)
                 ->add('epicrisisIngreso', FileType::class, [
-                    'label' => 'Epicrisis Ingreso (PDF file)',
+                    'label' => 'Epicrisis Ingreso (PDF file) obligatorio para internados',
+                    'label_attr' => ['class' => 'required'],
                     'mapped' => false,
-                    'required' => true,
+                    'required' => false,
                     'constraints' => [
                         new File([
                             'maxSize' => '5625k',

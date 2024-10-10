@@ -1,0 +1,105 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Reclamo{% endblock %}
+
+{% block body %}
+    <h1>Reclamo</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Tipo</th>
+                <td>
+                    {% if reclamo.tipo == 1 %}
+                        Interno
+                    {% elseif reclamo.tipo == 2 %}
+                        Externo
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th>Area</th>
+                <td>
+                    {% if reclamo.area == 1 %}
+                        Médica
+                    {% elseif reclamo.area == 2 %}
+                        Enfermería
+                    {% elseif reclamo.area == 3 %}
+                        General
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th>Estado</th>
+                <td>
+                    {% if reclamo.estado == 1 %}
+                        Iniciado
+                    {% elseif reclamo.estado == 2 %}
+                        Visto
+                    {% elseif reclamo.estado == 3 %}
+                        Resuelto
+                    {% elseif reclamo.estado == 4 %}
+                        Observado
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th>Fechas</th>
+                <td>
+                    Creación: {{ reclamo.fecha |date('d/m/Y H:i') }} || 
+                    Actualización: {{ reclamo.fechaUltimaActualizacion |date('d/m/Y H:i') }}
+                </td>
+            </tr>
+            <tr>
+                <th>Adjunto</th>
+                <td>
+                    {% if reclamo.adjunto is not empty %}
+                        <a href="{{ reclamo.adjunto }}" target='_blank'>
+                            <img src="{{ reclamo.adjunto }}" style="max-width: 100px;">
+                        </a>
+                    {% else %}
+                        Sin adjunto
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th>Texto</th>
+                <td>{{ reclamo.texto }}</td>
+            </tr>
+            <tr>
+                <th>Contacto</th>
+                <td>{{ reclamo.contacto }}</td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table mt-5 table-bordered">
+        <tr><th>Comentarios:</th></tr>
+        {% for comentario in reclamo.comentarios %}
+            <tr>
+                <td style="width:80%">{{ comentario.texto }}</td><td>{{ comentario.fecha|date('d/m/Y H:i') }}</td>
+            </tr>
+            {% endfor %}
+    </table>    
+    <div class="container bt-1">
+        <h2>Agregar Comentario</h2>
+        <!-- Formulario para agregar un nuevo comentario -->
+        {{ form_start(form) }}
+        <div class="form-group">
+            {{ form_label(form.texto, 'Texto:') }}
+            {{ form_widget(form.texto) }}
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary mt-2">Agregar Comentario</button>
+        </div>
+        {{ form_end(form) }}
+    </div>    
+    
+<br>
+    <a class="btn btn-primary" href="{{ path('app_reclamo_index') }}">Volver</a>
+
+    <a class="btn btn-warning" href="{{ path('app_reclamo_edit', {'id': reclamo.id}) }}">Editar</a>
+
+    <a class="btn btn-success" href="{{ path('app_reclamo_resolver', {'id': reclamo.id}) }}">Marcar como Resuelto</a>
+
+    {{ include('reclamo/_delete_form.html.twig') }}
+{% endblock %}

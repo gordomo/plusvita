@@ -50,6 +50,10 @@ security:
         - { path: ^/dashboard, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/user, roles: [ROLE_ADMIN] }
         - { path: ^/doctor, roles: [ROLE_ADMIN] }
+        - { path: ^/qr, roles: [ROLE_ADMIN] }
+        - { path: ^/reclamo/new, roles: PUBLIC_ACCESS }
+        - { path: ^/reclamo/gracias, roles: PUBLIC_ACCESS }
+        - { path: ^/reclamo, roles: [ROLE_ADMIN] }
         #- { path: ^/pacientes, roles: [ROLE_ADMIN] }
         - { path: ^/obras-sociales, roles: [ROLE_ADMIN] }
         - { path: ^/habitacion, roles: [ROLE_ADMIN] }

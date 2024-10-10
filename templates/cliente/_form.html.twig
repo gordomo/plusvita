@@ -1,7 +1,7 @@
 {{ form_start(form) }}
 {%  if form.nombre is defined %}
 <br>
-<div class="form-row">
+<div class="form-row form-group">
     <div class="col-sm">
         {{ form_label(form.nombre, 'Nombre') }}
         {{ form_widget(form.nombre) }}
@@ -23,7 +23,7 @@
     </div>
 </div>
 <br>
-<div class="form-row">
+<div class="form-row form-group">
     <div class="col-sm">
         {{ form_label(form.email, 'Email') }}
         {{ form_widget(form.email, {'attr': { 'data-staff_check_email-url' : path('staff_check_email'), 'data-doc-id' : cliente.id }}) }}
@@ -40,7 +40,7 @@
         </div>
     </div>
     <div class="col-sm">
-        <div class="form-row">
+        <div class="form-row form-group">
             <div class="col-sm">
                 {{ form_label(form.fNacimiento, 'Fecha de Nacimiento') }}
                 {{ form_widget(form.fNacimiento) }}
@@ -53,7 +53,7 @@
     </div>
 </div>
 <br>
-<div class="form-row">
+<div class="form-row form-group">
     <div class="col-sm">
         {{ form_label(form.obraSocial) }}
         {{ form_widget(form.obraSocial) }}
@@ -68,7 +68,7 @@
     </div>
 </div>
 <br>
-<div class="form-row">
+<div class="form-row form-group">
     <div class="col-sm">
         {{ form_label(form.tipoDePago) }}
         {{ form_widget(form.tipoDePago) }}
@@ -81,7 +81,7 @@
     </div>
 </div>
 <br>
-<div class="form-row">
+<div class="form-row form-group">
     <div class="col-sm">
         {{ form_label(form.sistemaDeEmergenciaNombre) }}
         {{ form_widget(form.sistemaDeEmergenciaNombre) }}
@@ -98,7 +98,7 @@
 <br>
 <hr>
 <h4>Información de Ingreso</h4>
-<div class="form-row">
+<div class="form-row form-group">
     <div class="col-sm">
         {{ form_label(form.modalidad) }}
         {{ form_widget(form.modalidad) }}
@@ -117,7 +117,7 @@
     </div>
 </div>
 <br>
-<div class="form-row d-none habitacion">
+<div class="form-row form-group d-none habitacion">
     <div class="col-sm habDiv">
         {{ form_label(form.habitacion) }}
         {{ form_widget(form.habitacion, {'attr': {'class': 'js-camas-disp'}}) }}
@@ -136,7 +136,7 @@
     </div>
 </div>
 <br>
-<div class="form-row">
+<div class="form-row form-group">
     <div class="col-sm">
         {{ form_label(form.fIngreso, 'Fecha de Ingreso') }}
         {{ form_widget(form.fIngreso) }}
@@ -153,7 +153,7 @@
     </div>
 </div>
 <br>
-<div class="form-row">
+<div class="form-row form-group">
     <div class="col-sm">
         {{ form_label(form.sesionesDisp) }}
         {{ form_widget(form.sesionesDisp) }}
@@ -168,7 +168,7 @@
     </div>
 </div>
 <br>
-<div class="form-row">
+<div class="form-row form-group">
     <div class="col-sm">
         {{ form_label(form.vtoSesiones, 'Vto. Autorizaciones') }}
         {{ form_widget(form.vtoSesiones) }}
@@ -180,7 +180,7 @@
     <div class="col-sm"></div>
 </div>
 <br>
-<div class="form-row">
+<div class="form-row form-group">
     <div class="col-sm">
         {{ form_label(form.docReferente) }}
         {{ form_widget(form.docReferente) }}
@@ -196,7 +196,7 @@
 <br><br>
 <hr>
 <h4>Institución de la cual proviene</h4>
-<div class="form-row">
+<div class="form-row form-group">
     <div class="col-sm">
         {{ form_label(form.vieneDe) }}
         {{ form_widget(form.vieneDe) }}
@@ -210,7 +210,7 @@
 <hr>
 <h4>Familiar Responsable </h4>
 <div id="familiares">
-    <div class="form-row">
+    <div class="form-row form-group">
         <div class="col-sm">
             {{ form_label(form.familiarResponsableNombre) }}
             {{ form_widget(form.familiarResponsableNombre) }}
@@ -236,7 +236,7 @@
     </div>
     {%  if familiarExtraActuales is defined %}
         {% for familiarExtraActual in familiarExtraActuales %}
-            <div class="form-row">
+            <div class="form-row form-group">
                 <div class="col-sm">
                     <input type="text" name="familiarResponsableExtraNombre[]" class="form-control" value="{{ familiarExtraActual.nombre }}">
                 </div>
@@ -260,7 +260,7 @@
     {% endif %}
 </div>
 <br>
-<div class="form-row" id="agregarQuitarFamiliar">
+<div class="form-row form-group" id="agregarQuitarFamiliar">
     <div class="col-sm">
         <a href="" id="agregarFamiliar">agregar familiar + </a>
     </div>
@@ -270,7 +270,7 @@
 {%  if form.fEgreso is defined %}
 
 <h4>Información de Egreso</h4>
-<div class="form-row">
+<div class="form-row form-group">
     <div class="col-sm">
         {{ form_label(form.fEgreso) }}
         {{ form_widget(form.fEgreso) }}
