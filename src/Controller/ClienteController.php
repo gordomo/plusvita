@@ -1451,6 +1451,13 @@ class ClienteController extends AbstractController
             $habitacionesArray[$habitacion->getId()] = $habitacion->getNombre();
         }
 
+        $epicrisisIngreso = $cliente->getEpicrisisIngreso();
+        $extensionEI = '';
+        if ($epicrisisIngreso) {
+            $extensionEI = '.'.pathinfo($epicrisisIngreso, PATHINFO_EXTENSION);
+        }
+        
+
         return $this->render('cliente/historia.html.twig', [
                 'cliente'               => $cliente,
                 'historiaPaciente'      => $historiaPaciente,
@@ -1477,7 +1484,8 @@ class ClienteController extends AbstractController
                 'novedadesHasta'        => $novedadesHasta,
                 'doc'                   => $doc,
                 'doctorRepository'      => $doctorRepository,
-                'epicrisisIngreso'      => $cliente->getEpicrisisIngreso(),
+                'epicrisisIngreso'      => $epicrisisIngreso,
+                'extensionEI'           => $extensionEI,
         ]);
     }
 

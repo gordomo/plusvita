@@ -42,4 +42,20 @@ class QrConstrollerController extends AbstractController
         return $response;
         
     }
+
+    /**
+     * @Route("/qr/make/reclamo/{area}", name="make_qr_reclamo")
+     */
+    public function makeQrReclamo(int $area, UrlGeneratorInterface $router, BuilderInterface $customQrCodeBuilder): Response
+    {
+        $url = $router->generate('app_reclamo_new', ['area'=>$area], urlGeneratorInterface::ABSOLUTE_URL); 
+
+        $result = $customQrCodeBuilder->data($url)->size(400)->margin(20)->build();
+        $response = new QrCodeResponse($result);
+        $result->getDataUri();
+        $result->getString();
+
+        return $response;
+        
+    }
 }

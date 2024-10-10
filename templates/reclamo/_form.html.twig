@@ -1,0 +1,35 @@
+{{ form_start(form) }}
+<div class="form-group">
+    <div class="form-row mb-5 mt-5">
+        <div class="col-sm">
+            {{ form_label(form.area, 'Area') }}
+            {{ form_widget(form.area) }}
+        </div>
+    </div>
+    <div class="form-row mb-5">
+        <div class="col-sm">
+            {{ form_label(form.adjunto, 'Adjunto') }}<br>
+            {{ form_widget(form.adjunto) }}
+        </div>
+    </div>
+    <div class="form-row mb-5">
+        <div class="col-sm">
+            {{ form_label(form.texto, 'Descripción') }}
+            {{ form_widget(form.texto) }}
+        </div>
+    </div>
+    <div class="form-row mb-5">
+        <div class="col-sm">
+            {{ form_label(form.contacto, 'Contacto (telefono o email)') }}
+            {{ form_widget(form.contacto) }}
+        </div>
+        <br>
+    </div>
+</div>
+<br>
+<div class="form-group">
+    {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary'}}) }}
+</div>
+<br>
+
+{{ form_end(form) }}

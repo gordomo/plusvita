@@ -1,0 +1,13 @@
+{% extends 'emails/base.html.twig' %}
+
+{% block content %}
+    <p>Estimado equipo de Calidad,</p>
+    <p>Se ha generado un nuevo reclamo en el sistema. Puede revisarlo haciendo clic en el siguiente enlace:</p>
+    <p><a href="{{ url('app_reclamo_show', { 'id': reclamo.id }) }}" target="_blank">Ver Reclamo #{{ reclamo.id }}</a></p>
+    <p>Area: {% if reclamo.area == 1 %} Médica {% elseif reclamo.area == 2 %} Enfermería {% elseif reclamo.area == 3 %} General {% endif %}</p>
+    <p>Tipo: {% if reclamo.tipo == 1 %} Interno {% elseif reclamo.tipo == 2 %} Externo {% endif %}</p>
+    <p>Fecha de Creación: {{ reclamo.fecha | date('d/m/Y') }} </p>
+    <p>Por favor, revise este reclamo lo antes posible.</p>
+    <p>Saludos,</p>
+    <p><strong>Equipo Plus Vita</strong></p>
+{% endblock %}

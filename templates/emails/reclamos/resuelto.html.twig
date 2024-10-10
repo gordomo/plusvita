@@ -1,0 +1,18 @@
+{% extends 'emails/base.html.twig' %}
+
+{% block content %}
+    <p>Estimado,</p>
+    <p>Enviamos este correo para informale que el reclamo generado en la siguiente fecha: {{ reclamo.fecha | date('d/m/Y') }} - ha sido resuelto</p>
+    <p>Area: {% if reclamo.area == 1 %} Médica {% elseif reclamo.area == 2 %} Enfermería {% elseif reclamo.area == 3 %} General {% endif %}</p>
+    <p>Tipo: {% if reclamo.tipo == 1 %} Interno {% elseif reclamo.tipo == 2 %} Externo {% endif %}</p>
+    <p>Fecha de Creación: {{ reclamo.fecha | date('d/m/Y') }} </p>
+
+    {# Mostrar el link solo si showLink es verdadero #}
+    {% if showLink %}
+        <p><a href="{{ url('app_reclamo_show', { 'id': reclamo.id }) }}" target="_blank">Ver Reclamo #{{ reclamo.id }}</a></p>
+    {% endif %}
+
+    <p>Le agradecemos por tomarse las molestias de generarlo</p>
+    <p>Saludos,</p>
+    <p><strong>Equipo Plus Vita</strong></p>
+{% endblock %}

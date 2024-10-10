@@ -10,3 +10,4 @@
 /migrations/
 ###< symfony/framework-bundle ###
 /public/uploads/*
+symfony.lock

@@ -1,0 +1,194 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Reclamos{% endblock %}
+
+{% block body %}
+    <div class="row">
+        <div class="col-10">
+            <h1>Gestión de Reclamos</h1>
+        </div>
+        <div class="col-2">
+            <a class="btn btn-primary" href="{{ path('app_reclamo_new') }}">Nuevo Reclamos</a>
+        </div>
+    </div>
+    
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Tipo</th>
+                <th>Area</th>
+                <th>Estado</th>
+                <th>Creado // Actualizado</th>
+                <th>Adjunto</th>
+                <th>Texto</th>
+                <th>Contacto</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for reclamo in reclamos %}
+            <tr class="{% if reclamo.estado == 1 %}estado-iniciado{% elseif reclamo.estado == 2 %}estado-visto{% elseif reclamo.estado == 3 %}estado-resuelto{% elseif reclamo.estado == 4 %}estado-observado{% endif %}">
+                <td>
+                    {% if reclamo.tipo == 1 %}
+                        Interno
+                    {% elseif reclamo.tipo == 2 %}
+                        Externo
+                    {% endif %}
+                </td>
+                <td>
+                    {% if reclamo.area == 1 %}
+                        Médica
+                    {% elseif reclamo.area == 2 %}
+                        Enfermería
+                    {% elseif reclamo.area == 3 %}
+                        General
+                    {% endif %}
+                </td>
+                <td style="text-transform: uppercase; font-weight: 700;">
+                    {% if reclamo.estado == 1 %}
+                        Iniciado
+                    {% elseif reclamo.estado == 2 %}
+                        Visto
+                    {% elseif reclamo.estado == 3 %}
+                        Resuelto
+                    {% elseif reclamo.estado == 4 %}
+                        Observado
+                    {% endif %}
+                </td>
+                {% set today = date() %}
+                {% set days_difference = today.diff(reclamo.fecha).days %}
+                <td>
+                    <span {% if days_difference >= 4 %} style="color: red; font-weight: bold;" {% endif %}>
+                        {{ reclamo.fecha |date('d/m/Y') }} // 
+                        {{ reclamo.fechaUltimaActualizacion |date('d/m/Y') }}
+                    </span>
+                </td>
+                <td>
+                {% if reclamo.adjunto is not empty %}
+                    <a href="{{ reclamo.adjunto }}" target='_blank'>
+                        <img src="{{ reclamo.adjunto }}" style="max-width: 100px;">
+                    </a>
+                {% else %}
+                    Sin adjunto
+                {% endif %}
+                </td>
+                <td>{{ reclamo.texto|slice(0, 10) ~ (reclamo.texto|length > 10 ? '...' : '') }}</td>
+
+                <td>{{ reclamo.contacto }}</td>
+                <td>
+                    <a href="{{ path('app_reclamo_show', {'id': reclamo.id}) }}">
+                        <i class="far fa-eye" data-toggle="tooltip" data-placement="top" title="ver"></i>
+                    </a>
+                    <a href="{{ path('app_reclamo_edit', {'id': reclamo.id}) }}" class="ml-2">
+                        <i class="fas fa-pencil-alt" data-toggle="tooltip" data-placement="top" title="ver"></i>
+                    </a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="7">no records found</td>
+            </tr>
+        {% endfor %}
+                <tr>
+                    <th colspan="11">
+                        {% if maxPages > 1 %}
+                            <nav aria-label="nav">
+                                <ul class="pagination">
+                                    {% if currentPage > 1 %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ path('app_reclamo_index', {
+                                                currentPage: (currentPage-1 < 1 ? 1 : currentPage-1),
+                                                limit: ((limit) ? limit : null), 
+                                                tipo: ((tipo) ? tipo : null), 
+                                                area: ((area) ? area : null), 
+                                                estado: ((estado) ? estado : null), 
+                                                desde: ((desde) ? desde : null), 
+                                                hasta: ((hasta) ? hasta : null), 
+                                                orderBy: ((orderBy) ? orderBy : null),                                               
+                                            }) }}">«</a>
+                                        </li>
+                                    {% endif %}
+
+                                    {# Definir el rango de páginas a mostrar #}
+                                    {% set startPage = max(1, currentPage - 4) %}
+                                    {% set endPage = min(maxPages, currentPage + 5) %}
+
+                                    {# Mostrar la primera página si no está en el rango #}
+                                    {% if startPage > 1 %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ path('app_reclamo_index', {
+                                                currentPage: 1,
+                                                limit: ((limit) ? limit : null), 
+                                                tipo: ((tipo) ? tipo : null), 
+                                                area: ((area) ? area : null), 
+                                                estado: ((estado) ? estado : null), 
+                                                desde: ((desde) ? desde : null), 
+                                                hasta: ((hasta) ? hasta : null), 
+                                                orderBy: ((orderBy) ? orderBy : null), 
+                                            }) }}">1</a>
+                                        </li>
+                                        {% if startPage > 2 %}
+                                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                                        {% endif %}
+                                    {% endif %}
+
+                                    {# Mostrar las páginas en el rango definido #}
+                                    {% for i in startPage..endPage %}
+                                        <li class="page-item {% if currentPage == i %}active{% endif %}">
+                                            <a class="page-link" href="{{ path('app_reclamo_index', {
+                                                currentPage: i,
+                                                limit: ((limit) ? limit : null), 
+                                                tipo: ((tipo) ? tipo : null), 
+                                                area: ((area) ? area : null), 
+                                                estado: ((estado) ? estado : null), 
+                                                desde: ((desde) ? desde : null), 
+                                                hasta: ((hasta) ? hasta : null), 
+                                                orderBy: ((orderBy) ? orderBy : null), 
+                                            }) }}">{{ i }}</a>
+                                        </li>
+                                    {% endfor %}
+
+                                    {# Mostrar la última página si no está en el rango #}
+                                    {% if endPage < maxPages %}
+                                        {% if endPage < maxPages - 1 %}
+                                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                                        {% endif %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ path('app_reclamo_index', {
+                                                currentPage: maxPages,
+                                                limit: ((limit) ? limit : null), 
+                                                tipo: ((tipo) ? tipo : null), 
+                                                area: ((area) ? area : null), 
+                                                estado: ((estado) ? estado : null), 
+                                                desde: ((desde) ? desde : null), 
+                                                hasta: ((hasta) ? hasta : null), 
+                                                orderBy: ((orderBy) ? orderBy : null), 
+                                            }) }}">{{ maxPages }}</a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% if currentPage < maxPages %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ path('app_reclamo_index', {
+                                                currentPage: (currentPage+1 <= maxPages ? currentPage+1 : currentPage),
+                                                limit: ((limit) ? limit : null), 
+                                                tipo: ((tipo) ? tipo : null), 
+                                                area: ((area) ? area : null), 
+                                                estado: ((estado) ? estado : null), 
+                                                desde: ((desde) ? desde : null), 
+                                                hasta: ((hasta) ? hasta : null), 
+                                                orderBy: ((orderBy) ? orderBy : null), 
+                                            }) }}">»</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    </th>
+            </tr>
+        </tbody>
+    </table>
+
+    
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Editar Reclamo{% endblock %}
+
+{% block body %}
+    <h1>Edit Reclamo</h1>
+
+    {{ include('reclamo/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a class="btn btn-default" href="javascript:history.back()">Volver</a>
+
+    {{ include('reclamo/_delete_form.html.twig') }}
+{% endblock %}

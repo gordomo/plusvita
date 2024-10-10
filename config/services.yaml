@@ -7,6 +7,8 @@ parameters:
     firmas_directory: '%kernel.project_dir%/public/uploads/firmas'
     adjuntos_pacientes_directory: '%kernel.project_dir%/public/uploads/adjuntos/pacientes'
     adjuntos_staff_directory: '%kernel.project_dir%/public/uploads/adjuntos/staff'
+    adjuntos_reclamos_directory: '%kernel.project_dir%/public/uploads/reclamos'
+    adjuntos_reclamos_directory_url: '/uploads/reclamos'
     session_max_idle_time: 1200
 
 services:

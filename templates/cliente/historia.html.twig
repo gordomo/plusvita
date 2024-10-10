@@ -140,7 +140,7 @@
                 {% if epicrisisIngreso is not empty %}
                 <tr>
                     <td><b>Epicrisis de Ingreso:</b> 
-                    {% set nombre = 'epicrisis-ingreso-' ~ cliente.getApellido ~ '.pdf' %}
+                    {% set nombre = 'epicrisis-ingreso-' ~ cliente.getApellido ~ extensionEI %}
                         <a href={{ path('download_pdf_adjunto', {'path': epicrisisIngreso, 'nombre': nombre}) }} >{{ nombre }}</a><br>
                     <td>
                 </tr>

@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Reclamo{% endblock %}
+
+{% block body %}
+{% if not app.user %}
+<style>
+    body {
+        background-image: url('https://img.freepik.com/free-vector/white-abstract-background_23-2148810113.jpg?t=st=1726592453~exp=1726596053~hmac=df2e15928fcbf5e5b021c04c4b98fbff4c27c918562f7ab041c40f02ffb9ba71&w=1380');
+    }
+</style>
+{% endif %}
+<div class="container" style="background-color: white;">
+
+    <div class="row">
+        <div class="col-2" style="display: flex;align-items: center;">
+            <h1 >Reclamos</h1>
+        </div>
+        <div class="col-10" style="display: flex; flex-direction: row-reverse;  align-items: center;">
+            <img src="{{ asset('assets/images/plusVitaLogo.png') }}" id="icon" alt="Logo" class="img-responsive" style="width: 25%"/>
+        </div>
+    </div>
+
+    
+
+    {{ include('reclamo/_form.html.twig') }}
+
+    {# <a href="{{ path('app_reclamo_index') }}">back to list</a> #}
+</div>
+{% endblock %}
