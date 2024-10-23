@@ -24,6 +24,7 @@
                     <option value="0">Todos</option>
                     <option value="2" {{ modalidad == 2 ? 'selected' : '' }}>Internados</option>
                     <option value="1" {{ modalidad == 1 ? 'selected' : '' }}>Ambulatorios</option>
+                    <option value="4" {{ modalidad == 4 ? 'selected' : '' }}>ART</option>
                 </select>
             </div>
             <div class="col">
@@ -75,7 +76,9 @@
             <div class="row mt-4">
                 <table class="table">
                     <tr>
-                        <td class="totales"></td>
+                        <td class="totales">
+                            <b>Total Pacientes Únicos: </b>{{ pacientes | length }}
+                        </td>
                         {% for nombres, total in totalReferentes %}
                         <td class="totales">
                             <b>{{ nombres }}:</b> <span>{{ total }}</span>
@@ -83,8 +86,8 @@
                         {% endfor %}
 
                     </tr>
-                    <tr>
-                        <td class="totales"></td>
+                    <tr>                    
+                        <td class="totales"></td>    
                         <td class="totales">
                             <b>Ambu:</b> <span class="">{{ ambulatoriosCount }}</span>
                         </td>
@@ -133,7 +136,7 @@
                     {% for clienteId, data in pacientes %}
                     <tr>
                         <td class="pacientes">
-                            <a href={{path('cliente_show', {id: clienteId})}}>
+                            <a href={{path('cliente_show', {id: clienteId})}} style="text-transform:uppercase">
                                 {{clienteRepository.find(clienteId).apellido}} {{clienteRepository.find(clienteId).nombre}}
                             </a> 
                         </td>
