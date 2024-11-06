@@ -100,6 +100,36 @@ class HabitacionRepository extends ServiceEntityRepository
         return $resp;
     }
 
+    public function findCamasOcupadasYDisponibles(): array
+    {
+        $habitaciones = $this->findAll();
+        $totalCamasDisponibles = 0;
+        $totalCamasOcupadas = 0;
+
+        foreach ($habitaciones as $habitacion) {
+            $camasTotales = $habitacion->getCamasDisponibles();
+            $estadoCamas = $habitacion->getCamasOcupadas();
+            $camasOcupadas = 0;
+
+            // Contar las camas ocupadas en la columna JSON
+            foreach ($estadoCamas as $estado) {
+                if ( !empty($estado) && $estado !== "0") {
+                    $camasOcupadas++;
+                }
+            }
+
+            // Calcular las camas disponibles restando las ocupadas de las totales
+            $totalCamasDisponibles += ($camasTotales - $camasOcupadas);
+            $totalCamasOcupadas += $camasOcupadas;
+        }
+
+        return [
+            'total_camas_disponibles' => $totalCamasDisponibles,
+            'total_camas_ocupadas' => $totalCamasOcupadas,
+            'total_camas' => $totalCamasOcupadas + $totalCamasDisponibles,
+        ];
+    }
+
     // /**
     //  * @return Habitacion[] Returns an array of Habitacion objects
     //  */

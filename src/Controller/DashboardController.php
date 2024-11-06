@@ -13,6 +13,7 @@ use App\Repository\HabitacionRepository;
 use App\Repository\HistoriaHabitacionesRepository;
 use App\Repository\HistoriaPacienteRepository;
 use App\Repository\ObraSocialRepository;
+use App\Repository\PresentesRepository;
 use DateTime;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -43,7 +44,44 @@ class DashboardController extends AbstractController
     /**
      * @Route("/", name="dashboard_index", methods={"GET"})
      */
-    public function index(Request $request, HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, DoctorRepository $doctorRepository): Response
+    public function index(HabitacionRepository $habitacionRepository, HistoriaPacienteRepository $historiaPacienteRepository, PresentesRepository $presentesRepository): Response
+    {
+        $isDoctor = $this->isDoctor();
+        $isEnfermero = $this->isEnfermero();
+
+        $user = $this->getUser();
+        
+        $infoHabitaciones = $habitacionRepository->findCamasOcupadasYDisponibles();
+
+        // Obtener el primer día del mes en curso
+        $startDate = new \DateTime('first day of this month');
+        // Obtener el último día del mes en curso
+        $endDate = new \DateTime('last day of this month');
+
+
+        $ambulatoriosHoy = $historiaPacienteRepository->getAmbulatoriosIds(new \DateTime(), new \DateTime());
+        $ambulatoriosMes = $historiaPacienteRepository->getAmbulatoriosIds($startDate, $endDate);
+        $ambuPresentesHoy = $presentesRepository->getPresentes($ambulatoriosHoy, new \DateTime(), new \DateTime());
+        $ambuPresentesMes = $presentesRepository->getPresentes($ambulatoriosMes, $startDate, $endDate);
+        
+        
+        return $this->render('dashboard_new.html.twig',
+            [
+                'dashboardActive' => 'active',
+                'isDoctor' => $isDoctor,
+                'isEnfermero' => $isEnfermero,
+                'infoHabitaciones' => $infoHabitaciones,
+                'totalAmbulatoriosHoy' => count($ambulatoriosHoy),
+                'ambuPresentesHoy' => count($ambuPresentesHoy),
+                'totalAmbulatoriosMes' => count($ambulatoriosMes),
+                'ambuPresentesMes' => count($ambuPresentesMes),
+            ]);
+    }
+
+    /**
+     * @Route("/old", name="dashboard_index_old", methods={"GET"})
+     */
+    public function old(Request $request, HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, DoctorRepository $doctorRepository): Response
     {
         $isDoctor = $this->isDoctor();
         $isEnfermero = $this->isEnfermero();

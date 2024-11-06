@@ -59,7 +59,7 @@
                     <a href="{{ path('habitacion_edit', {'id': habitacion.id}) }}"><i class="fas fa-pencil-alt"></i></a>
                 </td>
             </tr>
-            {% set pacientesEnHab = clienteRepository.findActivos(fecha, '', habitacion.id) %}
+            {% set pacientesEnHab = clienteRepository.findActivosSinPag(fecha, '', habitacion.id) %}
                     {% for paciente in pacientesEnHab %}
                 <tr>
                     <td colspan="5">

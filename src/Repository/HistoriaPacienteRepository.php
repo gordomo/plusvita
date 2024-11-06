@@ -188,7 +188,11 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
             $newQuery = "Select DISTINCT historia_paciente.cliente_id from historia_paciente where fecha <= '" . $hasta->format('Y-m-d') . "' and ( fecha_fin >= '". $desde->format('Y-m-d') . "' or fecha_fin is null )";
             
             if ( $modalidad ) { 
-                $newQuery .= " and modalidad = " . $modalidad;
+                if ( $modalidad == 1 ) { 
+                    $newQuery .= " and ( modalidad = 1 or modalidad = 4)";
+                } else {
+                    $newQuery .= " and modalidad = " . $modalidad;
+                }
             }
             if ( $prof ) { 
                 $prof = '%'.$prof.'%';
@@ -226,6 +230,63 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
 
         // return $result->fetchAllAssociative();
     }
+
+    public function getAmbulatorios()
+    {
+        // Subconsulta para obtener el último ID (registro más reciente) de cada cliente en historia_pacientes
+        $subquery = $this->createQueryBuilder('sub')
+            ->select('MAX(sub.id)')
+            ->where('sub.cliente = hp.cliente')
+            ->getDQL();
+
+        // Consulta principal
+        $qb = $this->createQueryBuilder('hp')
+            ->select('hp')
+            ->join('hp.cliente', 'c') // Asocia la tabla cliente con el alias 'c'
+            ->where('hp.modalidad IN (:modalities) OR hp.ambulatorio = :isAmbulatory')
+            ->andWhere('hp.fechaEngreso IS NULL OR hp.fechaEngreso < :today')  // Verifica la fecha de egreso del historial
+            ->andWhere('c.fEgreso IS NULL OR c.fEgreso > :today')              // Verifica la fecha de egreso del cliente
+            ->andWhere('(hp.fechaDerivacion IS NULL OR hp.fechaDerivacion > :today)')
+            ->andWhere('(hp.fechaReingresoDerivacion IS NULL OR hp.fechaReingresoDerivacion <= :today)')
+            ->andWhere('hp.id = (' . $subquery . ')')  // Utiliza la subconsulta para obtener el último registro del cliente
+            ->setParameter('modalities', [1, 4])
+            ->setParameter('isAmbulatory', true)
+            ->setParameter('today', new \DateTime('now'));
+
+        return $qb->getQuery()->getResult();
+    }
+
+    public function getAmbulatoriosIds($startDate, $endDate)
+    {
+        $subquery = $this->createQueryBuilder('sub')
+            ->select('MAX(sub.id)')
+            ->where('sub.cliente = hp.cliente')
+            ->getDQL();
+
+        // Consulta principal
+        $qb = $this->createQueryBuilder('hp')
+            ->select('c.id')
+            ->join('hp.cliente', 'c')
+            ->where('hp.modalidad IN (:modalities) OR hp.ambulatorio = :isAmbulatory')
+            ->andWhere('hp.fechaEngreso IS NULL OR hp.fechaEngreso < :endDate')  // Filtra por fecha de egreso
+            ->andWhere('c.fEgreso IS NULL OR c.fEgreso > :startDate')              // Filtra por fecha de egreso del cliente
+            ->andWhere('(hp.fechaDerivacion IS NULL OR hp.fechaDerivacion > :startDate)')
+            ->andWhere('(hp.fechaReingresoDerivacion IS NULL OR hp.fechaReingresoDerivacion <= :endDate)')
+            ->andWhere('hp.id = (' . $subquery . ')')  // Utiliza la subconsulta
+            ->setParameter('modalities', [1, 4])
+            ->setParameter('isAmbulatory', true)
+            ->setParameter('startDate', $startDate->format('Y-m-d'))
+            ->setParameter('endDate', $endDate->format('Y-m-d'));
+
+        // Obtener los resultados como un array
+        $results = $qb->getQuery()->getArrayResult();
+
+        // Extraer los IDs en un array plano
+        $ids = array_column($results, 'id');
+
+        return $ids;  // Devuelve solo el array de IDs
+    }
+
 
     /*
     public function findOneBySomeField($value): ?HistoriaPaciente

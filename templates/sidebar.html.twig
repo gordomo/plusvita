@@ -6,7 +6,7 @@
         {% if app.user %}
             <a class="list-group-item list-group-item-action bg-light " href="{{ path('dashboard_index') }}">
                 <i class="fas fa-chart-line"></i>
-                Novedades
+                Dashboard
             </a>
         {% endif %}
         {% if app.user and 'ROLE_ADMIN' in app.user.roles %}
