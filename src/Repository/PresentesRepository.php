@@ -32,6 +32,22 @@ class PresentesRepository extends ServiceEntityRepository
         ;
     }
 
+    public function getPresentes($ids, $startDate, $endDate)
+    {
+        // Asegúrate de que el formato de las fechas sea correcto
+        return $this->createQueryBuilder('p')
+            ->andWhere('p.fecha >= :startDate') // Filtra por la fecha de inicio
+            ->andWhere('p.fecha <= :endDate')   // Filtra por la fecha de fin
+            ->setParameter('startDate', $startDate->format('Y-m-d 00:00:00')) // Establece la fecha de inicio
+            ->setParameter('endDate', $endDate->format('Y-m-d 23:59:59'))      // Establece la fecha de fin
+            ->andWhere('p.paciente IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->orderBy('p.fecha', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+
     // /**
     //  * @return Presentes[] Returns an array of Presentes objects
     //  */

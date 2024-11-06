@@ -19,6 +19,44 @@ class ClienteRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Cliente::class);
     }
+
+    public function findActivosSinPag($value, $nombre, $hab = null, $orderBy = null, $os = null)
+    {
+        $query = $this->createQueryBuilder('c')
+            ->andWhere('c.fEgreso > :val')->setParameter('val', $value)
+            ->orWhere('c.fEgreso IS NULL');
+        if ( $nombre != '' ) {
+            $arrayNombres = explode(' ', $nombre);
+            $i = 1;
+            foreach ( $arrayNombres as $nombre ) {
+                $query->andWhere("c.nombre like :nombre$i OR c.apellido like :nombre$i")->setParameter("nombre$i",'%'. $nombre .'%');
+                $i ++;
+            }
+        }
+        $query
+            ->andWhere('c.derivado = 0')
+            ->orWhere('c.derivado is null')
+            ->andWhere('c.dePermiso = 0')
+            ->orWhere('c.dePermiso is null')
+            ->andWhere('c.ambulatorio = 0')
+            ->orWhere('c.ambulatorio is null')
+            ->andWhere('c.habitacion is not null');
+            if($hab != null) {
+                $query->andWhere('c.habitacion = :hab')->setParameter('hab',$hab);
+            }
+
+        if ( $orderBy ) {
+            $query = $query->orderBy('c.'.$orderBy, 'ASC');
+        } else {
+            $query = $query->orderBy('c.hClinica', 'ASC');
+        }
+
+        if ( $os ) {
+            $query->andWhere('c.obraSocial = :os')->setParameter("os", $os);
+        }
+
+        return $query->getQuery()->getResult();
+    }
                                         
     public function findActivos($value, $nombre, $currentPage, $limit, $hab = null, $orderBy = null, $os = null)
     {

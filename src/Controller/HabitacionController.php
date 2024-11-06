@@ -95,7 +95,7 @@ class HabitacionController extends AbstractController
             $entityManager = $this->getDoctrine()->getManager();
             
             if ($camasDisponibles < count($camasOcupadas)) {
-                $clientes = $clienteRepository->findActivos(new \DateTime(), '', $habitacion->getId(), 'nCama', null);
+                $clientes = $clienteRepository->findActivosSinPag(new \DateTime(), '', $habitacion->getId(), 'nCama', null);
                 
                 $camasOcupadas = [];
                 for($i = 1; $i <= $camasDisponibles; $i ++) {

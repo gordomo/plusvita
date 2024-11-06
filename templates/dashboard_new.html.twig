@@ -1,0 +1,259 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+{{ parent() }}
+<link rel="stylesheet" href="{{ asset('assets/chartist/dist/chartist.min.css') }}">
+<style>
+    /*
+    * Off Canvas sidebar at medium breakpoint
+    * --------------------------------------------------
+    */
+    @media screen and (max-width: 992px) {
+
+    .row-offcanvas {
+        position: relative;
+        -webkit-transition: all 0.25s ease-out;
+        -moz-transition: all 0.25s ease-out;
+        transition: all 0.25s ease-out;
+    }
+
+    .row-offcanvas-left
+    .sidebar-offcanvas {
+        left: -33%;
+    }
+
+    .row-offcanvas-left.active {
+        left: 33%;
+        margin-left: -6px;
+    }
+
+    .sidebar-offcanvas {
+        position: absolute;
+        top: 0;
+        width: 33%;
+        height: 100%;
+    }
+    }
+
+    /*
+    * Off Canvas wider at sm breakpoint
+    * --------------------------------------------------
+    */
+    @media screen and (max-width: 34em) {
+    .row-offcanvas-left
+    .sidebar-offcanvas {
+        left: -45%;
+    }
+
+    .row-offcanvas-left.active {
+        left: 45%;
+        margin-left: -6px;
+    }
+    
+    .sidebar-offcanvas {
+        width: 45%;
+    }
+    }
+
+    .card {
+        overflow:hidden;
+    }
+
+    .card-body .rotate {
+        z-index: 8;
+        float: right;
+        height: 100%;
+    }
+
+    .card-body .rotate i {
+        color: rgba(20, 20, 20, 0.15);
+        position: absolute;
+        left: 0;
+        left: auto;
+        right: -10px;
+        bottom: 0;
+        display: block;
+        -webkit-transform: rotate(-44deg);
+        -moz-transform: rotate(-44deg);
+        -o-transform: rotate(-44deg);
+        -ms-transform: rotate(-44deg);
+        transform: rotate(-44deg);
+    }
+    /* Cambia el color de las series del gráfico */
+    .ct-series-a .ct-slice-pie {
+        fill: #3498db; /* Azul para camas disponibles */
+    }
+
+    .ct-series-b .ct-slice-pie {
+        fill: #dc3545; /* Rojo para camas ocupadas */
+    }
+    .ct-label {
+        fill: white;
+        font-size: 1rem;
+    }
+    .chart-legend {
+        display: flex;
+        align-items: center;
+    }
+
+    .legend-color {
+        width: 15px;
+        height: 15px;
+        display: inline-block;
+        margin-right: 5px;
+        border-radius: 3px;
+    }
+
+    /* Colores que coinciden con las secciones del gráfico */
+    .legend-color.available {
+        background-color: #3498db; /* Azul para disponibles */
+    }
+
+    .legend-color.occupied {
+        background-color: #dc3545; /* Rojo para ocupadas */
+    }
+
+</style>
+{% endblock %}
+{% block title %}Dashboard{% endblock %}
+{% block panelTitle %}Dashboard{% endblock %}
+
+
+
+{% block body %}
+    {% if not app.user %}
+        Por favor, ingrese con su usuario y contraseña
+        <a href="{{ path('app_login') }}">ingresar</a>
+    {% elseif is_granted('ROLE_ADMIN') %}
+            <div class="row mb-3">
+                <div class="col-xl-3 col-sm-6 py-2">
+                    <div class="card bg-success text-white h-100">
+                        <div class="card-body bg-success">
+                            <div class="rotate">
+                                <i class="fa fa-user fa-4x"></i>
+                            </div>
+                            <h6 class="text-uppercase">Camas totales</h6>
+                            <h1 class="display-4">{{ infoHabitaciones.total_camas }}</h1>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-sm-6 py-2">
+                    <div class="card text-white bg-danger h-100">
+                        <div class="card-body bg-danger">
+                            <div class="rotate">
+                                <i class="fa fa-list fa-4x"></i>
+                            </div>
+                            <h6 class="text-uppercase">Camas ocupadas</h6>
+                            <h1 class="display-4">{{ infoHabitaciones.total_camas_ocupadas }}</h1>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-sm-6 py-2">
+                    <div class="card text-white bg-info h-100">
+                        <div class="card-body bg-info">
+                            <div class="rotate">
+                                <i class="fa fa-share fa-4x"></i>
+                            </div>
+                            <h6 class="text-uppercase">Camas Disponibles</h6>
+                            <h1 class="display-4">{{ infoHabitaciones.total_camas_disponibles }}</h1>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-2 col-sm-6 py-2">
+                    <div class=" ct-chart"></div>
+                    
+                </div>
+                <div class="col-xl-1 col-sm-6 py-2 chart-legend">
+                    <!-- Leyenda de colores -->
+                    <div class="">
+                        <span class="legend-item">
+                            <span class="legend-color available"></span> Disponibles
+                        </span>
+                        <span class="legend-item">
+                            <span class="legend-color occupied"></span> Ocupadas
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+
+            <hr>
+
+
+            <div class="row mb-3">
+                <div class="col-xl-3 col-sm-6 py-2">
+                    <div class="card bg-success text-white h-100">
+                        <div class="card-body bg-success">
+                            <div class="rotate">
+                                <i class="fa fa-user fa-4x"></i>
+                            </div>
+                            <h6 class="text-uppercase">Total Ambulatorios Hoy</h6>
+                            <h1 class="display-4">{{ totalAmbulatoriosHoy }}</h1>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-sm-6 py-2">
+                    <div class="card text-white bg-danger h-100">
+                        <div class="card-body bg-danger">
+                            <div class="rotate">
+                                <i class="fa fa-list fa-4x"></i>
+                            </div>
+                            <h6 class="text-uppercase">Presentes hoy</h6>
+                            <h1 class="display-4">{{ ambuPresentesHoy }}</h1>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-sm-6 py-2">
+                    <div class="card text-white bg-info h-100">
+                        <div class="card-body bg-info">
+                            <div class="rotate">
+                                <i class="fa fa-share fa-4x"></i>
+                            </div>
+                            <h6 class="text-uppercase">Total Ambulatorios Mes</h6>
+                            <h1 class="display-4">{{ totalAmbulatoriosMes }}</h1>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-sm-6 py-2">
+                    <div class="card bg-default h-100">
+                        <div class="card-body bg-default">
+                            <div class="rotate">
+                                <i class="fa fa-female fa-4x"></i>
+                            </div>
+                            <h6 class="text-uppercase">Presentes durante el mes</h6>
+                            <h1 class="display-4">{{ ambuPresentesMes }}</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr>
+
+
+    {% endif %}    
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('assets/js/chartist.min.js')}}"></script>
+    <script>
+        $(document).ready(function() {
+            
+            $('[data-toggle=offcanvas]').click(function() {
+                $('.row-offcanvas').toggleClass('active');
+            });
+            
+            var data = {
+                series: [{{ infoHabitaciones.total_camas_disponibles }}, {{ infoHabitaciones.total_camas_ocupadas }}]
+            };
+
+            // Opciones para personalizar el gráfico de torta
+            var options = {
+                labelInterpolationFnc: function(value) {
+                    return Math.round(value / data.series.reduce((a, b) => a + b) * 100) + '%';
+                }
+            };
+
+            // Renderiza el gráfico de torta
+            new Chartist.Pie('.ct-chart', data, options);
+        });
+</script>
+{% endblock %}
