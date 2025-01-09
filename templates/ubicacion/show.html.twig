@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Detalles de la Ubicación{% endblock %}
+
+{% block body %}
+<h1>Detalles de la Ubicación</h1>
+
+<table class="table">
+    <tr>
+        <th>Nombre</th>
+        <td>{{ ubicacion.nombre }}</td>
+    </tr>
+    <tr>
+        <th>Descripción</th>
+        <td>{{ ubicacion.descripcion }}</td>
+    </tr>
+</table>
+
+<a href="{{ path('app_ubicacion_index') }}" class="btn btn-secondary">Volver al Listado</a>
+<a href="{{ path('app_ubicacion_edit', { id: ubicacion.id }) }}" class="btn btn-warning">Editar</a>
+
+<form method="post" action="{{ path('app_ubicacion_delete', { id: ubicacion.id }) }}" style="display:inline;">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ ubicacion.id) }}">
+    <button class="btn btn-danger" onclick="return confirm('¿Seguro que deseas eliminar esta ubicación?');">Eliminar</button>
+</form>
+{% endblock %}

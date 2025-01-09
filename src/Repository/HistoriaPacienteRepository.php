@@ -6,6 +6,7 @@ use App\Entity\HistoriaPaciente;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 
 /**
  * @method HistoriaPaciente|null find($id, $lockMode = null, $lockVersion = null)
@@ -287,16 +288,83 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
         return $ids;  // Devuelve solo el array de IDs
     }
 
-
-    /*
-    public function findOneBySomeField($value): ?HistoriaPaciente
-    {
-        return $this->createQueryBuilder('h')
-            ->andWhere('h.exampleField = :val')
-            ->setParameter('val', $value)
+    public function getPacientesDerivadosPorMes($startDate, $endDate)
+    {    
+        $result = $this->createQueryBuilder('h')
+            ->select('DISTINCT h.id_paciente AS id_paciente')
+            ->andWhere('h.fechaDerivacion >= :startDate')
+            ->andWhere('h.fechaDerivacion <= :endDate')
+            ->setParameter('startDate', $startDate)
+            ->setParameter('endDate', $endDate)
             ->getQuery()
-            ->getOneOrNullResult()
-        ;
+            ->getScalarResult();
+
+        // Extraemos los valores en un array simple
+        $pacientesIds = array_column($result, 'id_paciente');
+
+        return $pacientesIds;
     }
-    */
+
+    public function getPacientesDePermisoPorMes($startDate, $endDate)
+    {    
+        $result = $this->createQueryBuilder('h')
+            ->select('DISTINCT h.id_paciente AS id_paciente')
+            ->andWhere('h.fechaAltaPorPermiso >= :startDate')
+            ->andWhere('h.fechaAltaPorPermiso <= :endDate')
+            ->setParameter('startDate', $startDate)
+            ->setParameter('endDate', $endDate)
+            ->getQuery()
+            ->getScalarResult();
+
+        // Extraemos los valores en un array simple
+        $pacientesIds = array_column($result, 'id_paciente');
+
+        return $pacientesIds;
+    }
+
+    public function getPacientesReingresoDerivadosPorMes($startDate, $endDate)
+    {    
+        $result = $this->createQueryBuilder('h')
+            ->select('DISTINCT h.id_paciente AS id_paciente')
+            ->andWhere('h.fechaReingresoDerivacion >= :startDate')
+            ->andWhere('h.fechaReingresoDerivacion <= :endDate')
+            ->setParameter('startDate', $startDate)
+            ->setParameter('endDate', $endDate)
+            ->getQuery()
+            ->getScalarResult();
+
+        // Extraemos los valores en un array simple
+        $pacientesIds = array_column($result, 'id_paciente');
+
+        return $pacientesIds;
+    }
+
+    public function getPacientesReingresoPermisoPorMes($startDate, $endDate)
+    {    
+        $result = $this->createQueryBuilder('h')
+            ->select('DISTINCT h.id_paciente AS id_paciente')
+            ->andWhere('h.fechaBajaPorPermiso >= :startDate')
+            ->andWhere('h.fechaBajaPorPermiso <= :endDate')
+            ->setParameter('startDate', $startDate)
+            ->setParameter('endDate', $endDate)
+            ->getQuery()
+            ->getScalarResult();
+
+        // Extraemos los valores en un array simple
+        $pacientesIds = array_column($result, 'id_paciente');
+
+        return $pacientesIds;
+    }
+
+
+    public function paginate($dql, $page = 1, $limit = 3)
+    {
+        $paginator = new Paginator($dql);
+
+        $paginator->getQuery()
+            ->setFirstResult($limit * ($page - 1)) // Offset
+            ->setMaxResults($limit); // Limit
+
+        return $paginator;
+    }
 }

@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tipo Item{% endblock %}
+{% block panelTitle %}Tipo Item{% endblock %}
+
+{% block body %}
+
+<a href="{{ path('app_tipo_item_new') }}" class="btn btn-primary mb-5">Nuevo Tipo de Item</a>
+
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Descripcion</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for tipo_item in tipo_items %}
+            <tr>
+                <td>{{ tipo_item.nombre }}</td>
+                <td>{{ tipo_item.descripcion }}</td>
+                <td>
+                    <a href="{{ path('app_item_index_tipo', { tipoItem: tipo_item.id }) }}" class="btn btn-info" data-toggle="tooltip" data-bs-placement="right" title="items">
+                        <i class="fas fa-chair"></i>
+                    </a>
+                    <a href="{{ path('app_tipo_item_edit', {'id': tipo_item.id}) }}" class="btn btn-default" data-toggle="tooltip" data-bs-placement="right" title="editar">
+                        <i class="fas fa-pencil-alt"></i>
+                    </a>
+                    <form method="post" action="{{ path('app_tipo_item_delete', { id: tipo_item.id }) }}" style="display:inline;">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ tipo_item.id) }}">
+                        <button class="btn btn-danger" onclick="return confirm('¿Seguro que deseas eliminar esta ubicación?');" data-toggle="tooltip" data-bs-placement="right" title="borrar">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="4">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

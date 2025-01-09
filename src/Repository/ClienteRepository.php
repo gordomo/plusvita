@@ -435,6 +435,76 @@ class ClienteRepository extends ServiceEntityRepository
 
     }
 
+    public function findClientesIngresadosEsteMes($primerDiaDelMes, $ultimoDiaDelMes, $paginar = false, $currentPage = 1, $limit = 10)
+    {
+        $query = $this->createQueryBuilder('c')
+            ->andWhere('c.fIngreso BETWEEN :primerDia AND :ultimoDia')
+            ->setParameter('primerDia', $primerDiaDelMes)
+            ->setParameter('ultimoDia', $ultimoDiaDelMes)
+            ->getQuery();
+
+            if($paginar) {
+                $paginator = $this->paginate($query, $currentPage, $limit);
+                return array('paginator' => $paginator, 'query' => $query);
+            }
+
+            return $query->getResult();
+    }
+    
+    public function findClientesEgresadosEsteMes($primerDiaDelMes, $ultimoDiaDelMes, $paginar = false, $currentPage = 1, $limit = 10)
+    {
+        $query = $this->createQueryBuilder('c')
+            ->andWhere('c.fEgreso BETWEEN :primerDia AND :ultimoDia')
+            ->setParameter('primerDia', $primerDiaDelMes)
+            ->setParameter('ultimoDia', $ultimoDiaDelMes)
+            ->getQuery();
+
+            if($paginar) {
+                $paginator = $this->paginate($query, $currentPage, $limit);
+                return array('paginator' => $paginator, 'query' => $query);
+            }
+
+
+            return $query->getResult();
+    }
+
+    public function findClientesIngresadosHoy()
+    {
+        $hoy = new \DateTime();
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.fIngreso = :hoy')
+            ->setParameter('hoy', $hoy)
+            ->getQuery()
+            ->getResult();
+    }
+    public function findClientesEgresadosHoy()
+    {
+        $hoy = new \DateTime();
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.fEgreso = :hoy')
+            ->setParameter('hoy', $hoy)
+            ->getQuery()
+            ->getResult();
+    }
+
+
+    public function findAllByIds($ids, $currentPage, $limit, $orderBy = null)
+    {
+        $query = $this->createQueryBuilder('c')
+                ->where('c.id in (:ids)')
+                ->setParameter('ids', $ids);
+
+
+        if ( $orderBy ) {
+            $query = $query->orderBy('c.'.$orderBy, 'ASC');
+        } else {
+            $query = $query->orderBy('c.hClinica', 'ASC');
+        }
+
+        $paginator = $this->paginate($query, $currentPage, $limit);
+        return array('paginator' => $paginator, 'query' => $query);
+    }
+
     public function paginate($dql, $page = 1, $limit = 3)
     {
         $paginator = new Paginator($dql);

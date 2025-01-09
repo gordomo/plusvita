@@ -19,19 +19,23 @@ class EmailService
     public function sendEmail(string $to, string $subject, string $text): void
     {
         $email = (new Email())
-            ->from('reclamos@plusvita.innovateglobal.es')
+            ->from('reclamos@troxus.cf')
             ->to($to)
             ->subject($subject)
             ->html($text);
 
-        $this->mailer->send($email);
+            try {
+                $this->mailer->send($email);
+            } catch (\Exception $e) {
+                throw new \RuntimeException('Error sending email: ' . $e->getMessage());
+            }
     }
 
     // Enviar el mismo correo a múltiples destinatarios
     public function sendEmailToMultipleRecipients(array $recipients, string $subject, string $text): void
     {
         $email = (new Email())
-            ->from('reclamos@plusvita.innovateglobal.es')
+            ->from('reclamos@troxus.cf')
             ->subject($subject)
             ->html($text);
 
@@ -39,7 +43,11 @@ class EmailService
             $email->addTo($recipient);
         }
 
-        $var = $this->mailer->send($email);
+        try {
+            $this->mailer->send($email);
+        } catch (\Exception $e) {
+            throw new \RuntimeException('Error sending email: ' . $e->getMessage());
+        }
     }
 
     // Enviar diferentes correos a diferentes destinatarios
@@ -47,7 +55,7 @@ class EmailService
     {
         foreach ($emails as $emailData) {
             $email = (new Email())
-                ->from('reclamos@plusvita.innovateglobal.es')
+                ->from('reclamos@troxus.cf')
                 ->to($emailData['to'])
                 ->subject($emailData['subject'])
                 ->html($emailData['text']);

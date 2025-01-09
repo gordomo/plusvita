@@ -1,0 +1,59 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Detalles del Item{% endblock %}
+
+{% block body %}
+<h1>Detalles del Item</h1>
+
+<table class="table">
+    <tr>
+        <th>Nombre</th>
+        <td colspan="3">{{ item.nombre }}</td>
+    </tr>
+    <tr>
+        <th>Tipo</th>
+        <td colspan="3">{{ item.tipo ? item.tipo.nombre : 'sin tipo' }}</td>
+    </tr>
+    <tr>
+        <th>Cantidad</th>
+        <td colspan="3">{{ item.cantidad }}</td>
+    </tr>
+    <tr>
+        <th>Ubicación Actual</th>
+        <td colspan="3">{{ item.ubicacionActual ? item.ubicacionActual.nombre : 'Sin ubicación' }}</td>
+    </tr>
+    <tr>
+        <th colspan="4" style="border-top:1px solid">Movimientos: </th>
+    </tr>
+    <tr>
+        <td>
+            fecha
+        </td>
+        <td>
+            motivo
+        </td>
+        <td>
+            ubicación
+        </td>
+        <td>
+            cantidad
+        </td>
+    </tr>
+        {% for movimiento in item.movimientos %}
+            <tr>
+                <td>{{ movimiento.fecha|date("d/m/Y H:i") }}</td>
+                <td>{{ movimiento.motivo }}</td>
+                <td>{{ movimiento.ubicacion.nombre }}</td>
+                <td>{{ movimiento.cantidad }}</td>
+            </tr>
+        {% endfor %}
+</table>
+
+<a href="{{ path('app_item_index') }}" class="btn btn-secondary">Volver al Listado</a>
+<a href="{{ path('app_item_edit', { id: item.id }) }}" class="btn btn-warning">Editar</a>
+
+<form method="post" action="{{ path('app_item_delete', { id: item.id }) }}" style="display:inline;">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ item.id) }}">
+    <button class="btn btn-danger" onclick="return confirm('¿Seguro que deseas eliminar este item?');">Eliminar</button>
+</form>
+{% endblock %}

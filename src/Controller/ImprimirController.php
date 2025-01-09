@@ -30,7 +30,7 @@ class ImprimirController extends AbstractController
     /**
      * @Route("/", name="imprimir", methods={"POST", "GET"})
      */
-    public function index(Request $request): Response
+    public function index(Request $request)
     {
         $html = $request->request->get('htmlToPrint');
         $htmlToPrint = $this->render('imprimir/index.html.twig', [

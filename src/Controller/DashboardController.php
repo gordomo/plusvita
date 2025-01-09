@@ -44,7 +44,7 @@ class DashboardController extends AbstractController
     /**
      * @Route("/", name="dashboard_index", methods={"GET"})
      */
-    public function index(HabitacionRepository $habitacionRepository, HistoriaPacienteRepository $historiaPacienteRepository, PresentesRepository $presentesRepository): Response
+    public function index(HabitacionRepository $habitacionRepository, HistoriaPacienteRepository $historiaPacienteRepository, PresentesRepository $presentesRepository, ClienteRepository $clienteRepository): Response
     {
         $isDoctor = $this->isDoctor();
         $isEnfermero = $this->isEnfermero();
@@ -54,16 +54,30 @@ class DashboardController extends AbstractController
         $infoHabitaciones = $habitacionRepository->findCamasOcupadasYDisponibles();
 
         // Obtener el primer día del mes en curso
-        $startDate = new \DateTime('first day of this month');
+        $startDate = (new \DateTime('first day of this month'))->setTime(0, 0, 0);
         // Obtener el último día del mes en curso
-        $endDate = new \DateTime('last day of this month');
-
+        $endDate = (new \DateTime('last day of this month'))->setTime(23, 59, 59);
 
         $ambulatoriosHoy = $historiaPacienteRepository->getAmbulatoriosIds(new \DateTime(), new \DateTime());
         $ambulatoriosMes = $historiaPacienteRepository->getAmbulatoriosIds($startDate, $endDate);
         $ambuPresentesHoy = $presentesRepository->getPresentes($ambulatoriosHoy, new \DateTime(), new \DateTime());
         $ambuPresentesMes = $presentesRepository->getPresentes($ambulatoriosMes, $startDate, $endDate);
-        
+
+        $ingresosEsteMes = $clienteRepository->findClientesIngresadosEsteMes($startDate, $endDate);
+        $egresosEsteMes = $clienteRepository->findClientesEgresadosEsteMes($startDate, $endDate);
+        $ingresadosHoy = $clienteRepository->findClientesIngresadosHoy();
+        $egresadosHoy = $clienteRepository->findClientesEgresadosHoy();
+
+        $derivadosEsteMes = $historiaPacienteRepository->getPacientesDerivadosPorMes($startDate, $endDate);
+        $reingresoDerivadosEsteMes = $historiaPacienteRepository->getPacientesReingresoDerivadosPorMes($startDate, $endDate);
+        $derivadosHoy = $historiaPacienteRepository->getPacientesDerivadosPorMes(new \DateTime(), new \DateTime());
+        $ReingresadosDerivadosHoy = $historiaPacienteRepository->getPacientesReingresoDerivadosPorMes(new \DateTime(), new \DateTime());
+
+
+        $permisosEsteMes = $historiaPacienteRepository->getPacientesDePermisoPorMes($startDate, $endDate);
+        $reingresoPermisosEsteMes = $historiaPacienteRepository->getPacientesReingresoDerivadosPorMes($startDate, $endDate);
+        $permisosHoy = $historiaPacienteRepository->getPacientesDePermisoPorMes(new \DateTime(), new \DateTime());
+        $ReingresadosPermisosHoy = $historiaPacienteRepository->getPacientesReingresoDerivadosPorMes(new \DateTime(), new \DateTime());
         
         return $this->render('dashboard_new.html.twig',
             [
@@ -75,6 +89,18 @@ class DashboardController extends AbstractController
                 'ambuPresentesHoy' => count($ambuPresentesHoy),
                 'totalAmbulatoriosMes' => count($ambulatoriosMes),
                 'ambuPresentesMes' => count($ambuPresentesMes),
+                'ingresosEsteMes' => count($ingresosEsteMes),
+                'egresosEsteMes' => count($egresosEsteMes),
+                'ingresadosHoy' => count($ingresadosHoy),
+                'egresadosHoy' => count($egresadosHoy),
+                'derivadosEsteMes' => count($derivadosEsteMes),
+                'reingresoDerivadosEsteMes' => count($reingresoDerivadosEsteMes),
+                'derivadosHoy' => count($derivadosHoy),
+                'ReingresadosDerivadosHoy' => count($ReingresadosDerivadosHoy),
+                'permisosEsteMes' => count($permisosEsteMes),
+                'reingresoPermisosEsteMes' => count($reingresoPermisosEsteMes),
+                'permisosHoy' => count($permisosHoy),
+                'ReingresadosPermisosHoy' => count($ReingresadosPermisosHoy),
             ]);
     }
 
