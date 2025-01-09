@@ -1,0 +1,103 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Items{% endblock %}
+
+{% block body %}
+
+<h1>Items
+{% if ubicacion is defined and ubicacion %}
+    en {{ ubicacion.nombre }}
+{% endif %}
+</h1>
+
+
+<!-- Botón para volver al listado de ubicaciones -->
+<a href="{{ path('app_ubicacion_index') }}" class="btn btn-secondary">Volver a Ubicaciones</a>
+<a href="{{ path('app_item_new') }}" class="btn btn-primary">Agregar Nueva Item</a>
+
+<!-- Aquí empieza el listado de items -->
+<table class="table">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Ubicacion</th>
+            <th>Cantidad</th>
+            <th>Tipo</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+            <tr>
+                <td>{{ item.nombre }}</td>
+                <td>
+                    <a href="{{ path('app_item_index_ubicacion', { ubicacion: item.ubicacionActual.id }) }}">
+                        {{ item.ubicacionActual.nombre }}
+                    </a>
+                </td>
+                <td>{{ item.Cantidad }}</td>
+                <td>
+                    <a href="{{ path('app_item_index_tipo', { tipoItem: item.Tipo.id }) }}">
+                        {{ item.Tipo.nombre }}
+                    </a>
+                </td>
+                <td>
+                    <a href="{{ path('app_item_show', { id: item.id }) }}" class="btn btn-info"><i class="fa fa-eye" data-toggle="tooltip" data-bs-placement="right" title="ver"></i></a>
+                    <a href="{{ path('app_item_edit', { id: item.id }) }}" class="btn btn-warning"><i class="fa fa-pencil" data-toggle="tooltip" data-bs-placement="right" title="editar"></i></a>
+                    <a href="{{ path('make_qr_item', { id: item.id }) }}" class="btn btn-warning"><i class="fa fa-qrcode" data-toggle="tooltip" data-bs-placement="right" title="QR"></i></a>
+                    <button class="btn btn-primary" onclick="openMoveModal({{ item.id }}, '{{ item.nombre }}', {{ item.cantidad }})"><i class="fa fa-arrows-h" data-toggle="tooltip" data-bs-placement="right" title="mover"></i></button>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="4">No hay items en esta ubicación.</td>
+            </tr>
+        {% endfor %}
+
+
+        <div class="modal" id="moveModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="POST" action="{{ path('app_item_move') }}">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Mover Item</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="hidden" name="item_id" id="moveItemId">
+                            <p>Item: <span id="moveItemName"></span></p>
+                            <p>Cantidad actual: <span id="moveItemQuantity"></span></p>
+                            <label for="newQuantity">Cantidad a mover:</label>
+                            <input type="number" id="newQuantity" name="quantity" class="form-control" required min="1">
+                            <label for="newLocation">Nueva ubicación:</label>
+                            <select id="newLocation" name="location" class="form-control">
+                                {% for ubicacion in ubicaciones %}
+                                    <option value="{{ ubicacion.id }}">{{ ubicacion.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary">Mover</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function openMoveModal(itemId, itemName, itemQuantity) {
+                document.getElementById('moveItemId').value = itemId;
+                document.getElementById('moveItemName').innerText = itemName;
+                document.getElementById('moveItemQuantity').innerText = itemQuantity;
+                document.getElementById('newQuantity').max = itemQuantity;
+                const modal = new bootstrap.Modal(document.getElementById('moveModal'));
+                modal.show();
+            }
+        </script>
+
+
+
+    </tbody>
+</table>
+{% endblock %}

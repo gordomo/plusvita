@@ -64,7 +64,7 @@ class ClienteController extends AbstractController
     /**
      * @Route("/", name="cliente_index", methods={"GET"})
      */
-    public function index(Request $request, ClienteRepository $clienteRepository, HabitacionRepository $habitacionRepository, ObraSocialRepository $obraSocialRepository): Response
+    public function index(Request $request, ClienteRepository $clienteRepository, HabitacionRepository $habitacionRepository, ObraSocialRepository $obraSocialRepository, HistoriaPacienteRepository $historiaPacienteRepository): Response
     {
         $user = $this->getUser();
         if (!$user) {
@@ -88,16 +88,36 @@ class ClienteController extends AbstractController
             $obArray[$ob->getId()] = $ob->getNombre();
         }
 
-        if ($pestana == 'inactivos') {
-            $clientes = $clienteRepository->findInActivos(new \DateTime(), $nombreInput, $currentPage, $limit, null, $idObra);
-            } else if ( $pestana == 'derivados') {
-            $clientes = $clienteRepository->findDerivados(new \DateTime(), $nombreInput, $currentPage, $limit, null, $idObra);
-        } else if ( $pestana == 'permiso') {
-            $clientes = $clienteRepository->findDePermiso(new \DateTime(), $nombreInput, $currentPage, $limit, null, $idObra);
-        } else if ( $pestana == 'ambulatorios') {
-            $clientes = $clienteRepository->findAmbulatorios(new \DateTime(), $nombreInput, $currentPage, $limit, null, $idObra);
+
+        $filtroFecha = $request->query->get('filtroFecha', 'todos'); // Valores: 'todos', 'ingresados', 'egresados', 'derivados'
+
+        $fechaInicioMes = (new \DateTime('first day of this month'))->setTime(0, 0, 0);
+        $fechaFinMes = (new \DateTime('last day of this month'))->setTime(23, 59, 59);
+
+        if ($filtroFecha === 'ingresados') {
+            $clientes = $clienteRepository->findClientesIngresadosEsteMes($fechaInicioMes, $fechaFinMes, true, $currentPage, $limit);
+
+        } elseif ($filtroFecha === 'egresados') {
+            $clientes = $clienteRepository->findClientesEgresadosEsteMes($fechaInicioMes, $fechaFinMes, true, $currentPage, $limit);
+            $pestana = 'inactivos';
+        } elseif ($filtroFecha === 'derivados') {
+            $clientesIds = $historiaPacienteRepository->getPacientesDerivadosPorMes($fechaInicioMes, $fechaFinMes);
+            $clientes = $clienteRepository->findAllByIds($clientesIds, $currentPage, $limit);
+            $pestana = 'derivados';
+           
         } else {
-            $clientes = $clienteRepository->findActivos(new \DateTime(), $nombreInput, $currentPage, $limit, $hab, null, $idObra);
+
+            if ($pestana == 'inactivos') {
+                $clientes = $clienteRepository->findInActivos(new \DateTime(), $nombreInput, $currentPage, $limit, null, $idObra);
+                } else if ( $pestana == 'derivados') {
+                $clientes = $clienteRepository->findDerivados(new \DateTime(), $nombreInput, $currentPage, $limit, null, $idObra);
+            } else if ( $pestana == 'permiso') {
+                $clientes = $clienteRepository->findDePermiso(new \DateTime(), $nombreInput, $currentPage, $limit, null, $idObra);
+            } else if ( $pestana == 'ambulatorios') {
+                $clientes = $clienteRepository->findAmbulatorios(new \DateTime(), $nombreInput, $currentPage, $limit, null, $idObra);
+            } else {
+                $clientes = $clienteRepository->findActivos(new \DateTime(), $nombreInput, $currentPage, $limit, $hab, null, $idObra);
+            }
         }
 
         $clientes = $clientes['paginator'];
@@ -1692,6 +1712,8 @@ class ClienteController extends AbstractController
 
         $pestana = $request->query->get('pestana') ?? 'activos';
 
+        if (in_array($pestana, ['todas', 'camas-vacias', 'completas'])) return $this->redirectToRoute('habitacion_index', ['pestana' => $pestana]);
+
         return $this->redirectToRoute('cliente_index', ['pestana' => $pestana]);
     }
 
@@ -1718,6 +1740,8 @@ class ClienteController extends AbstractController
         $entityManager->flush();
 
         $pestana = $request->query->get('pestana') ?? 'activos';
+        
+        if (in_array($pestana, ['todas', 'camas-vacias', 'completas'])) return $this->redirectToRoute('habitacion_index', ['pestana' => $pestana]);
 
         return $this->redirectToRoute('cliente_index', ['pestana' => $pestana]);
     }

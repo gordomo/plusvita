@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ item is defined ? 'Editar Item' : 'Agregar Nuevo Item' }}{% endblock %}
+{% block panelTitle %}{{ item is defined ? 'Editar Item' : 'Agregar Nuevo Item' }}{% endblock %}
+
+{% block body %}
+
+{{ form_start(form) }}
+    {{ form_widget(form) }}
+    <button type="submit" class="btn btn-success">{{ item is defined ? 'Actualizar' : 'Guardar' }}</button>
+{{ form_end(form) }}
+
+<a href="{{ path('app_item_index') }}" class="btn btn-secondary mt-3">Volver al Listado</a>
+{% endblock %}

@@ -21,9 +21,25 @@
         <meta name="msapplication-TileColor" content="#da532c">
         <meta name="theme-color" content="#ffffff">
     {% endblock %}
+    <style>
+        .alert {
+            z-index: 999;
+            position: absolute;
+            right: 2%;
+            top: 85%;
+        }
+    </style>
 </head>
 
 <body>
+{# base.html.twig o similar #}
+{% for label, messages in app.flashes %}
+    {% for message in messages %}
+        <div class="alert alert-{{ label }}">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endfor %}
 
 <div class="d-flex" id="wrapper">
     {% if app.user %}
@@ -117,6 +133,15 @@
         set_cookie('timeout', '0');
         location.reload();
     }
+    
+    setTimeout(() => {
+        document.querySelectorAll('.alert').forEach(alert => {
+            alert.style.transition = 'opacity 0.5s';
+            alert.style.opacity = '0';
+            setTimeout(() => alert.remove(), 5000); // Elimina el elemento después de la transición
+        });
+    }, 5000); // 5 segundos de espera antes de iniciar el fade-out
+
 
     /**
      * Spanish translation for bootstrap-datepicker

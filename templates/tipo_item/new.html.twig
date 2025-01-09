@@ -1,0 +1,48 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ tipo_item is defined ? 'Editar Tipo de Item' : 'Agregar Nueva Tipo de Item' }}{% endblock %}
+{% block panelTitle %}{{ tipo_item is defined ? 'Editar Tipo de Item' : 'Agregar Nueva Tipo de Item' }}{% endblock %}
+
+{% block body %}
+
+{{ form_start(form) }}
+    {{ form_row(form.nombre, { 'attr': {} }) }}
+    
+    <div id="tipo_warning" class="text-danger mt-2" style="display: none;">
+        Este tipo de item ya existe. Por favor, elige un nombre diferente.
+    </div>
+
+    {{ form_row(form.descripcion, { 'attr': {} }) }}
+    <button type="submit" id="submit_btn" class="btn btn-success">{{ tipo_item is defined ? 'Actualizar' : 'Guardar' }}</button>
+{{ form_end(form) }}
+
+<a href="{{ path('app_tipo_item_index') }}" class="btn btn-secondary mt-3">Volver al Listado</a>
+
+<script>
+  {{ parent() }}
+    const ubicacionInput = document.getElementById('tipo_item_nombre');
+    const warning = document.getElementById('tipo_warning');
+    const submitBtn = document.getElementById('submit_btn');
+
+    ubicacionInput.addEventListener('input', function () {
+        const nombre = this.value;
+        if (nombre.length < 2) {
+            warning.style.display = 'none';
+            submitBtn.disabled = true;
+            return;
+        }
+
+        fetch(`{{ path('app_tipo_item_validate') }}?nombre=${nombre}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.exists) {
+                    warning.style.display = 'block';
+                    submitBtn.disabled = true;
+                } else {
+                    warning.style.display = 'none';
+                    submitBtn.disabled = false;
+                }
+            });
+    });
+</script>
+{% endblock %}

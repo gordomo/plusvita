@@ -62,8 +62,20 @@
             {% set pacientesEnHab = clienteRepository.findActivosSinPag(fecha, '', habitacion.id) %}
                     {% for paciente in pacientesEnHab %}
                 <tr>
-                    <td colspan="5">
+                    <td colspan="4">
                         <a href="{{ path('cliente_historial', {id: paciente.id}) }}">{{ paciente.nombre }} {{ paciente.apellido }}</a>
+                    </td>
+                    <td colspan="1">
+                        {% if not paciente.ambulatorioPresente %}
+                            <a class="btn btn-default" href="{{ path('dar_presente', {'id': paciente.id, 'pestana': pestana}) }}">
+                                <i class="fa fa-check-square-o" aria-hidden="true"></i> dar presente
+                            </a>
+                        {% endif %}
+                        {% if paciente.ambulatorioPresente %}
+                            <a class="btn btn-default" href="{{ path('dar_ausente', {'id': paciente.id, 'pestana': pestana}) }}">
+                                <i class="fa fa-window-close-o" aria-hidden="true"></i> dar ausente
+                            </a>
+                        {% endif %}
                     </td>
                 </tr>
             {% endfor %}

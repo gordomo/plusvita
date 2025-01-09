@@ -1,0 +1,44 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Listado de Ubicaciones{% endblock %}
+{% block panelTitle %}Listado de Ubicaciones{% endblock %}
+
+{% block body %}
+
+<a href="{{ path('app_ubicacion_new') }}" class="btn btn-primary">Agregar Nueva Ubicación</a>
+<a href="{{ path('app_item_new') }}" class="btn btn-default">Agregar Nueva Item</a>
+
+<table class="table mt-4">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for ubicacion in ubicaciones %}
+            <tr>
+                <td>{{ ubicacion.nombre }}</td>
+                <td>{{ ubicacion.descripcion }}</td>
+                <td>
+                    <a href="{{ path('app_item_index_ubicacion', { ubicacion: ubicacion.id }) }}" class="btn btn-info" data-toggle="tooltip" data-bs-placement="right" title="items">
+                        <i class="fas fa-chair"></i>
+                    </a>
+                    <a href="{{ path('app_ubicacion_edit', { id: ubicacion.id }) }}" class="btn btn-default" data-toggle="tooltip" data-bs-placement="right" title="editar">
+                        <i class="fas fa-pencil-alt"></i>
+                    </a>
+                    <form method="post" action="{{ path('app_ubicacion_delete', { id: ubicacion.id }) }}" style="display:inline;">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ ubicacion.id) }}">
+                        <button class="btn btn-danger" onclick="return confirm('¿Seguro que deseas eliminar esta ubicación?');" data-toggle="tooltip" data-bs-placement="right" title="borrar"> 
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </form>
+                </td>
+
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
