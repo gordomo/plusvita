@@ -101,34 +101,58 @@ class HabitacionRepository extends ServiceEntityRepository
     }
 
     public function findCamasOcupadasYDisponibles(): array
-    {
-        $habitaciones = $this->findAll();
-        $totalCamasDisponibles = 0;
-        $totalCamasOcupadas = 0;
+{
+    $habitaciones = $this->findAll();
+    $resultados = [];
 
-        foreach ($habitaciones as $habitacion) {
-            $camasTotales = $habitacion->getCamasDisponibles();
-            $estadoCamas = $habitacion->getCamasOcupadas();
-            $camasOcupadas = 0;
+    foreach ($habitaciones as $habitacion) {
+        $numeroHabitacion = $habitacion->getNombre(); // Asegurar que es string
+        $piso = $numeroHabitacion[0]; // Obtener el primer número como identificador del piso
 
-            // Contar las camas ocupadas en la columna JSON
-            foreach ($estadoCamas as $estado) {
-                if ( !empty($estado) && $estado !== "0") {
-                    $camasOcupadas++;
-                }
+        $camasTotales = $habitacion->getCamasDisponibles();
+        $estadoCamas = $habitacion->getCamasOcupadas();
+        $camasOcupadas = 0;
+
+        // Contar las camas ocupadas en la columna JSON
+        foreach ($estadoCamas as $estado) {
+            if (!empty($estado) && $estado !== "0") {
+                $camasOcupadas++;
             }
-
-            // Calcular las camas disponibles restando las ocupadas de las totales
-            $totalCamasDisponibles += ($camasTotales - $camasOcupadas);
-            $totalCamasOcupadas += $camasOcupadas;
         }
 
-        return [
-            'total_camas_disponibles' => $totalCamasDisponibles,
-            'total_camas_ocupadas' => $totalCamasOcupadas,
-            'total_camas' => $totalCamasOcupadas + $totalCamasDisponibles,
-        ];
+        // Calcular las camas disponibles
+        $camasDisponibles = $camasTotales - $camasOcupadas;
+
+        if (!isset($resultados['total'])) {
+            $resultados['total'] = [
+                'total_camas_disponibles' => 0,
+                'total_camas_ocupadas' => 0,
+                'total_camas' => 0
+            ];
+        }
+
+        // Inicializar el piso si no existe en el array
+        if (!isset($resultados['piso: ' . $piso])) {
+            $resultados['piso: ' . $piso] = [
+                'total_camas_disponibles' => 0,
+                'total_camas_ocupadas' => 0,
+                'total_camas' => 0
+            ];
+        }
+        
+
+        // Sumar las camas por piso
+        $resultados['piso: ' . $piso]['total_camas_disponibles'] += $camasDisponibles;
+        $resultados['piso: ' . $piso]['total_camas_ocupadas'] += $camasOcupadas;
+        $resultados['piso: ' . $piso]['total_camas'] += $camasTotales;
+        
+        $resultados['total']['total_camas_disponibles'] += $camasDisponibles;
+        $resultados['total']['total_camas_ocupadas'] += $camasOcupadas;
+        $resultados['total']['total_camas'] += $camasTotales;
     }
+
+    return $resultados;
+}
 
     // /**
     //  * @return Habitacion[] Returns an array of Habitacion objects
