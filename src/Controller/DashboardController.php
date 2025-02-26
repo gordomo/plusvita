@@ -84,7 +84,7 @@ class DashboardController extends AbstractController
                 'dashboardActive' => 'active',
                 'isDoctor' => $isDoctor,
                 'isEnfermero' => $isEnfermero,
-                'infoHabitaciones' => $infoHabitaciones,
+                'infoHabitacionesTotalyPorPiso' => $infoHabitaciones,
                 'totalAmbulatoriosHoy' => count($ambulatoriosHoy),
                 'ambuPresentesHoy' => count($ambuPresentesHoy),
                 'totalAmbulatoriosMes' => count($ambulatoriosMes),
