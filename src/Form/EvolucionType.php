@@ -73,7 +73,7 @@ class EvolucionType extends AbstractType
                     new All([
                         'constraints' => [
                             new File([
-                                'maxSize' => '1024M',
+                                'maxSize' => '153600K',
                                 'mimeTypesMessage' => 'Formato de archivo no soportado',
                                 'mimeTypes' => [
                                     'application/pdf',

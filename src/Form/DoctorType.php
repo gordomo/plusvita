@@ -87,7 +87,7 @@ class DoctorType extends AbstractType
                     'required' => false,
                     'constraints' => [
                         new File([
-                            'maxSize' => '5625k',
+                            'maxSize' => '153600K',
                             'mimeTypes' => [
                                 'application/pdf',
                                 'application/x-pdf',
