@@ -36,7 +36,7 @@ class AdjuntosStaffType extends AbstractType
                 'required' => true,
                 'constraints' => [
                     new File([
-                        'maxSize' => '1024k',
+                        'maxSize' => '153600K',
                         'mimeTypes' => [
                             'application/pdf',
                             'application/x-pdf',
