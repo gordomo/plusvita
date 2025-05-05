@@ -19,6 +19,8 @@ use Endroid\QrCodeBundle\Response\QrCodeResponse;
 use App\Repository\ItemRepository;
 use App\Repository\TipoItemRepository;
 use App\Repository\UbicacionRepository;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\String\Slugger\SluggerInterface;
 
 /**
  * @Route("/item")
@@ -32,27 +34,53 @@ class ItemController extends AbstractController
     {
         $items = $em->getRepository(Item::class)->findAll();
         $ubicaciones = $em->getRepository(Ubicacion::class)->findAll();
+        $tiposItem = $em->getRepository(TipoItem::class)->findAll();
 
         return $this->render('item/index.html.twig', [
             'items' => $items,
             'ubicaciones' => $ubicaciones,
+            'tiposItem' => $tiposItem,
+            'paginaImprimible' => true,
         ]);
     }
 
     /**
      * @Route("/ubicacion/{ubicacion}", name="app_item_index_ubicacion", methods={"GET"})
      */
-    public function indexUbicacion(ItemRepository $itemRepository, UbicacionRepository $ubicacionRepository, Ubicacion $ubicacion): Response
+    public function indexUbicacion(ItemRepository $itemRepository, UbicacionRepository $ubicacionRepository, TipoItemRepository $tipoItemRepository, Ubicacion $ubicacion): Response
     {
         $items = $itemRepository->findBy(['ubicacion_actual' => $ubicacion]);
         $ubicaciones = $ubicacionRepository->findAll();
+        $tiposItem = $tipoItemRepository->findAll();
         
-        return $this->render('item/index.html.twig', [
+        // Organizar los ítems por tipo
+        $itemsPorTipo = [];
+        foreach ($items as $item) {
+            $tipoId = $item->getTipo()->getId();
+            $tipoNombre = $item->getTipo()->getNombre();
+            
+            if (!isset($itemsPorTipo[$tipoId])) {
+                $itemsPorTipo[$tipoId] = [
+                    'tipo' => $item->getTipo(),
+                    'items' => [],
+                    'totalItems' => 0
+                ];
+            }
+            
+            $itemsPorTipo[$tipoId]['items'][] = $item;
+            $itemsPorTipo[$tipoId]['totalItems']++;
+        }
+        
+        return $this->render('item/index_por_ubicacion.html.twig', [
             'items' => $items,
+            'itemsPorTipo' => $itemsPorTipo,
             'ubicacion' => $ubicacion,
             'ubicaciones' => $ubicaciones,
+            'tiposItem' => $tiposItem,
+            'paginaImprimible' => true,
         ]);
     }
+
     /**
      * @Route("/tipo/{tipoItem}", name="app_item_index_tipo", methods={"GET"})
      */
@@ -67,192 +95,240 @@ class ItemController extends AbstractController
             'tipoItem' => $tipoItem,
             'tiposItems' => $tiposItems,
             'ubicaciones' => $ubicaciones,
+            'paginaImprimible' => true,
         ]);
     }
 
     /**
-     * @Route("/new", name="app_item_new")
+     * @Route("/new", name="app_item_new", methods={"GET", "POST"})
      */
-    public function new(Request $request, EntityManagerInterface $em): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, BuilderInterface $qrCodeBuilder): Response
     {
         $item = new Item();
         $form = $this->createForm(ItemType::class, $item);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $item->setCodigoQr('');
-            $em->persist($item);
+            // Manejar la carga de la imagen
+            $imagenFile = $form->get('imagen')->getData();
+            if ($imagenFile) {
+                $originalFilename = pathinfo($imagenFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFilename);
+                $newFilename = $safeFilename.'-'.uniqid().'.'.$imagenFile->guessExtension();
 
+                try {
+                    $imagenFile->move(
+                        $this->getParameter('items_imagenes_directory'),
+                        $newFilename
+                    );
+                    $item->setImagen($newFilename);
+                } catch (FileException $e) {
+                    // Mostrar mensaje de error si falla la carga
+                    $this->addFlash('error', 'Ocurrió un error al subir la imagen: ' . $e->getMessage());
+                    return $this->redirectToRoute('app_item_new');
+                }
+            }
+
+            $item->setCodigoQr('');
+            $entityManager->persist($item);
+
+            // Registrar el movimiento inicial
             $movimiento = new Movimiento();
             $movimiento->setItem($item);
             $movimiento->setFecha(new \DateTime());
             $movimiento->setUbicacion($item->getUbicacionActual());
-            $movimiento->setMotivo('creación');
-            $movimiento->setCantidad($item->getCantidad());
-            // Guarda el movimiento
-            $em->persist($movimiento);
+            $movimiento->setMotivo('Creación del ítem');
+            $movimiento->setCantidad(1); // Siempre es 1 para ítems individuales
+            $entityManager->persist($movimiento);
 
-            $em->flush();
+            $entityManager->flush();
 
+            // Generar el código QR solo después de que el item tenga un ID
+            $qrUrl = $this->generateUrl('app_item_show', ['id' => $item->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
+            $qrFilename = 'qr-item-' . $item->getId() . '.png';
+            $qrPath = $this->getParameter('items_qr_directory') . '/' . $qrFilename;
+            
+            // Usar el servicio BuilderInterface inyectado para generar el QR
+            $result = $qrCodeBuilder->data($qrUrl)
+                ->size(200)
+                ->margin(10)
+                ->build();
+            
+            // Guardar el QR como archivo
+            file_put_contents($qrPath, $result->getString());
+            
+            // Actualizar el item con la ruta del código QR
+            $item->setCodigoQr($qrFilename);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'El ítem ha sido creado correctamente.');
             return $this->redirectToRoute('app_item_index');
         }
 
-        return $this->render('item/_new.html.twig', [
+        return $this->render('item/new.html.twig', [
+            'item' => $item,
             'form' => $form->createView(),
         ]);
     }
 
     /**
-     * @Route("/{id}/edit", name="app_item_edit")
+     * @Route("/{id}/edit", name="app_item_edit", methods={"GET", "POST"})
      */
-    public function edit(Request $request, Item $item, EntityManagerInterface $em): Response
+    public function edit(Request $request, Item $item, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
     {
-        // Obtiene la ubicación y cantidad anteriores para compararlas
-        $ubicacionAnterior = $item->getUbicacionActual();
-        $cantidadAnterior = $item->getCantidad();
-
         $form = $this->createForm(ItemType::class, $item);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Manejar la imagen
+            $imagenFile = $form->get('imagen')->getData();
+            if ($imagenFile) {
+                $originalFilename = pathinfo($imagenFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFilename);
+                $newFilename = $safeFilename.'-'.uniqid().'.'.$imagenFile->guessExtension();
 
-            $cantidadNueva = $form->get('cantidad')->getData();
-            $ubicacionNueva = $form->get('ubicacion_actual')->getData();
+                try {
+                    $imagenFile->move(
+                        $this->getParameter('items_imagenes_directory'),
+                        $newFilename
+                    );
+                    
+                    // Si había una imagen anterior, eliminarla
+                    if ($item->getImagen()) {
+                        $imagePath = $this->getParameter('items_imagenes_directory') . '/' . $item->getImagen();
+                        if (file_exists($imagePath)) {
+                            unlink($imagePath);
+                        }
+                    }
+                    
+                    $item->setImagen($newFilename);
+                } catch (FileException $e) {
+                    $this->addFlash('error', 'Ocurrió un error al subir la imagen: ' . $e->getMessage());
+                }
+            }
+
+            // Registrar el movimiento si la ubicación cambió
+            $uow = $entityManager->getUnitOfWork();
+            $uow->computeChangeSets();
+            $changeSet = $uow->getEntityChangeSet($item);
             
-            // Registra un movimiento solo si hubo cambios en la ubicación o cantidad
-            if ($ubicacionAnterior !== $ubicacionNueva || $cantidadAnterior !== $cantidadNueva) {
+            if (isset($changeSet['ubicacion_actual'])) {
+                $oldUbicacion = $changeSet['ubicacion_actual'][0];
+                $newUbicacion = $changeSet['ubicacion_actual'][1];
+                
                 $movimiento = new Movimiento();
                 $movimiento->setItem($item);
                 $movimiento->setFecha(new \DateTime());
-                $movimiento->setUbicacion($ubicacionNueva);
-                $movimiento->setCantidad($cantidadNueva);
-                $motivo = $ubicacionAnterior !== $ubicacionNueva ? 'Nueva ubicación' : '';
-                $motivo = $cantidadAnterior !== $cantidadNueva ? (($motivo) ? $motivo . ' y cantidad' : 'Nueva cantidad') : '';
-
-
-                $movimiento->setMotivo($motivo);
-
-                // Guarda el movimiento
-                $em->persist($movimiento);
+                $movimiento->setUbicacion($newUbicacion);
+                $movimiento->setMotivo('Cambio de ubicación desde ' . ($oldUbicacion ? $oldUbicacion->getNombre() : 'sin ubicación'));
+                $movimiento->setCantidad(1);
+                $entityManager->persist($movimiento);
             }
 
-            // Guarda el item actualizado
-            $em->flush();
-
-            return $this->redirectToRoute('app_item_index');
+            $entityManager->flush();
+            $this->addFlash('success', 'El ítem ha sido actualizado correctamente.');
+            
+            return $this->redirectToRoute('app_item_show', ['id' => $item->getId()]);
         }
 
-        return $this->render('item/_new.html.twig', [
-            'form' => $form->createView(),
+        return $this->render('item/edit.html.twig', [
             'item' => $item,
+            'form' => $form->createView(),
         ]);
     }
 
     /**
      * @Route("/{id}", name="app_item_show")
      */
-    public function show(Item $item): Response
+    public function show(Item $item, EntityManagerInterface $entityManager): Response
     {
+        // Obtener todas las ubicaciones para la vista
+        $todasUbicaciones = $entityManager->getRepository(Ubicacion::class)->findAll();
+
         return $this->render('item/show.html.twig', [
             'item' => $item,
+            'ubicaciones' => $todasUbicaciones,
         ]);
     }
 
     /**
      * @Route("/{id}/delete", name="app_item_delete", methods={"POST"})
      */
-    public function delete(Request $request, Item $item, EntityManagerInterface $em): Response
+    public function delete(Request $request, Item $item, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete'.$item->getId(), $request->request->get('_token'))) {
-            $em->remove($item);
-            $em->flush();
+            // Si existe una imagen, eliminarla
+            if ($item->getImagen()) {
+                $imagePath = $this->getParameter('items_imagenes_directory') . '/' . $item->getImagen();
+                if (file_exists($imagePath)) {
+                    unlink($imagePath);
+                }
+            }
+            
+            // Si existe un código QR, eliminarlo
+            if ($item->getCodigoQr()) {
+                $qrPath = $this->getParameter('items_qr_directory') . '/' . $item->getCodigoQr();
+                if (file_exists($qrPath)) {
+                    unlink($qrPath);
+                }
+            }
+
+            $entityManager->remove($item);
+            $entityManager->flush();
+            
+            $this->addFlash('success', 'El ítem ha sido eliminado correctamente.');
         }
 
-        return $this->redirectToRoute('app_item_index');
+        return $this->redirectToRoute('app_item_index', [], Response::HTTP_SEE_OTHER);
     }
 
     /**
      * @Route("/qr/make/item/{id}", name="make_qr_item")
      */
-    public function make(int $id, UrlGeneratorInterface $router, BuilderInterface $customQrCodeBuilder): Response
+    public function make(int $id, UrlGeneratorInterface $router, BuilderInterface $qrCodeBuilder): Response
     {
         $url = $router->generate('app_item_show', ['id'=>$id], urlGeneratorInterface::ABSOLUTE_URL); 
 
-        $result = $customQrCodeBuilder->data($url)->size(100)->margin(20)->build();
+        $result = $qrCodeBuilder->data($url)->size(100)->margin(20)->build();
         $response = new QrCodeResponse($result);
-        $result->getDataUri();
-        $result->getString();
-
-        return $response;
         
+        return $response;
     }
 
     /**
-     * @Route("/items/move", name="app_item_move", methods={"POST"})
+     * @Route("/{id}/move", name="app_item_move", methods={"POST"})
      */
-    public function moveItem(Request $request, ItemRepository $itemRepository, UbicacionRepository $ubicacionRepository, EntityManagerInterface $em ): Response {
-        $itemId = $request->request->get('item_id');
-        $newQuantity = (int) $request->request->get('quantity');
+    public function moveItem(Request $request, Item $item, EntityManagerInterface $entityManager): Response
+    {
         $newLocationId = $request->request->get('location');
-
-        // Obtener el item original
-        $item = $itemRepository->find($itemId);
-        $currentLocation = $item->getUbicacionActual();
-
-        // Validar que la ubicación no sea la misma
-        if ($currentLocation->getId() === (int) $newLocationId) {
-            $this->addFlash('danger', 'La nueva ubicación es igual a la actual. No se realizó el movimiento.');
-            return $this->redirectToRoute('app_item_index');
+        $ubicacion = $entityManager->getRepository(Ubicacion::class)->find($newLocationId);
+        
+        if (!$ubicacion) {
+            $this->addFlash('danger', 'La ubicación seleccionada no existe.');
+            return $this->redirectToRoute('app_item_show', ['id' => $item->getId()]);
         }
-
-        // Validar cantidad
-        if ($item->getCantidad() < $newQuantity) {
-            $this->addFlash('danger', 'La cantidad a mover excede la disponible.');
-            return $this->redirectToRoute('app_item_index');
+        
+        // Verificar que la ubicación no sea la misma
+        if ($item->getUbicacionActual()->getId() === (int) $newLocationId) {
+            $this->addFlash('warning', 'La nueva ubicación es igual a la actual. No se realizó el movimiento.');
+            return $this->redirectToRoute('app_item_show', ['id' => $item->getId()]);
         }
-
-        // Obtener la nueva ubicación
-        $newLocation = $ubicacionRepository->find($newLocationId);
-
-        // Crear un nuevo registro para la cantidad movida
-        $newItem = clone $item;
-        $newItem->setCantidad($newQuantity);
-        $newItem->setUbicacionActual($newLocation);
-
-        // Actualizar la cantidad del item original
-        $item->setCantidad($item->getCantidad() - $newQuantity);
-
-        // Registrar los movimientos en el historial
-        $this->registerMovement($em, $item, $newQuantity, $currentLocation, $newLocation, 'Cantidad reducida por movimiento: se movieron ' . $newQuantity . ' a ' . $newLocation->getNombre());
-        $this->registerMovement($em, $newItem, $newQuantity, $currentLocation, $newLocation, 'Nuevo registro por movimiento. Estos items vienen de: ' . $currentLocation->getNombre());
-
-        // Persistir los cambios
-        $em->persist($item);
-        $em->persist($newItem);
-        $em->flush();
-
-        $this->addFlash('success', 'Item movido correctamente.');
-        return $this->redirectToRoute('app_item_index');
+        
+        $oldUbicacion = $item->getUbicacionActual();
+        $item->setUbicacionActual($ubicacion);
+        
+        // Registrar el movimiento
+        $movimiento = new Movimiento();
+        $movimiento->setItem($item);
+        $movimiento->setFecha(new \DateTime());
+        $movimiento->setUbicacion($ubicacion);
+        $movimiento->setMotivo('Cambio de ubicación desde ' . $oldUbicacion->getNombre() . ' a ' . $ubicacion->getNombre());
+        $movimiento->setCantidad(1);
+        $entityManager->persist($movimiento);
+        
+        $entityManager->flush();
+        
+        $this->addFlash('success', 'El ítem ha sido movido correctamente a la ubicación ' . $ubicacion->getNombre());
+        return $this->redirectToRoute('app_item_show', ['id' => $item->getId()]);
     }
-
-
-    private function registerMovement(
-        EntityManagerInterface $em,
-        Item $item,
-        int $quantity,
-        Ubicacion $fromLocation,
-        Ubicacion $toLocation,
-        string $reason
-    ): void {
-        $movement = new Movimiento();
-        $movement->setItem($item);
-        $movement->setUbicacion($toLocation);
-        $movement->setCantidad($quantity);
-        $movement->setMotivo($reason);
-        $movement->setFecha(new \DateTime());
-    
-        $em->persist($movement);
-    }
-    
-
 }

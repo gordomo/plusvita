@@ -1,3 +1,9 @@
+(function() {
+    if (typeof waitForjQuery === 'undefined') {
+        console.error("main.js no está cargado correctamente. Los tooltips podrían no funcionar.");
+    }
+})();
+
 $( document ).on('change', '.js-cliente-motivo', function () {
     var $motivoSelected = $('.js-cliente-motivo');
     var $motivoTarget = $('.js-cliente-motivo-target');
@@ -119,8 +125,6 @@ $( document ).ready(function () {
             $camas.removeClass('d-none')
         }
     }
-
-    $('[data-toggle="tooltip"]').tooltip();
 
     $('#cliente_familiarResponsableAcompanante').find('.radio').addClass('form-check form-check-inline');
 

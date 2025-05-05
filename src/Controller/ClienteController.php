@@ -670,7 +670,8 @@ class ClienteController extends AbstractController
         if ( $form->isSubmitted() ) {
 
             if ( !$form->isValid() ) {
-                dd($form->getErrors());
+                $errors = $this->buildErrorArray($form);
+                dd($errors);
             }
             $modalidad = $form->get('modalidad')->getData();
 

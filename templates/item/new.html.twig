@@ -1,0 +1,80 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nuevo Ítem{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <div class="row my-4">
+            <div class="col">
+                <h1>Crear nuevo ítem</h1>
+                <a href="{{ path('app_item_index') }}" class="btn btn-secondary mb-3">
+                    <i class="fas fa-arrow-left"></i> Volver al listado
+                </a>
+            </div>
+        </div>
+
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4>Información del ítem</h4>
+            </div>
+            <div class="card-body">
+                {{ form_start(form) }}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form_label(form.nombre) }}
+                                {{ form_widget(form.nombre, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(form.nombre) }}
+                            </div>
+
+                            <div class="form-group">
+                                {{ form_label(form.tipo) }}
+                                {{ form_widget(form.tipo, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(form.tipo) }}
+                            </div>
+
+                            <div class="form-group">
+                                {{ form_label(form.identificador) }}
+                                {{ form_widget(form.identificador, {'attr': {'class': 'form-control', 'placeholder': 'Ej: Escritorio #1, Monitor central, etc.'}}) }}
+                                <small class="form-text text-muted">Un identificador único te ayudará a distinguir este ítem de otros similares.</small>
+                                {{ form_errors(form.identificador) }}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form_label(form.ubicacion_actual) }}
+                                {{ form_widget(form.ubicacion_actual, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(form.ubicacion_actual) }}
+                            </div>
+
+                            <div class="form-group">
+                                {{ form_label(form.imagen) }}
+                                {{ form_widget(form.imagen) }}
+                                <small class="form-text text-muted">Subir una imagen ayuda a identificar visualmente el ítem.</small>
+                                {{ form_errors(form.imagen) }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group text-center mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> {{ button_label|default('Guardar') }}
+                        </button>
+                    </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+{% endblock %}

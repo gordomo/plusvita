@@ -1,59 +1,185 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Detalles del Item{% endblock %}
+{% block title %}{{ item.nombre }} - Detalle del ítem{% endblock %}
 
 {% block body %}
-<h1>Detalles del Item</h1>
+    <div class="container">
+        <div class="row my-4">
+            <div class="col">
+                <h1>Detalle del ítem: {{ item.nombre }}</h1>
+                <div class="mb-3">
+                    <a href="{{ path('app_item_index') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver al listado
+                    </a>
+                    <a href="{{ path('app_item_edit', {'id': item.id}) }}" class="btn btn-warning">
+                        <i class="fas fa-edit"></i> Editar ítem
+                    </a>
+                </div>
+            </div>
+        </div>
 
-<table class="table">
-    <tr>
-        <th>Nombre</th>
-        <td colspan="3">{{ item.nombre }}</td>
-    </tr>
-    <tr>
-        <th>Tipo</th>
-        <td colspan="3">{{ item.tipo ? item.tipo.nombre : 'sin tipo' }}</td>
-    </tr>
-    <tr>
-        <th>Cantidad</th>
-        <td colspan="3">{{ item.cantidad }}</td>
-    </tr>
-    <tr>
-        <th>Ubicación Actual</th>
-        <td colspan="3">{{ item.ubicacionActual ? item.ubicacionActual.nombre : 'Sin ubicación' }}</td>
-    </tr>
-    <tr>
-        <th colspan="4" style="border-top:1px solid">Movimientos: </th>
-    </tr>
-    <tr>
-        <td>
-            fecha
-        </td>
-        <td>
-            motivo
-        </td>
-        <td>
-            ubicación
-        </td>
-        <td>
-            cantidad
-        </td>
-    </tr>
-        {% for movimiento in item.movimientos %}
-            <tr>
-                <td>{{ movimiento.fecha|date("d/m/Y H:i") }}</td>
-                <td>{{ movimiento.motivo }}</td>
-                <td>{{ movimiento.ubicacion.nombre }}</td>
-                <td>{{ movimiento.cantidad }}</td>
-            </tr>
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
         {% endfor %}
-</table>
+        
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h4>Información general</h4>
+                    </div>
+                    <div class="card-body">
+                        <table class="table">
+                            <tbody>
+                                <tr>
+                                    <th width="30%">ID</th>
+                                    <td>{{ item.id }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <td>{{ item.nombre }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Identificador único</th>
+                                    <td>{{ item.identificador|default('Sin identificador específico') }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Ubicación actual</th>
+                                    <td>{{ item.ubicacionActual.nombre }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Tipo</th>
+                                    <td>{{ item.tipo.nombre }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4>Mover este ítem a otra ubicación</h4>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" action="{{ path('app_item_move', {'id': item.id}) }}" class="form-inline">
+                            <div class="form-group mr-2">
+                                <label for="location" class="mr-2">Nueva ubicación:</label>
+                                <select name="location" id="location" class="form-control" required>
+                                    <option value="">Seleccionar ubicación</option>
+                                    {% for ubicacion in ubicaciones %}
+                                        {% if ubicacion.id != item.ubicacionActual.id %}
+                                            <option value="{{ ubicacion.id }}">{{ ubicacion.nombre }}</option>
+                                        {% endif %}
+                                    {% else %}
+                                        <option disabled>No hay ubicaciones disponibles</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-exchange-alt"></i> Mover ítem
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header bg-secondary text-white">
+                        <h4>Historial de movimientos</h4>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Ubicación</th>
+                                    <th>Motivo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for movimiento in item.movimientos|sort((a, b) => b.fecha <=> a.fecha) %}
+                                    <tr>
+                                        <td>{{ movimiento.fecha|date('d/m/Y H:i') }}</td>
+                                        <td>{{ movimiento.ubicacion.nombre }}</td>
+                                        <td>{{ movimiento.motivo }}</td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="3" class="text-center">No hay registros de movimientos</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h4>Imagen del ítem</h4>
+                    </div>
+                    <div class="card-body text-center">
+                        {% if item.imagen %}
+                            <img src="{{ asset('uploads/items/imagenes/' ~ item.imagen) }}" alt="{{ item.nombre }}" class="img-fluid mb-3 rounded" style="max-height: 200px;">
+                            <div>
+                                <a href="{{ asset('uploads/items/imagenes/' ~ item.imagen) }}" download="{{ item.nombre|default('item') }}-imagen.jpg" class="btn btn-sm btn-outline-success">
+                                    <i class="fas fa-download"></i> Descargar imagen
+                                </a>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-secondary">No hay imagen disponible</div>
+                        {% endif %}
+                    </div>
+                </div>
 
-<a href="{{ path('app_item_index') }}" class="btn btn-secondary">Volver al Listado</a>
-<a href="{{ path('app_item_edit', { id: item.id }) }}" class="btn btn-warning">Editar</a>
-
-<form method="post" action="{{ path('app_item_delete', { id: item.id }) }}" style="display:inline;">
-    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ item.id) }}">
-    <button class="btn btn-danger" onclick="return confirm('¿Seguro que deseas eliminar este item?');">Eliminar</button>
-</form>
+                <div class="card mb-4">
+                    <div class="card-header bg-secondary text-white">
+                        <h4>Código QR</h4>
+                    </div>
+                    <div class="card-body text-center">
+                        {% if item.codigoQr %}
+                            <img src="{{ asset('uploads/items/qr/' ~ item.codigoQr) }}" alt="QR código para {{ item.nombre }}" class="img-fluid mb-3">
+                            <div>
+                                <a href="{{ path('make_qr_item', {'id': item.id}) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-print"></i> Ver para impresión
+                                </a>
+                                <a href="{{ asset('uploads/items/qr/' ~ item.codigoQr) }}" download="qr-{{ item.id }}.png" class="btn btn-sm btn-outline-secondary mt-2">
+                                    <i class="fas fa-download"></i> Descargar QR
+                                </a>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-warning">
+                                <p>No se ha generado código QR para este ítem.</p>
+                                <a href="{{ path('make_qr_item', {'id': item.id}) }}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-qrcode"></i> Generar QR
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header bg-danger text-white">
+                        <h4>Zona de peligro</h4>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-3">Si eliminas este ítem, se perderán todos sus datos asociados incluyendo el historial de movimientos. Esta acción no se puede deshacer.</p>
+                        <form method="post" action="{{ path('app_item_delete', {'id': item.id}) }}" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este ítem?');">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ item.id) }}">
+                            <button class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}

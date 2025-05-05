@@ -1,0 +1,36 @@
+<div class="modal fade" id="moveModal" tabindex="-1" aria-labelledby="moveModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ path('app_item_move') }}">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="moveModalLabel">Mover Item</h5>
+                    <!-- Botón X removido ya que no funcionaba correctamente -->
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="item_id" id="moveItemId">
+                    <p>Nombre: <strong id="moveItemName"></strong></p>
+                    <p>Cantidad disponible: <strong id="moveItemQuantity"></strong></p>
+                    
+                    <div class="form-group">
+                        <label for="newQuantity">Cantidad a mover:</label>
+                        <input type="number" class="form-control" id="newQuantity" name="quantity" min="1" value="1" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="newLocation">Nueva ubicación:</label>
+                        <select class="form-control" id="newLocation" name="location" required>
+                            <option value="">Seleccione una ubicación</option>
+                            {% for ubicacion in ubicaciones %}
+                                <option value="{{ ubicacion.id }}">{{ ubicacion.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="$('#moveModal').modal('hide');">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Mover</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

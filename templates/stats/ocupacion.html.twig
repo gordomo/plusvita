@@ -1,0 +1,359 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Estadísticas de Ocupación - Plus Vita{% endblock %}
+{% block panelTitle %}Estadísticas de Ocupación de Camas{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .stats-card {
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+        
+        .stats-card-header {
+            padding: 1rem;
+            font-weight: bold;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        }
+        
+        .stats-card-body {
+            padding: 1.5rem;
+        }
+        
+        .chart-container {
+            height: 300px;
+            margin-bottom: 2rem;
+        }
+        
+        .stats-section {
+            margin-top: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .section-title {
+            border-left: 4px solid #b088be;
+            padding-left: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .btn-stats {
+            background-color: #889cbe;
+            color: white;
+            margin-right: 0.5rem;
+        }
+        
+        .btn-stats:hover {
+            background-color: #60b9b9;
+            color: white;
+        }
+        
+        .periodo-selector {
+            margin-bottom: 1.5rem;
+        }
+        
+        .ocupacion-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .progress {
+            height: 1.5rem;
+            font-size: 1rem;
+            margin-top: 0.5rem;
+        }
+        
+        .stats-habitacion {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            transition: transform 0.2s ease;
+        }
+        
+        .stats-habitacion:hover {
+            transform: translateY(-3px);
+        }
+        
+        .habitacion-nombre {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .habitacion-ocupacion {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+    <!-- Chart.js para visualizaciones -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="btn-group" role="group">
+                <a href="{{ path('app_stats_index') }}" class="btn {{ app.request.get('_route') == 'app_stats_index' ? 'btn-primary' : 'btn-stats' }}">
+                    <i class="fas fa-chart-line"></i> Panel General
+                </a>
+                <a href="{{ path('app_stats_ocupacion') }}" class="btn {{ app.request.get('_route') == 'app_stats_ocupacion' ? 'btn-primary' : 'btn-stats' }}">
+                    <i class="fas fa-bed"></i> Ocupación de Camas
+                </a>
+                <a href="{{ path('app_stats_altas') }}" class="btn {{ app.request.get('_route') == 'app_stats_altas' ? 'btn-primary' : 'btn-stats' }}">
+                    <i class="fas fa-procedures"></i> Altas Médicas
+                </a>
+                <a href="{{ path('app_stats_inventario') }}" class="btn {{ app.request.get('_route') == 'app_stats_inventario' ? 'btn-primary' : 'btn-stats' }}">
+                    <i class="fas fa-boxes"></i> Inventario
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Selector de período -->
+    <div class="card stats-card periodo-selector">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <h5>Seleccione el período para el análisis:</h5>
+                    <div class="btn-group" role="group">
+                        <a href="{{ path('app_stats_ocupacion', {'periodo': 'semana'}) }}" class="btn {{ periodo == 'semana' ? 'btn-primary' : 'btn-outline-primary' }}">
+                            Semanal
+                        </a>
+                        <a href="{{ path('app_stats_ocupacion', {'periodo': 'mes'}) }}" class="btn {{ periodo == 'mes' ? 'btn-primary' : 'btn-outline-primary' }}">
+                            Mensual
+                        </a>
+                        <a href="{{ path('app_stats_ocupacion', {'periodo': 'trimestre'}) }}" class="btn {{ periodo == 'trimestre' ? 'btn-primary' : 'btn-outline-primary' }}">
+                            Trimestral
+                        </a>
+                        <a href="{{ path('app_stats_ocupacion', {'periodo': 'anio'}) }}" class="btn {{ periodo == 'anio' ? 'btn-primary' : 'btn-outline-primary' }}">
+                            Anual
+                        </a>
+                    </div>
+                </div>
+                <div class="col-md-4 text-right">
+                    <p class="mb-0">Período analizado:</p>
+                    <h5>{{ startDate|date('d/m/Y') }} - {{ endDate|date('d/m/Y') }}</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Resumen de ocupación -->
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card stats-card">
+                <div class="stats-card-header bg-primary text-white">
+                    <i class="fas fa-percent"></i> Ocupación promedio del período
+                </div>
+                <div class="stats-card-body">
+                    <div class="ocupacion-value">{{ promedioOcupacion|round }}%</div>
+                    <div class="progress">
+                        <div class="progress-bar 
+                            {% if promedioOcupacion > 80 %}
+                                bg-danger
+                            {% elseif promedioOcupacion > 60 %}
+                                bg-warning
+                            {% else %}
+                                bg-success
+                            {% endif %}" 
+                            role="progressbar" 
+                            style="width: {{ promedioOcupacion }}%" 
+                            aria-valuenow="{{ promedioOcupacion }}" 
+                            aria-valuemin="0" 
+                            aria-valuemax="100">
+                            {{ promedioOcupacion|round }}%
+                        </div>
+                    </div>
+                    <div class="text-center mt-3">
+                        <p class="mb-0">
+                            {% if promedioOcupacion > 80 %}
+                                <span class="badge badge-danger">Alta ocupación</span>
+                            {% elseif promedioOcupacion > 60 %}
+                                <span class="badge badge-warning">Ocupación moderada</span>
+                            {% else %}
+                                <span class="badge badge-success">Baja ocupación</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card stats-card">
+                <div class="stats-card-header">
+                    <i class="fas fa-chart-line"></i> Tendencia de ocupación
+                </div>
+                <div class="stats-card-body">
+                    <div class="chart-container">
+                        <canvas id="tendencia-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Ocupación por habitación -->
+    <div class="stats-section">
+        <h3 class="section-title">Ocupación actual por habitación</h3>
+        <div class="row">
+            {% for habitacion in camasPorHabitacion %}
+                <div class="col-md-4 mb-3">
+                    <div class="stats-habitacion shadow-sm {{ habitacion.porcentaje > 80 ? 'bg-danger text-white' : (habitacion.porcentaje > 60 ? 'bg-warning' : 'bg-light') }}">
+                        <div class="habitacion-nombre">{{ habitacion.nombre }}</div>
+                        <div class="habitacion-ocupacion">{{ habitacion.ocupadas }} / {{ habitacion.ocupadas + habitacion.disponibles }} camas ocupadas</div>
+                        <div class="progress">
+                            <div class="progress-bar bg-{{ habitacion.porcentaje > 80 ? 'danger' : (habitacion.porcentaje > 60 ? 'warning' : 'success') }}" 
+                                role="progressbar" 
+                                style="width: {{ habitacion.porcentaje }}%" 
+                                aria-valuenow="{{ habitacion.porcentaje }}" 
+                                aria-valuemin="0" 
+                                aria-valuemax="100">
+                                {{ habitacion.porcentaje|round }}%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Gráfico comparativo -->
+    <div class="stats-section">
+        <div class="card stats-card">
+            <div class="stats-card-header">
+                <i class="fas fa-chart-bar"></i> Comparativa de ocupación por habitación
+            </div>
+            <div class="stats-card-body">
+                <div class="chart-container">
+                    <canvas id="habitaciones-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Datos para los gráficos
+            const ocupacionData = {{ ocupacionPorDia|raw }};
+            
+            // Gráfico de línea para tendencia de ocupación
+            const tendenciaChartEl = document.getElementById('tendencia-chart');
+            if (tendenciaChartEl) {
+                const fechas = ocupacionData.map(item => item.fecha);
+                const porcentajes = ocupacionData.map(item => item.porcentaje);
+                
+                new Chart(tendenciaChartEl, {
+                    type: 'line',
+                    data: {
+                        labels: fechas,
+                        datasets: [{
+                            label: 'Porcentaje de ocupación',
+                            data: porcentajes,
+                            borderColor: '#60b9b9',
+                            backgroundColor: 'rgba(96, 185, 185, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + '%';
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const dataPoint = ocupacionData[context.dataIndex];
+                                        return [
+                                            `Ocupación: ${dataPoint.porcentaje}%`,
+                                            `Camas ocupadas: ${dataPoint.ocupadas}/${dataPoint.total}`
+                                        ];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Gráfico de barras para comparativa de habitaciones
+            const habitacionesEl = document.getElementById('habitaciones-chart');
+            if (habitacionesEl) {
+                // Extraer datos de las habitaciones
+                const habitaciones = {{ camasPorHabitacion|json_encode()|raw }};
+                
+                const nombres = habitaciones.map(h => h.nombre);
+                const ocupadas = habitaciones.map(h => h.ocupadas);
+                const disponibles = habitaciones.map(h => h.disponibles);
+                
+                new Chart(habitacionesEl, {
+                    type: 'bar',
+                    data: {
+                        labels: nombres,
+                        datasets: [
+                            {
+                                label: 'Camas ocupadas',
+                                data: ocupadas,
+                                backgroundColor: '#007bff'
+                            },
+                            {
+                                label: 'Camas disponibles',
+                                data: disponibles,
+                                backgroundColor: '#e9ecef'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                stacked: true
+                            },
+                            y: {
+                                stacked: true,
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Número de camas'
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const datasetLabel = context.dataset.label || '';
+                                        const value = context.raw || 0;
+                                        return `${datasetLabel}: ${value}`;
+                                    },
+                                    footer: function(tooltipItems) {
+                                        const habitacion = habitaciones[tooltipItems[0].dataIndex];
+                                        return `Ocupación: ${habitacion.porcentaje}%`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %}

@@ -32,6 +32,7 @@ class Movimiento
      * @ORM\Column(type="text", nullable=true)
      */
     private $motivo;
+    
     /**
      * @ORM\Column(type="integer", nullable=true)
      */

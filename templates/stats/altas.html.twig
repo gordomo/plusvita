@@ -1,0 +1,385 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Estadísticas de Altas Médicas - Plus Vita{% endblock %}
+{% block panelTitle %}Análisis de Altas Médicas{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .stats-card {
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+        
+        .stats-card-header {
+            padding: 1rem;
+            font-weight: bold;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        }
+        
+        .stats-card-body {
+            padding: 1.5rem;
+        }
+        
+        .chart-container {
+            height: 300px;
+            margin-bottom: 2rem;
+        }
+        
+        .stats-section {
+            margin-top: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .section-title {
+            border-left: 4px solid #b088be;
+            padding-left: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .btn-stats {
+            background-color: #889cbe;
+            color: white;
+            margin-right: 0.5rem;
+        }
+        
+        .btn-stats:hover {
+            background-color: #60b9b9;
+            color: white;
+        }
+        
+        .year-selector {
+            margin-bottom: 1.5rem;
+        }
+        
+        .categoria-item {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+        
+        .categoria-item:hover {
+            transform: translateY(-3px);
+        }
+        
+        .categoria-valor {
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .categoria-nombre {
+            text-align: center;
+            font-weight: bold;
+            margin-top: 0.5rem;
+        }
+        
+        .recovery-bg {
+            background-color: #d1f0e0;
+        }
+        
+        .derivation-bg {
+            background-color: #e1e5f2;
+        }
+        
+        .voluntary-bg {
+            background-color: #ffeeba;
+        }
+        
+        .deceased-bg {
+            background-color: #f5c6cb;
+        }
+        
+        .other-bg {
+            background-color: #e9ecef;
+        }
+    </style>
+    <!-- Chart.js para visualizaciones -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="btn-group" role="group">
+                <a href="{{ path('app_stats_index') }}" class="btn {{ app.request.get('_route') == 'app_stats_index' ? 'btn-primary' : 'btn-stats' }}">
+                    <i class="fas fa-chart-line"></i> Panel General
+                </a>
+                <a href="{{ path('app_stats_ocupacion') }}" class="btn {{ app.request.get('_route') == 'app_stats_ocupacion' ? 'btn-primary' : 'btn-stats' }}">
+                    <i class="fas fa-bed"></i> Ocupación de Camas
+                </a>
+                <a href="{{ path('app_stats_altas') }}" class="btn {{ app.request.get('_route') == 'app_stats_altas' ? 'btn-primary' : 'btn-stats' }}">
+                    <i class="fas fa-procedures"></i> Altas Médicas
+                </a>
+                <a href="{{ path('app_stats_inventario') }}" class="btn {{ app.request.get('_route') == 'app_stats_inventario' ? 'btn-primary' : 'btn-stats' }}">
+                    <i class="fas fa-boxes"></i> Inventario
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Selector de año -->
+    <div class="card stats-card year-selector">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <h5>Seleccione el año para el análisis:</h5>
+                    <div class="btn-group" role="group">
+                        {% for y in range(year - 2, year) %}
+                            <a href="{{ path('app_stats_altas', {'year': y}) }}" class="btn {{ y == year ? 'btn-primary' : 'btn-outline-primary' }}">
+                                {{ y }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="col-md-4 text-right">
+                    <p class="mb-0">Período analizado:</p>
+                    <h5>Año {{ year }}</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Gráfico de altas por mes -->
+    <div class="card stats-card">
+        <div class="stats-card-header">
+            <i class="fas fa-chart-line"></i> Distribución mensual de altas médicas
+        </div>
+        <div class="stats-card-body">
+            <div class="chart-container">
+                <canvas id="altas-mensuales-chart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Categorías de altas -->
+    <div class="stats-section">
+        <h3 class="section-title">Distribución por categorías de alta</h3>
+        
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card stats-card">
+                    <div class="stats-card-header">
+                        <i class="fas fa-chart-pie"></i> Distribución de altas por categoría
+                    </div>
+                    <div class="stats-card-body">
+                        <div class="chart-container">
+                            <canvas id="categorias-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card stats-card">
+                    <div class="stats-card-header">
+                        <i class="fas fa-list-ul"></i> Resumen por categoría
+                    </div>
+                    <div class="stats-card-body p-2">
+                        {% set totalAltas = categorias|reduce((sum, value) => sum + value, 0) %}
+                        
+                        {% for categoria, valor in categorias %}
+                            {% set porcentaje = totalAltas > 0 ? (valor / totalAltas * 100)|round : 0 %}
+                            {% set bgClass = 
+                                categoria == 'Recuperación' ? 'recovery-bg' : 
+                                (categoria == 'Derivación' ? 'derivation-bg' : 
+                                (categoria == 'Alta voluntaria' ? 'voluntary-bg' :
+                                (categoria == 'Fallecimiento' ? 'deceased-bg' : 'other-bg')))
+                            %}
+                            
+                            <div class="categoria-item {{ bgClass }}">
+                                <div class="categoria-valor">{{ valor }}</div>
+                                <div class="progress">
+                                    <div class="progress-bar bg-{{ 
+                                        categoria == 'Recuperación' ? 'success' : 
+                                        (categoria == 'Derivación' ? 'primary' : 
+                                        (categoria == 'Alta voluntaria' ? 'warning' :
+                                        (categoria == 'Fallecimiento' ? 'danger' : 'secondary')))
+                                    }}" 
+                                    role="progressbar" 
+                                    style="width: {{ porcentaje }}%" 
+                                    aria-valuenow="{{ porcentaje }}" 
+                                    aria-valuemin="0" 
+                                    aria-valuemax="100">
+                                        {{ porcentaje }}%
+                                    </div>
+                                </div>
+                                <div class="categoria-nombre">{{ categoria }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Comparativa interanual -->
+    <div class="stats-section">
+        <h3 class="section-title">Análisis interanual</h3>
+        
+        <div class="card stats-card">
+            <div class="stats-card-header">
+                <i class="fas fa-chart-bar"></i> Comparativa de altas por año (últimos 3 años)
+            </div>
+            <div class="stats-card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Este gráfico muestra la comparativa de altas médicas entre los últimos 3 años. Los datos se basan en los registros existentes en el sistema.
+                </div>
+                <div class="chart-container">
+                    <canvas id="comparativa-anual-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Datos para gráfico mensual
+            const meses = {{ meses|json_encode()|raw }};
+            const datosPorMes = {{ datosPorMes|json_encode()|raw }};
+            
+            // Gráfico mensual
+            const altasMensualesEl = document.getElementById('altas-mensuales-chart');
+            if (altasMensualesEl) {
+                new Chart(altasMensualesEl, {
+                    type: 'bar',
+                    data: {
+                        labels: meses,
+                        datasets: [{
+                            label: 'Altas médicas por mes',
+                            data: datosPorMes,
+                            backgroundColor: '#60b9b9',
+                            borderColor: '#4aaca7',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Número de altas'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Datos para gráfico de categorías
+            const categorias = {{ categorias|json_encode()|raw }};
+            const categoriasLabels = Object.keys(categorias);
+            const categoriasData = Object.values(categorias);
+            
+            // Gráfico de categorías
+            const categoriasEl = document.getElementById('categorias-chart');
+            if (categoriasEl) {
+                new Chart(categoriasEl, {
+                    type: 'pie',
+                    data: {
+                        labels: categoriasLabels,
+                        datasets: [{
+                            data: categoriasData,
+                            backgroundColor: [
+                                '#28a745', // Recuperación (verde)
+                                '#007bff', // Derivación (azul)
+                                '#ffc107', // Alta voluntaria (amarillo)
+                                '#dc3545', // Fallecimiento (rojo)
+                                '#6c757d'  // Otros (gris)
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const value = context.raw || 0;
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = Math.round((value / total) * 100);
+                                        return `${label}: ${value} (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Datos simulados para comparativa anual
+            // En una implementación real, estos datos vendrían del controlador
+            const anioActual = {{ year }};
+            const datosSimulados = {
+                [anioActual - 2]: generateRandomData(datosPorMes),
+                [anioActual - 1]: generateRandomData(datosPorMes),
+                [anioActual]: datosPorMes
+            };
+            
+            // Gráfico comparativo anual
+            const comparativaAnualEl = document.getElementById('comparativa-anual-chart');
+            if (comparativaAnualEl) {
+                const datasets = [];
+                const colores = ['#6c757d', '#17a2b8', '#007bff'];
+                
+                Object.keys(datosSimulados).forEach((anio, index) => {
+                    datasets.push({
+                        label: `Año ${anio}`,
+                        data: datosSimulados[anio],
+                        backgroundColor: colores[index],
+                        borderColor: colores[index],
+                        borderWidth: 1,
+                        fill: false,
+                        tension: 0.4
+                    });
+                });
+                
+                new Chart(comparativaAnualEl, {
+                    type: 'line',
+                    data: {
+                        labels: meses,
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Número de altas'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Función para generar datos aleatorios similares a los reales
+            // Solo para fines de demostración en esta fase inicial
+            function generateRandomData(baseData) {
+                return baseData.map(value => {
+                    const randomFactor = Math.random() * 0.4 + 0.8; // Entre 0.8 y 1.2
+                    return Math.max(0, Math.round(value * randomFactor));
+                });
+            }
+        });
+    </script>
+{% endblock %}

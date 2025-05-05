@@ -1,48 +1,91 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ tipo_item is defined ? 'Editar Tipo de Item' : 'Agregar Nueva Tipo de Item' }}{% endblock %}
-{% block panelTitle %}{{ tipo_item is defined ? 'Editar Tipo de Item' : 'Agregar Nueva Tipo de Item' }}{% endblock %}
+{% block title %}Nuevo Tipo de Ítem{% endblock %}
 
 {% block body %}
+    <div class="container">
+        <div class="row my-4">
+            <div class="col">
+                <h1>Crear nuevo tipo de ítem</h1>
+                <a href="{{ path('app_tipo_item_index') }}" class="btn btn-secondary mb-3">
+                    <i class="fas fa-arrow-left"></i> Volver al listado
+                </a>
+            </div>
+        </div>
 
-{{ form_start(form) }}
-    {{ form_row(form.nombre, { 'attr': {} }) }}
-    
-    <div id="tipo_warning" class="text-danger mt-2" style="display: none;">
-        Este tipo de item ya existe. Por favor, elige un nombre diferente.
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4>Información del tipo de ítem</h4>
+            </div>
+            <div class="card-body">
+                {{ form_start(form) }}
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                {{ form_label(form.nombre) }}
+                                {{ form_widget(form.nombre, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(form.nombre) }}
+                                <div id="tipo_warning" class="text-danger mt-2" style="display: none;">
+                                    Este tipo de ítem ya existe. Por favor, elige un nombre diferente.
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                {{ form_label(form.descripcion) }}
+                                {{ form_widget(form.descripcion, {'attr': {'class': 'form-control', 'rows': '4'}}) }}
+                                <small class="form-text text-muted">Una descripción clara ayudará a identificar para qué sirve este tipo de ítem.</small>
+                                {{ form_errors(form.descripcion) }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group text-center mt-4">
+                        <button type="submit" id="submit_btn" class="btn btn-primary">
+                            <i class="fas fa-save"></i> {{ button_label|default('Guardar') }}
+                        </button>
+                    </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
     </div>
 
-    {{ form_row(form.descripcion, { 'attr': {} }) }}
-    <button type="submit" id="submit_btn" class="btn btn-success">{{ tipo_item is defined ? 'Actualizar' : 'Guardar' }}</button>
-{{ form_end(form) }}
-
-<a href="{{ path('app_tipo_item_index') }}" class="btn btn-secondary mt-3">Volver al Listado</a>
-
 <script>
-  {{ parent() }}
-    const ubicacionInput = document.getElementById('tipo_item_nombre');
-    const warning = document.getElementById('tipo_warning');
-    const submitBtn = document.getElementById('submit_btn');
+    document.addEventListener('DOMContentLoaded', function() {
+        const ubicacionInput = document.getElementById('tipo_item_nombre');
+        const warning = document.getElementById('tipo_warning');
+        const submitBtn = document.getElementById('submit_btn');
 
-    ubicacionInput.addEventListener('input', function () {
-        const nombre = this.value;
-        if (nombre.length < 2) {
-            warning.style.display = 'none';
-            submitBtn.disabled = true;
-            return;
-        }
+        ubicacionInput.addEventListener('input', function () {
+            const nombre = this.value;
+            if (nombre.length < 2) {
+                warning.style.display = 'none';
+                submitBtn.disabled = true;
+                return;
+            }
 
-        fetch(`{{ path('app_tipo_item_validate') }}?nombre=${nombre}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.exists) {
-                    warning.style.display = 'block';
-                    submitBtn.disabled = true;
-                } else {
-                    warning.style.display = 'none';
-                    submitBtn.disabled = false;
-                }
-            });
+            fetch(`{{ path('app_tipo_item_validate') }}?nombre=${nombre}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.exists) {
+                        warning.style.display = 'block';
+                        submitBtn.disabled = true;
+                    } else {
+                        warning.style.display = 'none';
+                        submitBtn.disabled = false;
+                    }
+                });
+        });
     });
 </script>
 {% endblock %}
