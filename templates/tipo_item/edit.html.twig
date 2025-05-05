@@ -1,13 +1,116 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Edit TipoItem{% endblock %}
+{% block title %}Editar Tipo de Ítem{% endblock %}
 
 {% block body %}
-    <h1>Edit TipoItem</h1>
+    <div class="container">
+        <div class="row my-4">
+            <div class="col">
+                <h1>Editar Tipo de Ítem: {{ tipo_item.nombre }}</h1>
+                <div class="mb-3">
+                    <a href="{{ path('app_tipo_item_index') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver al listado
+                    </a>
+                </div>
+            </div>
+        </div>
 
-    {{ include('tipo_item/_form.html.twig', {'button_label': 'Update'}) }}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endfor %}
 
-    <a href="{{ path('app_tipo_item_index') }}">back to list</a>
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-warning text-dark">
+                        <h4>Información del tipo de ítem</h4>
+                    </div>
+                    <div class="card-body">
+                        {{ form_start(form) }}
+                            <div class="form-group">
+                                {{ form_label(form.nombre) }}
+                                {{ form_widget(form.nombre, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(form.nombre) }}
+                                <div id="tipo_warning" class="text-danger mt-2" style="display: none;">
+                                    Este tipo de ítem ya existe. Por favor, elige un nombre diferente.
+                                </div>
+                            </div>
 
-    {{ include('tipo_item/_delete_form.html.twig') }}
+                            <div class="form-group">
+                                {{ form_label(form.descripcion) }}
+                                {{ form_widget(form.descripcion, {'attr': {'class': 'form-control', 'rows': '4'}}) }}
+                                <small class="form-text text-muted">Una descripción clara ayudará a identificar para qué sirve este tipo de ítem.</small>
+                                {{ form_errors(form.descripcion) }}
+                            </div>
+
+                            <div class="form-group text-center mt-4">
+                                <button type="submit" id="submit_btn" class="btn btn-warning">
+                                    <i class="fas fa-save"></i> Guardar cambios
+                                </button>
+                            </div>
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header bg-danger text-white">
+                        <h4>Zona de peligro</h4>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-3">Si eliminas este tipo de ítem, podría afectar a los ítems que lo utilizan. Esta acción no se puede deshacer.</p>
+                        {{ include('tipo_item/_delete_form.html.twig') }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ubicacionInput = document.getElementById('tipo_item_nombre');
+        const warning = document.getElementById('tipo_warning');
+        const submitBtn = document.getElementById('submit_btn');
+        
+        // Guardar el nombre original para no mostrar advertencia si no se cambia
+        const nombreOriginal = ubicacionInput.value;
+
+        ubicacionInput.addEventListener('input', function () {
+            const nombre = this.value;
+            
+            // Si el nombre no ha cambiado, no hacemos la validación
+            if (nombre === nombreOriginal) {
+                warning.style.display = 'none';
+                submitBtn.disabled = false;
+                return;
+            }
+            
+            if (nombre.length < 2) {
+                warning.style.display = 'none';
+                submitBtn.disabled = true;
+                return;
+            }
+
+            fetch(`{{ path('app_tipo_item_validate') }}?nombre=${nombre}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.exists) {
+                        warning.style.display = 'block';
+                        submitBtn.disabled = true;
+                    } else {
+                        warning.style.display = 'none';
+                        submitBtn.disabled = false;
+                    }
+                });
+        });
+    });
+</script>
 {% endblock %}

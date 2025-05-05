@@ -1,0 +1,124 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Editar Ítem{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <div class="row my-4">
+            <div class="col">
+                <h1>Editar Ítem: {{ item.nombre }}</h1>
+                <div class="mb-3">
+                    <a href="{{ path('app_item_index') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver al listado
+                    </a>
+                    <a href="{{ path('app_item_show', {'id': item.id}) }}" class="btn btn-info">
+                        <i class="fas fa-eye"></i> Ver detalles
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-warning text-dark">
+                        <h4>Información del ítem</h4>
+                    </div>
+                    <div class="card-body">
+                        {{ form_start(form) }}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        {{ form_label(form.nombre) }}
+                                        {{ form_widget(form.nombre, {'attr': {'class': 'form-control'}}) }}
+                                        {{ form_errors(form.nombre) }}
+                                    </div>
+
+                                    <div class="form-group">
+                                        {{ form_label(form.tipo) }}
+                                        {{ form_widget(form.tipo, {'attr': {'class': 'form-control'}}) }}
+                                        {{ form_errors(form.tipo) }}
+                                    </div>
+
+                                    <div class="form-group">
+                                        {{ form_label(form.identificador) }}
+                                        {{ form_widget(form.identificador, {'attr': {'class': 'form-control', 'placeholder': 'Ej: Escritorio #1, Monitor central, etc.'}}) }}
+                                        <small class="form-text text-muted">Un identificador único te ayudará a distinguir este ítem de otros similares.</small>
+                                        {{ form_errors(form.identificador) }}
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        {{ form_label(form.ubicacion_actual) }}
+                                        {{ form_widget(form.ubicacion_actual, {'attr': {'class': 'form-control'}}) }}
+                                        {{ form_errors(form.ubicacion_actual) }}
+                                    </div>
+
+                                    <div class="form-group">
+                                        {{ form_label(form.imagen) }}
+                                        {{ form_widget(form.imagen) }}
+                                        <small class="form-text text-muted">Subir una nueva imagen reemplazará la anterior.</small>
+                                        {{ form_errors(form.imagen) }}
+                                    </div>
+                                    
+                                    {% if item.imagen %}
+                                        <div class="mt-2 text-center">
+                                            <p><strong>Imagen actual:</strong></p>
+                                            <img src="{{ asset('uploads/items/imagenes/' ~ item.imagen) }}" alt="{{ item.nombre }}" class="img-thumbnail" style="max-height: 150px;">
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="form-group text-center mt-4">
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="fas fa-save"></i> Guardar cambios
+                                </button>
+                            </div>
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header bg-danger text-white">
+                        <h4>Zona de peligro</h4>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-3">Si eliminas este ítem, se perderán todos sus datos asociados incluyendo el historial de movimientos. Esta acción no se puede deshacer.</p>
+                        {{ include('item/_delete_form.html.twig') }}
+                    </div>
+                </div>
+                
+                {% if item.codigoQr %}
+                    <div class="card mt-3">
+                        <div class="card-header bg-secondary text-white">
+                            <h4>Código QR</h4>
+                        </div>
+                        <div class="card-body text-center">
+                            <img src="{{ asset('uploads/items/qr/' ~ item.codigoQr) }}" alt="Código QR" class="img-fluid mb-2">
+                            <div>
+                                <a href="{{ path('make_qr_item', {'id': item.id}) }}" class="btn btn-sm btn-outline-secondary" target="_blank">
+                                    <i class="fas fa-print"></i> Ver para impresión
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

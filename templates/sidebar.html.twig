@@ -1,4 +1,3 @@
-
 <!-- Sidebar -->
 <div class="bg-light border-right" id="sidebar-wrapper">
     <div class="sidebar-heading">Plus Vita </div>
@@ -7,6 +6,11 @@
             <a class="list-group-item list-group-item-action bg-light " href="{{ path('dashboard_index') }}">
                 <i class="fas fa-chart-line"></i>
                 Dashboard
+            </a>
+            
+            <a class="list-group-item list-group-item-action bg-light " href="{{ path('app_stats_index') }}">
+                <i class="fas fa-chart-pie"></i>
+                Estadísticas
             </a>
         {% endif %}
         {% if app.user and 'ROLE_ADMIN' in app.user.roles %}

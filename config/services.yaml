@@ -9,6 +9,8 @@ parameters:
     adjuntos_staff_directory: '%kernel.project_dir%/public/uploads/adjuntos/staff'
     adjuntos_reclamos_directory: '%kernel.project_dir%/public/uploads/reclamos'
     adjuntos_reclamos_directory_url: '/uploads/reclamos'
+    items_imagenes_directory: '%kernel.project_dir%/public/uploads/items/imagenes'
+    items_qr_directory: '%kernel.project_dir%/public/uploads/items/qr'
     session_max_idle_time: 1200
 
 services:

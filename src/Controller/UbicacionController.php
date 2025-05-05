@@ -22,6 +22,24 @@ class UbicacionController extends AbstractController
     public function index(EntityManagerInterface $em): Response
     {
         $ubicaciones = $em->getRepository(Ubicacion::class)->findAll();
+        
+        // Para cada ubicación, contar cuántos items tiene y agruparlos por tipo
+        foreach ($ubicaciones as $ubicacion) {
+            $items = $ubicacion->getItems();
+            $totalItems = count($items);
+            $ubicacion->totalItems = $totalItems;
+            
+            // Agrupar items por tipo
+            $tiposCounts = [];
+            foreach ($items as $item) {
+                $tipoNombre = $item->getTipo()->getNombre();
+                if (!isset($tiposCounts[$tipoNombre])) {
+                    $tiposCounts[$tipoNombre] = 0;
+                }
+                $tiposCounts[$tipoNombre]++;
+            }
+            $ubicacion->tiposItems = $tiposCounts;
+        }
 
         return $this->render('ubicacion/index.html.twig', [
             'ubicaciones' => $ubicaciones,

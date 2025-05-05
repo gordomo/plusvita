@@ -31,11 +31,6 @@ class Item
     private $tipo;
 
     /**
-     * @ORM\Column(type="integer")
-     */
-    private $cantidad;
-
-    /**
      * @ORM\Column(type="string", length=255)
      */
     private $codigo_qr;
@@ -50,6 +45,16 @@ class Item
      * @ORM\JoinColumn(nullable=false)
      */
     private $ubicacion_actual;
+    
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $imagen;
+    
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $identificador;
 
     public function __construct()
     {
@@ -81,18 +86,6 @@ class Item
     public function setTipo(?TipoItem $tipo): self
     {
         $this->tipo = $tipo;
-
-        return $this;
-    }
-
-    public function getCantidad(): ?int
-    {
-        return $this->cantidad;
-    }
-
-    public function setCantidad(int $cantidad): self
-    {
-        $this->cantidad = $cantidad;
 
         return $this;
     }
@@ -147,6 +140,30 @@ class Item
     public function setUbicacionActual(?Ubicacion $ubicacion_actual): self
     {
         $this->ubicacion_actual = $ubicacion_actual;
+
+        return $this;
+    }
+
+    public function getImagen(): ?string
+    {
+        return $this->imagen;
+    }
+
+    public function setImagen(?string $imagen): self
+    {
+        $this->imagen = $imagen;
+
+        return $this;
+    }
+    
+    public function getIdentificador(): ?string
+    {
+        return $this->identificador;
+    }
+
+    public function setIdentificador(?string $identificador): self
+    {
+        $this->identificador = $identificador;
 
         return $this;
     }

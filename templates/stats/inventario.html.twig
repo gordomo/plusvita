@@ -1,0 +1,357 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Estadísticas de Inventario - Plus Vita{% endblock %}
+{% block panelTitle %}Análisis de Inventario{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .stats-card {
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+        
+        .stats-card-header {
+            padding: 1rem;
+            font-weight: bold;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        }
+        
+        .stats-card-body {
+            padding: 1.5rem;
+        }
+        
+        .chart-container {
+            height: 300px;
+            margin-bottom: 2rem;
+        }
+        
+        .stats-section {
+            margin-top: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .section-title {
+            border-left: 4px solid #b088be;
+            padding-left: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .btn-stats {
+            background-color: #889cbe;
+            color: white;
+            margin-right: 0.5rem;
+        }
+        
+        .btn-stats:hover {
+            background-color: #60b9b9;
+            color: white;
+        }
+        
+        .stats-value {
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stats-label {
+            font-size: 1rem;
+            text-align: center;
+            color: #6c757d;
+        }
+        
+        .item-card {
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+            transition: transform 0.2s ease;
+        }
+        
+        .item-card:hover {
+            transform: translateY(-3px);
+        }
+        
+        .progress {
+            height: 1.5rem;
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .progress-bar {
+            font-size: 0.9rem;
+            line-height: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .table-stats th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+    </style>
+    <!-- Chart.js para visualizaciones -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="btn-group" role="group">
+                <a href="{{ path('app_stats_index') }}" class="btn {{ app.request.get('_route') == 'app_stats_index' ? 'btn-primary' : 'btn-stats' }}">
+                    <i class="fas fa-chart-line"></i> Panel General
+                </a>
+                <a href="{{ path('app_stats_ocupacion') }}" class="btn {{ app.request.get('_route') == 'app_stats_ocupacion' ? 'btn-primary' : 'btn-stats' }}">
+                    <i class="fas fa-bed"></i> Ocupación de Camas
+                </a>
+                <a href="{{ path('app_stats_altas') }}" class="btn {{ app.request.get('_route') == 'app_stats_altas' ? 'btn-primary' : 'btn-stats' }}">
+                    <i class="fas fa-procedures"></i> Altas Médicas
+                </a>
+                <a href="{{ path('app_stats_inventario') }}" class="btn {{ app.request.get('_route') == 'app_stats_inventario' ? 'btn-primary' : 'btn-stats' }}">
+                    <i class="fas fa-boxes"></i> Inventario
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Resumen del inventario -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card stats-card">
+                <div class="stats-card-header">
+                    <i class="fas fa-chart-pie"></i> Distribución por tipo de item
+                </div>
+                <div class="stats-card-body">
+                    <div class="chart-container">
+                        <canvas id="tipos-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card stats-card">
+                <div class="stats-card-header">
+                    <i class="fas fa-chart-bar"></i> Distribución por ubicación
+                </div>
+                <div class="stats-card-body">
+                    <div class="chart-container">
+                        <canvas id="ubicaciones-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Movimientos recientes -->
+    <div class="stats-section">
+        <h3 class="section-title">Movimientos de inventario (últimos 30 días)</h3>
+        
+        <div class="card stats-card">
+            <div class="stats-card-header">
+                <i class="fas fa-exchange-alt"></i> Tendencia de movimientos
+            </div>
+            <div class="stats-card-body">
+                <div class="chart-container">
+                    <canvas id="movimientos-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Detalles por tipo de ítem -->
+    <div class="stats-section">
+        <h3 class="section-title">Detalles por tipo de ítem</h3>
+        
+        <div class="table-responsive">
+            <table class="table table-hover table-stats">
+                <thead>
+                    <tr>
+                        <th>Tipo de ítem</th>
+                        <th class="text-center">Cantidad</th>
+                        <th>Distribución</th>
+                        <th class="text-center">% del total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set totalItems = itemsPorTipo|reduce((sum, item) => sum + item.cantidad, 0) %}
+                    
+                    {% for item in itemsPorTipo %}
+                        {% set porcentaje = (item.cantidad / totalItems * 100)|round(1) %}
+                        
+                        <tr>
+                            <td>{{ item.tipo }}</td>
+                            <td class="text-center font-weight-bold">{{ item.cantidad }}</td>
+                            <td>
+                                <div class="progress">
+                                    <div class="progress-bar bg-info" role="progressbar" style="width: {{ porcentaje }}%" aria-valuenow="{{ porcentaje }}" aria-valuemin="0" aria-valuemax="100">
+                                        {{ porcentaje }}%
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center">{{ porcentaje }}%</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Distribución por ubicación detallada -->
+    <div class="stats-section">
+        <h3 class="section-title">Distribución por ubicación</h3>
+        
+        <div class="row">
+            {% set totalItems = itemsPorUbicacion|reduce((sum, item) => sum + item.cantidad, 0) %}
+            
+            {% for item in itemsPorUbicacion %}
+                {% set porcentaje = (item.cantidad / totalItems * 100)|round(1) %}
+                
+                <div class="col-md-4 mb-3">
+                    <div class="item-card bg-light">
+                        <div class="stats-value">{{ item.cantidad }}</div>
+                        <div class="progress">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ porcentaje }}%" aria-valuenow="{{ porcentaje }}" aria-valuemin="0" aria-valuemax="100">
+                                {{ porcentaje }}%
+                            </div>
+                        </div>
+                        <div class="stats-label">{{ item.ubicacion }}</div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Enlace a gestión de inventario -->
+    <div class="stats-section">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <h4>¿Desea gestionar el inventario?</h4>
+                <p>Acceda a la sección de gestión de inventario para agregar, modificar o dar de baja ítems.</p>
+                <a href="{{ path('app_item_index') }}" class="btn btn-primary">
+                    <i class="fas fa-boxes"></i> Ir a Gestión de Inventario
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Datos para gráficos
+            const itemsPorTipo = {{ itemsPorTipo|json_encode()|raw }};
+            const itemsPorUbicacion = {{ itemsPorUbicacion|json_encode()|raw }};
+            const fechasMovimientos = {{ fechas|raw }};
+            const cantidadesMovimientos = {{ cantidades|raw }};
+            
+            // Preparar datos para los gráficos
+            const tiposLabels = itemsPorTipo.map(item => item.tipo);
+            const tiposCantidades = itemsPorTipo.map(item => item.cantidad);
+            
+            const ubicacionesLabels = itemsPorUbicacion.map(item => item.ubicacion);
+            const ubicacionesCantidades = itemsPorUbicacion.map(item => item.cantidad);
+            
+            // Gráfico de distribución por tipo
+            const tiposChartEl = document.getElementById('tipos-chart');
+            if (tiposChartEl) {
+                new Chart(tiposChartEl, {
+                    type: 'pie',
+                    data: {
+                        labels: tiposLabels,
+                        datasets: [{
+                            data: tiposCantidades,
+                            backgroundColor: [
+                                '#6f42c1', // Púrpura
+                                '#007bff', // Azul primario
+                                '#17a2b8', // Cyan
+                                '#28a745', // Verde
+                                '#ffc107', // Amarillo
+                                '#fd7e14', // Naranja
+                                '#dc3545', // Rojo
+                                '#e83e8c', // Rosa
+                                '#6c757d'  // Gris
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right'
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Gráfico de distribución por ubicación
+            const ubicacionesChartEl = document.getElementById('ubicaciones-chart');
+            if (ubicacionesChartEl) {
+                new Chart(ubicacionesChartEl, {
+                    type: 'bar',
+                    data: {
+                        labels: ubicacionesLabels,
+                        datasets: [{
+                            label: 'Cantidad de ítems',
+                            data: ubicacionesCantidades,
+                            backgroundColor: '#20c997',
+                            borderColor: '#168b68',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Cantidad de ítems'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Gráfico de movimientos recientes
+            const movimientosChartEl = document.getElementById('movimientos-chart');
+            if (movimientosChartEl) {
+                new Chart(movimientosChartEl, {
+                    type: 'line',
+                    data: {
+                        labels: fechasMovimientos,
+                        datasets: [{
+                            label: 'Cantidad de movimientos',
+                            data: cantidadesMovimientos,
+                            borderColor: '#6f42c1',
+                            backgroundColor: 'rgba(111, 66, 193, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Cantidad de movimientos'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %}

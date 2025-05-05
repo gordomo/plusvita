@@ -42,7 +42,7 @@ class ClienteType extends AbstractType
                     'required' => false,
                     'constraints' => [
                         new File([
-                            'maxSize' => '153600K',
+                            'maxSize' => '5M',
                             'mimeTypes' => [
                                 'application/pdf',
                                 'application/x-pdf',

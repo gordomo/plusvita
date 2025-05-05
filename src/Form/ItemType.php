@@ -5,12 +5,14 @@ namespace App\Form;
 use App\Entity\Item;
 use App\Entity\TipoItem;
 use App\Entity\Ubicacion;
+
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\IntegerType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\File;
 
 class ItemType extends AbstractType
 {
@@ -18,11 +20,29 @@ class ItemType extends AbstractType
     {
         $builder
             ->add('nombre', TextType::class)
-            ->add('tipo', TextType::class)
-            ->add('cantidad', IntegerType::class)
+            ->add('identificador', TextType::class, [
+                'label' => 'Identificador único (opcional)',
+                'required' => false,
+                'attr' => ['placeholder' => 'Ej: Escritorio #1, Monitor central, etc.']
+            ])
             ->add('tipo', EntityType::class, [
                 'class' => TipoItem::class,
                 'choice_label' => 'nombre', 
+            ])
+            ->add('imagen', FileType::class, [
+                'label' => 'Imagen (JPG, PNG)',
+                'mapped' => false,
+                'required' => false,
+                'constraints' => [
+                    new File([
+                        'maxSize' => '153600K',
+                        'mimeTypes' => [
+                            'image/jpeg',
+                            'image/png',
+                        ],
+                        'mimeTypesMessage' => 'Por favor sube una imagen válida (JPG o PNG)',
+                    ])
+                ],
             ])
             ->add('ubicacion_actual', EntityType::class, [
                 'class' => Ubicacion::class,

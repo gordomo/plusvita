@@ -1,0 +1,383 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Estadísticas - Plus Vita{% endblock %}
+{% block panelTitle %}Estadísticas del sistema{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .stats-card {
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+            transition: transform 0.2s ease;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-3px);
+        }
+        
+        .stats-card-header {
+            padding: 1rem;
+            font-weight: bold;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        }
+        
+        .stats-card-body {
+            padding: 1.5rem;
+        }
+        
+        .stats-info {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stats-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stats-trend {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .trend-up {
+            color: #28a745;
+        }
+        
+        .trend-down {
+            color: #dc3545;
+        }
+        
+        .chart-container {
+            height: 300px;
+            margin-bottom: 2rem;
+        }
+        
+        .stats-icon {
+            font-size: 3rem;
+            margin-right: 1rem;
+            color: #60b9b9;
+        }
+        
+        .stats-section {
+            margin-top: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .section-title {
+            border-left: 4px solid #b088be;
+            padding-left: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .btn-stats {
+            background-color: #889cbe;
+            color: white;
+            margin-right: 0.5rem;
+        }
+        
+        .btn-stats:hover {
+            background-color: #60b9b9;
+            color: white;
+        }
+    </style>
+    <!-- Chart.js para visualizaciones -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="btn-group" role="group">
+                <a href="{{ path('app_stats_index') }}" class="btn {{ app.request.get('_route') == 'app_stats_index' ? 'btn-primary' : 'btn-stats' }}">
+                    <i class="fas fa-chart-line"></i> Panel General
+                </a>
+                <a href="{{ path('app_stats_ocupacion') }}" class="btn {{ app.request.get('_route') == 'app_stats_ocupacion' ? 'btn-primary' : 'btn-stats' }}">
+                    <i class="fas fa-bed"></i> Ocupación de Camas
+                </a>
+                <a href="{{ path('app_stats_altas') }}" class="btn {{ app.request.get('_route') == 'app_stats_altas' ? 'btn-primary' : 'btn-stats' }}">
+                    <i class="fas fa-procedures"></i> Altas Médicas
+                </a>
+                <a href="{{ path('app_stats_inventario') }}" class="btn {{ app.request.get('_route') == 'app_stats_inventario' ? 'btn-primary' : 'btn-stats' }}">
+                    <i class="fas fa-boxes"></i> Inventario
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resumen general -->
+    <div class="row">
+        <!-- Tarjeta de ocupación general -->
+        <div class="col-md-3">
+            <div class="card stats-card bg-light">
+                <div class="stats-card-header bg-primary text-white">
+                    <i class="fas fa-bed"></i> Ocupación Actual
+                </div>
+                <div class="stats-card-body text-center">
+                    <div class="d-flex justify-content-center align-items-center">
+                        <div id="ocupacion-gauge" style="width: 120px; height: 120px;"></div>
+                    </div>
+                    <div class="stats-info">
+                        <span class="text-muted">Habitaciones:</span>
+                        <span class="font-weight-bold">{{ totalHabitaciones }}</span>
+                    </div>
+                    <div class="stats-info">
+                        <span class="text-muted">Camas totales:</span>
+                        <span class="font-weight-bold">{{ totalCamas }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tarjeta de ingresos del mes -->
+        <div class="col-md-3">
+            <div class="card stats-card bg-light">
+                <div class="stats-card-header bg-success text-white">
+                    <i class="fas fa-sign-in-alt"></i> Ingresos del Mes
+                </div>
+                <div class="stats-card-body text-center">
+                    <div class="stats-value">{{ ingresosDelMes }}</div>
+                    <div class="stats-info">pacientes ingresados</div>
+                    <div class="stats-trend">
+                        <i class="fas fa-calendar-day"></i> {{ "now"|date("F Y") }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tarjeta de egresos del mes -->
+        <div class="col-md-3">
+            <div class="card stats-card bg-light">
+                <div class="stats-card-header bg-info text-white">
+                    <i class="fas fa-sign-out-alt"></i> Egresos del Mes
+                </div>
+                <div class="stats-card-body text-center">
+                    <div class="stats-value">{{ egresosDelMes }}</div>
+                    <div class="stats-info">pacientes con alta</div>
+                    <div class="stats-trend">
+                        <i class="fas fa-calendar-day"></i> {{ "now"|date("F Y") }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tarjeta de ocupación vs capacidad -->
+        <div class="col-md-3">
+            <div class="card stats-card bg-light">
+                <div class="stats-card-header bg-warning text-white">
+                    <i class="fas fa-percent"></i> Ocupación vs Capacidad
+                </div>
+                <div class="stats-card-body">
+                    <div class="chart-container" style="height: 188px;">
+                        <canvas id="ocupacion-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Gráfico de ocupación por día (últimos 30 días) -->
+    <div class="stats-section">
+        <h3 class="section-title">Tendencia de ocupación (últimos 30 días)</h3>
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="tendencia-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Accesos rápidos a reportes detallados -->
+    <div class="stats-section">
+        <h3 class="section-title">Reportes detallados</h3>
+        
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card stats-card bg-light">
+                    <div class="stats-card-header">
+                        <i class="fas fa-bed"></i> Ocupación de Camas
+                    </div>
+                    <div class="stats-card-body">
+                        <p>Análisis detallado de ocupación de camas por período, habitación y tendencias.</p>
+                        <a href="{{ path('app_stats_ocupacion') }}" class="btn btn-outline-primary">Ver detalles</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card stats-card bg-light">
+                    <div class="stats-card-header">
+                        <i class="fas fa-procedures"></i> Altas Médicas
+                    </div>
+                    <div class="stats-card-body">
+                        <p>Estadísticas de altas médicas, categorizadas por tipo y distribuidas por período.</p>
+                        <a href="{{ path('app_stats_altas') }}" class="btn btn-outline-primary">Ver detalles</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card stats-card bg-light">
+                    <div class="stats-card-header">
+                        <i class="fas fa-boxes"></i> Inventario
+                    </div>
+                    <div class="stats-card-body">
+                        <p>Análisis del inventario por tipo, ubicación y movimientos recientes.</p>
+                        <a href="{{ path('app_stats_inventario') }}" class="btn btn-outline-primary">Ver detalles</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Datos para los gráficos
+            const ocupacionData = {{ ocupacionPorDia|raw }};
+            
+            // Calcular ocupación actual (último día disponible)
+            const ultimoDia = ocupacionData[ocupacionData.length - 1];
+            const ocupacionActual = ultimoDia ? ultimoDia.porcentaje : 0;
+            
+            // Gráfico de gauge para ocupación actual
+            const gaugeEl = document.getElementById('ocupacion-gauge');
+            if (gaugeEl) {
+                new Chart(gaugeEl, {
+                    type: 'doughnut',
+                    data: {
+                        datasets: [{
+                            data: [ocupacionActual, 100 - ocupacionActual],
+                            backgroundColor: [
+                                ocupacionActual > 80 ? '#dc3545' : (ocupacionActual > 60 ? '#ffc107' : '#28a745'),
+                                '#e9ecef'
+                            ],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        cutout: '70%',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            tooltip: {
+                                enabled: false
+                            },
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+                
+                // Agregar texto al centro del doughnut
+                const textEl = document.createElement('div');
+                textEl.style.position = 'absolute';
+                textEl.style.top = '50%';
+                textEl.style.left = '50%';
+                textEl.style.transform = 'translate(-50%, -50%)';
+                textEl.style.textAlign = 'center';
+                textEl.innerHTML = `<span style="font-size: 1.5rem; font-weight: bold;">${Math.round(ocupacionActual)}%</span>`;
+                gaugeEl.style.position = 'relative';
+                gaugeEl.appendChild(textEl);
+            }
+            
+            // Gráfico de barras para ocupación vs capacidad (por camas)
+            const ocupacionChartEl = document.getElementById('ocupacion-chart');
+            if (ocupacionChartEl && ultimoDia) {
+                new Chart(ocupacionChartEl, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Ocupación'],
+                        datasets: [
+                            {
+                                label: 'Ocupadas',
+                                data: [ultimoDia.ocupadas],
+                                backgroundColor: '#007bff'
+                            },
+                            {
+                                label: 'Disponibles',
+                                data: [ultimoDia.total - ultimoDia.ocupadas],
+                                backgroundColor: '#e9ecef'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                stacked: true
+                            },
+                            y: {
+                                stacked: true,
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Gráfico de línea para tendencia de ocupación
+            const tendenciaChartEl = document.getElementById('tendencia-chart');
+            if (tendenciaChartEl) {
+                const fechas = ocupacionData.map(item => item.fecha);
+                const porcentajes = ocupacionData.map(item => item.porcentaje);
+                
+                new Chart(tendenciaChartEl, {
+                    type: 'line',
+                    data: {
+                        labels: fechas,
+                        datasets: [{
+                            label: 'Porcentaje de ocupación',
+                            data: porcentajes,
+                            borderColor: '#60b9b9',
+                            backgroundColor: 'rgba(96, 185, 185, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + '%';
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const dataPoint = ocupacionData[context.dataIndex];
+                                        return [
+                                            `Ocupación: ${dataPoint.porcentaje}%`,
+                                            `Camas ocupadas: ${dataPoint.ocupadas}/${dataPoint.total}`
+                                        ];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %}
