@@ -83,6 +83,62 @@
             background-color: #60b9b9;
             color: white;
         }
+
+        @media (max-width: 767.98px) {
+            .stats-section .row.flex-md-row {
+                flex-direction: column !important;
+            }
+            .stats-section .row.flex-md-row > [class^='col-'] {
+                max-width: 100%;
+                flex: 0 0 100%;
+            }
+            .stats-section .card.stats-card {
+                margin-bottom: 1.5rem;
+            }
+        }
+        .stats-section .card.stats-card .table-responsive {
+            border-radius: 12px;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            padding: 0.5rem 0.5rem 0.2rem 0.5rem;
+        }
+        .stats-section .table {
+            margin-bottom: 0;
+            font-size: 1rem;
+        }
+        .stats-section .table th, .stats-section .table td {
+            vertical-align: middle;
+        }
+        @media (max-width: 991.98px) {
+            .stats-section .row.flex-md-row > .col-md-7,
+            .stats-section .row.flex-md-row > .col-md-5 {
+                max-width: 100%;
+                flex: 0 0 100%;
+            }
+            .stats-section .col-md-7 {
+                margin-bottom: 1.5rem;
+            }
+        }
+        @media (max-width: 575.98px) {
+            .stats-section .table {
+                font-size: 0.92rem;
+            }
+            .stats-section .card.stats-card .table-responsive {
+                padding: 0.2rem 0.1rem 0.1rem 0.1rem;
+            }
+        }
+        @media (max-width: 1023.98px) {
+            .stats-section .row.flex-md-row {
+                flex-direction: column !important;
+            }
+            .stats-section .row.flex-md-row > [class^='col-'] {
+                max-width: 100%;
+                flex: 0 0 100%;
+            }
+            .stats-section .col-md-7 {
+                margin-bottom: 1.5rem;
+            }
+        }
     </style>
     <!-- Chart.js para visualizaciones -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
@@ -238,7 +294,7 @@
     <!-- Métrica: Días de internación por patología -->
     <div class="stats-section">
         <h3 class="section-title">Días de internación por patología</h3>
-        <div class="row">
+        <div class="row flex-md-row">
             <div class="col-md-7">
                 <div class="card stats-card">
                     <div class="card-body">
@@ -247,7 +303,7 @@
                                 <thead class="thead-light">
                                     <tr>
                                         <th>Patología</th>
-                                        <th>Promedio</th>
+                                        <th>Promedio (en días)</th>
                                         <th>Mínimo</th>
                                         <th>Máximo</th>
                                         <th>Total días</th>
@@ -255,9 +311,18 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    {% set nombresPatologia = {
+                                        '1': 'Neurológicas',
+                                        '2': 'Traumatológicas',
+                                        '3': 'Respiratorias',
+                                        '4': 'Paliativos',
+                                        '5': 'Patologías laborales',
+                                        'Sin especificar': 'Sin especificar',
+                                        'Sin Especificar': 'Sin especificar'
+                                    } %}
                                     {% for patologia, datos in statsInternacion %}
                                         <tr>
-                                            <td>{{ patologia }}</td>
+                                            <td>{{ nombresPatologia[patologia]|default(patologia) }}</td>
                                             <td>{{ datos.promedio }}</td>
                                             <td>{{ datos.min }}</td>
                                             <td>{{ datos.max }}</td>
