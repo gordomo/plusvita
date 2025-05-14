@@ -61,20 +61,61 @@ $( document ).on('change', '.js-camas-disp', function () {
 $( document ).on('click', '#agregarFamiliar', function (e) {
     e.preventDefault();
     e.stopPropagation();
-    var botonQuitarHtml = '<div class="col-sm" id="quitarFamiliarRow"><a href="" id="quitarFamiliar">quitar familiar - </a></div>';
-    var htmlNuevoFamiliar = '<br><div class="form-row"><div class="col-sm"><input type="text" name="familiarResponsableExtraNombre[]" class="form-control"></div><div class="col-sm"><input type="text" name="familiarResponsableExtraTel[]" class="form-control"></div><div class="col-sm"><input type="text" name="familiarResponsableExtraMail[]" class="form-control"></div><div class="col-sm"><input type="text" name="familiarResponsableExtraVinculo[]" class="form-control"></div><div class="col-sm"><div class="columnas-de-uno"><select name="familiarResponsableExtraAcompanante[]" class="form-control"><option value="1">Si</option><option value="0" selected="selected">No</option></select></div></div></div>';
+    var botonQuitarHtml = '<div class="col-sm" id="quitarFamiliarRow"><a href="" id="quitarFamiliar" class="btn btn-outline-danger btn-sm"><i class="fas fa-minus-circle"></i> Quitar familiar</a></div>';
+    
+    // HTML con etiquetas para mejorar la organización y estructura
+    var htmlNuevoFamiliar = '<div class="form-row form-group familiar-adicional">' +
+        '<div class="col-sm">' +
+        '<label class="form-control-label">Nombre</label>' +
+        '<input type="text" name="familiarResponsableExtraNombre[]" class="form-control">' +
+        '</div>' +
+        '<div class="col-sm">' +
+        '<label class="form-control-label">Teléfono</label>' +
+        '<input type="text" name="familiarResponsableExtraTel[]" class="form-control">' +
+        '</div>' +
+        '<div class="col-sm">' +
+        '<label class="form-control-label">Email</label>' +
+        '<input type="text" name="familiarResponsableExtraMail[]" class="form-control">' +
+        '</div>' +
+        '</div>' +
+        '<div class="form-row form-group familiar-adicional mb-3">' +
+        '<div class="col-sm">' +
+        '<label class="form-control-label">Vínculo</label>' +
+        '<input type="text" name="familiarResponsableExtraVinculo[]" class="form-control">' +
+        '</div>' +
+        '<div class="col-sm">' +
+        '<label class="form-control-label">Es acompañante?</label>' +
+        '<select name="familiarResponsableExtraAcompanante[]" class="form-control">' +
+        '<option value="1">Si</option>' +
+        '<option value="0" selected="selected">No</option>' +
+        '</select>' +
+        '</div>' +
+        '<div class="col-sm"></div>' +
+        '</div>';
+    
+    // Si no hay familiares adicionales, agregar un encabezado
+    if($('#familiares').find('.familiar-adicional').length === 0 && $('#familiares hr').length === 0) {
+        $('#familiares').append('<hr class="my-3"><h5>Familiares adicionales</h5>');
+    }
+    
     $('#familiares').append(htmlNuevoFamiliar);
-    if($('#familiares').find('.form-row').length === 2) {
-        $('#agregarQuitarFamiliar').append(botonQuitarHtml)
+    
+    if($('#quitarFamiliarRow').length === 0) {
+        $('#agregarQuitarFamiliar').append(botonQuitarHtml);
     }
 });
 
 $( document ).on('click', '#quitarFamiliar', function (e) {
     e.preventDefault();
     e.stopPropagation();
-    $('#familiares .form-row').last().remove();
-    if($('#familiares').find('.form-row').length === 1) {
+    
+    // Eliminamos los dos últimos form-rows que corresponden a un familiar adicional
+    $('#familiares .familiar-adicional').slice(-2).remove();
+    
+    // Si no quedan familiares adicionales, eliminamos el encabezado y la línea
+    if($('#familiares').find('.familiar-adicional').length === 0) {
         $('#quitarFamiliarRow').remove();
+        $('#familiares hr, #familiares h5').remove();
     }
 });
 

@@ -1,45 +1,50 @@
 {{ form_start(form) }}
 {%  if form.nombre is defined %}
 <br>
-<div class="form-row form-group">
-    <div class="col-sm">
-        {{ form_label(form.nombre, 'Nombre') }}
-        {{ form_widget(form.nombre) }}
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h4 class="mb-0">Datos personales</h4>
     </div>
-    <div class="col-sm">
-        {{ form_label(form.apellido, 'Apellido') }}
-        {{ form_widget(form.apellido) }}
-    </div>
-    <div class="col-sm">
-        {{ form_label(form.dni, 'DNI') }}
-        {{ form_widget(form.dni, {'attr': { 'data-staff_check_dni-url' : path('staff_check_dni'), 'data-doc-id' : cliente.id }}) }}
-            <div class="invalid-feedback">
-                El dni no es válido.
+    <div class="card-body">
+        <div class="form-row form-group">
+            <div class="col-sm">
+                {{ form_label(form.nombre, 'Nombre') }}
+                {{ form_widget(form.nombre) }}
             </div>
-    </div>
-    <div class="col-sm">
-        {{ form_label(form.telefono, 'Teléfono') }}
-        {{ form_widget(form.telefono) }}
-    </div>
-</div>
-<br>
-<div class="form-row form-group">
-    <div class="col-sm">
-        {{ form_label(form.email, 'Email') }}
-        {{ form_widget(form.email, {'attr': { 'data-staff_check_email-url' : path('staff_check_email'), 'data-doc-id' : cliente.id }}) }}
-        <div class="invalid-feedback">
-            El email no es válido.
+            <div class="col-sm">
+                {{ form_label(form.apellido, 'Apellido') }}
+                {{ form_widget(form.apellido) }}
+            </div>
+            <div class="col-sm">
+                {{ form_label(form.dni, 'DNI') }}
+                {{ form_widget(form.dni, {'attr': { 'data-staff_check_dni-url' : path('staff_check_dni'), 'data-doc-id' : cliente.id }}) }}
+                    <div class="invalid-feedback">
+                        El dni no es válido.
+                    </div>
+            </div>
         </div>
-    </div>
-
-    <div class="col-sm">
-        {{ form_label(form.hClinica, 'Historia Clinica') }}
-        {{ form_widget(form.hClinica, {'attr': { 'data-cliente_check_hc-url' : path('cliente_check_hc'), 'data-cliente-id' : cliente.id }}) }}
-        <div class="invalid-feedback">
-            El número de historia clínica ya se encuentra en uso
+        
+        <div class="form-row form-group">
+            <div class="col-sm">
+                {{ form_label(form.telefono, 'Teléfono') }}
+                {{ form_widget(form.telefono) }}
+            </div>
+            <div class="col-sm">
+                {{ form_label(form.email, 'Email') }}
+                {{ form_widget(form.email, {'attr': { 'data-staff_check_email-url' : path('staff_check_email'), 'data-doc-id' : cliente.id }}) }}
+                <div class="invalid-feedback">
+                    El email no es válido.
+                </div>
+            </div>
+            <div class="col-sm">
+                {{ form_label(form.hClinica, 'Historia Clinica') }}
+                {{ form_widget(form.hClinica, {'attr': { 'data-cliente_check_hc-url' : path('cliente_check_hc'), 'data-cliente-id' : cliente.id }}) }}
+                <div class="invalid-feedback">
+                    El número de historia clínica ya se encuentra en uso
+                </div>
+            </div>
         </div>
-    </div>
-    <div class="col-sm">
+        
         <div class="form-row form-group">
             <div class="col-sm">
                 {{ form_label(form.fNacimiento, 'Fecha de Nacimiento') }}
@@ -49,243 +54,292 @@
                 {{ form_label(form.edad) }}
                 {{ form_widget(form.edad) }}
             </div>
-        </div>
-    </div>
-</div>
-<br>
-<div class="form-row form-group">
-    <div class="col-sm">
-        {{ form_label(form.obraSocial) }}
-        {{ form_widget(form.obraSocial) }}
-    </div>
-    <div class="col-sm">
-        {{ form_label(form.obraSocialTelefono) }}
-        {{ form_widget(form.obraSocialTelefono) }}
-    </div>
-    <div class="col-sm">
-        {{ form_label(form.obraSocialAfiliado) }}
-        {{ form_widget(form.obraSocialAfiliado) }}
-    </div>
-</div>
-<br>
-<div class="form-row form-group">
-    <div class="col-sm">
-        {{ form_label(form.tipoDePago) }}
-        {{ form_widget(form.tipoDePago) }}
-    </div>
-    <div class="col-sm">
-
-    </div>
-    <div class="col-sm">
-
-    </div>
-</div>
-<br>
-<div class="form-row form-group">
-    <div class="col-sm">
-        {{ form_label(form.sistemaDeEmergenciaNombre) }}
-        {{ form_widget(form.sistemaDeEmergenciaNombre) }}
-    </div>
-    <div class="col-sm">
-        {{ form_label(form.sistemaDeEmergenciaTel) }}
-        {{ form_widget(form.sistemaDeEmergenciaTel) }}
-    </div>
-    <div class="col-sm">
-        {{ form_label(form.sistemaDeEmergenciaAfiliado) }}
-        {{ form_widget(form.sistemaDeEmergenciaAfiliado) }}
-    </div>
-</div>
-<br>
-<hr>
-<h4>Información de Ingreso</h4>
-<div class="form-row form-group">
-    <div class="col-sm">
-        {{ form_label(form.modalidad) }}
-        {{ form_widget(form.modalidad) }}
-    </div>
-    <div class="col-sm">
-        {{ form_label(form.motivoIng) }}
-        {{ form_widget(form.motivoIng, {'attr': {'data-cliente-motivo_ingreso-select-url': path('paciente_patologia_select'), 'class': 'js-cliente-motivo'}}) }}
-    </div>
-    <div class="col-sm">
-        <div class="js-cliente-motivo-target">
-            {%  if form.motivoIngEspecifico is defined %}
-                {{ form_label(form.motivoIngEspecifico) }}
-                {{ form_widget(form.motivoIngEspecifico) }}
-            {% endif %}
-        </div>
-    </div>
-</div>
-<br>
-<div class="form-row form-group d-none habitacion">
-    <div class="col-sm habDiv">
-        {{ form_label(form.habitacion) }}
-        {{ form_widget(form.habitacion, {'attr': {'class': 'js-camas-disp'}}) }}
-    </div>
-    <div class="col-sm placeHolder">
-        {%  if form.nCama is defined %}
-            {{ form_label(form.nCama) }}
-            {{ form_widget(form.nCama) }}
-        {% endif %}
-    </div>
-    <div class="col-sm placeHolder">
-        {%  if form.habPrivada is defined %}
-            {{ form_label(form.habPrivada) }}
-            {{ form_widget(form.habPrivada) }}
-        {% endif %}
-    </div>
-</div>
-<br>
-<div class="form-row form-group">
-    <div class="col-sm">
-        {{ form_label(form.fIngreso, 'Fecha de Ingreso') }}
-        {{ form_widget(form.fIngreso) }}
-    </div>
-    <div class="col-sm">
-        {{ form_label(form.dieta) }}
-        {{ form_widget(form.dieta) }}
-    </div>
-    <div class="col-sm">
-        {% if form.posicionEnArchivo is defined %}
-            {{ form_label(form.posicionEnArchivo) }}
-            {{ form_widget(form.posicionEnArchivo) }}
-        {% endif %}
-    </div>
-</div>
-<br>
-<div class="form-row form-group">
-    <div class="col-sm">
-        {{ form_label(form.sesionesDisp) }}
-        {{ form_widget(form.sesionesDisp) }}
-    </div>
-    <div class="col-sm">
-        {{ form_label(form.formNum) }}
-        {{ form_widget(form.formNum) }}
-    </div>
-    <div class="col-sm">
-        {{ form_label(form.epicrisisIngreso) }}
-        {{ form_widget(form.epicrisisIngreso) }}
-    </div>
-</div>
-<br>
-<div class="form-row form-group">
-    <div class="col-sm">
-        {{ form_label(form.vtoSesiones, 'Vto. Autorizaciones') }}
-        {{ form_widget(form.vtoSesiones) }}
-    </div>
-    <div class="col-sm">
-        {{ form_label(form.mediaSesion) }}
-        {{ form_widget(form.mediaSesion) }}
-    </div>
-    <div class="col-sm"></div>
-</div>
-<br>
-<div class="form-row form-group">
-    <div class="col-sm">
-        {{ form_label(form.docReferente) }}
-        {{ form_widget(form.docReferente) }}
-    </div>
-    <div class="col-sm">
-        {{ form_label(form.disponibleParaTerapia) }}
-        {{ form_widget(form.disponibleParaTerapia) }}
-    </div>
-    <div class="col-sm">
-
-    </div>
-</div>
-<br><br>
-<hr>
-<h4>Institución de la cual proviene</h4>
-<div class="form-row form-group">
-    <div class="col-sm">
-        {{ form_label(form.vieneDe) }}
-        {{ form_widget(form.vieneDe) }}
-    </div>
-    <div class="col-sm">
-        {{ form_label(form.docDerivante) }}
-        {{ form_widget(form.docDerivante) }}
-    </div>
-</div>
-<br><br>
-<hr>
-<h4>Familiar Responsable </h4>
-<div id="familiares">
-    <div class="form-row form-group">
-        <div class="col-sm">
-            {{ form_label(form.familiarResponsableNombre) }}
-            {{ form_widget(form.familiarResponsableNombre) }}
-        </div>
-        <div class="col-sm">
-            {{ form_label(form.familiarResponsableTel) }}
-            {{ form_widget(form.familiarResponsableTel) }}
-        </div>
-        <div class="col-sm">
-            {{ form_label(form.familiarResponsableMail) }}
-            {{ form_widget(form.familiarResponsableMail) }}
-        </div>
-        <div class="col-sm">
-            {{ form_label(form.vinculoResponsable) }}
-            {{ form_widget(form.vinculoResponsable) }}
-        </div>
-        <div class="col-sm">
-            {{ form_label(form.familiarResponsableAcompanante) }}
-            <div class="columnas-de-uno">
-                {{ form_widget(form.familiarResponsableAcompanante) }}
+            <div class="col-sm">
+                {{ form_label(form.posicionEnArchivo) }}
+                {{ form_widget(form.posicionEnArchivo) }}
             </div>
         </div>
     </div>
-    {%  if familiarExtraActuales is defined %}
-        {% for familiarExtraActual in familiarExtraActuales %}
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h4 class="mb-0">Cobertura médica</h4>
+    </div>
+    <div class="card-body">
+        <div class="form-row form-group">
+            <div class="col-sm">
+                {{ form_label(form.obraSocial) }}
+                {{ form_widget(form.obraSocial) }}
+            </div>
+            <div class="col-sm">
+                {{ form_label(form.obraSocialTelefono) }}
+                {{ form_widget(form.obraSocialTelefono) }}
+            </div>
+            <div class="col-sm">
+                {{ form_label(form.obraSocialAfiliado) }}
+                {{ form_widget(form.obraSocialAfiliado) }}
+            </div>
+        </div>
+        
+        <div class="form-row form-group">
+            <div class="col-sm">
+                {{ form_label(form.tipoDePago) }}
+                {{ form_widget(form.tipoDePago) }}
+            </div>
+            <div class="col-sm">
+                {{ form_label(form.sistemaDeEmergenciaNombre) }}
+                {{ form_widget(form.sistemaDeEmergenciaNombre) }}
+            </div>
+            <div class="col-sm">
+                {{ form_label(form.sistemaDeEmergenciaTel) }}
+                {{ form_widget(form.sistemaDeEmergenciaTel) }}
+            </div>
+        </div>
+        
+        <div class="form-row form-group">
+            <div class="col-sm">
+                {{ form_label(form.sistemaDeEmergenciaAfiliado) }}
+                {{ form_widget(form.sistemaDeEmergenciaAfiliado) }}
+            </div>
+            <div class="col-sm">
+                {{ form_label(form.sesionesDisp) }}
+                {{ form_widget(form.sesionesDisp) }}
+            </div>
+            <div class="col-sm">
+                {{ form_label(form.formNum) }}
+                {{ form_widget(form.formNum) }}
+            </div>
+        </div>
+        
+        <div class="form-row form-group">
+            <div class="col-sm">
+                {{ form_label(form.vtoSesiones, 'Vto. Autorizaciones') }}
+                {{ form_widget(form.vtoSesiones) }}
+            </div>
+            <div class="col-sm">
+                {{ form_label(form.mediaSesion) }}
+                {{ form_widget(form.mediaSesion) }}
+            </div>
+            <div class="col-sm"></div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h4 class="mb-0">Información de Ingreso</h4>
+    </div>
+    <div class="card-body">
+        <div class="form-row form-group">
+            {% if form.modalidadLabel is defined %}
+                <div class="col-sm">
+                    {{ form_label(form.modalidadLabel, 'Modalidad (actual)') }}
+                    {{ form_widget(form.modalidadLabel) }}
+                    <small class="form-text text-muted">Para cambiar la modalidad use las opciones específicas desde la lista de pacientes</small>
+                    {{ form_widget(form.modalidad, {'attr': {'class': 'd-none'}}) }}
+                </div>
+            {% else %}
+                <div class="col-sm">
+                    {{ form_label(form.modalidad) }}
+                    {{ form_widget(form.modalidad) }}
+                </div>
+            {% endif %}
+            <div class="col-sm">
+                {{ form_label(form.motivoIng) }}
+                {{ form_widget(form.motivoIng, {'attr': {'data-cliente-motivo_ingreso-select-url': path('paciente_patologia_select'), 'class': 'js-cliente-motivo'}}) }}
+            </div>
+            <div class="col-sm">
+                <div class="js-cliente-motivo-target">
+                    {%  if form.motivoIngEspecifico is defined %}
+                        {{ form_label(form.motivoIngEspecifico) }}
+                        {{ form_widget(form.motivoIngEspecifico) }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-row form-group">
+            <div class="col-sm">
+                {{ form_label(form.fIngreso, 'Fecha de Ingreso') }}
+                {{ form_widget(form.fIngreso) }}
+            </div>
+            <div class="col-sm">
+                {{ form_label(form.dieta) }}
+                {{ form_widget(form.dieta) }}
+            </div>
+            <div class="col-sm">
+                {{ form_label(form.epicrisisIngreso) }}
+                {{ form_widget(form.epicrisisIngreso) }}
+            </div>
+        </div>
+        
+        <div class="form-row form-group d-none habitacion">
+            <div class="col-sm habDiv">
+                {{ form_label(form.habitacion) }}
+                {{ form_widget(form.habitacion, {'attr': {'class': 'js-camas-disp'}}) }}
+            </div>
+            <div class="col-sm placeHolder">
+                {%  if form.nCama is defined %}
+                    {{ form_label(form.nCama) }}
+                    {{ form_widget(form.nCama) }}
+                {% endif %}
+            </div>
+            <div class="col-sm placeHolder">
+                {%  if form.habPrivada is defined %}
+                    {{ form_label(form.habPrivada) }}
+                    {{ form_widget(form.habPrivada) }}
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="form-row form-group">
+            <div class="col-sm">
+                {{ form_label(form.docReferente) }}
+                {{ form_widget(form.docReferente) }}
+            </div>
+            <div class="col-sm">
+                {{ form_label(form.disponibleParaTerapia) }}
+                {{ form_widget(form.disponibleParaTerapia) }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h4 class="mb-0">Institución de la cual proviene</h4>
+    </div>
+    <div class="card-body">
+        <div class="form-row form-group">
+            <div class="col-sm">
+                {{ form_label(form.vieneDe) }}
+                {{ form_widget(form.vieneDe) }}
+            </div>
+            <div class="col-sm">
+                {{ form_label(form.docDerivante) }}
+                {{ form_widget(form.docDerivante) }}
+            </div>
+            <div class="col-sm">
+                <!-- Espacio reservado para futuras adiciones -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h4 class="mb-0">Familiares Responsables</h4>
+    </div>
+    <div class="card-body">
+        <div id="familiares">
             <div class="form-row form-group">
                 <div class="col-sm">
-                    <input type="text" name="familiarResponsableExtraNombre[]" class="form-control" value="{{ familiarExtraActual.nombre }}">
+                    {{ form_label(form.familiarResponsableNombre) }}
+                    {{ form_widget(form.familiarResponsableNombre) }}
                 </div>
                 <div class="col-sm">
-                    <input type="text" name="familiarResponsableExtraTel[]" class="form-control" value="{{ familiarExtraActual.tel }}">
+                    {{ form_label(form.familiarResponsableTel) }}
+                    {{ form_widget(form.familiarResponsableTel) }}
                 </div>
                 <div class="col-sm">
-                    <input type="text" name="familiarResponsableExtraMail[]" class="form-control" value="{{ familiarExtraActual.mail }}">
-                </div>
-                <div class="col-sm">
-                    <input type="text" name="familiarResponsableExtraVinculo[]" class="form-control" value="{{ familiarExtraActual.vinculo }}">
-                </div>
-                <div class="col-sm">
-                    <select name="familiarResponsableExtraAcompanante[]" class="form-control">
-                        <option value="1" {% if( familiarExtraActual.acompanante == 1) %} selected="selected" {% endif %}>Si</option>
-                        <option value="0" {% if( familiarExtraActual.acompanante == 0) %} selected="selected" {% endif %}>No</option>
-                    </select>
+                    {{ form_label(form.familiarResponsableMail) }}
+                    {{ form_widget(form.familiarResponsableMail) }}
                 </div>
             </div>
-        {% endfor %}
-    {% endif %}
-</div>
-<br>
-<div class="form-row form-group" id="agregarQuitarFamiliar">
-    <div class="col-sm">
-        <a href="" id="agregarFamiliar">agregar familiar + </a>
+            
+            <div class="form-row form-group">
+                <div class="col-sm">
+                    {{ form_label(form.vinculoResponsable) }}
+                    {{ form_widget(form.vinculoResponsable) }}
+                </div>
+                <div class="col-sm">
+                    {{ form_label(form.familiarResponsableAcompanante) }}
+                    <div class="columnas-de-uno">
+                        {{ form_widget(form.familiarResponsableAcompanante) }}
+                    </div>
+                </div>
+                <div class="col-sm">
+                    <!-- Espacio reservado para futuras adiciones -->
+                </div>
+            </div>
+            
+            {%  if familiarExtraActuales is defined %}
+                <hr class="my-3">
+                <h5>Familiares adicionales</h5>
+                {% for familiarExtraActual in familiarExtraActuales %}
+                    <div class="form-row form-group">
+                        <div class="col-sm">
+                            <label class="form-control-label">Nombre</label>
+                            <input type="text" name="familiarResponsableExtraNombre[]" class="form-control" value="{{ familiarExtraActual.nombre }}">
+                        </div>
+                        <div class="col-sm">
+                            <label class="form-control-label">Teléfono</label>
+                            <input type="text" name="familiarResponsableExtraTel[]" class="form-control" value="{{ familiarExtraActual.tel }}">
+                        </div>
+                        <div class="col-sm">
+                            <label class="form-control-label">Email</label>
+                            <input type="text" name="familiarResponsableExtraMail[]" class="form-control" value="{{ familiarExtraActual.mail }}">
+                        </div>
+                    </div>
+                    <div class="form-row form-group mb-3">
+                        <div class="col-sm">
+                            <label class="form-control-label">Vínculo</label>
+                            <input type="text" name="familiarResponsableExtraVinculo[]" class="form-control" value="{{ familiarExtraActual.vinculo }}">
+                        </div>
+                        <div class="col-sm">
+                            <label class="form-control-label">Es acompañante?</label>
+                            <select name="familiarResponsableExtraAcompanante[]" class="form-control">
+                                <option value="1" {% if( familiarExtraActual.acompanante == 1) %} selected="selected" {% endif %}>Si</option>
+                                <option value="0" {% if( familiarExtraActual.acompanante == 0) %} selected="selected" {% endif %}>No</option>
+                            </select>
+                        </div>
+                        <div class="col-sm">
+                            <!-- Espacio reservado para futuras adiciones -->
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <div class="form-row form-group mt-3" id="agregarQuitarFamiliar">
+            <div class="col-sm">
+                <a href="" id="agregarFamiliar" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-plus-circle"></i> Agregar familiar
+                </a>
+            </div>
+        </div>
     </div>
 </div>
-<br><hr>
-{% endif %}
-{%  if form.fEgreso is defined %}
 
-<h4>Información de Egreso</h4>
-<div class="form-row form-group">
-    <div class="col-sm">
-        {{ form_label(form.fEgreso) }}
-        {{ form_widget(form.fEgreso) }}
-    </div>
-    <div class="col-sm">
-        {{ form_label(form.motivoEgr) }}
-        {{ form_widget(form.motivoEgr) }}
-    </div>
-</div>
-<br>
 {% endif %}
-<div class="form-group">
-    {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary'}}) }}
-    <a class="btn btn-default" href="javascript:history.back();">volver</a>
+
+{%  if form.fEgreso is defined %}
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h4 class="mb-0">Información de Egreso</h4>
+    </div>
+    <div class="card-body">
+        <div class="form-row form-group">
+            <div class="col-sm">
+                {{ form_label(form.fEgreso) }}
+                {{ form_widget(form.fEgreso) }}
+            </div>
+            <div class="col-sm">
+                {{ form_label(form.motivoEgr) }}
+                {{ form_widget(form.motivoEgr) }}
+            </div>
+            <div class="col-sm">
+                <!-- Espacio reservado para futuras adiciones -->
+            </div>
+        </div>
+    </div>
 </div>
-<br>
+{% endif %}
+
+<div class="form-group">
+    {{ form_widget(form.save, {'attr': {'class': 'btn btn-success'}}) }}
+    <a class="btn btn-secondary" href="javascript:history.back();">Volver</a>
+</div>
 
 {{ form_end(form) }}

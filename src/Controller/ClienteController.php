@@ -27,6 +27,7 @@ use App\Repository\NotasTurnoRepository;
 use App\Repository\ObraSocialRepository;
 use App\Repository\UserRepository;
 use App\Repository\PresentesRepository;
+use App\Service\PatientStateService;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\Pagination\Paginator;
@@ -56,9 +57,15 @@ class ClienteController extends AbstractController
      */
     private $security;
     
-    public function __construct(Security $security)
+    /**
+     * @var PatientStateService
+     */
+    private $patientStateService;
+    
+    public function __construct(Security $security, PatientStateService $patientStateService)
     {
         $this->security = $security;
+        $this->patientStateService = $patientStateService;
     }
 
     /**
@@ -78,9 +85,28 @@ class ClienteController extends AbstractController
         $hab = $request->query->get('hab') ?? null;
         $idObra = $request->query->get('idObra') ?? null;
         $currentPage = $request->query->get('currentPage') ?? 1;
-        $limit = $request->query->get('limit', 100);
+        $limit = $request->query->get('limit', 10 );
         $maxPages = null;
         $query = '';
+        
+        // Parámetros de ordenamiento
+        $sortField = $request->query->get('sort', 'hClinica');
+        $sortDirection = $request->query->get('direction', 'DESC');
+        
+        // Validar los campos permitidos para ordenar
+        $allowedSortFields = ['hClinica', 'nombre', 'apellido'];
+        if (!in_array($sortField, $allowedSortFields)) {
+            $sortField = 'hClinica';
+        }
+        
+        // Validar dirección de ordenamiento
+        $allowedDirections = ['ASC', 'DESC'];
+        if (!in_array(strtoupper($sortDirection), $allowedDirections)) {
+            $sortDirection = 'DESC';
+        }
+        
+        // Crear un array para el ordenamiento
+        $orderBy = [$sortField => $sortDirection];
 
         $obrasSociales = $obraSocialRepository->findBy(array(), array('nombre' => 'ASC'));
         $obArray = [];
@@ -101,22 +127,22 @@ class ClienteController extends AbstractController
             $clientes = $clienteRepository->findClientesEgresadosEsteMes($fechaInicioMes, $fechaFinMes, true, $currentPage, $limit);
             $pestana = 'inactivos';
         } elseif ($filtroFecha === 'derivados') {
-            $clientesIds = $historiaPacienteRepository->getPacientesDerivadosPorMes($fechaInicioMes, $fechaFinMes);
+            $clientesIds = $historiaPacienteRepository->getPacientesDerivadosPorMes($fechaInicioMes, $fechaFinMes, 'ASC');
             $clientes = $clienteRepository->findAllByIds($clientesIds, $currentPage, $limit);
             $pestana = 'derivados';
            
         } else {
 
             if ($pestana == 'inactivos') {
-                $clientes = $clienteRepository->findInActivos(new \DateTime(), $nombreInput, $currentPage, $limit, null, $idObra);
-                } else if ( $pestana == 'derivados') {
-                $clientes = $clienteRepository->findDerivados(new \DateTime(), $nombreInput, $currentPage, $limit, null, $idObra);
+                $clientes = $clienteRepository->findInActivos(new \DateTime(), $nombreInput, $currentPage, $limit, $orderBy, $idObra);
+            } else if ( $pestana == 'derivados') {
+                $clientes = $clienteRepository->findDerivados(new \DateTime(), $nombreInput, $currentPage, $limit, $orderBy, $idObra);
             } else if ( $pestana == 'permiso') {
-                $clientes = $clienteRepository->findDePermiso(new \DateTime(), $nombreInput, $currentPage, $limit, null, $idObra);
+                $clientes = $clienteRepository->findDePermiso(new \DateTime(), $nombreInput, $currentPage, $limit, $orderBy, $idObra);
             } else if ( $pestana == 'ambulatorios') {
-                $clientes = $clienteRepository->findAmbulatorios(new \DateTime(), $nombreInput, $currentPage, $limit, null, $idObra);
+                $clientes = $clienteRepository->findAmbulatorios(new \DateTime(), $nombreInput, $currentPage, $limit, $orderBy, $idObra);
             } else {
-                $clientes = $clienteRepository->findActivos(new \DateTime(), $nombreInput, $currentPage, $limit, $hab, null, $idObra);
+                $clientes = $clienteRepository->findActivos(new \DateTime(), $nombreInput, $currentPage, $limit, $hab, $orderBy, $idObra);
             }
         }
 
@@ -144,7 +170,9 @@ class ClienteController extends AbstractController
             'currentPage' => $currentPage,
             'limit' => $limit,
             'all_items' => $query,
-            'puedenEditarEvoluciones' => in_array('ROLE_EDIT_HC', $this->getUser()->getRoles())
+            'puedenEditarEvoluciones' => in_array('ROLE_EDIT_HC', $this->getUser()->getRoles()),
+            'sortField' => $sortField,
+            'sortDirection' => $sortDirection
         ]);
     }
 
@@ -190,6 +218,12 @@ class ClienteController extends AbstractController
         $fechaHasta = $to   ? new \DateTime($to. '23:59:59'): $to;
         $vencimientoAut = new \DateTime($vto);
 
+        // Asegurar que fechaHasta incluya el día actual completo si la fecha seleccionada es hoy
+        $hoy = new \DateTime('today 23:59:59');
+        if ($fechaHasta->format('Y-m-d') === $hoy->format('Y-m-d')) {
+            $fechaHasta = $hoy;
+        }
+
         $clientes = $clienteRepository->findByNameDocReferentePaginado(null, $nombre, $prof, $vto, $hc, null);
         
         //$clientes = $historiaPacienteRepository->getPacienteConModalidadAntesDeFecha($fechaDesde, $fechaHasta, $modalidad, $clientes);
@@ -211,12 +245,17 @@ class ClienteController extends AbstractController
         
         foreach ($historiasDesdeHastaAll as $historia) {
             $cliente = $historia[0]->getCliente();
-            if ($cliente && (!$cliente->getFEgreso() or $cliente->getFEgreso() >= $fechaHasta)) {
+            
+            // Verificar si el cliente está activo - considerar activo si:
+            // 1. No tiene fecha de egreso, O
+            // 2. La fecha de egreso es mayor o igual al día seleccionado (comparando solo fecha, no hora)
+            if ($cliente && (
+                !$cliente->getFEgreso() || 
+                $cliente->getFEgreso()->format('Y-m-d') >= $fechaHasta->format('Y-m-d')
+            )) {
                 $histArray[$cliente->getNombreApellido()] = array_reverse($historia);
             }
         }
-
-        //$histArray = array_reverse($histArray);
 
         $historiasPaginado['results'] = array_slice($histArray, $limit * ($currentPage - 1), $limit);
         $historiasPaginado['total'] = count($histArray);
@@ -230,6 +269,43 @@ class ClienteController extends AbstractController
             $habitacionesArray[$habitacion->getId()] = $habitacion->getNombre();
         }
 
+        // Calcular distribución de patologías y edades
+        $patologiasLabels = [
+            1 => 'Neurológicas',
+            2 => 'Traumatológicas',
+            3 => 'Respiratorias',
+            4 => 'Paliativos',
+            5 => 'Patologías laborales',
+        ];
+        $patologiasCount = array_fill_keys($patologiasLabels, 0);
+        $edadesRangos = [
+            '0-18' => 0,
+            '19-40' => 0,
+            '41-65' => 0,
+            '65+' => 0,
+        ];
+        foreach ($historiasDesdeHastaAll as $historia) {
+            $h = $historia[0];
+            // Patología
+            $pat = $h->getPatologia();
+            if (isset($patologiasLabels[$pat])) {
+                $patologiasCount[$patologiasLabels[$pat]]++;
+            }
+            // Edad
+            $cliente = $h->getCliente();
+            if ($cliente && $cliente->getFNacimiento()) {
+                $edad = $cliente->getFNacimiento()->diff(new \DateTime())->y;
+                if ($edad <= 18) {
+                    $edadesRangos['0-18']++;
+                } elseif ($edad <= 40) {
+                    $edadesRangos['19-40']++;
+                } elseif ($edad <= 65) {
+                    $edadesRangos['41-65']++;
+                } else {
+                    $edadesRangos['65+']++;
+                }
+            }
+        }
 
         return $this->render('cliente/historico.html.twig',
             [
@@ -258,7 +334,7 @@ class ClienteController extends AbstractController
     /**
      * @Route("/historico/prueba", name="cliente_historicos_habitaciones", methods={"GET"})
      */
-    public function historicoPrueba(Request $request, HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, DoctorRepository $doctorRepository, HistoriaPacienteRepository $historiaPacienteRepository, HistoriaHabitacionesRepository $historiaHabitacionesRepository, PresentesRepository $presenteRepository, EvolucionRepository $evolucionRepository): Response
+    public function historicoPrueba(Request $request, HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, DoctorRepository $doctorRepository, HistoriaPacienteRepository $historiaPacienteRepository): Response
     {
         $user = $this->getUser();
         if (!$user) {
@@ -267,181 +343,229 @@ class ClienteController extends AbstractController
             return $this->redirectToRoute('doctor_historia');
         }
 
-        //$estado = $request->query->get('estado') ?? '1';
+        // Obtener parámetros de filtrado
         $nombre = $request->query->get('nombre') ?? '';
         $nombre = (!empty($nombre)) ? $nombre : null;
         $prof = $request->query->get('prof') ?? null;
-        $nombreInput = $request->query->get('nombreInput');
         $modalidad = $request->query->get('modalidad', 0);
         $limit = $request->query->get('limit', 10);
-        $limit = intval($limit);
         $currentPage = $request->query->get('currentPage', 1);
         $hc = $request->query->get('hc', null);
-
         $hab = $request->query->get('hab') ?? null;
         $obraSocial = $request->query->get('obraSocial') ?? null;
 
+        // Obtener todas las obras sociales para mostrar sus nombres
         $obrasSociales = $obraSocialRepository->findBy(array(), array('nombre' => 'ASC'));
-
         $obArray = [];
-        foreach ( $obrasSociales as $ob ) {
+        foreach ($obrasSociales as $ob) {
             $obArray[$ob->getId()] = $ob->getNombre();
         }
 
-        $f          = new \DateTime('first day of this month');
-        $l          = new \DateTime('last day of this month');
-        $from       = $request->get('from' , $f->format('Y-m-d'));
-        $to         = $request->get('to', $l->format('Y-m-d'));
-        $vto        = $request->get('vto');    
-        $fechaDesde = $from ? new \DateTime($from. '0:0:0') : $from;
-        $fechaHasta = $to   ? new \DateTime($to. '23:59:59'): $to;
+        // Configurar rango de fechas
+        $f = new \DateTime('first day of this month');
+        $l = new \DateTime('last day of this month');
+        $from = $request->get('from', $f->format('Y-m-d'));
+        $to = $request->get('to', $l->format('Y-m-d'));
+        $fechaDesde = $from ? new \DateTime($from . ' 00:00:00') : null;
+        $fechaHasta = $to ? new \DateTime($to . ' 23:59:59') : null;
 
-        $totalDia               = [];
-        $internados             = [];
-        $derivados              = [];
-        $sinModalidad           = [];
-        $ambulatorios           = [];
-        $egresos                = [];
-
-        $referentes             = [];
-        $arrayParaLaVista       = [];
-        $obrasSocialesTotales   = [];
-        $totalReferentes        = [];
-        $range                  = [];
-        $historias              = null;
-
-        if($from && $to) {
-            $vencimientoAut = \DateTime::createFromFormat("d/m/Y", $vto);   
+        // Inicializar arrays para almacenar resultados
+        $totalDia = [];
+        $internados = [];
+        $derivados = [];
+        $ambulatorios = [];
+        $egresos = [];
+        $sinModalidad = []; 
+        $referentes = [];
+        $arrayParaLaVista = [];
+        $obrasSocialesTotales = [];
+        $totalReferentes = [];
+        $range = [];
+        $clientesData = []; // Array para guardar datos de clientes
+        
+        if ($from && $to) {
+            // Limitar fecha hasta a fin de día de hoy si es mayor
             if ($fechaHasta > new \DateTime()) {
-                $fechaHasta = new \DateTime();
+                $fechaHasta = new \DateTime('today 23:59:59');
             }
+            
+            // Crear rango de fechas para mostrar en la vista
             if ($fechaDesde && $fechaHasta) {
                 $interval = new DateInterval("P1D");
                 $range = new DatePeriod($fechaDesde, $interval, $fechaHasta);
             }
 
-            if($fechaDesde > $fechaHasta) {
+            if ($fechaDesde > $fechaHasta) {
                 $fechaHasta = $fechaDesde;
             }
 
+            // Obtener todas las historias que coincidan con los filtros
             $historias = $historiaPacienteRepository->getHistoricoDesdeHasta($fechaDesde, $fechaHasta, $nombre, $modalidad, $obraSocial, $prof, $hc);
-
-            // $historiasPaginado['results'] = array_slice($historias, $limit * ($currentPage - 1), $limit);
-            // $historiasPaginado['total'] = count($historias);
-            // $maxPages = ceil($historiasPaginado['total'] / $limit);
-
+            
+            // Cargar todos los doctores para evitar consultas repetidas
+            $todosDoctores = $doctorRepository->findAll();
+            $doctoresPorId = [];
+            foreach ($todosDoctores as $doctor) {
+                $doctoresPorId[$doctor->getId()] = $doctor;
+            }
+            
+            // Cargar todas las habitaciones para evitar consultas repetidas
+            $todasHabitaciones = $habitacionRepository->findAll();
+            $habitacionesPorId = [];
+            foreach ($todasHabitaciones as $habitacion) {
+                $habitacionesPorId[$habitacion->getId()] = $habitacion;
+            }
+            
+            // Crear un mapa de historias por paciente y por fecha
+            $historiasPorPaciente = [];
+            $clientesIdsInvolucrados = []; // Guardar IDs de clientes para cargarlos una sola vez
+            
             foreach ($historias as $historia) {
                 $cliente = $historia->getCliente();
-                if (!$cliente) {
-                    $cliente = $clienteRepository->find($historia->getIdPaciente());
-                }
-                $fechaDesde2 = (!empty ($historia->getFecha()) && $historia->getFecha() >= $fechaDesde) ? $historia->getFecha() : $fechaDesde;
-                $fechaDesde2 = (($cliente->getFIngreso() != null) && $fechaDesde2 < $cliente->getFIngreso()) ? $cliente->getFIngreso()->format('d-m-Y') : $fechaDesde2->format('d-m-Y');
-                $fechaHasta2 = (!empty ($historia->getFechaFin()) && $historia->getFechaFin() <= $fechaHasta) ? $historia->getFechaFin() : $fechaHasta;
-                $fechaHasta2 = (($cliente->getFEgreso() != null) && $fechaHasta2 > $cliente->getFEgreso()) ? $cliente->getFEgreso()->format('d-m-Y') : $fechaHasta2->format('d-m-Y');
-                $fechaDesde2 = new \DateTime($fechaDesde2. '0:0:0');
-                $fechaHasta2 = new \DateTime($fechaHasta2. '23:59:59');
-                //$fechaHasta2->modify('+1 day');
-
-                $interval = new DateInterval("P1D");
-                $range2 = new DatePeriod($fechaDesde2, $interval, $fechaHasta2);
+                if (!$cliente) continue;
                 
-                foreach ( $range2 as $date ) {
-                    $date->setTime(23, 59, 59);
-                    $texto = '';
-                    if($historia->getFechaFin()) $historia->getFechaFin()->setTime(23, 59, 59);
-                    if($historia->getFecha()) $historia->getFecha()->setTime(23, 59, 59);
-                    
-                    if ($historia->getFecha() <= $date && ($historia->getFechaFin() >= $date) or ($historia->getFechaFin() == null) ) {
-                        if($cliente->getFEgreso()) $cliente->getFEgreso()->setTime(23, 59, 59);
-                        
-                        if ($cliente->getFEgreso() == $date ) {
-                            $texto = 'Egreso';
-                            $egresos[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
-                        } else if ( $historia->getFechaDerivacion() != null && $date >= $historia->getFechaDerivacion()->setTime(23, 59, 59) && ( $historia->getFechaReingresoDerivacion() == null or $historia->getFechaReingresoDerivacion()->setTime(23, 59, 59) <= $historia->getFechaDerivacion() or $date <= $historia->getFechaReingresoDerivacion()) ) {
-                            $texto = 'Derivado';
-                            $derivados[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
-                        } else if ( $historia->getModalidad() != 2 ) {
-                            
-                                                  
-                            switch ($historia->getModalidad()) {
-                                case 1:
-                                    $texto = 'Ambulatorio';
-                                    $ambulatorios[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
-                                    break;
-                                case 3:
-                                    $texto = 'Hospital de día';
-                                    $ambulatorios[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
-                                    break;
-                                case 4:
-                                    $texto = 'ART';
-                                    $ambulatorios[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
-                                    break;
-                                default:
-                                    $texto = 'Sin modalidad registrada';
-                                    $sinModalidad[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
-                                    break;
-                            }
-
-                            $presente = $presenteRepository->findBy(['fecha' => $date, 'paciente' => $historia->getCliente()]);
-                            if(!empty( $presente )) {
-                                $texto .= ' ' . $presente[0]->getValor() == 1 ? '<br>presente' : '<br>ausente';
-                            } else {
-                                $habitacion = $historiaHabitacionesRepository->findBy(['fecha' => $date, 'cliente' => $historia->getCliente()]);
-                                if(!empty( $habitacion )) {
-                                    $texto .= '<br>H:' . $habitacion[0]->getHabitacion()->getNombre() . ' C: ' . $habitacion[0]->getNCama();
-                                } else {
-                                    $texto .= '<br>sin datos';
-                                }
-                            }
-                        } else {
-                            $texto .= 'Internado';
-                            $habitacion = $historiaHabitacionesRepository->findBy(['fecha' => $date, 'cliente' => $historia->getCliente()]);
-                            if(!empty( $habitacion )) {
-                                $texto .= '<br>H:' . $habitacion[0]->getHabitacion()->getNombre() . ' C: ' . $habitacion[0]->getNCama();
-                            } else {
-                                $texto .= '<br>sin datos';
-                            }
-                            $internados[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
-                        }
-                        
-                        
-                        $ref = json_decode($historia->getDocReferente()) ?? [];
-                        foreach( $ref as $docReferente ) {
-                            $doc = $doctorRepository->find($docReferente);
-                            if ($doc && $texto != 'Derivado') {
-                                $texto .= '<br>' . $doc->getNombreApellido();
-                                $referentes[$date->format('d/m/Y')][$doc->getNombreApellido()][$historia->getCliente()->getId()] = "1";
-                            }
-                        }
-                        
-                        if (isset($obArray[$historia->getObraSocial()])) {
-                            $texto .= '<br><small><b>' . $obArray[$historia->getObraSocial()] . '</b></small>';
-                            $obrasSocialesTotales[$date->format('d/m/Y')][$obArray[$historia->getObraSocial()]][$historia->getCliente()->getId()] = "1";
-                        }
-                        
-                        
-                        $arrayParaLaVista[$historia->getCliente()->getId()][$date->format('d/m/Y')] = $texto;
-                        $totalDia[$date->format('d/m/Y')][$historia->getCliente()->getId()] = '1';
-                        
-                        
-                    } else {
-                        $arrayParaLaVista[$historia->getCliente()->getId()][$date->format('d/m/Y')] = $texto;
-                    }
+                $clienteId = $cliente->getId();
+                $clientesIdsInvolucrados[$clienteId] = true; // Marcar este ID para cargarlo después
+                
+                $fechaInicio = max($historia->getFecha(), $fechaDesde);
+                $fechaFin = $historia->getFechaFin() ?: $fechaHasta;
+                
+                // Si el paciente tiene fecha de egreso, no mostrar después de esa fecha
+                if ($cliente->getFEgreso() && $cliente->getFEgreso() < $fechaFin) {
+                    $fechaFin = $cliente->getFEgreso();
+                }
+                
+                // Crear un rango de días para cada historia
+                $intervalHistoria = new DateInterval("P1D");
+                $rangoHistoria = new DatePeriod($fechaInicio, $intervalHistoria, $fechaFin);
+                
+                foreach ($rangoHistoria as $fecha) {
+                    $fechaStr = $fecha->format('d/m/Y');
+                    $historiasPorPaciente[$clienteId][$fechaStr] = $historia;
                 }
             }
             
+            // Cargar todos los clientes involucrados de una sola vez para evitar consultas repetidas
+            $todosClientesInvolucrados = $clienteRepository->findBy(['id' => array_keys($clientesIdsInvolucrados)]);
+            foreach ($todosClientesInvolucrados as $cliente) {
+                $clientesData[$cliente->getId()] = [
+                    'nombre' => $cliente->getNombre(),
+                    'apellido' => $cliente->getApellido(),
+                    'hClinica' => $cliente->getHClinica()
+                ];
+            }
+            
+            // Procesar cada paciente y cada día
+            foreach ($historiasPorPaciente as $clienteId => $historiasPorFecha) {
+                if (!isset($clientesData[$clienteId])) continue; // Verificar que tenemos los datos del cliente
+                
+                foreach ($historiasPorFecha as $fechaStr => $historia) {
+                    $fecha = \DateTime::createFromFormat('d/m/Y', $fechaStr);
+                    $texto = '';
+                    $cliente = null;
+                    
+                    // Buscar cliente en la lista ya cargada
+                    foreach ($todosClientesInvolucrados as $posibleCliente) {
+                        if ($posibleCliente->getId() == $clienteId) {
+                            $cliente = $posibleCliente;
+                            break;
+                        }
+                    }
+                    
+                    if (!$cliente) continue;
+                    
+                    // Si es día de egreso
+                    if ($cliente->getFEgreso() && $fecha->format('Y-m-d') === $cliente->getFEgreso()->format('Y-m-d')) {
+                        $texto = 'Egreso';
+                        $egresos[$fechaStr][$clienteId] = '1';
+                    }
+                    // Si está derivado en esta fecha
+                    else if ($historia->getFechaDerivacion() && 
+                            $fecha >= $historia->getFechaDerivacion() && 
+                            (!$historia->getFechaReingresoDerivacion() || $fecha <= $historia->getFechaReingresoDerivacion())) {
+                        $texto = 'Derivado';
+                        $derivados[$fechaStr][$clienteId] = '1';
+                    }
+                    // Si tiene una modalidad ambulatoria (no es internación)
+                    else if ($historia->getModalidad() != 2) {
+                        switch ($historia->getModalidad()) {
+                            case 1:
+                                $texto = 'Ambulatorio';
+                                $ambulatorios[$fechaStr][$clienteId] = '1';
+                                break;
+                            case 3:
+                                $texto = 'Hospital de día';
+                                $ambulatorios[$fechaStr][$clienteId] = '1';
+                                break;
+                            case 4:
+                                $texto = 'ART';
+                                $ambulatorios[$fechaStr][$clienteId] = '1';
+                                break;
+                            default:
+                                $texto = 'Sin modalidad registrada';
+                                $sinModalidad[$fechaStr][$clienteId] = '1'; // Registramos sin modalidad
+                                break;
+                        }
+                    }
+                    // Si es internado
+                    else {
+                        $texto = 'Internado';
+                        $internados[$fechaStr][$clienteId] = '1';
+                        
+                        // Agregar información de habitación si está disponible
+                        if ($historia->getHabitacion() && isset($habitacionesPorId[$historia->getHabitacion()])) {
+                            $habitacion = $habitacionesPorId[$historia->getHabitacion()];
+                            $texto .= '<br>H:' . $habitacion->getNombre() . ' C: ' . $historia->getCama();
+                        } else {
+                            $texto .= '<br>sin datos de habitación';
+                        }
+                    }
+                    
+                    // Agregar profesionales referentes
+                    $docReferentes = json_decode($historia->getDocReferente()) ?? [];
+                    $profesionalesAgregados = false;
+                    
+                    foreach ($docReferentes as $docReferenteId) {
+                        if (isset($doctoresPorId[$docReferenteId])) {
+                            $doc = $doctoresPorId[$docReferenteId];
+                            if ($doc && $texto != 'Derivado') {
+                                $texto .= '<br>' . $doc->getNombreApellido();
+                                $referentes[$fechaStr][$doc->getNombreApellido()][$clienteId] = "1";
+                                $profesionalesAgregados = true;
+                            }
+                        }
+                    }
+                    
+                    if (!$profesionalesAgregados) {
+                        $texto .= '<br>sin profesional asignado';
+                    }
+                    
+                    // Agregar obra social
+                    $obraSocialId = $historia->getObraSocial();
+                    if (isset($obArray[$obraSocialId])) {
+                        $texto .= '<br><small><b>' . $obArray[$obraSocialId] . '</b></small>';
+                        $obrasSocialesTotales[$fechaStr][$obArray[$obraSocialId]][$clienteId] = "1";
+                    } else {
+                        $texto .= '<br><small><b>Sin obra social registrada</b></small>';
+                    }
+                    
+                    // Agregar a los arrays para la vista
+                    $arrayParaLaVista[$clienteId][$fechaStr] = $texto;
+                    $totalDia[$fechaStr][$clienteId] = '1';
+                }
+            }
         }
 
         $totales = [
             'totalDia' => $totalDia,
             'internados' => $internados,
             'derivados' => $derivados,
-            'sinModalidad' => $sinModalidad,
             'ambulatorios' => $ambulatorios,
-            'egresos' => $egresos,            
+            'egresos' => $egresos,
+            'sinModalidad' => $sinModalidad,
         ];
 
+        // Calcular totales por referente
         foreach ($referentes as $data) {
             foreach ($data as $profName => $data2) {
                 if (isset($totalReferentes[$profName])) {
@@ -452,8 +576,8 @@ class ClienteController extends AbstractController
             }
         }
 
+        // Calcular totales por obra social
         $osTotal = [];
-        
         foreach ($obrasSocialesTotales as $data) {
             foreach ($data as $key => $data2) {
                 if (isset($osTotal[$key])) {
@@ -462,14 +586,16 @@ class ClienteController extends AbstractController
                     $osTotal[$key] = count($data2);
                 }
             }
-            
         }
+        // Ordenar osTotal de mayor a menor
+        arsort($osTotal);
         
+        // Calcular totales por tipo de modalidad
         $internadosCount = 0;
         $derivadosCount = 0;
         $ambulatoriosCount = 0;
-        $sinModalidadCount = 0;
         $egresosCount = 0;
+        $sinModalidadCount = 0;
 
         foreach ($totales['internados'] as $data) {
             $internadosCount += count($data);
@@ -478,55 +604,92 @@ class ClienteController extends AbstractController
         foreach ($totales['ambulatorios'] as $data) {
             $ambulatoriosCount += count($data);
         }
-        foreach ($totales['sinModalidad'] as $data) {
-            $sinModalidadCount += count($data);
-        }
+        
         foreach ($totales['egresos'] as $data) {
             $egresosCount += count($data);
         }
+        
         foreach ($totales['derivados'] as $data) {
             $derivadosCount += count($data);
         }
-
         
-        $docReferentes = $doctorRepository->findByContratos(['Fisiatra', 'Director medico', 'Sub director medico'], false);
-        return $this->render('cliente/historico_2.html.twig',
-            [
-                'obraSociales'                  => $obArray,
-                'from'                          => $from,
-                'to'                            => $to,
-                'vto'                           => $vto,
-                'nombre'                        => $nombre,
-                'obraSocial'                    => $obraSocial,
-                'prof'                          => $prof,
-                'profesionales'                 => $docReferentes,
-                'modalidad'                     => $modalidad,
-                'hab'                           => $hab,
-                'paginaImprimible'              => true,
-                'hc'                            => $hc,
-                'historiaPacienteRepository'    => $historiaPacienteRepository,
-                'habitacionRepository'          => $habitacionRepository,
-                'doctorRepository'              => $doctorRepository,
-                'clienteRepository'             => $clienteRepository,
-                'range'                         => $range,
-                'historias'                     => $historias,
-                'limit'                         => $limit,
-                'currentPage'                   => $currentPage,
-                'total'                         => count($arrayParaLaVista),
-                'pacientes'                     => $arrayParaLaVista,
-                'totales'                       => $totales,
-                'referentes'                    => $referentes,
-                'obrasSocialesTotales'          => $obrasSocialesTotales,
-                'totalReferentes'               => $totalReferentes,
-                'internadosCount'               => $internadosCount,
-                'derivadosCount'                => $derivadosCount,
-                'ambulatoriosCount'             => $ambulatoriosCount,
-                'sinModalidadCount'             => $sinModalidadCount,
-                'egresosCount'                  => $egresosCount,
-                'osTotal'                       => $osTotal,
-            ]);
-    }
+        foreach ($totales['sinModalidad'] as $data) {
+            $sinModalidadCount += count($data);
+        }
 
+        $docReferentes = $doctorRepository->findByContratos(['Fisiatra', 'Director medico', 'Sub director medico'], false);
+        
+        // Calcular distribución de patologías y edades para el resumen
+        $patologiasLabels = [
+            1 => 'Neurológicas',
+            2 => 'Traumatológicas',
+            3 => 'Respiratorias',
+            4 => 'Paliativos',
+            5 => 'Patologías laborales',
+        ];
+        $patologiasCount = array_fill_keys($patologiasLabels, 0);
+        $edadesRangos = [
+            '0-18' => 0,
+            '19-40' => 0,
+            '41-65' => 0,
+            '65+' => 0,
+        ];
+        foreach ($historias as $historia) {
+            // Patología
+            $pat = $historia->getPatologia();
+            if (isset($patologiasLabels[$pat])) {
+                $patologiasCount[$patologiasLabels[$pat]]++;
+            }
+            // Edad
+            $cliente = $historia->getCliente();
+            if ($cliente && $cliente->getFNacimiento()) {
+                $edad = $cliente->getFNacimiento()->diff(new \DateTime())->y;
+                if ($edad <= 18) {
+                    $edadesRangos['0-18']++;
+                } elseif ($edad <= 40) {
+                    $edadesRangos['19-40']++;
+                } elseif ($edad <= 65) {
+                    $edadesRangos['41-65']++;
+                } else {
+                    $edadesRangos['65+']++;
+                }
+            }
+        }
+
+        return $this->render('cliente/historico_2.html.twig', [
+            'obraSociales'                  => $obArray,
+            'from'                          => $from,
+            'to'                            => $to,
+            'nombre'                        => $nombre,
+            'obraSocial'                    => $obraSocial,
+            'prof'                          => $prof,
+            'profesionales'                 => $docReferentes,
+            'modalidad'                     => $modalidad,
+            'hab'                           => $hab,
+            'paginaImprimible'              => false, // Activamos el botón global
+            'hc'                            => $hc,
+            'habitacionRepository'          => $habitacionRepository,
+            'doctorRepository'              => $doctorRepository,
+            'range'                         => $range,
+            'limit'                         => $limit,
+            'currentPage'                   => $currentPage,
+            'total'                         => count($arrayParaLaVista),
+            'pacientes'                     => $arrayParaLaVista,
+            'totales'                       => $totales,
+            'referentes'                    => $referentes,
+            'obrasSocialesTotales'          => $obrasSocialesTotales,
+            'totalReferentes'               => $totalReferentes,
+            'internadosCount'               => $internadosCount,
+            'derivadosCount'                => $derivadosCount,
+            'ambulatoriosCount'             => $ambulatoriosCount,
+            'egresosCount'                  => $egresosCount,
+            'sinModalidadCount'             => $sinModalidadCount,
+            'osTotal'                       => $osTotal,
+            'clientesData'                  => $clientesData, // Enviamos los datos de clientes a la vista
+            'patologiasCount'               => $patologiasCount,
+            'edadesRangos'                  => $edadesRangos,
+        ]);
+    }
 
     /**
      * @Route("/novedades", name="cliente_novedades", methods={"GET"})
@@ -795,6 +958,9 @@ class ClienteController extends AbstractController
     {
         $user = $this->security->getUser();
 
+        // Guardamos la modalidad original para evitar que se modifique
+        $modalidadOriginal = $cliente->getModalidad();
+
         $habitacionesDisp = $habitacionRepository->findHabitacionConCamasDisponibles($clienteRepository);
         $obrasSociales = $obraSocialRepository->findAll();
         $familiarExtraActuales = $familiarExtraRepository->findBy(['cliente_id' => $cliente->getId()]);
@@ -861,8 +1027,11 @@ class ClienteController extends AbstractController
                 $cliente->setNCama($request->request->get('cliente')['nCama'] ?? 0);
             }
             try {
-                $modalidad = $form->get('modalidad')->getData();
-                $cliente->setAmbulatorio($modalidad == 1);
+                // Restauramos la modalidad original para evitar cambios no autorizados
+                $cliente->setModalidad($modalidadOriginal);
+                // Como la modalidad es fija, mantenemos la coherencia
+                $cliente->setAmbulatorio($modalidadOriginal == 1);
+                
                 $entityManager = $this->getDoctrine()->getManager();
 
                 $familiarResponsableExtraNombres = $request->request->get('familiarResponsableExtraNombre');
@@ -913,7 +1082,7 @@ class ClienteController extends AbstractController
 
                 $epicrisisIngreso = $form->get('epicrisisIngreso')->getData();
 
-                if( $modalidad == 2 &&  $epicrisisIngreso == null ) {
+                if( $modalidadOriginal == 2 &&  $epicrisisIngreso == null && !$cliente->getEpicrisisIngreso()) {
                     return $this->render('cliente/new.html.twig', [
                         'cliente' => $cliente,
                         'form' => $form->createView(),
@@ -993,47 +1162,20 @@ class ClienteController extends AbstractController
     /**
      * @Route("/derivar/guardar/{id}", name="cliente_guardar_derivacion", methods={"POST"})
      */
-    public function guardarDerivacion(Cliente $cliente, Request $request, HabitacionRepository $habitacionRepository, BookingRepository $bookingRepository, HistoriaPacienteRepository $historiaPacienteRepository): Response
+    public function guardarDerivacion(Cliente $cliente, Request $request): Response
     {
         $user = $this->security->getUser();
-        $derivadoEn = ($request->get('derivadoEn')) ?? '';
-        //guardo la fecha que ponene en el formulario, antes guardaba la fecha del día, pero después no coinciden en el histórico
-        $fechaDerivacion = ($request->get('fechaDerivacion')) ? new \DateTime($request->get('fechaDerivacion')) : new \DateTime();
-        $motivo = ($request->get('motivo')) ?? '';
-        $empDeTraslado = ($request->get('empDeTraslado')) ?? '';
-
-        $cliente->setDerivado(true);
-        $cliente->setDerivadoEn($derivadoEn);
-        $cliente->setFechaDerivacion($fechaDerivacion);
-        $cliente->setMotivoDerivacion($motivo);
-        $cliente->setEmpTrasladoDerivacion($empDeTraslado);
-        $cliente->setDisponibleParaTerapia(false);
-
-        $this->liberarCamaCliente($cliente);
-
-        $turnos = $bookingRepository->findBy(['cliente' => $cliente]);
-
+        
+        // Recopilamos los parámetros del formulario
         $parametros = [
-                        'derivadoEn' => $derivadoEn,
-                        'fechaDerivacion' => $fechaDerivacion,
-                        'motivoDerivacion' => $motivo,
-                        'empresaTransporteDerivacion' => $empDeTraslado,
-                        'habitacion' => '',
-                        'cama' => '',
-                      ];
-
-        $historial = $this->getHistorialActualizado($cliente, $parametros, $user);
-
-        $entityManager = $this->getDoctrine()->getManager();
-
-        $entityManager->persist($historial);
-        $entityManager->persist($cliente);
-        foreach ($turnos as $turno) {
-            $entityManager->remove($turno);
-        }
-
-
-        $entityManager->flush();
+            'derivadoEn' => $request->get('derivadoEn') ?? '',
+            'fechaDerivacion' => ($request->get('fechaDerivacion')) ? new \DateTime($request->get('fechaDerivacion')) : new \DateTime(),
+            'motivoDerivacion' => $request->get('motivo') ?? '',
+            'empresaTransporteDerivacion' => $request->get('empDeTraslado') ?? '',
+        ];
+        
+        // Utilizamos el servicio para cambiar el estado
+        $this->patientStateService->cambiarADerivado($cliente, $user, $parametros);
 
         return $this->redirectToRoute('cliente_index');
     }
@@ -1055,39 +1197,18 @@ class ClienteController extends AbstractController
     /**
      * @Route("/permiso/{id}", name="cliente_dar_permiso", methods={"POST"})
      */
-    public function darPermiso(Cliente $cliente, Request $request, HabitacionRepository $habitacionRepository, BookingRepository $bookingRepository): Response
+    public function darPermiso(Cliente $cliente, Request $request): Response
     {
         $user = $this->security->getUser();
-
-        $fechaPermisoDesde = ($request->get('fechaPermisoDesde')) ? new \DateTime($request->get('fechaPermisoDesde')) : new \DateTime();
-        $fechaPermisoHasta = ($request->get('fechaPermisoHasta')) ? new \DateTime($request->get('fechaPermisoHasta')) : new \DateTime();
-
-        $cliente->setDePermiso(true);
-        $cliente->setFechaBajaPorPermiso($fechaPermisoDesde);
-        $cliente->setFechaAltaPorPermiso($fechaPermisoHasta);
-        $cliente->setDisponibleParaTerapia(false);
-
-        //$this->liberarCamaCliente($cliente);
-
-        $turnos = $bookingRepository->findBy(['cliente' => $cliente]);
-
+        
+        // Recopilamos los parámetros del formulario
         $parametros = [
-            'dePermiso' => true,
-            'fechaBajaPorPermiso' => $fechaPermisoDesde,
-            'fechaAltaPorPermiso' => $fechaPermisoHasta,
+            'fechaBajaPorPermiso' => ($request->get('fechaPermisoDesde')) ? new \DateTime($request->get('fechaPermisoDesde')) : new \DateTime(),
+            'fechaAltaPorPermiso' => ($request->get('fechaPermisoHasta')) ? new \DateTime($request->get('fechaPermisoHasta')) : new \DateTime(),
         ];
-
-        $historial = $this->getHistorialActualizado($cliente, $parametros, $user);
-
-        $entityManager = $this->getDoctrine()->getManager();
-
-        $entityManager->persist($historial);
-        $entityManager->persist($cliente);
-        foreach ($turnos as $turno) {
-            $entityManager->remove($turno);
-        }
-
-        $entityManager->flush();
+        
+        // Utilizamos el servicio para cambiar el estado
+        $this->patientStateService->cambiarAPermiso($cliente, $user, $parametros);
 
         return $this->redirectToRoute('cliente_index');
     }
@@ -1095,76 +1216,40 @@ class ClienteController extends AbstractController
     /**
      * @Route("/ambulatorio/{id}", name="cliente_ambulatorio", methods={"GET"})
      */
-    public function ambulatorio(Cliente $cliente, Request $request, HabitacionRepository $habitacionRepository, BookingRepository $bookingRepository): Response
+    public function ambulatorio(Cliente $cliente): Response
     {
         $user = $this->security->getUser();
-
-        $cliente->setAmbulatorio(true);
-        $cliente->setModalidad(1);
-        $cliente->setFechaAmbulatorio(new \DateTime());
-
-        $this->liberarCamaCliente($cliente);
-
-        $turnos = $bookingRepository->findBy(['cliente' => $cliente]);
-
-        $parametros = [
-            'ambulatorio' => true,
-            'modalidad' => 1,
-            'habitacion' => '',
-            'cama' => '',
-        ];
-
-        $historial = $this->getHistorialActualizado($cliente, $parametros, $user);
-
-        $entityManager = $this->getDoctrine()->getManager();
-
-        $entityManager->persist($historial);
-        $entityManager->persist($cliente);
-        foreach ($turnos as $turno) {
-            $entityManager->remove($turno);
-        }
-
-        $entityManager->flush();
-
+        
+        // Utilizamos el servicio para cambiar el estado a ambulatorio
+        $this->patientStateService->cambiarAAmbulatorio($cliente, $user);
+        
         return $this->redirectToRoute('cliente_index');
     }
 
     /**
      * @Route("/permiso/reingresar/{id}", name="cliente_reingreso_permiso", methods={"GET", "POST"})
      */
-    public function reingresarPermiso(Cliente $cliente, Request $request, HabitacionRepository $habitacionRepository, BookingRepository $bookingRepository): Response
+    public function reingresarPermiso(Cliente $cliente, Request $request): Response
     {
         $user = $this->security->getUser();
-        $cliente->setDisponibleParaTerapia(true);
-
+        
         $form = $this->createForm(ReingresoType::class, $cliente, ['allow_extra_fields' =>true, 'tipo' => 'permiso']);
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-
-            $entityManager = $this->getDoctrine()->getManager();
-            $cliente->setDePermiso(false);
-
+            // Usar el servicio para reingreso de paciente de permiso
             $parametros = [
-                'dePermiso' => false,
-                'fechaBajaPorPermiso' => null,
                 'fechaAltaPorPermiso' => $form->get('fechaAltaPorPermiso')->getData() ?? null,
             ];
-
-            $historial = $this->getHistorialActualizado($cliente, $parametros, $user);
-
-            $entityManager->persist($cliente);
-            $entityManager->persist($historial);
-            $entityManager->flush();
-
+            
+            $this->patientStateService->reingresarDePermiso($cliente, $user, $parametros);
+            
             return $this->redirectToRoute('cliente_index');
-
         }
 
         return $this->render('cliente/reingresar.html.twig', [
             'cliente' => $cliente,
             'form' => $form->createView(),
-
         ]);
     }
 
@@ -1483,7 +1568,7 @@ class ClienteController extends AbstractController
                 'cliente'               => $cliente,
                 'historiaPaciente'      => $historiaPaciente,
                 'obraSociales'          => $obraSocialesArray,
-                'paginaImprimible'      => false,//local
+                'paginaImprimible'      => false, // Activamos el botón global
                 'notasTurnos'           => $notasTurnos,
                 'notasHistoria'         => $notasHistoria,
                 'titulo_solo'           => true,
@@ -1723,7 +1808,7 @@ class ClienteController extends AbstractController
     */
     public function ausente(Request $request, Cliente $cliente, PresentesRepository $presenteRepository): Response
     {
-        $user = $this->security->getUser();
+        $user = $this->getUser();
         if (!$user) {
             return $this->redirectToRoute('app_login');
         }

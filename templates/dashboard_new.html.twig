@@ -4,82 +4,92 @@
 {{ parent() }}
 <link rel="stylesheet" href="{{ asset('assets/chartist/dist/chartist.min.css') }}">
 <style>
-    /*
-    * Off Canvas sidebar at medium breakpoint
-    * --------------------------------------------------
-    */
-    @media screen and (max-width: 992px) {
-
-    .row-offcanvas {
-        position: relative;
-        -webkit-transition: all 0.25s ease-out;
-        -moz-transition: all 0.25s ease-out;
-        transition: all 0.25s ease-out;
-    }
-
-    .row-offcanvas-left
-    .sidebar-offcanvas {
-        left: -33%;
-    }
-
-    .row-offcanvas-left.active {
-        left: 33%;
-        margin-left: -6px;
-    }
-
-    .sidebar-offcanvas {
-        position: absolute;
-        top: 0;
-        width: 33%;
-        height: 100%;
-    }
-    }
-
-    /*
-    * Off Canvas wider at sm breakpoint
-    * --------------------------------------------------
-    */
-    @media screen and (max-width: 34em) {
-    .row-offcanvas-left
-    .sidebar-offcanvas {
-        left: -45%;
-    }
-
-    .row-offcanvas-left.active {
-        left: 45%;
-        margin-left: -6px;
+    /* Estilos generales del dashboard */
+    .dashboard-container {
+        padding: 1rem 0;
     }
     
-    .sidebar-offcanvas {
-        width: 45%;
+    .dashboard-section {
+        margin-bottom: 2rem;
     }
-    }
-
-    .card {
-        overflow:hidden;
-    }
-
-    .card-body .rotate {
-        z-index: 8;
-        float: right;
+    
+    .dashboard-card {
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
         height: 100%;
+        overflow: hidden;
     }
-
-    .card-body .rotate i {
-        color: rgba(20, 20, 20, 0.15);
-        position: absolute;
-        left: 0;
-        left: auto;
-        right: -10px;
-        bottom: 0;
-        display: block;
-        -webkit-transform: rotate(-44deg);
-        -moz-transform: rotate(-44deg);
-        -o-transform: rotate(-44deg);
-        -ms-transform: rotate(-44deg);
-        transform: rotate(-44deg);
+    
+    .dashboard-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
     }
-    /* Cambia el color de las series del gráfico */
+    
+    .dashboard-card-header {
+        padding: 1rem;
+        font-weight: 600;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        display: flex;
+        align-items: center;
+    }
+    
+    .dashboard-card-header i {
+        margin-right: 0.5rem;
+        font-size: 1.25rem;
+    }
+    
+    .dashboard-card-body {
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .dashboard-value {
+        font-size: 2.5rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .dashboard-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .section-title {
+        position: relative;
+        padding-left: 1rem;
+        margin-bottom: 1.5rem;
+        font-weight: 600;
+        color: #495057;
+        border-left: 4px solid;
+    }
+    
+    .section-camas .section-title {
+        border-color: #60b9b9;
+    }
+    
+    .section-ambulatorios .section-title {
+        border-color: #b088be;
+    }
+    
+    .section-ingresos .section-title {
+        border-color: #889cbe;
+    }
+    
+    .section-derivaciones .section-title {
+        border-color: #be8888;
+    }
+    
+    .section-permisos .section-title {
+        border-color: #88be8e;
+    }
+    
+    /* Estilos para el gráfico circular */
     .ct-series-a .ct-slice-pie {
         fill: #3498db; /* Azul para camas disponibles */
     }
@@ -87,24 +97,47 @@
     .ct-series-b .ct-slice-pie {
         fill: #dc3545; /* Rojo para camas ocupadas */
     }
+    
     .ct-label {
         fill: white;
         font-size: 1rem;
+        font-weight: bold;
     }
+    
+    .chart-container {
+        position: relative;
+        height: 200px;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .ct-chart {
+        height: 100%;
+        width: 100%;
+    }
+    
     .chart-legend {
         display: flex;
+        flex-direction: column;
+        margin-top: 1rem;
+    }
+
+    .legend-item {
+        display: flex;
         align-items: center;
+        margin-bottom: 0.5rem;
     }
 
     .legend-color {
         width: 15px;
         height: 15px;
         display: inline-block;
-        margin-right: 5px;
+        margin-right: 0.5rem;
         border-radius: 3px;
     }
 
-    /* Colores que coinciden con las secciones del gráfico */
     .legend-color.available {
         background-color: #3498db; /* Azul para disponibles */
     }
@@ -112,358 +145,466 @@
     .legend-color.occupied {
         background-color: #dc3545; /* Rojo para ocupadas */
     }
-
+    
+    /* Estilos responsivos */
+    @media (max-width: 768px) {
+        .dashboard-value {
+            font-size: 2rem;
+        }
+    }
 </style>
 {% endblock %}
-{% block title %}Dashboard{% endblock %}
 
-
+{% block title %}Panel de Control{% endblock %}
+{% block panelTitle %}Panel de Control{% endblock %}
 
 {% block body %}
     {% if not app.user %}
-        Por favor, ingrese con su usuario y contraseña
-        <a href="{{ path('app_login') }}">ingresar</a>
+        <div class="alert alert-info">
+            Por favor, ingrese con su usuario y contraseña
+            <a href="{{ path('app_login') }}" class="btn btn-primary ml-3">Ingresar</a>
+        </div>
     {% elseif is_granted('ROLE_ADMIN') %}
-            <div class="row mb-3">
-                <div class="col-12">
-                    <h3>Camas</h3>
+        <div class="dashboard-container">
+            <!-- Sección de Camas -->
+            <div class="dashboard-section section-camas">
+                <h3 class="section-title">Ocupación de Camas</h3>
+                
+                {% for piso, infoHabitaciones in infoHabitacionesTotalyPorPiso %}
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="text-muted mb-3">{{ piso == 'total' ? 'Resumen General' : 'Piso ' ~ piso }}</h5>
+                        </div>
+                        
+                        <!-- Camas totales -->
+                        <div class="col-md-3 mb-3">
+                            <div class="dashboard-card">
+                                <div class="dashboard-card-header bg-primary text-white">
+                                    <i class="fas fa-bed"></i> Total Camas
+                                </div>
+                                <div class="dashboard-card-body">
+                                    <div class="dashboard-value">
+                                        <a href="{{ path('habitacion_index') }}" class="text-primary">    
+                                            {{ infoHabitaciones.total_camas }}
+                                        </a>
+                                    </div>
+                                    <div class="dashboard-label">CAPACIDAD TOTAL</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Camas ocupadas -->
+                        <div class="col-md-3 mb-3">
+                            <div class="dashboard-card">
+                                <div class="dashboard-card-header bg-danger text-white">
+                                    <i class="fas fa-procedures"></i> Ocupadas
+                                </div>
+                                <div class="dashboard-card-body">
+                                    <div class="dashboard-value">
+                                        <a href="{{ path('habitacion_index', {'pestana': 'completas'}) }}" class="text-danger">
+                                            {{ infoHabitaciones.total_camas_ocupadas }}
+                                        </a>
+                                    </div>
+                                    <div class="dashboard-label">{{ (infoHabitaciones.total_camas_ocupadas / infoHabitaciones.total_camas * 100)|round }}% DE OCUPACIÓN</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Camas disponibles -->
+                        <div class="col-md-3 mb-3">
+                            <div class="dashboard-card">
+                                <div class="dashboard-card-header bg-success text-white">
+                                    <i class="fas fa-bed"></i> Disponibles
+                                </div>
+                                <div class="dashboard-card-body">
+                                    <div class="dashboard-value">
+                                        <a href="{{ path('habitacion_index', {'pestana': 'camas-vacias'}) }}" class="text-success">
+                                            {{ infoHabitaciones.total_camas_disponibles }}
+                                        </a>
+                                    </div>
+                                    <div class="dashboard-label">{{ (infoHabitaciones.total_camas_disponibles / infoHabitaciones.total_camas * 100)|round }}% DISPONIBLE</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if piso == 'total' %}
+                            <!-- Gráfico para resumen total -->
+                            <div class="col-md-3 mb-3">
+                                <div class="dashboard-card">
+                                    <div class="dashboard-card-header bg-info text-white">
+                                        <i class="fas fa-chart-pie"></i> Distribución
+                                    </div>
+                                    <div class="dashboard-card-body">
+                                        <div class="chart-container">
+                                            <div class="ct-chart"></div>
+                                        </div>
+                                        <div class="chart-legend">
+                                            <span class="legend-item">
+                                                <span class="legend-color available"></span> Disponibles ({{ infoHabitaciones.total_camas_disponibles }})
+                                            </span>
+                                            <span class="legend-item">
+                                                <span class="legend-color occupied"></span> Ocupadas ({{ infoHabitaciones.total_camas_ocupadas }})
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Sección de Ambulatorios -->
+            <div class="dashboard-section section-ambulatorios">
+                <h3 class="section-title">Pacientes Ambulatorios</h3>
+                
+                <div class="row">
+                    <!-- Total ambulatorios hoy -->
+                    <div class="col-md-3 mb-3">
+                        <div class="dashboard-card">
+                            <div class="dashboard-card-header bg-primary text-white">
+                                <i class="fas fa-user-clock"></i> Hoy Total
+                            </div>
+                            <div class="dashboard-card-body">
+                                <div class="dashboard-value">
+                                    <a href="{{ path('cliente_index', {'pestana': 'ambulatorios'}) }}" class="text-primary">
+                                        {{ totalAmbulatoriosHoy }}
+                                    </a>
+                                </div>
+                                <div class="dashboard-label">PACIENTES</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Presentes hoy -->
+                    <div class="col-md-3 mb-3">
+                        <div class="dashboard-card">
+                            <div class="dashboard-card-header bg-success text-white">
+                                <i class="fas fa-user-check"></i> Presentes Hoy
+                            </div>
+                            <div class="dashboard-card-body">
+                                <div class="dashboard-value text-success">{{ ambuPresentesHoy }}</div>
+                                <div class="dashboard-label">
+                                    {% if totalAmbulatoriosHoy > 0 %}
+                                        {{ (ambuPresentesHoy / totalAmbulatoriosHoy * 100)|round }}% DE ASISTENCIA
+                                    {% else %}
+                                        0% DE ASISTENCIA
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Total ambulatorios mes -->
+                    <div class="col-md-3 mb-3">
+                        <div class="dashboard-card">
+                            <div class="dashboard-card-header bg-info text-white">
+                                <i class="fas fa-calendar-alt"></i> Total del Mes
+                            </div>
+                            <div class="dashboard-card-body">
+                                <div class="dashboard-value text-info">{{ totalAmbulatoriosMes }}</div>
+                                <div class="dashboard-label">PACIENTES ESTE MES</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Presentes mes -->
+                    <div class="col-md-3 mb-3">
+                        <div class="dashboard-card">
+                            <div class="dashboard-card-header bg-warning text-white">
+                                <i class="fas fa-users"></i> Presentes Mes
+                            </div>
+                            <div class="dashboard-card-body">
+                                <div class="dashboard-value text-warning">{{ ambuPresentesMes }}</div>
+                                <div class="dashboard-label">
+                                    {% if totalAmbulatoriosMes > 0 %}
+                                        {{ (ambuPresentesMes / totalAmbulatoriosMes * 100)|round }}% DE ASISTENCIA
+                                    {% else %}
+                                        0% DE ASISTENCIA
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            {% for piso, infoHabitaciones in infoHabitacionesTotalyPorPiso %}
-            <hr>
-            <div class="row mb-3">
-                <div class="col-xl-3 col-sm-6 py-2">
-                    <div class="card bg-success text-white h-100">
-                        <div class="card-body bg-success">
-                            <div class="rotate">
-                                <i class="fa fa-user fa-4x"></i>
-                            </div>
-                            <h6 class="text-uppercase">Camas {{ piso }}</h6>
-                            <h1 class="display-4">
-                                <a class="text-white" href="{{ path('habitacion_index') }}">    
-                                    {{ infoHabitaciones.total_camas }}
-                                </a>
-                            </h1>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-sm-6 py-2">
-                    <div class="card text-white bg-danger h-100">
-                        <div class="card-body bg-danger">
-                            <div class="rotate">
-                                <i class="fa fa-list fa-4x"></i>
-                            </div>
-                            <h6 class="text-uppercase">Camas ocupadas {{ piso }}</h6>
-                            <h1 class="display-4">
-                                <a class="text-white" href="{{ path('habitacion_index', {'pestana': 'completas'}) }}">
-                                    {{ infoHabitaciones.total_camas_ocupadas }}
-                                </a>
-                            </h1>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-sm-6 py-2">
-                    <div class="card text-white bg-info h-100">
-                        <div class="card-body bg-info">
-                            <div class="rotate">
-                                <i class="fa fa-share fa-4x"></i>
-                            </div>
-                            <h6 class="text-uppercase">Camas Disponibles {{ piso }}</h6>
-                            <h1 class="display-4">
-                                <a class="text-white" href="{{ path('habitacion_index', {'pestana': 'camas-vacias'}) }}">
-                                    {{ infoHabitaciones.total_camas_disponibles }}
-                                </a>
-                            </h1>
-                        </div>
-                    </div>
-                </div>
-                {% if piso == 'total' %}
-                <div class="col-xl-2 col-sm-6 py-2">
-                    <div class=" ct-chart"></div>
-                </div>
+            
+            <!-- Sección de Ingresos y Egresos -->
+            <div class="dashboard-section section-ingresos">
+                <h3 class="section-title">Ingresos y Egresos</h3>
                 
-                <div class="col-xl-1 col-sm-6 py-2 chart-legend">
-                    <!-- Leyenda de colores -->
-                    <div class="">
-                        <span class="legend-item">
-                            <span class="legend-color available"></span> Disponibles
-                        </span>
-                        <span class="legend-item">
-                            <span class="legend-color occupied"></span> Ocupadas
-                        </span>
+                <div class="row">
+                    <!-- Ingresos del mes -->
+                    <div class="col-md-3 mb-3">
+                        <div class="dashboard-card">
+                            <div class="dashboard-card-header bg-success text-white">
+                                <i class="fas fa-sign-in-alt"></i> Ingresos Mes
+                            </div>
+                            <div class="dashboard-card-body">
+                                <div class="dashboard-value">
+                                    <a href="{{ path('cliente_index', {'filtroFecha': 'ingresados'}) }}" class="text-success">
+                                        {{ ingresosEsteMes }}
+                                    </a>
+                                </div>
+                                <div class="dashboard-label">NUEVOS PACIENTES</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Egresos del mes -->
+                    <div class="col-md-3 mb-3">
+                        <div class="dashboard-card">
+                            <div class="dashboard-card-header bg-danger text-white">
+                                <i class="fas fa-sign-out-alt"></i> Egresos Mes
+                            </div>
+                            <div class="dashboard-card-body">
+                                <div class="dashboard-value">
+                                    <a href="{{ path('cliente_index', {'filtroFecha': 'egresados'}) }}" class="text-danger">
+                                        {{ egresosEsteMes }}
+                                    </a>
+                                </div>
+                                <div class="dashboard-label">ALTAS MÉDICAS</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Ingresos de hoy -->
+                    <div class="col-md-3 mb-3">
+                        <div class="dashboard-card">
+                            <div class="dashboard-card-header bg-primary text-white">
+                                <i class="fas fa-user-plus"></i> Ingresos Hoy
+                            </div>
+                            <div class="dashboard-card-body">
+                                <div class="dashboard-value text-primary">{{ ingresadosHoy }}</div>
+                                <div class="dashboard-label">NUEVOS HOY</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Egresos de hoy -->
+                    <div class="col-md-3 mb-3">
+                        <div class="dashboard-card">
+                            <div class="dashboard-card-header bg-warning text-white">
+                                <i class="fas fa-user-minus"></i> Egresos Hoy
+                            </div>
+                            <div class="dashboard-card-body">
+                                <div class="dashboard-value text-warning">{{ egresadosHoy }}</div>
+                                <div class="dashboard-label">ALTAS HOY</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </div>
+            
+            <!-- Sección de Derivaciones -->
+            <div class="dashboard-section section-derivaciones">
+                <h3 class="section-title">Derivaciones</h3>
+                
+                <div class="row">
+                    <!-- Derivados este mes -->
+                    <div class="col-md-3 mb-3">
+                        <div class="dashboard-card">
+                            <div class="dashboard-card-header bg-primary text-white">
+                                <i class="fas fa-exchange-alt"></i> Derivados Mes
+                            </div>
+                            <div class="dashboard-card-body">
+                                <div class="dashboard-value">
+                                    <a href="{{ path('cliente_index', {'filtroFecha': 'derivados'}) }}" class="text-primary">
+                                        {{ derivadosEsteMes }}
+                                    </a>
+                                </div>
+                                <div class="dashboard-label">PACIENTES</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Reingresados de derivaciones mes -->
+                    <div class="col-md-3 mb-3">
+                        <div class="dashboard-card">
+                            <div class="dashboard-card-header bg-success text-white">
+                                <i class="fas fa-undo-alt"></i> Reingresos Mes
+                            </div>
+                            <div class="dashboard-card-body">
+                                <div class="dashboard-value">
+                                    <a href="{{ path('cliente_index', {'filtroFecha': 'derivados'}) }}" class="text-success">
+                                        {{ reingresoDerivadosEsteMes }}
+                                    </a>
+                                </div>
+                                <div class="dashboard-label">PACIENTES REINGRESADOS</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Derivados hoy -->
+                    <div class="col-md-3 mb-3">
+                        <div class="dashboard-card">
+                            <div class="dashboard-card-header bg-info text-white">
+                                <i class="fas fa-share"></i> Derivados Hoy
+                            </div>
+                            <div class="dashboard-card-body">
+                                <div class="dashboard-value text-info">{{ derivadosHoy }}</div>
+                                <div class="dashboard-label">NUEVAS DERIVACIONES</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Reingresados de derivaciones hoy -->
+                    <div class="col-md-3 mb-3">
+                        <div class="dashboard-card">
+                            <div class="dashboard-card-header bg-warning text-white">
+                                <i class="fas fa-reply"></i> Reingresos Hoy
+                            </div>
+                            <div class="dashboard-card-body">
+                                <div class="dashboard-value text-warning">{{ ReingresadosDerivadosHoy }}</div>
+                                <div class="dashboard-label">REINGRESADOS HOY</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sección de Permisos -->
+            <div class="dashboard-section section-permisos">
+                <h3 class="section-title">Permisos</h3>
+                
+                <div class="row">
+                    <!-- De permiso este mes -->
+                    <div class="col-md-3 mb-3">
+                        <div class="dashboard-card">
+                            <div class="dashboard-card-header bg-primary text-white">
+                                <i class="fas fa-calendar-check"></i> Permisos Mes
+                            </div>
+                            <div class="dashboard-card-body">
+                                <div class="dashboard-value">
+                                    <a href="{{ path('cliente_index', {'filtroFecha': 'permisos'}) }}" class="text-primary">
+                                        {{ permisosEsteMes }}
+                                    </a>
+                                </div>
+                                <div class="dashboard-label">PACIENTES</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Reingresados de permisos mes -->
+                    <div class="col-md-3 mb-3">
+                        <div class="dashboard-card">
+                            <div class="dashboard-card-header bg-success text-white">
+                                <i class="fas fa-undo"></i> Reingresos Mes
+                            </div>
+                            <div class="dashboard-card-body">
+                                <div class="dashboard-value">
+                                    <a href="{{ path('cliente_index', {'filtroFecha': 'reingresos-permisos'}) }}" class="text-success">
+                                        {{ reingresoPermisosEsteMes }}
+                                    </a>
+                                </div>
+                                <div class="dashboard-label">PACIENTES REINGRESADOS</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- De permiso hoy -->
+                    <div class="col-md-3 mb-3">
+                        <div class="dashboard-card">
+                            <div class="dashboard-card-header bg-info text-white">
+                                <i class="fas fa-suitcase"></i> Permisos Hoy
+                            </div>
+                            <div class="dashboard-card-body">
+                                <div class="dashboard-value text-info">{{ permisosHoy }}</div>
+                                <div class="dashboard-label">NUEVOS PERMISOS</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Reingresados de permisos hoy -->
+                    <div class="col-md-3 mb-3">
+                        <div class="dashboard-card">
+                            <div class="dashboard-card-header bg-warning text-white">
+                                <i class="fas fa-home"></i> Reingresos Hoy
+                            </div>
+                            <div class="dashboard-card-body">
+                                <div class="dashboard-value text-warning">{{ ReingresadosPermisosHoy }}</div>
+                                <div class="dashboard-label">REINGRESADOS HOY</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+    {% elseif is_granted('ROLE_STAFF') %}
+        <div class="dashboard-container">
+            <div class="row">
+                {% if isDoctor %}
+                    <div class="col-md-4 mb-4">
+                        <a href="{{ path('doctor_agenda', {'periodo': 'dia'}) }}" class="text-decoration-none">
+                            <div class="dashboard-card">
+                                <div class="dashboard-card-header bg-primary text-white">
+                                    <i class="far fa-calendar-alt mr-2"></i> Agenda
+                                </div>
+                                <div class="dashboard-card-body">
+                                    <p class="card-text text-muted">Administre sus turnos y eventos diarios</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <a href="{{ path('doctor_historia') }}" class="text-decoration-none">
+                            <div class="dashboard-card">
+                                <div class="dashboard-card-header bg-success text-white">
+                                    <i class="fas fa-user-injured mr-2"></i> Pacientes
+                                </div>
+                                <div class="dashboard-card-body">
+                                    <p class="card-text text-muted">Acceda a historias clínicas de pacientes</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <a href="{{ path('liquidar', {'id': app.user.id}) }}" class="text-decoration-none">
+                            <div class="dashboard-card">
+                                <div class="dashboard-card-header bg-info text-white">
+                                    <i class="fas fa-money-check-alt mr-2"></i> Liquidaciones
+                                </div>
+                                <div class="dashboard-card-body">
+                                    <p class="card-text text-muted">Imprima y exporte sus liquidaciones</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                {% endif %}
+                {% if isEnfermero %}
+                    <div class="col-md-4 mb-4">
+                        <a href="{{ path('prescripcion_index', {'id': app.user.id}) }}" class="text-decoration-none">
+                            <div class="dashboard-card">
+                                <div class="dashboard-card-header bg-primary text-white">
+                                    <i class="fas fa-user-nurse mr-2"></i> Prescripciones
+                                </div>
+                                <div class="dashboard-card-body">
+                                    <p class="card-text text-muted">Administre prescripciones médicas por paciente</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
                 {% endif %}
             </div>
-            {% endfor %}
-
-            <hr>
-            <div class="row mb-3">
-                <div class="col-12">
-                    <h3>Ambulatorios</h3>
-                </div>
-            </div>
-            <hr>
-
-            <div class="row mb-3">
-                <div class="col-xl-3 col-sm-6 py-2">
-                    <div class="card bg-success text-white h-100">
-                        <div class="card-body bg-success">
-                            <div class="rotate">
-                                <i class="fa fa-user fa-4x"></i>
-                            </div>
-                            <h6 class="text-uppercase">Total Ambulatorios Hoy</h6>
-                            <h1 class="display-4">
-                                <a class="text-white" href="{{ path('cliente_index', {'pestana': 'ambulatorios'}) }}">
-                                    {{ totalAmbulatoriosHoy }}
-                                </a>
-                            </h1>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-sm-6 py-2">
-                    <div class="card text-white bg-danger h-100">
-                        <div class="card-body bg-danger">
-                            <div class="rotate">
-                                <i class="fa fa-list fa-4x"></i>
-                            </div>
-                            <h6 class="text-uppercase">Presentes hoy</h6>
-                            <h1 class="display-4">{{ ambuPresentesHoy }}</h1>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-sm-6 py-2">
-                    <div class="card text-white bg-info h-100">
-                        <div class="card-body bg-info">
-                            <div class="rotate">
-                                <i class="fa fa-share fa-4x"></i>
-                            </div>
-                            <h6 class="text-uppercase">Total Ambulatorios Mes</h6>
-                            <h1 class="display-4">{{ totalAmbulatoriosMes }}</h1>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-sm-6 py-2">
-                    <div class="card bg-warning h-100">
-                        <div class="card-body bg-warning">
-                            <div class="rotate">
-                                <i class="fa fa-female fa-4x"></i>
-                            </div>
-                            <h6 class="text-uppercase">Presentes durante el mes</h6>
-                            <h1 class="display-4">{{ ambuPresentesMes }}</h1>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <hr>
-            <div class="row mb-3">
-                <div class="col-12">
-                    <h3>Ingresos & Egresos</h3>
-                </div>
-            </div>
-            <hr>
-
-            <div class="row mb-3">
-                <div class="col-xl-3 col-sm-6 py-2">
-                    <div class="card bg-success text-white h-100">
-                        <div class="card-body bg-success">
-                            <div class="rotate">
-                                <i class="fa fa-user fa-4x"></i>
-                            </div>
-                            <h6 class="text-uppercase">Ingresos este mes</h6>
-                            <h1 class="display-4">
-                                <a class="text-white" href="{{ path('cliente_index', {'filtroFecha': 'ingresados'}) }}">
-                                {{ ingresosEsteMes }}
-                                </a>
-                            </h1>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-sm-6 py-2">
-                    <div class="card text-white bg-danger h-100">
-                        <div class="card-body bg-danger">
-                            <div class="rotate">
-                                <i class="fa fa-list fa-4x"></i>
-                            </div>
-                            <h6 class="text-uppercase">Egresos este mes</h6>
-                            <h1 class="display-4">
-                                <a class="text-white" href="{{ path('cliente_index', {'filtroFecha': 'egresados'}) }}">
-                                    {{ egresosEsteMes }}
-                                </a>
-                            </h1>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-sm-6 py-2">
-                    <div class="card text-white bg-info h-100">
-                        <div class="card-body bg-info">
-                            <div class="rotate">
-                                <i class="fa fa-share fa-4x"></i>
-                            </div>
-                            <h6 class="text-uppercase">Ingresos Hoy</h6>
-                            <h1 class="display-4">{{ ingresadosHoy }}</h1>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-sm-6 py-2">
-                    <div class="card bg-warning h-100">
-                        <div class="card-body bg-warning">
-                            <div class="rotate">
-                                <i class="fa fa-female fa-4x"></i>
-                            </div>
-                            <h6 class="text-uppercase">Egresos hoy</h6>
-                            <h1 class="display-4">{{ egresadosHoy }}</h1>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-
-            <hr>
-            <div class="row mb-3">
-                <div class="col-12">
-                    <h3>Derivaciones</h3>
-                </div>
-            </div>
-            <hr>
-
-            <div class="row mb-3">
-                <div class="col-xl-3 col-sm-6 py-2">
-                    <div class="card bg-success text-white h-100">
-                        <div class="card-body bg-success">
-                            <div class="rotate">
-                                <i class="fa fa-user fa-4x"></i>
-                            </div>
-                            <h6 class="text-uppercase">Derivados este mes</h6>
-                            <h1 class="display-4">
-                                <a class="text-white" href="{{ path('cliente_index', {'filtroFecha': 'derivados'}) }}">
-                                {{ derivadosEsteMes }}
-                                </a>
-                            </h1>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-sm-6 py-2">
-                    <div class="card text-white bg-danger h-100">
-                        <div class="card-body bg-danger">
-                            <div class="rotate">
-                                <i class="fa fa-list fa-4x"></i>
-                            </div>
-                            <h6 class="text-uppercase">Reingrasados de Derivaciones este mes</h6>
-                            <h1 class="display-4">
-                                <a class="text-white" href="{{ path('cliente_index', {'filtroFecha': 'derivados'}) }}">
-                                    {{ reingresoDerivadosEsteMes }}
-                                </a>
-                            </h1>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-sm-6 py-2">
-                    <div class="card text-white bg-info h-100">
-                        <div class="card-body bg-info">
-                            <div class="rotate">
-                                <i class="fa fa-share fa-4x"></i>
-                            </div>
-                            <h6 class="text-uppercase">Derivados Hoy</h6>
-                            <h1 class="display-4">{{ derivadosHoy }}</h1>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-sm-6 py-2">
-                    <div class="card bg-warning h-100">
-                        <div class="card-body bg-warning">
-                            <div class="rotate">
-                                <i class="fa fa-female fa-4x"></i>
-                            </div>
-                            <h6 class="text-uppercase">Reingrasados de Derivaciones hoy</h6>
-                            <h1 class="display-4">{{ ReingresadosDerivadosHoy }}</h1>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <hr>
-            <div class="row mb-3">
-                <div class="col-12">
-                    <h3>Permisos</h3>
-                </div>
-            </div>
-            <hr>
-
-            <div class="row mb-3">
-                <div class="col-xl-3 col-sm-6 py-2">
-                    <div class="card bg-success text-white h-100">
-                        <div class="card-body bg-success">
-                            <div class="rotate">
-                                <i class="fa fa-user fa-4x"></i>
-                            </div>
-                            <h6 class="text-uppercase">De Permiso este mes</h6>
-                            <h1 class="display-4">
-                                <a class="text-white" href="{{ path('cliente_index', {'filtroFecha': 'derivados'}) }}">
-                                {{ permisosEsteMes }}
-                                </a>
-                            </h1>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-sm-6 py-2">
-                    <div class="card text-white bg-danger h-100">
-                        <div class="card-body bg-danger">
-                            <div class="rotate">
-                                <i class="fa fa-list fa-4x"></i>
-                            </div>
-                            <h6 class="text-uppercase">Reingrasados de Permisos este mes</h6>
-                            <h1 class="display-4">
-                                <a class="text-white" href="{{ path('cliente_index', {'filtroFecha': 'derivados'}) }}">
-                                    {{ reingresoPermisosEsteMes }}
-                                </a>
-                            </h1>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-sm-6 py-2">
-                    <div class="card text-white bg-info h-100">
-                        <div class="card-body bg-info">
-                            <div class="rotate">
-                                <i class="fa fa-share fa-4x"></i>
-                            </div>
-                            <h6 class="text-uppercase">De Permiso Hoy</h6>
-                            <h1 class="display-4">{{ permisosHoy }}</h1>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-sm-6 py-2">
-                    <div class="card bg-warning h-100">
-                        <div class="card-body bg-warning">
-                            <div class="rotate">
-                                <i class="fa fa-female fa-4x"></i>
-                            </div>
-                            <h6 class="text-uppercase">Reingrasados de Permiso hoy</h6>
-                            <h1 class="display-4">{{ ReingresadosPermisosHoy }}</h1>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <hr>
-
-            
-
-
+        </div>
     {% endif %}    
 {% endblock %}
+
 {% block javascripts %}
     {{ parent() }}
     <script src="{{ asset('assets/js/chartist.min.js')}}"></script>
     <script>
         $(document).ready(function() {
+            // Activar tooltips
+            $('[data-toggle="tooltip"]').tooltip();
             
-            $('[data-toggle=offcanvas]').click(function() {
-                $('.row-offcanvas').toggleClass('active');
-            });
-            
+            // Gráfico de camas
             var data = {
-                series: [{{ infoHabitacionesTotalyPorPiso['total'].total_camas_disponibles }}, {{ infoHabitacionesTotalyPorPiso['total'].total_camas_ocupadas }}]
+                series: [
+                    {{ infoHabitacionesTotalyPorPiso['total'].total_camas_disponibles }}, 
+                    {{ infoHabitacionesTotalyPorPiso['total'].total_camas_ocupadas }}
+                ]
             };
 
             // Opciones para personalizar el gráfico de torta
@@ -476,5 +617,5 @@
             // Renderiza el gráfico de torta
             new Chartist.Pie('.ct-chart', data, options);
         });
-</script>
+    </script>
 {% endblock %}

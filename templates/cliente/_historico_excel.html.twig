@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Histórico de Pacientes</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h2>Histórico de Pacientes - {{ "now"|date("d/m/Y") }}</h2>
+    <p>Período: {{ from ? from : 'Inicio' }} - {{ to ? to : 'Actual' }}</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Historia</th>
+                <th>Nombres</th>
+                <th>Documento</th>
+                <th>Obra Social</th>
+                <th>F. Ingreso</th>
+                <th>F. Egreso</th>
+                <th>Modalidad</th>
+                <th>Profesional</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for historia in historiasArray %}
+                <tr>
+                    <td>{{ historia.hClinica }}</td>
+                    <td>{{ historia.apellido }} {{ historia.nombre }}</td>
+                    <td>{{ historia.dni }}</td>
+                    <td>
+                        {% if historia.obraSocial is defined and historia.obraSocial %}
+                            {% if obraSociales[historia.obraSocial] is defined %}
+                                {{ obraSociales[historia.obraSocial] }}
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                    <td>{{ historia.fechaIngreso ? historia.fechaIngreso|date('Y-m-d') : '' }}</td>
+                    <td>{{ historia.fechaEgreso ? historia.fechaEgreso|date('Y-m-d') : '' }}</td>
+                    <td>{{ historia.modalidad == 1 ? 'Ambulatorio' : 'Internado' }}</td>
+                    <td>
+                        {% for profesional in profesionales %}
+                            {% if profesional.id == historia.medico %}
+                                {{ profesional.apellido }} {{ profesional.nombre }}
+                            {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td>{{ historia.estado == 1 ? 'Activo' : 'Inactivo' }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

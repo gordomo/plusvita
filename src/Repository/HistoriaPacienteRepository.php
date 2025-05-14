@@ -288,16 +288,29 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
         return $ids;  // Devuelve solo el array de IDs
     }
 
-    public function getPacientesDerivadosPorMes($startDate, $endDate)
+    public function getPacientesDerivadosPorMes($startDate, $endDate, $orderBy = null)
     {    
-        $result = $this->createQueryBuilder('h')
-            ->select('DISTINCT h.id_paciente AS id_paciente')
+        $query = $this->createQueryBuilder('h')
+            ->select('DISTINCT h.id_paciente AS id_paciente, h.fechaDerivacion')
             ->andWhere('h.fechaDerivacion >= :startDate')
             ->andWhere('h.fechaDerivacion <= :endDate')
             ->setParameter('startDate', $startDate)
-            ->setParameter('endDate', $endDate)
-            ->getQuery()
-            ->getScalarResult();
+            ->setParameter('endDate', $endDate);
+            
+        // Agregar soporte para ordenamiento
+        if ($orderBy) {
+            if (is_array($orderBy)) {
+                foreach ($orderBy as $field => $direction) {
+                    $query->orderBy('h.' . $field, $direction);
+                }
+            } else {
+                $query->orderBy('h.' . $orderBy, 'ASC');
+            }
+        } else {
+            $query->orderBy('h.fechaDerivacion', 'DESC');
+        }
+        
+        $result = $query->getQuery()->getScalarResult();
 
         // Extraemos los valores en un array simple
         $pacientesIds = array_column($result, 'id_paciente');

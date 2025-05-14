@@ -45,10 +45,17 @@ class ClienteRepository extends ServiceEntityRepository
                 $query->andWhere('c.habitacion = :hab')->setParameter('hab',$hab);
             }
 
-        if ( $orderBy ) {
-            $query = $query->orderBy('c.'.$orderBy, 'ASC');
+        // Actualizado para manejar array de ordenamiento
+        if ($orderBy) {
+            if (is_array($orderBy)) {
+                foreach ($orderBy as $field => $direction) {
+                    $query->orderBy('c.' . $field, $direction);
+                }
+            } else {
+                $query->orderBy('c.' . $orderBy, 'ASC');
+            }
         } else {
-            $query = $query->orderBy('c.hClinica', 'ASC');
+            $query->orderBy('c.hClinica', 'ASC');
         }
 
         if ( $os ) {
@@ -60,42 +67,69 @@ class ClienteRepository extends ServiceEntityRepository
                                         
     public function findActivos($value, $nombre, $currentPage, $limit, $hab = null, $orderBy = null, $os = null)
     {
-        $query = $this->createQueryBuilder('c')
-            ->andWhere('c.fEgreso > :val')->setParameter('val', $value)
-            ->orWhere('c.fEgreso IS NULL');
-        if ( $nombre != '' ) {
+        $query = $this->createQueryBuilder('c');
+        
+        // Agrupar condiciones principales con paréntesis
+        $query->andWhere($query->expr()->orX(
+            $query->expr()->gt('c.fEgreso', ':val'),
+            $query->expr()->isNull('c.fEgreso')
+        ))->setParameter('val', $value);
+        
+        // Agregar filtro de nombre si existe
+        if ($nombre != '') {
             $arrayNombres = explode(' ', $nombre);
             $i = 1;
-            foreach ( $arrayNombres as $nombre ) {
-                $query->andWhere("c.nombre like :nombre$i OR c.apellido like :nombre$i")->setParameter("nombre$i",'%'. $nombre .'%');
-                $i ++;
+            foreach ($arrayNombres as $nombre) {
+                $query->andWhere($query->expr()->orX(
+                    $query->expr()->like('c.nombre', ':nombre' . $i),
+                    $query->expr()->like('c.apellido', ':nombre' . $i)
+                ))->setParameter('nombre' . $i, '%' . $nombre . '%');
+                $i++;
             }
         }
-        $query
-            ->andWhere('c.derivado = 0')
-            ->orWhere('c.derivado is null')
-            ->andWhere('c.dePermiso = 0')
-            ->orWhere('c.dePermiso is null')
-            ->andWhere('c.ambulatorio = 0')
-            ->orWhere('c.ambulatorio is null')
-            ->andWhere('c.habitacion is not null');
-            if($hab != null) {
-                $query->andWhere('c.habitacion = :hab')->setParameter('hab',$hab);
-            }
+        
+        // Agrupar condiciones de estado con paréntesis para la correcta lógica SQL
+        $query->andWhere($query->expr()->andX(
+            $query->expr()->orX(
+                $query->expr()->eq('c.derivado', 0),
+                $query->expr()->isNull('c.derivado')
+            ),
+            $query->expr()->orX(
+                $query->expr()->eq('c.dePermiso', 0),
+                $query->expr()->isNull('c.dePermiso')
+            ),
+            $query->expr()->orX(
+                $query->expr()->eq('c.ambulatorio', 0),
+                $query->expr()->isNull('c.ambulatorio')
+            ),
+            $query->expr()->isNotNull('c.habitacion')
+        ));
+        
+        // Agregar filtro de habitación si existe
+        if ($hab != null) {
+            $query->andWhere('c.habitacion = :hab')->setParameter('hab', $hab);
+        }
 
-        if ( $orderBy ) {
-            $query = $query->orderBy('c.'.$orderBy, 'ASC');
+        // Agregar orden (modificado para manejar array de ordenamiento)
+        if ($orderBy) {
+            if (is_array($orderBy)) {
+                foreach ($orderBy as $field => $direction) {
+                    $query->orderBy('c.' . $field, $direction);
+                }
+            } else {
+                $query->orderBy('c.' . $orderBy, 'ASC');
+            }
         } else {
-            $query = $query->orderBy('c.hClinica', 'ASC');
+            $query->orderBy('c.hClinica', 'ASC');
         }
 
-        if ( $os ) {
+        // Agregar filtro de obra social si existe
+        if ($os) {
             $query->andWhere('c.obraSocial = :os')->setParameter("os", $os);
         }
 
         $paginator = $this->paginate($query, $currentPage, $limit);
         return array('paginator' => $paginator, 'query' => $query);
-        
     }
 
     // modalidad 1 es ambulatorio
@@ -114,7 +148,7 @@ class ClienteRepository extends ServiceEntityRepository
             $arrayNombres = explode(' ', $nombre);
             $i = 1;
             foreach ( $arrayNombres as $nombre ) {
-                $query->andWhere("c.nombre like :nombre$i OR c.apellido like :nombre$i")->setParameter("nombre$i",'%'. $nombre .'%');
+                $query->andWhere("c.nombre like :nombre$i OR c.apellido like :nombre$i")->setParameter("nombre$i",'%' . $nombre . '%');
                 $i ++;
             }
         }
@@ -135,7 +169,7 @@ class ClienteRepository extends ServiceEntityRepository
             $arrayNombres = explode(' ', $nombre);
             $i = 1;
             foreach ( $arrayNombres as $nombre ) {
-                $query->andWhere("c.nombre like :nombre$i OR c.apellido like :nombre$i")->setParameter("nombre$i",'%'. $nombre .'%');
+                $query->andWhere("c.nombre like :nombre$i OR c.apellido like :nombre$i")->setParameter("nombre$i",'%' . $nombre . '%');
                 $i ++;
             }
         }
@@ -158,15 +192,22 @@ class ClienteRepository extends ServiceEntityRepository
             $arrayNombres = explode(' ', $nombre);
             $i = 1;
             foreach ( $arrayNombres as $nombre ) {
-                $query->andWhere("c.nombre like :nombre$i OR c.apellido like :nombre$i")->setParameter("nombre$i",'%'. $nombre .'%');
+                $query->andWhere("c.nombre like :nombre$i OR c.apellido like :nombre$i")->setParameter("nombre$i",'%' . $nombre . '%');
                 $i ++;
             }
         }
 
-        if ( $orderBy ) {
-            $query = $query->orderBy('c.'.$orderBy, 'ASC');
+        // Actualizado para manejar array de ordenamiento
+        if ($orderBy) {
+            if (is_array($orderBy)) {
+                foreach ($orderBy as $field => $direction) {
+                    $query->orderBy('c.' . $field, $direction);
+                }
+            } else {
+                $query->orderBy('c.' . $orderBy, 'ASC');
+            }
         } else {
-            $query = $query->orderBy('c.hClinica', 'ASC');
+            $query->orderBy('c.hClinica', 'ASC');
         }
 
         if ( $os ) {
@@ -191,11 +232,20 @@ class ClienteRepository extends ServiceEntityRepository
                 $i ++;
             }
         }
-        if ( $orderBy ) {
-            $query = $query->orderBy('c.'.$orderBy, 'ASC');
+        
+        // Actualizado para manejar array de ordenamiento
+        if ($orderBy) {
+            if (is_array($orderBy)) {
+                foreach ($orderBy as $field => $direction) {
+                    $query->orderBy('c.' . $field, $direction);
+                }
+            } else {
+                $query->orderBy('c.' . $orderBy, 'ASC');
+            }
         } else {
-            $query = $query->orderBy('c.hClinica', 'ASC');
+            $query->orderBy('c.hClinica', 'ASC');
         }
+        
         if ( $os ) {
             $query->orWhere('c.obraSocial = :os')->setParameter("os", $os);
         }
@@ -214,15 +264,24 @@ class ClienteRepository extends ServiceEntityRepository
             $arrayNombres = explode(' ', $nombre);
             $i = 1;
             foreach ( $arrayNombres as $nombre ) {
-                $query->andWhere("c.nombre like :nombre$i OR c.apellido like :nombre$i")->setParameter("nombre$i",'%'. $nombre .'%');
+                $query->andWhere("c.nombre like :nombre$i OR c.apellido like :nombre$i")->setParameter("nombre$i",'%' . $nombre . '%');
                 $i ++;
             }
         }
-        if ( $orderBy ) {
-            $query = $query->orderBy('c.'.$orderBy, 'ASC');
+        
+        // Actualizado para manejar array de ordenamiento
+        if ($orderBy) {
+            if (is_array($orderBy)) {
+                foreach ($orderBy as $field => $direction) {
+                    $query->orderBy('c.' . $field, $direction);
+                }
+            } else {
+                $query->orderBy('c.' . $orderBy, 'ASC');
+            }
         } else {
-            $query = $query->orderBy('c.hClinica', 'ASC');
+            $query->orderBy('c.hClinica', 'ASC');
         }
+        
         if ( $os ) {
             $query->orWhere('c.obraSocial = :os')->setParameter("os", $os);
         }
@@ -242,17 +301,24 @@ class ClienteRepository extends ServiceEntityRepository
                 foreach ( $arrayNombres as $nombre ) {
                     $where = "c.nombre like :nombre$i OR c.apellido like :nombre$i";
                     if ($i == 1) {
-                        $query->andWhere($where)->setParameter("nombre$i",'%'. $nombre .'%');
+                        $query->andWhere($where)->setParameter("nombre$i",'%' . $nombre . '%');
                     } else {
-                        $query->orWhere($where)->setParameter("nombre$i",'%'. $nombre .'%');
+                        $query->orWhere($where)->setParameter("nombre$i",'%' . $nombre . '%');
                     }
                     $i ++;
                 }
             }
-            if ( $orderBy ) {
-                $query = $query->orderBy('c.'.$orderBy, 'ASC');
+            // Actualizado para manejar array de ordenamiento
+            if ($orderBy) {
+                if (is_array($orderBy)) {
+                    foreach ($orderBy as $field => $direction) {
+                        $query->orderBy('c.' . $field, $direction);
+                    }
+                } else {
+                    $query->orderBy('c.' . $orderBy, 'ASC');
+                }
             } else {
-                $query = $query->orderBy('c.hClinica', 'ASC');
+                $query->orderBy('c.hClinica', 'ASC');
             }
 
             if ( $os ) {
@@ -342,13 +408,13 @@ class ClienteRepository extends ServiceEntityRepository
             $arrayNombres = explode(' ', $nombre);
             $i = 1;
             foreach ( $arrayNombres as $nombre ) {
-                $query->andWhere("c.nombre like :nombre$i OR c.apellido like :nombre$i")->setParameter("nombre$i",'%'. $nombre .'%');
+                $query->andWhere("c.nombre like :nombre$i OR c.apellido like :nombre$i")->setParameter("nombre$i",'%' . $nombre . '%');
                 $i ++;
             }
         }
 
         if ( $orderBy ) {
-            $query = $query->orderBy('c.'.$orderBy, 'ASC');
+            $query = $query->orderBy('c.' . $orderBy, 'ASC');
         } else {
             $query = $query->orderBy('c.hClinica', 'ASC');
         }
@@ -382,7 +448,7 @@ class ClienteRepository extends ServiceEntityRepository
             $arrayNombres = explode(' ', $nombre);
             $i = 1;
             foreach ( $arrayNombres as $nombre ) {
-                $query->andWhere("c.nombre like :nombre$i OR c.apellido like :nombre$i")->setParameter("nombre$i",'%'. $nombre .'%');
+                $query->andWhere("c.nombre like :nombre$i OR c.apellido like :nombre$i")->setParameter("nombre$i",'%' . $nombre . '%');
                 $i ++;
             }
         }
@@ -435,37 +501,60 @@ class ClienteRepository extends ServiceEntityRepository
 
     }
 
-    public function findClientesIngresadosEsteMes($primerDiaDelMes, $ultimoDiaDelMes, $paginar = false, $currentPage = 1, $limit = 10)
+    public function findClientesIngresadosEsteMes($primerDiaDelMes, $ultimoDiaDelMes, $paginar = false, $currentPage = 1, $limit = 10, $orderBy = null)
     {
         $query = $this->createQueryBuilder('c')
             ->andWhere('c.fIngreso BETWEEN :primerDia AND :ultimoDia')
             ->setParameter('primerDia', $primerDiaDelMes)
-            ->setParameter('ultimoDia', $ultimoDiaDelMes)
-            ->getQuery();
-
-            if($paginar) {
-                $paginator = $this->paginate($query, $currentPage, $limit);
-                return array('paginator' => $paginator, 'query' => $query);
+            ->setParameter('ultimoDia', $ultimoDiaDelMes);
+            
+        // Agregar soporte para ordenamiento
+        if ($orderBy) {
+            if (is_array($orderBy)) {
+                foreach ($orderBy as $field => $direction) {
+                    $query->orderBy('c.' . $field, $direction);
+                }
+            } else {
+                $query->orderBy('c.' . $orderBy, 'ASC');
             }
+        } else {
+            $query->orderBy('c.fIngreso', 'DESC');
+        }
+        
+        if($paginar) {
+            $paginator = $this->paginate($query, $currentPage, $limit);
+            return array('paginator' => $paginator, 'query' => $query);
+        }
 
-            return $query->getResult();
+        return $query->getQuery()->getResult();
     }
     
-    public function findClientesEgresadosEsteMes($primerDiaDelMes, $ultimoDiaDelMes, $paginar = false, $currentPage = 1, $limit = 10)
+    public function findClientesEgresadosEsteMes($primerDiaDelMes, $ultimoDiaDelMes, $paginar = false, $currentPage = 1, $limit = 10, $orderBy = null)
     {
         $query = $this->createQueryBuilder('c')
             ->andWhere('c.fEgreso BETWEEN :primerDia AND :ultimoDia')
             ->setParameter('primerDia', $primerDiaDelMes)
-            ->setParameter('ultimoDia', $ultimoDiaDelMes)
-            ->getQuery();
-
-            if($paginar) {
-                $paginator = $this->paginate($query, $currentPage, $limit);
-                return array('paginator' => $paginator, 'query' => $query);
+            ->setParameter('ultimoDia', $ultimoDiaDelMes);
+            
+        // Agregar soporte para ordenamiento
+        if ($orderBy) {
+            if (is_array($orderBy)) {
+                foreach ($orderBy as $field => $direction) {
+                    $query->orderBy('c.' . $field, $direction);
+                }
+            } else {
+                $query->orderBy('c.' . $orderBy, 'ASC');
             }
+        } else {
+            $query->orderBy('c.fEgreso', 'DESC');
+        }
 
+        if($paginar) {
+            $paginator = $this->paginate($query, $currentPage, $limit);
+            return array('paginator' => $paginator, 'query' => $query);
+        }
 
-            return $query->getResult();
+        return $query->getQuery()->getResult();
     }
 
     public function findClientesIngresadosHoy()
@@ -496,7 +585,7 @@ class ClienteRepository extends ServiceEntityRepository
 
 
         if ( $orderBy ) {
-            $query = $query->orderBy('c.'.$orderBy, 'ASC');
+            $query = $query->orderBy('c.' . $orderBy, 'ASC');
         } else {
             $query = $query->orderBy('c.hClinica', 'ASC');
         }

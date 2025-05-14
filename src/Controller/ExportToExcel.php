@@ -78,4 +78,48 @@ Class ExportToExcel extends AbstractController {
         return $response;
 
     }
+
+    /**
+     * @Route("/exportar_historico_excel", name="exportar_historico_excel", methods={"POST"})
+     */
+    public function exportarHistoricoExcel(Request $request, \App\Repository\HistoriaPacienteRepository $historiaPacienteRepository, \App\Repository\ObraSocialRepository $obraSocialRepository, \App\Repository\DoctorRepository $doctorRepository)
+    {
+        // Obtener parámetros de filtro
+        $from = $request->request->get('from');
+        $to = $request->request->get('to');
+        $modalidad = $request->request->get('modalidad', 0);
+        $nombre = $request->request->get('nombre');
+        $obraSocial = $request->request->get('obraSocial');
+        $prof = $request->request->get('prof');
+        $vto = $request->request->get('vto');
+        $hc = $request->request->get('hc');
+        
+        // Obtener los datos de histórico pacientes con los mismos filtros que en la vista
+        $historiasArray = $historiaPacienteRepository->getHistoriasClientes($from, $to, $modalidad, $nombre, $obraSocial, $prof, $vto, $hc);
+        
+        // Obtener datos complementarios necesarios para la plantilla
+        $profesionales = $doctorRepository->findAll();
+        $obraSociales = [];
+        foreach ($obraSocialRepository->findAll() as $os) {
+            $obraSociales[$os->getId()] = $os->getNombre();
+        }
+        
+        // Generar el contenido HTML para el Excel
+        $html = $this->renderView('cliente/_historico_excel.html.twig', [
+            'historiasArray' => $historiasArray,
+            'from' => $from,
+            'to' => $to,
+            'modalidad' => $modalidad,
+            'nombre' => $nombre,
+            'obraSocial' => $obraSocial,
+            'profesionales' => $profesionales,
+            'obraSociales' => $obraSociales
+        ]);
+        
+        // Generar nombre del archivo
+        $nombre = 'historico-pacientes-' . date('Y-m-d');
+        
+        // Convertir el HTML a Excel y devolver el resultado
+        return self::toExcel($html, $this->get('router'), $nombre . '.xlsx');
+    }
 }

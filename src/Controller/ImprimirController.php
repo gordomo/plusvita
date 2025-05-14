@@ -162,6 +162,77 @@ HTML;
         return new JsonResponse(['url' => '/uploads/snappy/'.$fileName]);
     }
 
+    /**
+     * @Route("/historico_pacientes", name="imprimir_historico_pacientes", methods={"POST"})
+     */
+    public function imprimirHistoricoPacientes(Request $request, ClienteRepository $clienteRepository, HistoriaPacienteRepository $historiaPacienteRepository, ObraSocialRepository $obraSocialRepository, DoctorRepository $doctorRepository): Response
+    {
+        // Obtener parámetros de filtro
+        $from = $request->request->get('from');
+        $to = $request->request->get('to');
+        $modalidad = $request->request->get('modalidad', 0);
+        $nombre = $request->request->get('nombre');
+        $obraSocial = $request->request->get('obraSocial');
+        $prof = $request->request->get('prof');
+        $vto = $request->request->get('vto');
+        $hc = $request->request->get('hc');
+        
+        // Obtener los datos de histórico pacientes con los mismos filtros que en la vista
+        $historiasArray = $historiaPacienteRepository->getHistoriasClientes($from, $to, $modalidad, $nombre, $obraSocial, $prof, $vto, $hc);
+        
+        // Obtener datos complementarios necesarios para la plantilla
+        $profesionales = $doctorRepository->findAll();
+        $obraSociales = [];
+        foreach ($obraSocialRepository->findAll() as $os) {
+            $obraSociales[$os->getId()] = $os->getNombre();
+        }
+        
+        // Obtener las habitaciones para mostrar en la vista
+        $habitacionesArray = [];
+        
+        // Generar el contenido HTML para el PDF
+        $html = $this->renderView('cliente/_historia_print.html.twig', [
+            'historiasArray' => $historiasArray,
+            'from' => $from,
+            'to' => $to,
+            'modalidad' => $modalidad,
+            'nombre' => $nombre,
+            'obraSocial' => $obraSocial,
+            'prof' => $prof,
+            'vto' => $vto,
+            'hc' => $hc,
+            'profesionales' => $profesionales,
+            'obraSociales' => $obraSociales,
+            'habitacionesArray' => $habitacionesArray,
+            'isPDF' => true
+        ]);
+        
+        // Configurar opciones de PDF
+        $pdfOptions = new Options();
+        $pdfOptions->set('defaultFont', 'Arial');
+        $pdfOptions->set('isRemoteEnabled', 'true');
+        $pdfOptions->set("isPhpEnabled", true);
+        
+        // Crear PDF
+        $dompdf = new Dompdf($pdfOptions);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'landscape'); // Formato apaisado para que quepa mejor la tabla
+        $dompdf->render();
+        
+        // Generar nombre de archivo
+        $fileName = 'historico-pacientes-' . date('Y-m-d') . '.pdf';
+        
+        // Devolver respuesta PDF directamente al navegador
+        return new Response(
+            $dompdf->output(),
+            Response::HTTP_OK,
+            [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="' . $fileName . '"'
+            ]
+        );
+    }
+
     private function getIngresoHtml($cliente) {
         $ingreso = $cliente->getHistoriaIngreso();
         $ingresoHtml = '';

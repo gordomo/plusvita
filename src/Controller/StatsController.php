@@ -54,12 +54,41 @@ class StatsController extends AbstractController
         // Datos para gráficos de ocupación
         $ocupacionPorDia = $this->getOcupacionPorDia($em);
         
+        // --- Métrica: días de internación por patología ---
+        $conn = $em->getConnection();
+        $sql = "SELECT patologia, fecha_ingreso, fecha_engreso FROM historia_paciente WHERE modalidad = '2' AND fecha_ingreso IS NOT NULL AND fecha_engreso IS NOT NULL AND patologia IS NOT NULL";
+        $stmt = $conn->prepare($sql);
+        $result = $stmt->executeQuery();
+        $internaciones = $result->fetchAllAssociative();
+
+        $diasPorPatologia = [];
+        foreach ($internaciones as $row) {
+            $patologia = $row['patologia'] ?: 'Sin especificar';
+            $fechaIngreso = $row['fecha_ingreso'];
+            $fechaEngreso = $row['fecha_engreso'];
+            if ($fechaIngreso && $fechaEngreso) {
+                $dias = (new \DateTime($fechaIngreso))->diff(new \DateTime($fechaEngreso))->days + 1;
+                $diasPorPatologia[$patologia][] = $dias;
+            }
+        }
+        $statsInternacion = [];
+        foreach ($diasPorPatologia as $patologia => $diasArr) {
+            $statsInternacion[$patologia] = [
+                'promedio' => round(array_sum($diasArr) / count($diasArr), 1),
+                'min' => min($diasArr),
+                'max' => max($diasArr),
+                'total' => array_sum($diasArr),
+                'casos' => count($diasArr)
+            ];
+        }
+
         return $this->render('stats/index.html.twig', [
             'totalHabitaciones' => $totalHabitaciones,
             'totalCamas' => $totalCamas,
             'ingresosDelMes' => $ingresosDelMes,
             'egresosDelMes' => $egresosDelMes,
             'ocupacionPorDia' => json_encode($ocupacionPorDia),
+            'statsInternacion' => $statsInternacion,
         ]);
     }
     
@@ -132,69 +161,41 @@ class StatsController extends AbstractController
     public function altas(Request $request, EntityManagerInterface $em): Response
     {
         $year = $request->query->get('year', date('Y'));
-        
-        // Obtener todos los egresos del año agrupados por mes
-        $egresos = $em->getRepository(HistoriaEgreso::class)
-            ->createQueryBuilder('e')
-            ->select('MONTH(e.fecha) as mes, COUNT(e.id) as total')
-            ->where('YEAR(e.fecha) = :year')
-            ->setParameter('year', $year)
-            ->groupBy('mes')
-            ->getQuery()
-            ->getResult();
-            
-        // Formatear datos para gráfico
+        $conn = $em->getConnection();
+        // Altas por mes
+        $sql = "SELECT MONTH(fecha_engreso) as mes, COUNT(id) as total FROM historia_paciente WHERE fecha_engreso IS NOT NULL AND YEAR(fecha_engreso) = :year GROUP BY mes";
+        $stmt = $conn->prepare($sql);
+        $egresos = $stmt->executeQuery(['year' => $year])->fetchAllAssociative();
         $meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
         $datosPorMes = array_fill(0, 12, 0);
-        
         foreach ($egresos as $egreso) {
             $datosPorMes[$egreso['mes'] - 1] = (int)$egreso['total'];
         }
-        
-        // Obtener análisis de texto de egresos (epicrisis)
-        // Esto es una simplificación - idealmente usaríamos análisis de texto más avanzado
-        $egresoTextos = $em->getRepository(HistoriaEgreso::class)
-            ->createQueryBuilder('e')
-            ->select('e.epicrisis_alta')
-            ->where('e.epicrisis_alta IS NOT NULL')
-            ->andWhere('YEAR(e.fecha) = :year')
-            ->setParameter('year', $year)
-            ->getQuery()
-            ->getResult();
-            
-        // Análisis simple de palabras clave para categorizar altas
-        $palabrasClave = [
-            'Recuperación' => ['recuperado', 'mejoria', 'favorable', 'estable'],
-            'Derivación' => ['derivado', 'traslado', 'transferido'],
-            'Alta voluntaria' => ['voluntaria', 'solicitud del paciente', 'contra indicación'],
-            'Fallecimiento' => ['fallecido', 'defunción', 'óbito']
+        // Clasificación de altas
+        $sql2 = "SELECT modalidad, motivo_derivacion, derivado_en FROM historia_paciente WHERE fecha_engreso IS NOT NULL AND YEAR(fecha_engreso) = :year";
+        $stmt2 = $conn->prepare($sql2);
+        $altas = $stmt2->executeQuery(['year' => $year])->fetchAllAssociative();
+        $categorias = [
+            'Recuperación' => 0,
+            'Derivación' => 0,
+            'Alta voluntaria' => 0,
+            'Fallecimiento' => 0,
+            'Otras' => 0
         ];
-        
-        $categorias = array_fill_keys(array_keys($palabrasClave), 0);
-        $otrasAltas = 0;
-        
-        foreach ($egresoTextos as $texto) {
-            $epicrisis = strtolower($texto['epicrisis_alta'] ?? '');
-            $categorizado = false;
-            
-            foreach ($palabrasClave as $categoria => $palabras) {
-                foreach ($palabras as $palabra) {
-                    if (strpos($epicrisis, $palabra) !== false) {
-                        $categorias[$categoria]++;
-                        $categorizado = true;
-                        break 2;
-                    }
-                }
-            }
-            
-            if (!$categorizado) {
-                $otrasAltas++;
+        foreach ($altas as $alta) {
+            // Modalidad 2: recuperación (internación)
+            if ($alta['modalidad'] == '2') {
+                $categorias['Recuperación']++;
+            } elseif (!empty($alta['motivo_derivacion']) || !empty($alta['derivado_en'])) {
+                $categorias['Derivación']++;
+            } elseif ($alta['modalidad'] == '1') {
+                $categorias['Alta voluntaria']++;
+            } elseif ($alta['modalidad'] == '4') {
+                $categorias['Fallecimiento']++;
+            } else {
+                $categorias['Otras']++;
             }
         }
-        
-        // Añadir "Otras" al arreglo de categorías
-        $categorias['Otras'] = $otrasAltas;
-        
         return $this->render('stats/altas.html.twig', [
             'year' => $year,
             'meses' => $meses,
@@ -267,53 +268,50 @@ class StatsController extends AbstractController
         if (!$startDate) {
             $startDate = new \DateTime('-30 days');
         }
-        
         if (!$endDate) {
             $endDate = new \DateTime();
         }
-        
-        // Obtener el total de camas disponibles
-        $totalCamas = $em->createQuery('SELECT SUM(h.camasDisponibles) FROM App\Entity\Habitacion h')->getSingleScalarResult() ?: 0;
-        
+        $totalCamas = $em->createQuery('SELECT SUM(h.camasDisponibles) FROM App\\Entity\\Habitacion h')->getSingleScalarResult() ?: 0;
         // Consultar el historial de habitaciones para el período
         $qb = $em->createQueryBuilder();
         $historico = $qb->select('SUBSTRING(h.fecha, 1, 10) as fecha, COUNT(h.id) as ocupadas')
-            ->from('App\Entity\HistoriaHabitaciones', 'h')
+            ->from('App\\Entity\\HistoriaHabitaciones', 'h')
             ->where('h.fecha BETWEEN :start AND :end')
             ->setParameter('start', $startDate)
             ->setParameter('end', $endDate)
             ->groupBy('fecha')
             ->getQuery()
             ->getResult();
-            
-        // Formatear los datos por día
         $ocupacionPorDia = [];
         $currentDate = clone $startDate;
-        
         while ($currentDate <= $endDate) {
             $dateStr = $currentDate->format('Y-m-d');
             $ocupadas = 0;
-            
-            // Buscar si hay datos para esta fecha
             foreach ($historico as $record) {
                 if ($record['fecha'] == $dateStr) {
                     $ocupadas = $record['ocupadas'];
                     break;
                 }
             }
-            
+            // Si no hay datos para el día actual y es el último día (hoy), calcular ocupación real
+            if ($ocupadas == 0 && $dateStr == (new \DateTime())->format('Y-m-d')) {
+                // Calcular ocupación actual real
+                $habitaciones = $em->getRepository('App\\Entity\\Habitacion')->findAll();
+                $ocupadasHoy = 0;
+                foreach ($habitaciones as $hab) {
+                    $ocupadasHoy += is_array($hab->getCamasOcupadas()) ? count($hab->getCamasOcupadas()) : 0;
+                }
+                $ocupadas = $ocupadasHoy;
+            }
             $porcentaje = $totalCamas > 0 ? round(($ocupadas / $totalCamas) * 100, 2) : 0;
-            
             $ocupacionPorDia[] = [
                 'fecha' => $currentDate->format('d/m'),
                 'ocupadas' => $ocupadas,
                 'total' => $totalCamas,
                 'porcentaje' => $porcentaje
             ];
-            
             $currentDate->modify('+1 day');
         }
-        
         return $ocupacionPorDia;
     }
 }

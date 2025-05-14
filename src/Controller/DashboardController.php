@@ -15,6 +15,7 @@ use App\Repository\HistoriaPacienteRepository;
 use App\Repository\ObraSocialRepository;
 use App\Repository\PresentesRepository;
 use DateTime;
+use Doctrine\ORM\EntityNotFoundException;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\Filesystem\Filesystem;
@@ -68,9 +69,9 @@ class DashboardController extends AbstractController
         $ingresadosHoy = $clienteRepository->findClientesIngresadosHoy();
         $egresadosHoy = $clienteRepository->findClientesEgresadosHoy();
 
-        $derivadosEsteMes = $historiaPacienteRepository->getPacientesDerivadosPorMes($startDate, $endDate);
+        $derivadosEsteMes = $historiaPacienteRepository->getPacientesDerivadosPorMes($startDate, $endDate, ['fechaDerivacion' => 'ASC']);
         $reingresoDerivadosEsteMes = $historiaPacienteRepository->getPacientesReingresoDerivadosPorMes($startDate, $endDate);
-        $derivadosHoy = $historiaPacienteRepository->getPacientesDerivadosPorMes(new \DateTime(), new \DateTime());
+        $derivadosHoy = $historiaPacienteRepository->getPacientesDerivadosPorMes(new \DateTime(), new \DateTime(), ['fechaDerivacion' => 'ASC']);
         $ReingresadosDerivadosHoy = $historiaPacienteRepository->getPacientesReingresoDerivadosPorMes(new \DateTime(), new \DateTime());
 
 
@@ -169,7 +170,7 @@ class DashboardController extends AbstractController
             if ( (!empty($cliente->getFEgreso()) && $cliente->getFEgreso() >= $historia->getFecha()) or (empty($cliente->getFEgreso())) ) {
                 try {
                     $docReferente = $cliente->getDocReferente();
-                } catch (\EntityNotFoundException $e) {
+                } catch (EntityNotFoundException $e) {
                     $docReferente = [];
                 }
                 foreach ($docReferente as $doc) {
@@ -311,19 +312,24 @@ class DashboardController extends AbstractController
         $habitacionRepository = $this->getDoctrine()->getRepository(Habitacion::class);
         $clienteRepository = $this->getDoctrine()->getRepository(Cliente::class);
 
-        $clientesConHabitacion = $clienteRepository->findClienteConHabitacion();
+        // Usando findBy con el criterio de habitacion no nula
+        $clientesConHabitacion = $clienteRepository->findBy(['habitacion' => ['isNotNull' => true]]);
         $data = [];
 
         foreach($clientesConHabitacion as $cliente) {
-            $habitacion = $habitacionRepository->find($cliente->getHabitacion());
-            $data[$habitacion->getId()]['clientes'][] = $cliente;
-            $data[$habitacion->getId()]['totales'] = $habitacion->getCamasDisponibles();
-            $data[$habitacion->getId()]['disponibles'] = $cliente->getHabPrivada() ? 0 : isset($data[$habitacion->getId()]['disponibles']) ? $data[$habitacion->getId()]['disponibles'] - 1 : $habitacion->getCamasDisponibles() - 1; 
+            if ($cliente->getHabitacion()) {
+                $habitacion = $habitacionRepository->find($cliente->getHabitacion());
+                if ($habitacion) {
+                    $data[$habitacion->getId()]['clientes'][] = $cliente;
+                    $data[$habitacion->getId()]['totales'] = $habitacion->getCamasDisponibles();
+                    $data[$habitacion->getId()]['disponibles'] = $cliente->getHabPrivada() ? 0 : isset($data[$habitacion->getId()]['disponibles']) ? $data[$habitacion->getId()]['disponibles'] - 1 : $habitacion->getCamasDisponibles() - 1; 
+                }
+            }
         }
 
         return $data;
     }
-
+    
     private function hayContratosVencidos(DoctorRepository $doctorRepository)
     {
         return count($doctorRepository->findAllVencidos());

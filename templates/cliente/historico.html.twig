@@ -3,7 +3,83 @@
 {% block title %}Historico{% endblock %}
 {% block stylesheets %}
     {{ parent() }}
-
+    <style>
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .printable, .printable * {
+                visibility: visible;
+            }
+            .printable {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .no-print, .no-print * {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            tr.novedades-section {
+                display: table-row !important;
+            }
+            
+            /* Ajustes para mejorar la impresión en formato paisaje */
+            @page {
+                size: landscape;
+                margin: 10mm;
+            }
+            
+            table.table {
+                font-size: 11px !important;
+                width: 100% !important;
+                table-layout: fixed !important;
+            }
+            
+            /* Ajustar anchos de columnas para que quepan en la página */
+            table.table th, table.table td {
+                padding: 2px !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+                white-space: normal !important;
+                word-break: break-word !important;
+            }
+        }
+        
+        /* Estilos para el resumen (compacto) */
+        .summary-mode .no-changes {
+            display: none !important;
+        }
+        
+        /* Botones de impresión y exportación */
+        .print-export-buttons {
+            margin-top: 10px;
+        }
+        .print-export-buttons button {
+            margin-right: 10px;
+        }
+        
+        /* Estilo para el botón de PDF */
+        .btn-pdf {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        /* Estilo para el botón de Excel */
+        .btn-excel {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        /* Estilo para el botón de impresión condensada */
+        .btn-print-summary {
+            background-color: #007bff;
+            color: white;
+        }
+    </style>
 {% endblock %}
 {% block panelTitle %}Historico{% endblock %}
 {% block body %}
@@ -73,13 +149,26 @@
             <div class="col">
                 <button type="submit" class="btn btn-primary">Buscar</button>
                 <a href="{{ path('cliente_historicos') }}" class="btn btn-action">Limpiar</a>
+                
+                <!-- Nuevos botones para impresión y exportación -->
+                <div class="print-export-buttons d-inline-block ml-4">
+                    <button type="button" class="btn btn-print-summary" id="btnPrintSummary">
+                        <i class="fas fa-print"></i> Imprimir Resumen
+                    </button>
+                    <button type="button" class="btn btn-pdf" id="btnExportPDF">
+                        <i class="fas fa-file-pdf"></i> Exportar PDF
+                    </button>
+                    <button type="button" class="btn btn-excel" id="btnExportExcel">
+                        <i class="fas fa-file-excel"></i> Exportar Excel
+                    </button>
+                </div>
             </div>
             <div class="col">
                 <h5>Total: <span class="badge badge-secondary">{{ total }}</span></h5>
             </div>
         </div>
     </form>
-    <div class="printiable">
+    <div class="printable">
         <div class="row mt-4">
             <table class="table">
                 <thead>
@@ -92,15 +181,15 @@
                                         <li class="page-item" >
                                             <a class="page-link" href="{{ path('cliente_historicos', {currentPage: (thisPage-1 < 1 ? 1 : thisPage-1),
                                                                             from: ((from) ? from : ''), 
-                                                                            to: ((to) ? to : ''),
-                                                                            vto: ((vto) ? vto : ''),
-                                                                            nombre: ((nombre) ? nombre : ''),
-                                                                            estado: ((estado) ? estado : ''),
-                                                                            obraSocial: ((obraSocial) ? obraSocial : ''),
-                                                                            prof: ((prof) ? prof : ''),
-                                                                            modalidad: ((modalidad) ? modalidad : ''),
-                                                                            hab: ((hab) ? hab : ''),
-                                                                            hc: ((hc) ? hc : ''),
+                                                                            to: ((to) ? to : ''), 
+                                                                            vto: ((vto) ? vto : ''), 
+                                                                            nombre: ((nombre) ? nombre : ''), 
+                                                                            estado: ((estado) ? estado : ''), 
+                                                                            obraSocial: ((obraSocial) ? obraSocial : ''), 
+                                                                            prof: ((prof) ? prof : ''), 
+                                                                            modalidad: ((modalidad) ? modalidad : ''), 
+                                                                            hab: ((hab) ? hab : ''), 
+                                                                            hc: ((hc) ? hc : ''), 
                                             }) }}">«</a>
                                         </li>
                                     {% endif %}
@@ -111,14 +200,14 @@
                                             <a class="page-link" href="{{ path('cliente_historicos', {
                                                                             currentPage: i, 
                                                                             from: ((from) ? from : ''), 
-                                                                            to: ((to) ? to : ''),
-                                                                            vto: ((vto) ? vto : ''),
-                                                                            nombre: ((nombre) ? nombre : ''),
-                                                                            estado: ((estado) ? estado : ''),
-                                                                            obraSocial: ((obraSocial) ? obraSocial : ''),
-                                                                            prof: ((prof) ? prof : ''),
-                                                                            modalidad: ((modalidad) ? modalidad : ''),
-                                                                            hab: ((hab) ? hab : ''),
+                                                                            to: ((to) ? to : ''), 
+                                                                            vto: ((vto) ? vto : ''), 
+                                                                            nombre: ((nombre) ? nombre : ''), 
+                                                                            estado: ((estado) ? estado : ''), 
+                                                                            obraSocial: ((obraSocial) ? obraSocial : ''), 
+                                                                            prof: ((prof) ? prof : ''), 
+                                                                            modalidad: ((modalidad) ? modalidad : ''), 
+                                                                            hab: ((hab) ? hab : ''), 
                                                                             hc: ((hc) ? hc : ''), 
                                                 }) 
                                             }}">
@@ -132,15 +221,15 @@
                                         <li class="page-item">
                                             <a class="page-link" href="{{ path('cliente_historicos', {currentPage: (thisPage+1 <= maxPages ? thisPage+1 : thisPage),
                                                                                                     from: ((from) ? from : ''), 
-                                                                                                    to: ((to) ? to : ''),
-                                                                                                    vto: ((vto) ? vto : ''),
-                                                                                                    nombre: ((nombre) ? nombre : ''),
-                                                                                                    estado: ((estado) ? estado : ''),
-                                                                                                    obraSocial: ((obraSocial) ? obraSocial : ''),
-                                                                                                    prof: ((prof) ? prof : ''),
-                                                                                                    modalidad: ((modalidad) ? modalidad : ''),
-                                                                                                    hab: ((hab) ? hab : ''),
-                                                                                                    hc: ((hc) ? hc : ''),
+                                                                                                    to: ((to) ? to : ''), 
+                                                                                                    vto: ((vto) ? vto : ''), 
+                                                                                                    nombre: ((nombre) ? nombre : ''), 
+                                                                                                    estado: ((estado) ? estado : ''), 
+                                                                                                    obraSocial: ((obraSocial) ? obraSocial : ''), 
+                                                                                                    prof: ((prof) ? prof : ''), 
+                                                                                                    modalidad: ((modalidad) ? modalidad : ''), 
+                                                                                                    hab: ((hab) ? hab : ''), 
+                                                                                                    hc: ((hc) ? hc : ''), 
                                             }) }}">»</a>
                                         </li>
                                     {% endif %}
@@ -530,8 +619,86 @@
                 </tfoot>
             </table>
         </div>
+        <div class="row">
+            <!-- Resumen por Patología -->
+            <div class="col-md-6 mb-4">
+                <div class="card summary-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Distribución por Patología</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="patologiaChart" width="400" height="300"></canvas>
+                        <div class="mt-3 patologia-list" style="max-height: 200px; overflow-y: auto;">
+                            <table class="table table-sm table-bordered">
+                                <thead><tr><th>Patología</th><th>Cantidad</th></tr></thead>
+                                <tbody>
+                                {% for nombre, cantidad in patologiasCount %}
+                                    <tr><td>{{ nombre }}</td><td>{{ cantidad }}</td></tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Resumen por Edad -->
+            <div class="col-md-6 mb-4">
+                <div class="card summary-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Distribución por Rango Etario</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="edadChart" width="400" height="300"></canvas>
+                        <div class="mt-3 edad-list" style="max-height: 200px; overflow-y: auto;">
+                            <table class="table table-sm table-bordered">
+                                <thead><tr><th>Rango</th><th>Cantidad</th></tr></thead>
+                                <tbody>
+                                {% for rango, cantidad in edadesRangos %}
+                                    <tr><td>{{ rango }}</td><td>{{ cantidad }}</td></tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Gráfico de Patologías
+        const patLabels = {{ patologiasCount|keys|json_encode|raw }};
+        const patData = {{ patologiasCount|values|json_encode|raw }};
+        const patCtx = document.getElementById('patologiaChart').getContext('2d');
+        new Chart(patCtx, {
+            type: 'pie',
+            data: {
+                labels: patLabels,
+                datasets: [{
+                    data: patData,
+                    backgroundColor: ['#60b9b9', '#b088be', '#ffc107', '#dc3545', '#6c757d']
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'right' } } }
+        });
+        // Gráfico de Edades
+        const edadLabels = {{ edadesRangos|keys|json_encode|raw }};
+        const edadData = {{ edadesRangos|values|json_encode|raw }};
+        const edadCtx = document.getElementById('edadChart').getContext('2d');
+        new Chart(edadCtx, {
+            type: 'bar',
+            data: {
+                labels: edadLabels,
+                datasets: [{
+                    label: 'Pacientes',
+                    data: edadData,
+                    backgroundColor: '#60b9b9'
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+        });
+    });
+    </script>
 {% endblock %}
 
 {% block modalImprimir %}
@@ -558,7 +725,6 @@
 {% block javascripts %}
     {{ parent() }}
     <script>
-
         $('.abrir').click(function (e) {
             e.preventDefault();
             let seccion = $(this).data('seccion');
@@ -574,6 +740,93 @@
             }
         });
 
-
+        // Funciones para la impresión y exportación
+        $(document).ready(function() {
+            // Impresión en formato resumido
+            $('#btnPrintSummary').click(function() {
+                // Mostrar todas las secciones de novedades antes de imprimir
+                $('.novedades-section').show();
+                
+                // Ocultar filas sin cambios en el modo resumen
+                $('.printable').addClass('summary-mode');
+                
+                // Configurar para imprimir solo los cambios significativos
+                window.print();
+                
+                // Restaurar después de imprimir
+                setTimeout(function() {
+                    $('.printable').removeClass('summary-mode');
+                    $('.novedades-section').hide();
+                }, 1000);
+            });
+            
+            // Exportar a PDF
+            $('#btnExportPDF').click(function() {
+                // Mostrar todas las secciones de novedades antes de imprimir
+                $('.novedades-section').each(function() {
+                    $(this).show();
+                });
+                
+                // Crear formulario para enviar a controlador de impresión
+                let form = $('<form action="{{ path("imprimir_historico_pacientes") }}" method="POST"></form>');
+                
+                // Añadir los parámetros de filtro actuales
+                let params = {
+                    'from': $('#from').val(),
+                    'to': $('#to').val(),
+                    'modalidad': $('select[name="modalidad"]').val(),
+                    'nombre': $('#nombre').val(),
+                    'obraSocial': $('select[name="obraSocial"]').val(),
+                    'prof': $('select[name="prof"]').val(),
+                    'vto': $('#vto').val(),
+                    'hc': $('#hc').val()
+                };
+                
+                // Añadir cada parámetro como input hidden
+                $.each(params, function(key, value) {
+                    form.append('<input type="hidden" name="' + key + '" value="' + value + '">');
+                });
+                
+                // Añadir el formulario al DOM y enviarlo
+                $('body').append(form);
+                form.submit();
+                form.remove();
+                
+                // Ocultar secciones después de enviar
+                setTimeout(function() {
+                    $('.novedades-section').each(function() {
+                        $(this).hide();
+                    });
+                }, 500);
+            });
+            
+            // Exportar a Excel
+            $('#btnExportExcel').click(function() {
+                // Crear formulario para enviar a controlador de exportación
+                let form = $('<form action="{{ path("exportar_historico_excel") }}" method="POST"></form>');
+                
+                // Añadir los parámetros de filtro actuales
+                let params = {
+                    'from': $('#from').val(),
+                    'to': $('#to').val(),
+                    'modalidad': $('select[name="modalidad"]').val(),
+                    'nombre': $('#nombre').val(),
+                    'obraSocial': $('select[name="obraSocial"]').val(),
+                    'prof': $('select[name="prof"]').val(),
+                    'vto': $('#vto').val(),
+                    'hc': $('#hc').val()
+                };
+                
+                // Añadir cada parámetro como input hidden
+                $.each(params, function(key, value) {
+                    form.append('<input type="hidden" name="' + key + '" value="' + value + '">');
+                });
+                
+                // Añadir el formulario al DOM y enviarlo
+                $('body').append(form);
+                form.submit();
+                form.remove();
+            });
+        });
     </script>
 {% endblock %}

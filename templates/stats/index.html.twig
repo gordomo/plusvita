@@ -234,6 +234,56 @@
             </div>
         </div>
     </div>
+
+    <!-- Métrica: Días de internación por patología -->
+    <div class="stats-section">
+        <h3 class="section-title">Días de internación por patología</h3>
+        <div class="row">
+            <div class="col-md-7">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm mb-0">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Patología</th>
+                                        <th>Promedio</th>
+                                        <th>Mínimo</th>
+                                        <th>Máximo</th>
+                                        <th>Total días</th>
+                                        <th>Cantidad de casos</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for patologia, datos in statsInternacion %}
+                                        <tr>
+                                            <td>{{ patologia }}</td>
+                                            <td>{{ datos.promedio }}</td>
+                                            <td>{{ datos.min }}</td>
+                                            <td>{{ datos.max }}</td>
+                                            <td>{{ datos.total }}</td>
+                                            <td>{{ datos.casos }}</td>
+                                        </tr>
+                                    {% else %}
+                                        <tr><td colspan="6" class="text-center">No hay datos de internación registrados.</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <div class="chart-container" style="height: 320px;">
+                            <canvas id="internacionPatologiaChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
@@ -374,6 +424,54 @@
                                     }
                                 }
                             }
+                        }
+                    }
+                });
+            }
+
+            // Gráfico de barras: promedio de días de internación por patología
+            var ctx = document.getElementById('internacionPatologiaChart');
+            if (ctx) {
+                var labels = [];
+                var promedios = [];
+                var minimos = [];
+                var maximos = [];
+                {% for patologia, datos in statsInternacion %}
+                    labels.push(`{{ patologia|e('js') }}`);
+                    promedios.push({{ datos.promedio }});
+                    minimos.push({{ datos.min }});
+                    maximos.push({{ datos.max }});
+                {% endfor %}
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Promedio de días',
+                                data: promedios,
+                                backgroundColor: '#60b9b9',
+                            },
+                            {
+                                label: 'Mínimo',
+                                data: minimos,
+                                backgroundColor: '#b088be',
+                            },
+                            {
+                                label: 'Máximo',
+                                data: maximos,
+                                backgroundColor: '#ffc107',
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'top' },
+                            tooltip: { enabled: true }
+                        },
+                        scales: {
+                            y: { beginAtZero: true }
                         }
                     }
                 });

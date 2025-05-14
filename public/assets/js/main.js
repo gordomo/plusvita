@@ -204,20 +204,41 @@ function GetSelected(id) {
     return selected;
 }
 
+// Función mejorada para imprimir que expande todas las novedades
 function getHtmlToPrint(checkboxes, conHead) {
+    // Marcar los elementos seleccionados para conservar
     $(checkboxes).each(function (e, a) {
         $('.' + a).css('display', 'table-cell').addClass('notRemove');
     });
+    
+    // Expandir todas las secciones ocultas de novedades antes de imprimir
+    $('.pacientes-prescripciones').css('display', 'block');
+    
+    // Mostrar todas las filas ocultas
+    $('tr[style*="display:none"]').css('display', 'table-row');
+    
+    // Eliminar elementos no seleccionados
     $('.table td').not('.notRemove').remove();
     $('.table th').not('.notRemove').remove();
     $('.remover').remove();
     $('.collapse').addClass('show');
+    
+    // Añadir fecha actual
+    let currentDate = new Date().toLocaleString();
+    $('.printiable').attr('data-date', currentDate);
+    
     let htmlToPrint = '';
 
     if (conHead) {
         htmlToPrint = '<head>' + $('head').html() + '</head>';
+        htmlToPrint += '<body class="printing">';
+        htmlToPrint += '<div class="print-header">';
+        htmlToPrint += '<h3>Histórico de Cliente</h3>';
+        htmlToPrint += '<p>Fecha: ' + currentDate + '</p>';
+        htmlToPrint += '</div>';
         htmlToPrint += $('.title').html() + "<br>";
         htmlToPrint += $('.printiable').html();
+        htmlToPrint += '</body>';
     } else {
         htmlToPrint += $('.title').html() + "<br><table>" + $('.printiable .table').html() + "</table>";
     }
@@ -228,10 +249,81 @@ function getHtmlToPrint(checkboxes, conHead) {
 function imprimirElemento(htmlToPrint) {
     var ventana = window.open('', 'PRINT');
     ventana.document.write(htmlToPrint);
+    
+    // Añadir evento para expandir las secciones de novedades al imprimir
+    ventana.document.write(`
+        <script>
+            window.onload = function() {
+                // Expandir todas las secciones ocultas cuando la página se carga para imprimir
+                var elements = document.querySelectorAll('tr[style*="display:none"]');
+                for (var i = 0; i < elements.length; i++) {
+                    elements[i].style.display = 'table-row';
+                }
+                
+                // Expandir todas las secciones de novedades
+                var novedades = document.querySelectorAll('.pacientes-prescripciones');
+                for (var i = 0; i < novedades.length; i++) {
+                    novedades[i].style.display = 'block';
+                }
+                
+                setTimeout(function() {
+                    window.print();
+                    window.close();
+                }, 500);
+            };
+        </script>
+    `);
+    
     ventana.document.close();
     ventana.focus();
-    ventana.print();
+    
     return true;
+}
+
+// Añadir un evento específico para imprimir el histórico de clientes
+$(document).ready(function() {
+    // Verificar si estamos en la página de histórico
+    if ($('.pacientes-prescripciones-head').length > 0) {
+        // Botón de impresión directo para historias de pacientes
+        $("#imprimirHistorico").on('click', function() {
+            // Preparar la página para imprimir directamente sin modal
+            prepararHistoricoParaImprimir();
+            window.print();
+            return false;
+        });
+        
+        // Agregar evento para la impresión de la página
+        window.addEventListener('beforeprint', function() {
+            prepararHistoricoParaImprimir();
+        });
+        
+        // Restaurar estado después de imprimir
+        window.addEventListener('afterprint', function() {
+            // Restaurar el estado anterior
+            $('.pacientes-prescripciones').each(function() {
+                if (!$(this).hasClass('showing-before-print')) {
+                    $(this).hide();
+                }
+                $(this).removeClass('showing-before-print');
+            });
+        });
+    }
+});
+
+// Función para preparar el histórico para imprimir
+function prepararHistoricoParaImprimir() {
+    // Marcar las secciones que ya estaban expandidas
+    $('.pacientes-prescripciones:visible').addClass('showing-before-print');
+    
+    // Expandir todas las secciones de novedades antes de imprimir
+    $('.pacientes-prescripciones').show();
+    
+    // Mostrar todas las filas ocultas
+    $('tr[style*="display:none"]').show();
+    
+    // Añadir fecha actual
+    let currentDate = new Date().toLocaleString();
+    $('.printiable').attr('data-date', currentDate);
 }
 
 function validateEmail(email) {

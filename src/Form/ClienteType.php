@@ -94,8 +94,11 @@ class ClienteType extends AbstractType
                 ->add('fIngreso', DateType::class, [
                     'widget' => 'single_text',
                     'required' => true
-                ])
-                ->add('modalidad', ChoiceType::class, [
+                ]);
+
+            // Solo agregar el campo de modalidad si es un nuevo paciente
+            if ($options['is_new']) {
+                $builder->add('modalidad', ChoiceType::class, [
                     'label' => 'Modalidad',
                     'placeholder' => 'Seleccione una modalidad',
                     'choices' => [
@@ -107,7 +110,35 @@ class ClienteType extends AbstractType
                     'multiple' => false,
                     'expanded' => false,
                     'required' => true,
-                ])
+                ]);
+            } else {
+                // Si no es nuevo, agregamos un campo de solo lectura para mostrar la modalidad actual
+                $modalidadLabel = '';
+                $data = $builder->getData();
+                if ($data && $data->getModalidad()) {
+                    switch ($data->getModalidad()) {
+                        case 1: $modalidadLabel = 'Ambulatorio'; break;
+                        case 2: $modalidadLabel = 'Internación'; break;
+                        case 3: $modalidadLabel = 'Hospital de día'; break;
+                        case 4: $modalidadLabel = 'ART'; break;
+                        default: $modalidadLabel = 'No definida';
+                    }
+                }
+                
+                $builder->add('modalidadLabel', TextType::class, [
+                    'label' => 'Modalidad',
+                    'mapped' => false,
+                    'data' => $modalidadLabel,
+                    'disabled' => true,
+                    'attr' => ['readonly' => true, 'class' => 'form-control-plaintext'],
+                    'help' => 'Para cambiar la modalidad use las opciones específicas desde la lista de pacientes'
+                ]);
+                
+                // Mantenemos el campo original pero oculto para que se mantenga el valor
+                $builder->add('modalidad', HiddenType::class);
+            }
+
+            $builder
                 ->add('motivoIng', ChoiceType::class, [
                     'label' => 'Patología de Ingreso',
                     'choices' => [
