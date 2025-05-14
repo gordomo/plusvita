@@ -1,90 +1,166 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Novedades index{% endblock %}
-{% block panelTitle %}Novedades <br><span style="font-size: 15px;">{{modalidad}}</span>{% endblock %}
-{% block titleButtons %}
+{% block title %}Dashboard{% endblock %}
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .dashboard-container .section-heading {
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #eee;
+            font-weight: 600;
+        }
+        
+        .dashboard-container .section-title {
+            border-left: 4px solid #b088be;
+            padding-left: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .dashboard-container .dashboard-card {
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+            transition: transform 0.2s ease;
+        }
+        
+        .dashboard-container .dashboard-card:hover {
+            transform: translateY(-3px);
+        }
+        
+        .dashboard-filters {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .notification-bell {
+            display: inline-block;
+            position: relative;
+        }
+        
+        .notification-bell .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            border-radius: 50%;
+            background: red;
+            color: white;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+        
+        .hospital-summary table td {
+            vertical-align: middle;
+        }
+        
+        .hospital-summary .room-status {
+            font-weight: 600;
+        }
+        
+        .hospital-summary .room-status.full {
+            color: #dc3545;
+        }
+        
+        .hospital-summary .room-status.available {
+            color: #28a745;
+        }
+        
+        /* Color scheme consistent with patient screens */
+        .camas-section .section-heading {
+            border-color: #60b9b9;
+        }
+        
+        .ambulatorios-section .section-heading {
+            border-color: #b088be;
+        }
+        
+        .ingresos-section .section-heading {
+            border-color: #889cbe;
+        }
+    </style>
+{% endblock %}
+
+{% block panelTitle %}
+<div class="d-flex justify-content-between align-items-center">
+    <div>
+        Dashboard <br><span class="text-muted" style="font-size: 15px;">{{ modalidad }}</span>
+    </div>
     {% if (hayContratosVencidos or hayVencenEsteMes) and is_granted('ROLE_ADMIN') %}
-        <a href="{{ path('doctor_index', {'vencidos': (hayContratosVencidos) ? 1 : 2}) }}">
-            <i class="bell far fa-bell" style="color: {{ colorCampana }}"></i>
-        </a>
+        <div class="notification-bell">
+            <a href="{{ path('doctor_index', {'vencidos': (hayContratosVencidos) ? 1 : 2}) }}" class="btn btn-light">
+                <i class="bell far fa-bell" style="color: {{ colorCampana }}"></i>
+                {% if hayContratosVencidos %}
+                    <span class="badge">{{ hayContratosVencidos }}</span>
+                {% endif %}
+            </a>
+        </div>
     {% endif %}
+</div>
 {% endblock %}
 
 {% block filtros %}
     {% if is_granted('ROLE_ADMIN') %}
-
-        {#filtros#}
         <div class="col-sm" style="align-items: center; justify-content: center; display: flex;">
-            <button class="btn btn-default" data-toggle="modal" data-target="#filtros"><i class="fas fa-filter"></i></button>
+            <button class="btn btn-outline-primary" data-toggle="modal" data-target="#filtros">
+                <i class="fas fa-filter"></i> Filtrar
+            </button>
         </div>
-        <div class="modal bd-example-modal-xl camposExtras" id="filtros" tabindex="-1" role="dialog" aria-labelledby="filtros" aria-hidden="true">
-            <div class="m-4">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLongTitle">Filtrar</h5>
-                        <button type="button" class="close" data-dismiss="modal" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-
-                    <div class="modal-body">
-                        <div class="form-group columnas-de-dos">
-                            <label for="contrato">Desde</label>
-                                <input class="form-control" type="date" id="from" name="from">
-                            <label for="contrato">Hasta</label>
-                                <input class="form-control" type="date" id="to" name="to">
-                        </div>
-                        <div class="form-group text-right">
-                            <button type="button" id="filtrarPorFecha" class="btn btn-primary">Buscar</button>
-                            <button type="button" id="printFiltrado" class="btn btn-secondary">Imprimir</button>
-                        </div>
-                        <div class="form-group text-center" style="overflow: auto;">
-                            <img id="loading" src="{{ asset('assets/images/loading.gif') }}">
-                            <table class="table table-striped" id="resultados" >
-                                <thead id="head">
-                                </thead>
-                                <tbody id="body"></tbody>
-                                <tfoot id="foot"></tfoot>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
     {% endif %}
 {% endblock %}
 
 {% block body %}
     {% if not app.user %}
-        Por favor, ingrese con su usuario y contraseña
-        <a href="{{ path('app_login') }}">ingresar</a>
+        <div class="alert alert-info">
+            Por favor, ingrese con su usuario y contraseña
+            <a href="{{ path('app_login') }}" class="btn btn-primary ml-3">Ingresar</a>
+        </div>
     {% elseif is_granted('ROLE_ADMIN') %}
-        <div class="printiable">
-            <div class="table-responsive">
-                <table class="table dashboard border-0 mb-0">
-                    <thead>
-                        <th class="habitacion">Habitacion</th>
-                        <th class="paciente">Paciente</th>
-                        <th class="obraSocial">Obra Social</th>
-                        <th class="patología">Patología</th>
-                        <th class="edad">Edad</th>
-                        <th class="dieta">Dieta</th>
-                    </thead>
-                    <tbody>
-                        {% for key, data in habitacionesYpacientes %}
-                            <tr class="{{ ( data.disponibles ) ? 'incompleta' : 'completa' }}">
-                                <td class="habitacion" colspan="6">
-                                    {% set habitacion = habitacionRepository.find(key) %}
-                                    {% set nombreHabitacion = habitacion.nombre ?? 'habitacion borrada'%}
-                                    {{ nombreHabitacion }} - {{ data.disponibles }} / {{ data.totales }} 
-                                </td>
+        <div class="dashboard-container printiable">
+            <div class="row">
+                <div class="col-12">
+                    <h3 class="section-title camas-section">Ocupación de Camas</h3>
+                </div>
+            </div>
+            
+            <div class="hospital-summary">
+                <div class="table-responsive">
+                    <table class="table table-hover dashboard border-0 mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="habitacion">Habitación</th>
+                                <th class="paciente">Paciente</th>
+                                <th class="obraSocial">Obra Social</th>
+                                <th class="patología">Patología</th>
+                                <th class="edad">Edad</th>
+                                <th class="dieta">Dieta</th>
                             </tr>
+                        </thead>
+                        <tbody>
+                            {% for key, data in habitacionesYpacientes %}
+                                <tr class="{{ ( data.disponibles ) ? 'incompleta' : 'completa' }}">
+                                    <td class="habitacion" colspan="6">
+                                        {% set habitacion = habitacionRepository.find(key) %}
+                                        {% set nombreHabitacion = habitacion.nombre ?? 'habitacion borrada'%}
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="font-weight-bold">{{ nombreHabitacion }}</span>
+                                            <span class="room-status {{ data.disponibles > 0 ? 'available' : 'full' }}">
+                                                {{ data.totales - data.disponibles }}/{{ data.totales }} 
+                                                <small class="text-muted">({{ data.disponibles }} disponibles)</small>
+                                            </span>
+                                        </div>
+                                    </td>
+                                </tr>
                                 {% for paciente in data.clientes %}
                                 <tr>
                                     <td class="border-0"></td>
                                     <td class="paciente border-0" >
-                                         <a href="{{ path('cliente_historial', {id: paciente.id}) }}">{{ paciente.nombre }} {{ paciente.apellido }}</a>
+                                        <a href="{{ path('cliente_historial', {id: paciente.id}) }}">{{ paciente.nombre }} {{ paciente.apellido }}</a>
                                     </td>
                                     <td class="obraSocial {{ (data.clientes | length > 1 and key != 0) ? '' : 'border-0' }}">
                                         <div>{{ paciente.obraSocial.nombre ?? 'No Tiene' }}</div>
@@ -100,44 +176,48 @@
                                     </td>
                                 </tr>
                                 {% endfor %}
-                            
-                            
-                            
-                        {% endfor %}
-                    </tbody>
-                </table>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-    {% elseif  is_granted('ROLE_STAFF')%}
-        <div class="container">
+    {% elseif is_granted('ROLE_STAFF') %}
+        <div class="dashboard-container">
             <div class="row">
                 {% if isDoctor %}
                     <div class="col-md-4">
-                        <a href="{{ path('doctor_agenda', {'periodo': 'dia'}) }}">
-                            <div class="card text-white mb-3 usuariosOnDash" style="max-width: 18rem;">
-                                <div class="card-header">Agenda</div>
+                        <a href="{{ path('doctor_agenda', {'periodo': 'dia'}) }}" class="text-decoration-none">
+                            <div class="card dashboard-card">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0"><i class="far fa-calendar-alt mr-2"></i> Agenda</h5>
+                                </div>
                                 <div class="card-body">
-                                    <p class="card-text">Turnos y eventos</p>
+                                    <p class="card-text text-muted">Administre sus turnos y eventos diarios</p>
                                 </div>
                             </div>
                         </a>
                     </div>
                     <div class="col-md-4">
-                        <a href="{{ path('doctor_historia') }}">
-                            <div class="card text-white mb-3 clientesOnDash" style="max-width: 18rem;">
-                                <div class="card-header">Pacientes</div>
+                        <a href="{{ path('doctor_historia') }}" class="text-decoration-none">
+                            <div class="card dashboard-card">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="mb-0"><i class="fas fa-user-injured mr-2"></i> Pacientes</h5>
+                                </div>
                                 <div class="card-body">
-                                    <p class="card-text">Historias Clínicas</p>
+                                    <p class="card-text text-muted">Acceda a historias clínicas de pacientes</p>
                                 </div>
                             </div>
                         </a>
                     </div>
                     <div class="col-md-4">
-                        <a href="{{ path('liquidar', {'id': app.user.id}) }}">
-                            <div class="card text-white mb-3 staffOnDash" style="max-width: 18rem;">
-                                <div class="card-header">Liquidaciones</div>
+                        <a href="{{ path('liquidar', {'id': app.user.id}) }}" class="text-decoration-none">
+                            <div class="card dashboard-card">
+                                <div class="card-header bg-info text-white">
+                                    <h5 class="mb-0"><i class="fas fa-money-check-alt mr-2"></i> Liquidaciones</h5>
+                                </div>
                                 <div class="card-body">
-                                    <p class="card-text">Imprimir y exportar liquidaciones</p>
+                                    <p class="card-text text-muted">Imprima y exporte sus liquidaciones</p>
                                 </div>
                             </div>
                         </a>
@@ -145,11 +225,13 @@
                 {% endif %}
                 {% if isEnfermero %}
                     <div class="col-md-4">
-                        <a href="{{ path('prescripcion_index', {'id': app.user.id}) }}">
-                            <div class="card text-white mb-3 staffOnDash" style="max-width: 18rem;">
-                                <div class="card-header">Prescripciones</div>
+                        <a href="{{ path('prescripcion_index', {'id': app.user.id}) }}" class="text-decoration-none">
+                            <div class="card dashboard-card">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0"><i class="fas fa-user-nurse mr-2"></i> Prescripciones</h5>
+                                </div>
                                 <div class="card-body">
-                                    <p class="card-text">Prescripciones Médicas por pacientes</p>
+                                    <p class="card-text text-muted">Administre prescripciones médicas por paciente</p>
                                 </div>
                             </div>
                         </a>
@@ -158,169 +240,61 @@
             </div>
         </div>
     {% endif %}
-
 {% endblock %}
 
 {% block modalImprimir %}
-    <div class="form-check">
-        <input class="form-check-input check" type="checkbox" value="habitacion" id="habitacion">
-        <label class="form-check-label" for="habitacion">
-            Habitacion
-        </label>
-    </div>
-    <div class="form-check">
-        <input class="form-check-input check" type="checkbox" value="paciente" id="paciente">
-        <label class="form-check-label" for="paciente">
-            Paciente
-        </label>
-    </div>
-    <div class="form-check">
-        <input class="form-check-input check" type="checkbox" value="obraSocial" id="obraSocial">
-        <label class="form-check-label" for="obraSocial">
-            O. Social
-        </label>
-    </div>
-    <div class="form-check">
-        <input class="form-check-input check" type="checkbox" value="patologia" id="patologia">
-        <label class="form-check-label" for="patologia">
-            Patología
-        </label>
-    </div>
-    <div class="form-check">
-        <input class="form-check-input check" type="checkbox" value="dieta" id="dieta">
-        <label class="form-check-label" for="dieta">
-            Dieta
-        </label>
-    </div>
-    <div class="form-check">
-        <input class="form-check-input check" type="checkbox" value="edad" id="edad">
-        <label class="form-check-label" for="edad">
-            Edad
-        </label>
-    </div>
-    <div class="form-check">
-        <input class="form-check-input" type="checkbox" value="todos" id="todos">
-        <label class="form-check-label" for="todos">
-            Todos
-        </label>
+    <div class="dashboard-filter-options">
+        <div class="form-check">
+            <input class="form-check-input check" type="checkbox" value="habitacion" id="habitacion" checked>
+            <label class="form-check-label" for="habitacion">
+                Habitación
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input check" type="checkbox" value="paciente" id="paciente" checked>
+            <label class="form-check-label" for="paciente">
+                Paciente
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input check" type="checkbox" value="obraSocial" id="obraSocial" checked>
+            <label class="form-check-label" for="obraSocial">
+                Obra Social
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input check" type="checkbox" value="patologia" id="patologia" checked>
+            <label class="form-check-label" for="patologia">
+                Patología
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input check" type="checkbox" value="dieta" id="dieta">
+            <label class="form-check-label" for="dieta">
+                Dieta
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input check" type="checkbox" value="edad" id="edad">
+            <label class="form-check-label" for="edad">
+                Edad
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="todos" id="todos">
+            <label class="form-check-label" for="todos">
+                Todos
+            </label>
+        </div>
     </div>
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('assets/js/dashboard.js') }}"></script>
     <script>
         var tituloExcel = 'dashboard.xlsx';
         let printUrl = "{{ path('imprimir') }}";
-
-        $('#filtrarPorFecha').click(function () {
-            $('#loading').show();
-
-            let from = $('#from').val();
-            let to = $('#to').val();
-
-            if (from === '' || to === '') {
-                alert('Debe completar las fechas');
-                $('#loading').hide();
-                return 0;
-            }
-
-            var headerFrom = new Date(from);
-            var headerTo = new Date(to);
-
-            if (headerTo < headerFrom) {
-                alert('La fecha desde debe ser mayor a la fecha hasta');
-                $('#loading').hide();
-                return 0;
-            }
-            let needOneMore = true;
-            if (headerTo.toLocaleDateString() === headerFrom.toLocaleDateString()) {
-                headerTo.setDate(headerTo.getDate()+1);
-                needOneMore = false;
-            }
-
-            let html_header = '<th>Cliente</th><th style="min-width: 100px;">O. Social</th>';
-            let dateIndex = 0;
-
-            while (headerFrom.toLocaleDateString() !== headerTo.toLocaleDateString()) {
-                headerFrom.setDate(headerFrom.getDate()+1);
-                html_header += '<th>' + headerFrom.toLocaleDateString() + '<br><span id=totales-'+dateIndex+' class="small"></span></th>';
-                dateIndex ++;
-            }
-
-            if (needOneMore) {
-                headerFrom.setDate(headerFrom.getDate()+1);
-                html_header += '<th>' + headerFrom.toLocaleDateString() + '<br><span id=totales-'+dateIndex+' class="small"></span></th>';
-            }
-
-            $("#head").html(html_header);
-
-            $.post({
-                url: "{{ path('dashboard_index_filtro_cantidad_pacientes') }}",
-                data: {
-                    from: from,
-                    to: to,
-                },
-                success: function (response) {
-                    let html = '';
-                    let fechaCheck = '';
-                    let i = 0;
-                    if (response.clientes) {
-                        Object.keys(response.clientes).forEach(function(k, v) {
-                            html += '<tr><td>'+ k +'</td>';
-
-                            Object.keys(response.clientes[k]).forEach(function(i) {
-                                html += '<td>'+ i +'</td>';
-
-                                Object.keys(response.clientes[k][i]).forEach(function(e) {
-                                    html += '<td>';
-                                    if (response.clientes[k][i][e].habitacion !== undefined) {
-                                        html += 'hab: '+response.clientes[k][i][e].habitacion;
-                                        if (response.clientes[k][i][e].cama !== undefined) {
-                                            html += ' <br> cama: '+ response.clientes[k][i][e].cama;
-                                        }
-                                    } else {
-                                        html += " - ";
-                                    }
-                                    html +='</td>';
-                                });
-                            })
-                            html += '</tr>';
-                        });
-                        let dateIndex = 0;
-                        for (const key in response.totales) {
-                            let texto = 'TOTAL PACIENTES: ' + response.totales[key];
-                            $('#totales-' + dateIndex).text(texto);
-
-                            for(const otra in response.docReferentes[key]) {
-                                let esp = document.createElement("div");
-                                esp.innerHTML = otra +': ' + response.docReferentes[key][otra];
-                                document.getElementById('totales-' + dateIndex).appendChild(esp);
-                            }
-
-                            dateIndex ++;
-                        }
-                    }
-
-                    $('#body').html(html);
-                    $('#loading').hide();
-                    $('#resultado').show();
-
-                },
-                error: function(e){
-                    console.log(e);
-                    alert("algo salio mal");
-                    $('#loading').hide();
-                }
-            });
-
-        })
-
-        $('#printFiltrado').click(function () {
-            let html = '<head>' + $('head').html() + '</head>';
-            html += $('#resultados').parent().html().trim();
-            imprimirElemento(html);
-        });
-
+        let dashboardFilterUrl = "{{ path('dashboard_index_filtro_cantidad_pacientes') }}";
     </script>
+    <script src="{{ asset('assets/js/dashboard.js') }}"></script>
 {% endblock %}

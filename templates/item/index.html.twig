@@ -63,6 +63,7 @@
         </a>
     </div>
     
+    {% set hayFiltros = (ubicacion is defined and ubicacion) or (tipoItem is defined and tipoItem) %}
     <div class="col text-right">
         <!-- Filtros -->
         <div class="dropdown d-inline-block mr-2">
@@ -73,11 +74,24 @@
                     Filtrar por ubicación
                 {% endif %}
             </button>
+            {# Filtrar ubicaciones según tipo seleccionado #}
+            {% set ubicacionesDisponibles = ubicaciones|default([]) %}
+            {% if tipoItem is defined and tipoItem %}
+                {% set ubicacionesDisponibles = [] %}
+                {% for item in items %}
+                    {% if item.Tipo and item.Tipo.id == tipoItem.id %}
+                        {% set ubi = item.ubicacionActual %}
+                        {% if ubi and ubi not in ubicacionesDisponibles %}
+                            {% set ubicacionesDisponibles = ubicacionesDisponibles|merge([ubi]) %}
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
             <div class="dropdown-menu" aria-labelledby="dropdownUbicacion">
-                <a class="dropdown-item" href="{{ path('app_item_index') }}">Todas las ubicaciones</a>
+                <a class="dropdown-item" href="{{ path('app_item_index', tipoItem is defined and tipoItem ? {'tipoItem': tipoItem.id} : {}) }}">Todas las ubicaciones</a>
                 <div class="dropdown-divider"></div>
-                {% for ubi in ubicaciones %}
-                    <a class="dropdown-item" href="{{ path('app_item_index_ubicacion', {'ubicacion': ubi.id}) }}">
+                {% for ubi in ubicacionesDisponibles %}
+                    <a class="dropdown-item" href="{{ path(tipoItem is defined and tipoItem ? 'app_item_index_tipo' : 'app_item_index', tipoItem is defined and tipoItem ? {'tipoItem': tipoItem.id, 'ubicacion': ubi.id} : {'ubicacion': ubi.id}) }}">
                         {{ ubi.nombre }}
                     </a>
                 {% endfor %}
@@ -92,16 +106,34 @@
                     Filtrar por tipo
                 {% endif %}
             </button>
+            {# Filtrar tipos según ubicación seleccionada #}
+            {% set tiposDisponibles = tiposItem|default([]) %}
+            {% if ubicacion is defined and ubicacion %}
+                {% set tiposDisponibles = [] %}
+                {% for item in items %}
+                    {% if item.ubicacionActual and item.ubicacionActual.id == ubicacion.id %}
+                        {% set tipo = item.Tipo %}
+                        {% if tipo and tipo not in tiposDisponibles %}
+                            {% set tiposDisponibles = tiposDisponibles|merge([tipo]) %}
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
             <div class="dropdown-menu" aria-labelledby="dropdownTipo">
-                <a class="dropdown-item" href="{{ path('app_item_index') }}">Todos los tipos</a>
+                <a class="dropdown-item" href="{{ path('app_item_index', ubicacion is defined and ubicacion ? {'ubicacion': ubicacion.id} : {}) }}">Todos los tipos</a>
                 <div class="dropdown-divider"></div>
-                {% for tipo in tiposItem|default([]) %}
-                    <a class="dropdown-item" href="{{ path('app_item_index_tipo', {'tipoItem': tipo.id}) }}">
+                {% for tipo in tiposDisponibles %}
+                    <a class="dropdown-item" href="{{ path(ubicacion is defined and ubicacion ? 'app_item_index_tipo' : 'app_item_index_tipo', ubicacion is defined and ubicacion ? {'tipoItem': tipo.id, 'ubicacion': ubicacion.id} : {'tipoItem': tipo.id}) }}">
                         {{ tipo.nombre }}
                     </a>
                 {% endfor %}
             </div>
         </div>
+        {% if hayFiltros %}
+        <a href="{{ path('app_item_index') }}" class="btn btn-outline-danger ml-2">
+            <i class="fas fa-times"></i> Limpiar filtros
+        </a>
+        {% endif %}
     </div>
 </div>
 
@@ -111,57 +143,43 @@
         <thead>
             <tr>
                 <th>Imagen</th>
-                <th>Nombre</th>
-                <th>Identificador</th>
-                <th>Ubicación</th>
+                <th>Cantidad</th>
                 <th>Tipo</th>
-                <th>Acciones</th>
+                <th>Detalles</th>
+                <th>Ubicación</th>
             </tr>
         </thead>
         <tbody>
-            {% for item in items %}
+            {% for grupo in itemsAgrupados %}
                 <tr>
                     <td>
-                        {% if item.imagen %}
-                            <img src="{{ asset('uploads/items/imagenes/' ~ item.imagen) }}" alt="{{ item.nombre }}" class="img-thumbnail" style="max-width: 50px;">
+                        {% set primerDetalle = grupo.detalles[0] %}
+                        {% set primerItem = items|filter(i => i.nombre == primerDetalle and (i.ubicacionActual and i.ubicacionActual.nombre == grupo.ubicacion) and (i.Tipo and i.Tipo.nombre == grupo.tipo))|first %}
+                        {% if primerItem and primerItem.imagen %}
+                            <img src="{{ asset('uploads/items/imagenes/' ~ primerItem.imagen) }}" alt="{{ primerItem.nombre }}" class="img-thumbnail" style="max-width: 50px;">
                         {% else %}
                             <span class="badge badge-secondary">Sin imagen</span>
                         {% endif %}
                     </td>
-                    <td>{{ item.nombre }}</td>
-                    <td>{{ item.identificador|default('Sin identificador') }}</td>
+                    <td>{{ grupo.cantidad }}</td>
+                    <td>{{ grupo.tipo }}</td>
+                    <td>{{ grupo.detalles|join(', ') }}</td>
                     <td>
-                        <a href="{{ path('app_item_index_ubicacion', { ubicacion: item.ubicacionActual.id }) }}">
-                            {{ item.ubicacionActual.nombre }}
+                        <a href="{{ path('app_item_index_ubicacion', { ubicacion: ubicaciones|filter(u => u.nombre == grupo.ubicacion)|first.id }) }}">
+                            {{ grupo.ubicacion }}
                         </a>
-                    </td>
-                    <td>
-                        <a href="{{ path('app_item_index_tipo', { tipoItem: item.Tipo.id }) }}">
-                            {{ item.Tipo.nombre }}
-                        </a>
-                    </td>
-                    <td>
-                        <div class="btn-group" role="group">
-                            <a href="{{ path('app_item_show', { id: item.id }) }}" class="btn btn-sm btn-info" data-toggle="tooltip" title="Ver detalles">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="{{ path('app_item_edit', { id: item.id }) }}" class="btn btn-sm btn-warning" data-toggle="tooltip" title="Editar">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <a href="{{ path('make_qr_item', { id: item.id }) }}" class="btn btn-sm btn-secondary" data-toggle="tooltip" title="Ver código QR" target="_blank">
-                                <i class="fas fa-qrcode"></i>
-                            </a>
-                        </div>
                     </td>
                 </tr>
             {% else %}
                 <tr>
-                    <td colspan="6" class="text-center">No hay registros</td>
+                    <td colspan="5" class="text-center">No hay registros agrupados</td>
                 </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
+<!-- Si quieres mantener la tabla original, puedes dejarla debajo o comentarla -->
+{# ...tabla original aquí si se desea... #}
 {% endblock %}
 
 {% block modalImprimir %}

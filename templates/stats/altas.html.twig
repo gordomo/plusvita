@@ -129,7 +129,7 @@
                 <div class="col-md-8">
                     <h5>Seleccione el año para el análisis:</h5>
                     <div class="btn-group" role="group">
-                        {% for y in range(year - 2, year) %}
+                        {% for y in range(year - 2, year + 1) %}
                             <a href="{{ path('app_stats_altas', {'year': y}) }}" class="btn {{ y == year ? 'btn-primary' : 'btn-outline-primary' }}">
                                 {{ y }}
                             </a>

@@ -794,13 +794,17 @@
             $('.filtrosPlanillaLocal').modal('show');
         });
 
-        $("#updateLocal").on('click', function () {
+        $("#updateLocal").on('click', function (e) {
+            e.preventDefault(); // Prevenir comportamiento por defecto
             $("#updateLocal").prop('disabled', true);
             $(".modal-footer").html('<img src="{{ asset('assets/images/loading.gif') }}" style="max-height: 80px;">');
             let checkboxes = GetSelected('checkboxes');
             if (checkboxes.length < 1) {
-                alert('seleccione al menos un campo')
+                alert('seleccione al menos un campo');
+                $("#updateLocal").prop('disabled', false);
+                $(".modal-footer").html('<button type="button" class="btn btn-primary" id="updateLocal">Imprimir</button>');
             } else {
+                console.log('Imprimiendo secciones:', checkboxes); // Agregar log para debug
                 let secciones = ['historia-al-ingreso', 'notas', 'notas-en-turnos', 'evoluciones-imprimir', 'novedades-imprimir', 'epicrisis-al-alta'];
 
                 secciones.forEach((seccion) => {
@@ -851,16 +855,21 @@
                                     '<tr>' +
                                         '<td class="report-content-cell">' +
                                             '<div class="main">' +
-                                                $('body').find('.container-fluid').html(); +
+                                                $('body').find('.container-fluid').html() +
                                             '</div>' +
                                         '</td>' +
                                     '</tr>' +
                                 '</tbody></table>';
-                        imprimirElemento(html);
+                        
+                        try {
+                            imprimirElemento(html);
+                        } catch (error) {
+                            console.error('Error al imprimir:', error);
+                            alert('Ha ocurrido un error al intentar imprimir');
+                        }
+                        
                         location.reload();
                     }, 2000);
-
-
                 }, 1000);
             }
         });

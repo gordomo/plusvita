@@ -30,17 +30,61 @@ class ItemController extends AbstractController
     /**
      * @Route("/", name="app_item_index")
      */
-    public function index(EntityManagerInterface $em): Response
+    public function index(EntityManagerInterface $em, Request $request): Response
     {
+        $ubicacionId = $request->query->get('ubicacion');
         $items = $em->getRepository(Item::class)->findAll();
         $ubicaciones = $em->getRepository(Ubicacion::class)->findAll();
         $tiposItem = $em->getRepository(TipoItem::class)->findAll();
+
+        // Filtrar por ubicación si corresponde
+        if ($ubicacionId) {
+            $items = array_filter($items, function($item) use ($ubicacionId) {
+                return $item->getUbicacionActual() && $item->getUbicacionActual()->getId() == $ubicacionId;
+            });
+            // Pasar la ubicación seleccionada a la vista
+            $ubicacion = null;
+            foreach ($ubicaciones as $ubi) {
+                if ($ubi->getId() == $ubicacionId) {
+                    $ubicacion = $ubi;
+                    break;
+                }
+            }
+        } else {
+            $ubicacion = null;
+        }
+
+        // Agrupar por ubicación y tipo
+        $agrupados = [];
+        foreach ($items as $item) {
+            $ubicacionNombre = $item->getUbicacionActual() ? $item->getUbicacionActual()->getNombre() : 'Sin ubicación';
+            $tipo = $item->getTipo() ? $item->getTipo()->getNombre() : 'Sin tipo';
+            $detalle = $item->getNombre();
+            $key = $ubicacionNombre . '|' . $tipo;
+            if (!isset($agrupados[$key])) {
+                $agrupados[$key] = [
+                    'ubicacion' => $ubicacionNombre,
+                    'tipo' => $tipo,
+                    'detalles' => [],
+                    'cantidad' => 0,
+                ];
+            }
+            $agrupados[$key]['detalles'][] = $detalle;
+            $agrupados[$key]['cantidad']++;
+        }
+        // Eliminar duplicados en detalles
+        foreach ($agrupados as &$grupo) {
+            $grupo['detalles'] = array_unique($grupo['detalles']);
+        }
+        unset($grupo);
 
         return $this->render('item/index.html.twig', [
             'items' => $items,
             'ubicaciones' => $ubicaciones,
             'tiposItem' => $tiposItem,
             'paginaImprimible' => true,
+            'itemsAgrupados' => $agrupados,
+            'ubicacion' => $ubicacion,
         ]);
     }
 
@@ -84,18 +128,60 @@ class ItemController extends AbstractController
     /**
      * @Route("/tipo/{tipoItem}", name="app_item_index_tipo", methods={"GET"})
      */
-    public function indexTipoItem(ItemRepository $itemRepository, TipoItemRepository $tipoItemRepository, UbicacionRepository $ubicacionRepository, TipoItem $tipoItem): Response
+    public function indexTipoItem(ItemRepository $itemRepository, TipoItemRepository $tipoItemRepository, UbicacionRepository $ubicacionRepository, TipoItem $tipoItem, Request $request): Response
     {
         $items = $itemRepository->findBy(['tipo' => $tipoItem]);
         $tiposItems = $tipoItemRepository->findAll();
         $ubicaciones = $ubicacionRepository->findAll();
-        
+
+        // Filtrar por ubicación si corresponde
+        $ubicacionId = $request->query->get('ubicacion');
+        if ($ubicacionId) {
+            $items = array_filter($items, function($item) use ($ubicacionId) {
+                return $item->getUbicacionActual() && $item->getUbicacionActual()->getId() == $ubicacionId;
+            });
+            $ubicacion = null;
+            foreach ($ubicaciones as $ubi) {
+                if ($ubi->getId() == $ubicacionId) {
+                    $ubicacion = $ubi;
+                    break;
+                }
+            }
+        } else {
+            $ubicacion = null;
+        }
+
+        // Agrupar por ubicación y tipo
+        $agrupados = [];
+        foreach ($items as $item) {
+            $ubicacionNombre = $item->getUbicacionActual() ? $item->getUbicacionActual()->getNombre() : 'Sin ubicación';
+            $tipo = $item->getTipo() ? $item->getTipo()->getNombre() : 'Sin tipo';
+            $detalle = $item->getNombre();
+            $key = $ubicacionNombre . '|' . $tipo;
+            if (!isset($agrupados[$key])) {
+                $agrupados[$key] = [
+                    'ubicacion' => $ubicacionNombre,
+                    'tipo' => $tipo,
+                    'detalles' => [],
+                    'cantidad' => 0,
+                ];
+            }
+            $agrupados[$key]['detalles'][] = $detalle;
+            $agrupados[$key]['cantidad']++;
+        }
+        foreach ($agrupados as &$grupo) {
+            $grupo['detalles'] = array_unique($grupo['detalles']);
+        }
+        unset($grupo);
+
         return $this->render('item/index.html.twig', [
             'items' => $items,
             'tipoItem' => $tipoItem,
-            'tiposItems' => $tiposItems,
+            'tiposItem' => $tiposItems,
             'ubicaciones' => $ubicaciones,
             'paginaImprimible' => true,
+            'itemsAgrupados' => $agrupados,
+            'ubicacion' => $ubicacion,
         ]);
     }
 
