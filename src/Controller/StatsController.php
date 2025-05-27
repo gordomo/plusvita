@@ -54,24 +54,21 @@ class StatsController extends AbstractController
         // Datos para gráficos de ocupación
         $ocupacionPorDia = $this->getOcupacionPorDia($em);
         
-        // --- Métrica: días de internación por patología y patología específica ---
+        // --- Métrica: días de internación por patología ---
         $conn = $em->getConnection();
-        $sql = "SELECT patologia, patologia_especifica, fecha_ingreso, fecha_engreso FROM historia_paciente WHERE modalidad = '2' AND fecha_ingreso IS NOT NULL AND fecha_engreso IS NOT NULL AND patologia IS NOT NULL";
+        $sql = "SELECT patologia, fecha_ingreso, fecha_engreso FROM historia_paciente WHERE modalidad = '2' AND fecha_ingreso IS NOT NULL AND fecha_engreso IS NOT NULL AND patologia IS NOT NULL";
         $stmt = $conn->prepare($sql);
         $result = $stmt->executeQuery();
         $internaciones = $result->fetchAllAssociative();
 
         $diasPorPatologia = [];
-        $diasPorPatologiaEspecifica = [];
         foreach ($internaciones as $row) {
             $patologia = $row['patologia'] ?: 'Sin especificar';
-            $patologiaEsp = $row['patologia_especifica'] ?: 'Sin especificar';
             $fechaIngreso = $row['fecha_ingreso'];
             $fechaEngreso = $row['fecha_engreso'];
             if ($fechaIngreso && $fechaEngreso) {
                 $dias = (new \DateTime($fechaIngreso))->diff(new \DateTime($fechaEngreso))->days + 1;
                 $diasPorPatologia[$patologia][] = $dias;
-                $diasPorPatologiaEspecifica[$patologia][$patologiaEsp][] = $dias;
             }
         }
         $statsInternacion = [];
@@ -81,20 +78,8 @@ class StatsController extends AbstractController
                 'min' => min($diasArr),
                 'max' => max($diasArr),
                 'total' => array_sum($diasArr),
-                'casos' => count($diasArr),
-                'especificas' => []
+                'casos' => count($diasArr)
             ];
-            if (!empty($diasPorPatologiaEspecifica[$patologia])) {
-                foreach ($diasPorPatologiaEspecifica[$patologia] as $esp => $diasEspArr) {
-                    $statsInternacion[$patologia]['especificas'][$esp] = [
-                        'promedio' => round(array_sum($diasEspArr) / count($diasEspArr), 1),
-                        'min' => min($diasEspArr),
-                        'max' => max($diasEspArr),
-                        'total' => array_sum($diasEspArr),
-                        'casos' => count($diasEspArr)
-                    ];
-                }
-            }
         }
 
         return $this->render('stats/index.html.twig', [
