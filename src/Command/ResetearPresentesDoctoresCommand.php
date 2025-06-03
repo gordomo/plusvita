@@ -35,13 +35,13 @@ class ResetearPresentesDoctoresCommand extends Command
             ->addArgument('arg1', InputArgument::OPTIONAL, 'Argument description')
             ->addOption('option1', null, InputOption::VALUE_NONE, 'Option description')
         ;
-    }
-
-    /**
+    }    /**
      * @throws \Exception
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        // Establecer zona horaria de Argentina para evitar problemas con los reinicios automáticos
+        date_default_timezone_set('America/Argentina/Buenos_Aires');
 
         $io = new SymfonyStyle($input, $output);
 
@@ -71,10 +71,8 @@ class ResetearPresentesDoctoresCommand extends Command
         foreach ($clientes as $cliente) {
             $cliente->setAmbulatorioPresente(false);
             $em->persist($cliente);
-        }
-
-        $em->flush();
-        $hoy = new \DateTime();
+        }        $em->flush();
+        $hoy = new \DateTime('now', new \DateTimeZone('America/Argentina/Buenos_Aires'));
         $io->success('### ' . $hoy->format('Y-m-d H:i:s'). ' /// resetear-presentes-doctores-command ###');
 
         return Command::SUCCESS;
