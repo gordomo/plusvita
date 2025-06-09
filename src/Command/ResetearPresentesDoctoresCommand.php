@@ -5,77 +5,55 @@ namespace App\Command;
 use App\Entity\Doctor;
 use App\Entity\Cliente;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-class ResetearPresentesDoctoresCommand extends Command
+class ResetearPresentesDoctoresCommand extends BaseReseteoCommand
 {
     protected static $defaultName = 'resetear-presentes-doctores-command';
     protected static $defaultDescription = 'Reseteo diario de los presentes de Doctores';
 
-    // 2. Expose the EntityManager in the class level
-    private $entityManager;
-
-    public function __construct(EntityManagerInterface $entityManager)
-    {
-        // 3. Update the value of the private entityManager variable through injection
-        $this->entityManager = $entityManager;
-
-        parent::__construct();
-    }
-
     protected function configure(): void
     {
-        $this
-            ->setDescription(self::$defaultDescription)
-            ->addArgument('arg1', InputArgument::OPTIONAL, 'Argument description')
-            ->addOption('option1', null, InputOption::VALUE_NONE, 'Option description')
-        ;
-    }    /**
+        $this->setDescription(self::$defaultDescription);
+    }
+    
+    /**
+     * Implementa el método abstracto para resetear presentes de doctores y pacientes
+     * 
      * @throws \Exception
      */
-    protected function execute(InputInterface $input, OutputInterface $output): int
+    protected function resetearPresentes(SymfonyStyle $io): void
     {
-        // Establecer zona horaria de Argentina para evitar problemas con los reinicios automáticos
-        date_default_timezone_set('America/Argentina/Buenos_Aires');
-
-        $io = new SymfonyStyle($input, $output);
-
-        $arg1 = $input->getArgument('arg1');
-
-        if ($arg1) {
-            $io->note(sprintf('You passed an argument: %s', $arg1));
-        }
-
-        if ($input->getOption('option1')) {
-            // ...
-        }
-
+        // Registrar información sobre el contexto de ejecución
+        $io->note('Ejecutando reseteo de presentes para doctores y ciertos pacientes');
+        
         $em = $this->entityManager;
 
-        // A. Access repositories
+        // Access repositories
         $doctorRepo  = $em->getRepository(Doctor::class);
         $clienteRepo = $em->getRepository(Cliente::class);
-        $doctores    = $doctorRepo->findBy(['presente'=> true]);
-        $clientes    = $clienteRepo->findBy(['ambulatorioPresente'=>true, 'ambulatorio'=>false]);
+        
+        // Obtener entidades a resetear
+        $doctores = $doctorRepo->findBy(['presente'=> true]);
+        $clientes = $clienteRepo->findBy(['ambulatorioPresente'=>true, 'ambulatorio'=>false]);
+        
+        $io->note(sprintf('Encontrados %d doctores presentes y %d pacientes ambulatorios presentes', 
+            count($doctores), count($clientes)));
 
+        // Resetear presentes de doctores
         foreach ($doctores as $doctor) {
             $doctor->setPresente(false);
             $em->persist($doctor);
         }
         
+        // Resetear presentes de pacientes (solo ambulatorios=false)
         foreach ($clientes as $cliente) {
             $cliente->setAmbulatorioPresente(false);
             $em->persist($cliente);
-        }        $em->flush();
-        $hoy = new \DateTime('now', new \DateTimeZone('America/Argentina/Buenos_Aires'));
-        $io->success('### ' . $hoy->format('Y-m-d H:i:s'). ' /// resetear-presentes-doctores-command ###');
-
-        return Command::SUCCESS;
+        }
+        
+        // Guardar cambios
+        $em->flush();
     }
 
 }
