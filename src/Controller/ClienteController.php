@@ -656,6 +656,93 @@ class ClienteController extends AbstractController
             }
         }
 
+        // Construir pacientesPeriodos agrupando por períodos consecutivos
+        $pacientesPeriodos = [];
+        foreach ($clientesData as $clienteId => $cliente) {
+            if (!isset($arrayParaLaVista[$clienteId])) continue;
+
+            $periodos = [];
+            $periodoActual = null;
+            
+            // Ordenar las fechas cronológicamente
+            $fechas = array_keys($arrayParaLaVista[$clienteId]);
+            sort($fechas);
+            
+            foreach ($fechas as $fecha) {
+                $texto = $arrayParaLaVista[$clienteId][$fecha];
+                $lineas = explode('<br>', $texto);
+                $estado = $lineas[0];
+                $habitacion = '';
+                $cama = '';
+                $profesional = '';
+                $obra_social = '';
+                
+                // Extraer información del texto
+                foreach ($lineas as $linea) {
+                    if (strpos($linea, 'H:') !== false) {
+                        preg_match('/H:([^ ]+) C:([^ ]+)/', $linea, $matches);
+                        if (isset($matches[1])) $habitacion = $matches[1];
+                        if (isset($matches[2])) $cama = $matches[2];
+                    } elseif (strpos($linea, '<small><b>') !== false) {
+                        $obra_social = strip_tags($linea);
+                    } elseif (!empty($linea) && strpos($linea, 'H:') === false && strpos($linea, '<small>') === false) {
+                        $profesional = $linea != $estado ? $linea : '';
+                    }
+                }
+                
+                // Si el período actual está vacío o las condiciones cambiaron, crear uno nuevo
+                if ($periodoActual === null || 
+                    $periodoActual['estado'] !== $estado ||
+                    $periodoActual['habitacion'] !== $habitacion ||
+                    $periodoActual['cama'] !== $cama ||
+                    $periodoActual['profesional'] !== $profesional ||
+                    $periodoActual['obra_social'] !== $obra_social) {
+                    
+                    // Si hay un período anterior, guardarlo
+                    if ($periodoActual !== null) {
+                        $periodoActual['hasta'] = date('d/m/Y', strtotime('-1 day', strtotime(str_replace('/', '-', $fecha))));
+                        $periodoActual['dias'] = ceil((strtotime(str_replace('/', '-', $periodoActual['hasta'])) - 
+                                                     strtotime(str_replace('/', '-', $periodoActual['desde']))) / 86400) + 1;
+                        $periodos[] = $periodoActual;
+                    }
+                    
+                    // Crear nuevo período
+                    $periodoActual = [
+                        'desde' => $fecha,
+                        'hasta' => $fecha,
+                        'estado' => $estado,
+                        'habitacion' => $habitacion,
+                        'cama' => $cama,
+                        'profesional' => $profesional,
+                        'obra_social' => $obra_social,
+                        'dias' => 1
+                    ];
+                } else {
+                    // Actualizar la fecha final del período actual
+                    $periodoActual['hasta'] = $fecha;
+                    $periodoActual['dias'] = ceil((strtotime(str_replace('/', '-', $fecha)) - 
+                                                 strtotime(str_replace('/', '-', $periodoActual['desde']))) / 86400) + 1;
+                }
+            }
+            
+            // Agregar el último período
+            if ($periodoActual !== null) {
+                $periodos[] = $periodoActual;
+            }
+            
+            // Agregar paciente con sus períodos al array final
+            $pacientesPeriodos[] = [
+                'nombre' => $cliente['apellido'] . ' ' . $cliente['nombre'],
+                'hc' => $cliente['hClinica'],
+                'periodos' => $periodos
+            ];
+        }
+        
+        // Ordenar pacientes por apellido y nombre
+        usort($pacientesPeriodos, function($a, $b) {
+            return $a['nombre'] <=> $b['nombre'];
+        });
+
         return $this->render('cliente/historico_2.html.twig', [
             'obraSociales'                  => $obArray,
             'from'                          => $from,
@@ -688,6 +775,7 @@ class ClienteController extends AbstractController
             'clientesData'                  => $clientesData, // Enviamos los datos de clientes a la vista
             'patologiasCount'               => $patologiasCount,
             'edadesRangos'                  => $edadesRangos,
+            'pacientesPeriodos'             => $pacientesPeriodos, // Agregado
         ]);
     }
 
@@ -1120,7 +1208,6 @@ class ClienteController extends AbstractController
                     'fechaIngreso' => $cliente->getFIngreso(),
                     'fechaEngreso' => $cliente->getFEgreso(),
                     'ambulatorio' => $cliente->getAmbulatorio(),
-                    'docReferente' => $cliente->getDocReferente(),
                 ];
 
                 $historial = $this->getHistorialActualizado($cliente, $parametros, $user);

@@ -1,217 +1,78 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}Administradores{% endblock %}
-
-{% block stylesheets %}
-    {{ parent() }}
-    <style>
-        /* Estilos consistentes con el resto del sistema */
-        .filter-panel {
-            background-color: #f8f9fa;
-            border-radius: 0.25rem;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-        }
-        
-        .table th {
-            position: sticky;
-            top: 0;
-            background-color: #fff;
-            z-index: 10;
-        }
-        
-        /* Corregir problema de visibilidad */
-        .table-admin tr {
-            display: table-row !important;
-        }
-        
-        .card-admin {
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            margin-bottom: 1.5rem;
-        }
-        
-        .admin-active {
-            background-color: rgba(23, 162, 184, 0.15) !important;
-        }
-        
-        .admin-inactive {
-            background-color: rgba(108, 117, 125, 0.1) !important;
-        }
-    </style>
-{% endblock %}
-
-{% block panelTitle %}
-    <div class="d-flex justify-content-between align-items-center">
-        <span>Administradores</span>
-        <a href="{{ path('user_new') }}" class="btn btn-success btn-sm">
-            <i class="fas fa-plus-circle"></i> Nuevo Administrador
-        </a>
-    </div>
-{% endblock %}
-
+{% block panelTitle %}Administradores{% endblock %}
 {% block body %}
-    <!-- Panel de filtros y acciones -->
-    <div class="card mb-4">
-        <div class="card-body filter-panel">
-            <div class="row">
-                <div class="col-md-6">
-                    <h5><i class="fas fa-users-cog"></i> Gestión de Usuarios del Sistema</h5>
-                    <p class="text-muted">Use esta sección para administrar usuarios con acceso al sistema</p>
-                </div>
-                <div class="col-md-6 text-right">
-                    <div class="d-flex justify-content-end">
-                        <button class="btn btn-outline-secondary flex-grow-0 mr-2" data-toggle="modal" data-target="#camposExtras">
-                            <i class="fas fa-columns"></i> Columnas
-                        </button>
-                        <button class="btn btn-outline-secondary" id="printButton">
-                            <i class="fas fa-print"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Tabla de administradores -->
-    <div class="card card-admin">
-        <div class="card-body p-0">
-            <div class="table-responsive printiable">
-                <table class="table table-hover table-striped table-admin">
-                    <thead class="thead-light">
-                        <tr>
-                            <th class="id">ID</th>
-                            <th class="user">Usuario</th>
-                            <th class="roles">Rol</th>
-                            <th class="email">Email</th>
-                            <th class="telefono">Teléfono</th>
-                            <th class="estado">Estado</th>
-                            <th class="acciones">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {% for user in users %}
-                        <tr class="{% if user.habilitado %}admin-active{% else %}admin-inactive{% endif %}">
-                            <td class="id">{{ user.id }}</td>
-                            <td class="user">{{ user.username }}</td>
-                            <td class="roles">
-                                {% for role in user.roles %}
-                                    {% if role == "ROLE_ADMIN" %}
-                                        <span class="badge badge-primary">Administrador</span>
-                                    {% elseif role == "ROLE_USER" %}
-                                        <span class="badge badge-info">Operador</span>
-                                    {% endif %}
-                                {% endfor %}
-                            </td>
-                            <td class="lowercase email">{{ user.email }}</td>
-                            <td class="telefono">{{ user.telefono }}</td>
-                            <td class="estado">
-                                {% if user.habilitado %}
-                                    <span class="badge badge-success">Activo</span>
-                                {% else %}
-                                    <span class="badge badge-secondary">Inactivo</span>
-                                {% endif %}
-                            </td>
-                            <td class="acciones">
-                                <div class="btn-group">
-                                    <a href="{{ path('user_edit', {'id': user.id}) }}" class="btn btn-sm btn-primary">
-                                        <i class="fas fa-pencil-alt"></i> Editar
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                    {% else %}
-                        <tr>
-                            <td colspan="7" class="text-center py-4">
-                                <div class="empty-state">
-                                    <i class="fas fa-users-slash fa-3x text-muted mb-3"></i>
-                                    <p class="lead">No se encontraron Usuarios Administradores</p>
-                                </div>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Modal de columnas para seleccionar campos visibles -->
-    <div class="modal fade bd-example-modal-lg camposExtras" id="camposExtras" tabindex="-1" role="dialog" aria-labelledby="camposExtras" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Seleccione los campos a mostrar</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-
-                <div class="modal-body">
-                    <div class="form-group" id="checkboxesForView">
-                        {% set campos = {
-                            'id': 'ID',
-                            'user': 'Usuario',
-                            'roles': 'Rol',
-                            'email': 'Email',
-                            'telefono': 'Teléfono',
-                            'estado': 'Estado'
-                        } %}
-                        
-                        {% for valor, nombre in campos %}
-                            <div class="form-check">
-                                <input class="form-check-input checkForView" type="checkbox" value="{{ valor }}" id="view_{{ valor }}" checked>
-                                <label class="form-check-label" for="view_{{ valor }}">
-                                    {{ nombre }}
-                                </label>
-                            </div>
+    <div class="printiable">
+        <table class="table table-responsive">
+            <thead>
+                <tr>
+                    <th class="id">Id</th>
+                    <th class="user">Nombre de Usuario</th>
+                    <th class="roles">Roles</th>
+                    <th class="email">Email</th>
+                    <th class="telefono">Teléfono</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for user in users %}
+                <tr class="{% if user.habilitado %} bg-info {% else %} bg-light {% endif %}">
+                    <td class="id">{{ user.id }}</td>
+                    <td class="user">{{ user.username }}</td>
+                    <td class="roles">
+                        {% for role in user.roles %}
+                            {% if role == "ROLE_ADMIN" %}
+                                Administrador
+                            {% elseif role == "ROLE_USER" %}
+                                Operador
+                            {% endif %}
                         {% endfor %}
-                        
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="todos" id="todosForView" checked>
-                            <label class="form-check-label" for="todosForView">
-                                Todos
-                            </label>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                        <button type="button" class="btn btn-primary" id="updateCamposForView">Aplicar</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+                    </td>
+                    <td class="lowercase email">{{ user.email }}</td>
+                    <td class="telefono">{{ user.telefono }}</td>
+                    <td>
+                        <a class="text-bold text-dark" href="{{ path('user_edit', {'id': user.id}) }}">Editar</a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="5">No se encontraron Usuarios Administradores</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
     </div>
+    <a href="{{ path('user_new') }}">Crear nuevo Usuario Administrador</a>
 {% endblock %}
 
 {% block modalImprimir %}
     <div class="form-check">
-        <input class="form-check-input check" type="checkbox" value="id" id="id" checked>
+        <input class="form-check-input check" type="checkbox" value="id" id="id">
         <label class="form-check-label" for="id">
-            ID
+            Id
         </label>
     </div>
     <div class="form-check">
-        <input class="form-check-input check" type="checkbox" value="user" id="user" checked>
+        <input class="form-check-input check" type="checkbox" value="user" id="user">
         <label class="form-check-label" for="user">
             Nombre de Usuario
         </label>
     </div>
     <div class="form-check">
-        <input class="form-check-input check" type="checkbox" value="roles" id="roles" checked>
+        <input class="form-check-input check" type="checkbox" value="roles" id="roles">
         <label class="form-check-label" for="roles">
             Roles
         </label>
     </div>
     <div class="form-check">
-        <input class="form-check-input check" type="checkbox" value="email" id="email" checked>
+        <input class="form-check-input check" type="checkbox" value="email" id="email">
         <label class="form-check-label" for="email">
             Email
         </label>
     </div>
     <div class="form-check">
-        <input class="form-check-input check" type="checkbox" value="telefono" id="telefono" checked>
+        <input class="form-check-input check" type="checkbox" value="telefono" id="telefono">
         <label class="form-check-label" for="telefono">
             Teléfono
         </label>
@@ -226,72 +87,9 @@
 
 {% block javascripts %}
     {{ parent() }}
+    <script src="{{ asset('assets/js/dashboard.js') }}"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Variables para export e impresión
-            var tituloExcel = 'administradores.xlsx';
-            let printUrl = "{{ path('imprimir') }}";
-            
-            // Botón de impresión
-            const printButton = document.getElementById('printButton');
-            if (printButton) {
-                printButton.addEventListener('click', function() {
-                    window.print();
-                });
-            }
-            
-            // Selector "Todos" para modal imprimir
-            const allCheckbox = document.getElementById('todos');
-            if (allCheckbox) {
-                allCheckbox.addEventListener('change', function() {
-                    const checkboxes = document.querySelectorAll('.check');
-                    checkboxes.forEach(cb => {
-                        cb.checked = this.checked;
-                    });
-                });
-            }
-            
-            // Selector "Todos" para vista
-            const allViewCheckbox = document.getElementById('todosForView');
-            if (allViewCheckbox) {
-                allViewCheckbox.addEventListener('change', function() {
-                    const checkboxes = document.querySelectorAll('.checkForView');
-                    checkboxes.forEach(cb => {
-                        cb.checked = this.checked;
-                    });
-                });
-            }
-            
-            // Aplicar selección de columnas
-            const updateCamposBtn = document.getElementById('updateCamposForView');
-            if (updateCamposBtn) {
-                updateCamposBtn.addEventListener('click', function() {
-                    const checkboxes = document.querySelectorAll('.checkForView:checked');
-                    const camposAMostrar = Array.from(checkboxes).map(cb => cb.value);
-                    
-                    // Ocultar todas las columnas excepto acciones
-                    document.querySelectorAll('th, td').forEach(cell => {
-                        if (cell.classList.length > 0) {
-                            const cellClasses = Array.from(cell.classList);
-                            const isIncluded = cellClasses.some(cls => camposAMostrar.includes(cls));
-                            if (!isIncluded && !cell.classList.contains('acciones')) {
-                                cell.style.display = 'none';
-                            } else {
-                                cell.style.display = '';
-                            }
-                        }
-                    });
-                    
-                    // Cerrar modal
-                    $('#camposExtras').modal('hide');
-                });
-            }
-            
-            // Importante: asegurarse que las filas no se ocultan
-            document.querySelectorAll('.table-admin tr').forEach(row => {
-                // Forzar visibilidad de las filas
-                row.style.display = 'table-row';
-            });
-        });
+        var tituloExcel = 'administradores.xlsx';
+        let printUrl = "{{ path('imprimir') }}";
     </script>
 {% endblock %}
