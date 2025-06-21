@@ -119,7 +119,7 @@
                 </div>
                 <div class="stats-card-body text-center">
                     <div class="d-flex justify-content-center align-items-center">
-                        <canvas id="ocupacion-gauge" style="width: 120px; height: 120px;"></canvas>
+                        <div id="ocupacion-gauge" style="width: 120px; height: 120px;"></div>
                     </div>
                     <div class="stats-info">
                         <span class="text-muted">Habitaciones:</span>
@@ -300,35 +300,44 @@
             
             // Gráfico de gauge para ocupación actual
             const gaugeEl = document.getElementById('ocupacion-gauge');
-            if (gaugeEl && gaugeEl.getContext) {
-                new Chart(
-                    gaugeEl.getContext('2d'), {
-                        type: 'doughnut',
-                        data: {
-                            datasets: [{
-                                data: [ocupacionActual, 100 - ocupacionActual],
-                                backgroundColor: [
-                                    ocupacionActual > 80 ? '#dc3545' : (ocupacionActual > 60 ? '#ffc107' : '#28a745'),
-                                    '#e9ecef'
-                                ],
-                                borderWidth: 0
-                            }]
-                        },
-                        options: {
-                            cutout: '70%',
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                tooltip: {
-                                    enabled: false
-                                },
-                                legend: {
-                                    display: false
-                                }
+            if (gaugeEl) {
+                new Chart(gaugeEl, {
+                    type: 'doughnut',
+                    data: {
+                        datasets: [{
+                            data: [ocupacionActual, 100 - ocupacionActual],
+                            backgroundColor: [
+                                ocupacionActual > 80 ? '#dc3545' : (ocupacionActual > 60 ? '#ffc107' : '#28a745'),
+                                '#e9ecef'
+                            ],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        cutout: '70%',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            tooltip: {
+                                enabled: false
+                            },
+                            legend: {
+                                display: false
                             }
                         }
                     }
-                );
+                });
+                
+                // Agregar texto al centro del doughnut
+                const textEl = document.createElement('div');
+                textEl.style.position = 'absolute';
+                textEl.style.top = '50%';
+                textEl.style.left = '50%';
+                textEl.style.transform = 'translate(-50%, -50%)';
+                textEl.style.textAlign = 'center';
+                textEl.innerHTML = `<span style="font-size: 1.5rem; font-weight: bold;">${Math.round(ocupacionActual)}%</span>`;
+                gaugeEl.style.position = 'relative';
+                gaugeEl.appendChild(textEl);
             }
             
             // Gráfico de barras para ocupación vs capacidad (por camas)
@@ -369,11 +378,11 @@
             
             // Gráfico de línea para tendencia de ocupación
             const tendenciaChartEl = document.getElementById('tendencia-chart');
-            if (tendenciaChartEl && tendenciaChartEl.getContext) {
+            if (tendenciaChartEl) {
                 const fechas = ocupacionData.map(item => item.fecha);
                 const porcentajes = ocupacionData.map(item => item.porcentaje);
                 
-                new Chart(tendenciaChartEl.getContext('2d'), {
+                new Chart(tendenciaChartEl, {
                     type: 'line',
                     data: {
                         labels: fechas,
@@ -422,53 +431,50 @@
 
             // Gráfico de barras: promedio de días de internación por patología
             var ctx = document.getElementById('internacionPatologiaChart');
-            if (ctx && ctx.getContext) {
-                var ctx2d = ctx.getContext('2d');
-                if (ctx2d) {
-                    var labels = [];
-                    var promedios = [];
-                    var minimos = [];
-                    var maximos = [];
-                    {% for patologia, datos in statsInternacion %}
-                        labels.push(`{{ patologia|e('js') }}`);
-                        promedios.push({{ datos.promedio }});
-                        minimos.push({{ datos.min }});
-                        maximos.push({{ datos.max }});
-                    {% endfor %}
-                    new Chart(ctx2d, {
-                        type: 'bar',
-                        data: {
-                            labels: labels,
-                            datasets: [
-                                {
-                                    label: 'Promedio de días',
-                                    data: promedios,
-                                    backgroundColor: '#60b9b9',
-                                },
-                                {
-                                    label: 'Mínimo',
-                                    data: minimos,
-                                    backgroundColor: '#b088be',
-                                },
-                                {
-                                    label: 'Máximo',
-                                    data: maximos,
-                                    backgroundColor: '#ffc107',
-                                }
-                            ]
-                        },
-                        options: {
-                            responsive: true,
-                            plugins: {
-                                legend: { position: 'top' },
-                                tooltip: { enabled: true }
+            if (ctx) {
+                var labels = [];
+                var promedios = [];
+                var minimos = [];
+                var maximos = [];
+                {% for patologia, datos in statsInternacion %}
+                    labels.push(`{{ patologia|e('js') }}`);
+                    promedios.push({{ datos.promedio }});
+                    minimos.push({{ datos.min }});
+                    maximos.push({{ datos.max }});
+                {% endfor %}
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Promedio de días',
+                                data: promedios,
+                                backgroundColor: '#60b9b9',
                             },
-                            scales: {
-                                y: { beginAtZero: true }
+                            {
+                                label: 'Mínimo',
+                                data: minimos,
+                                backgroundColor: '#b088be',
+                            },
+                            {
+                                label: 'Máximo',
+                                data: maximos,
+                                backgroundColor: '#ffc107',
                             }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'top' },
+                            tooltip: { enabled: true }
+                        },
+                        scales: {
+                            y: { beginAtZero: true }
                         }
-                    });
-                }
+                    }
+                });
             }
         });
     </script>

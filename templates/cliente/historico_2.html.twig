@@ -14,11 +14,19 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         
+        /* Estilos específicos para hacer las celdas más compactas */        .table td, .table th {
+            padding: 0.15rem;
+            font-size: 0.85rem;
+        }
+        
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(0,0,0,.02);
+        }
+        
         .filters-toggle {
             cursor: pointer;
         }
-        
-        .status-indicator {
+          .status-indicator {
             width: 12px;
             height: 12px;
             display: inline-block;
@@ -32,55 +40,97 @@
         .status-egreso { background-color: #dc3545; }
         .status-sin-modalidad { background-color: #6c757d; }
         
-        .table-responsive-historico {
+        /* Estilos para el select múltiple */
+        .select-multiple {
+            height: auto !important;
+            min-height: 100px;
+        }
+        
+        .select-multiple option {
+            padding: 6px;
+            margin-bottom: 1px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        
+        .select-multiple option:checked {
+            background-color: #007bff !important;
+            color: white;
+        }
+          .table-responsive-historico {
             overflow-x: auto;
+            /* Añadir scroll horizontal en pantallas pequeñas */
         }
         
-        .sticky-header th {
-            position: sticky;
-            top: 0;
-            background-color: #fff;
-            z-index: 10;
-        }
-        
-        .sticky-first-col {
-            position: sticky;
-            left: 0;
-            background-color: #fff;
-            z-index: 5;
-        }
-        
-        .export-buttons {
-            margin-bottom: 15px;
+        .text-truncate {
+            max-width: 130px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         
         .date-column {
-            min-width: 120px;
+            min-width: 22px;
+            max-width: 28px;
+            width: 24px;
+            padding: 1px !important;
+            font-size: 0.8rem;
         }
         
-        .patient-state {
-            padding: 3px 6px;
-            border-radius: 3px;
-            font-size: 0.85em;
+        .sticky-first-col {
+            max-width: 120px;
+            width: 120px;
+            padding: 2px 3px !important;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
-        .state-ambulatorio { background-color: rgba(40, 167, 69, 0.2); border: 1px solid #28a745; }
-        .state-internado { background-color: rgba(0, 123, 255, 0.2); border: 1px solid #007bff; }
-        .state-derivado { background-color: rgba(255, 193, 7, 0.2); border: 1px solid #ffc107; }
-        .state-egreso { background-color: rgba(220, 53, 69, 0.2); border: 1px solid #dc3545; }
-        .state-sin-modalidad { background-color: rgba(108, 117, 125, 0.2); border: 1px solid #6c757d; }
-        
-        .view-toggle-buttons {
-            margin-bottom: 15px;
+        .bg-warning-light {
+            background-color: rgba(255, 193, 7, 0.15) !important;
         }
         
-        #loading {
-            display: none;
-            margin: 20px auto;
+        .card-header {
+            padding: 0.5rem;
         }
         
-        .summary-card {
-            margin-bottom: 15px;
+        .card-body {
+            padding: 0.5rem;
+        }
+        
+        .list-group-item {
+            font-size: 0.85rem;
+        }
+        
+        .table th {
+            vertical-align: middle;
+            text-align: center;
+        }
+          @media (max-width: 768px) {
+            .date-column {
+                min-width: 20px !important;
+                max-width: 24px !important;
+                width: 22px !important;
+                padding: 1px !important;
+                font-size: 0.75rem !important;
+            }
+            
+            .text-truncate {
+                max-width: 90px;
+            }
+            
+            .sticky-first-col {
+                max-width: 100px;
+                width: 100px;
+            }
+            
+            .table td, .table th {
+                padding: 0.1rem !important;
+            }
+            
+            .estado-icon i {
+                font-size: 0.7rem;
+            }
         }
         
         @media print {
@@ -112,6 +162,27 @@
                 margin-bottom: 3px;
                 padding: 2px 0;
             }
+        }
+        
+        .patient-state {
+            padding: 0px;
+            border-radius: 3px;
+            font-size: 0.75em;
+            text-align: center;
+            cursor: help;
+        }
+          .estado-icon i {
+            font-size: 0.75rem;
+        }
+        
+        .obra-social-badge {
+            font-size: 0.7rem;
+            color: #555;
+            background-color: #f0f0f0;
+            padding: 1px 4px;
+            border-radius: 3px;
+            margin-top: 2px;
+            display: inline-block;
         }
     </style>
 {% endblock %}
@@ -160,13 +231,11 @@
                         <div class="col-md-4 col-sm-6">
                             <label for="nombre">Nombre / Apellido</label>
                             <input class="form-control" type="text" id="nombre" name="nombre" value="{{ nombre }}">
-                        </div>
-                        <div class="col-md-4 col-sm-6">
-                            <label for="obraSocial">Obra Social</label>
-                            <select class="form-control" name="obraSocial" id="obraSocial">
-                                <option value="">Seleccione una Obra Social</option>
+                        </div>                        <div class="col-md-4 col-sm-6">
+                            <label for="obraSocial">Obra Social <small>(Selección múltiple)</small></label>
+                            <select class="form-control predictivo" name="obraSocial[]" id="obraSocial" multiple>
                                 {% for idObra, obra in obraSociales %}
-                                    <option {{ obraSocial == idObra ? 'selected' : '' }} value="{{ idObra }}">{{ obra }}</option>
+                                    <option {{ obraSocial is defined and (obraSocial is iterable ? idObra in obraSocial : obraSocial == idObra) ? 'selected' : '' }} value="{{ idObra }}">{{ obra }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -179,9 +248,14 @@
                                 {% endfor %}
                             </select>
                         </div>
+                    </div>                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3" id="filtros-activos">
+                                <!-- Aquí se mostrarán las selecciones activas -->
+                            </div>
+                        </div>
                     </div>
-                    <div class="row">
-                        <div class="col-12 d-flex justify-content-between">
+                    <div class="row">                        <div class="col-12 d-flex justify-content-between">
                             <div>
                                 <button type="submit" id="buscarBtn" class="btn btn-primary">
                                     <i class="fas fa-search mr-1"></i> Buscar
@@ -190,7 +264,10 @@
                                     <i class="fas fa-eraser mr-1"></i> Limpiar
                                 </a>
                             </div>
-                            <span><b>Total de Pacientes:</b> {{ pacientes | length }}</span>
+                            <div>
+                                <span><b>Total de Pacientes:</b> {{ pacientes | length }}</span>
+                                <span id="estadisticasDiasCama" class="ml-3"></span>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -229,34 +306,50 @@
         <div class="table-responsive-historico">
             <table class="table table-striped table-bordered">
                 <thead class="sticky-header">
-                    <tr>
-                        <th class="sticky-first-col">Paciente</th>
+                    <tr>                        <th class="sticky-first-col">Paciente</th>
                         {% for day in range %}
-                            <th class="date-column text-center">{{ day.format('d/m/Y') }}</th>
+                            <th class="date-column text-center">{{ day.format('d') }}</th>
                         {% endfor %}
                     </tr>
                 </thead>
                 <tbody>
                     {% for clienteId, pacienteData in pacientes %}
-                        <tr>
-                            <td class="sticky-first-col">
-                                <a href="{{ path('cliente_show', {'id': clienteId}) }}">
+                        <tr>                            <td class="sticky-first-col">
+                                <a href="{{ path('cliente_show', {'id': clienteId}) }}" class="text-truncate d-block" data-toggle="tooltip" title="{{ clientesData[clienteId].apellido|upper }} {{ clientesData[clienteId].nombre }}">
                                     {{ clientesData[clienteId].apellido|upper }} {{ clientesData[clienteId].nombre }}
                                 </a>
-                                <br>
-                                <small>HC: {{ clientesData[clienteId].hClinica }}</small>
+                                <small class="d-block text-truncate">HC: {{ clientesData[clienteId].hClinica }} | <span class="obra-social-badge"><i class="fas fa-id-card-alt mr-1"></i>{{ clientesData[clienteId].obraSocialNombre|default('Sin OS') }}</span></small>
                             </td>
                             {% for day in range %}
                                 {% set fecha = day.format('d/m/Y') %}
                                 <td class="text-center {% if fecha == "now"|date('d/m/Y') %}bg-warning-light{% endif %}">
-                                    {% if pacienteData[fecha] is defined %}
-                                        <div class="patient-state 
+                                    {% if pacienteData[fecha] is defined %}                                        <div class="patient-state 
                                             {% if 'Internado' in pacienteData[fecha] %}state-internado
                                             {% elseif 'Ambulatorio' in pacienteData[fecha] or 'Hospital de día' in pacienteData[fecha] or 'ART' in pacienteData[fecha] %}state-ambulatorio
                                             {% elseif 'Derivado' in pacienteData[fecha] %}state-derivado
                                             {% elseif 'Egreso' in pacienteData[fecha] %}state-egreso
-                                            {% else %}state-sin-modalidad{% endif %}">
-                                            {{ pacienteData[fecha]|raw }}
+                                            {% else %}state-sin-modalidad{% endif %}"
+                                            data-toggle="tooltip" 
+                                            title="{{ pacienteData[fecha]|striptags }}">
+                                            {% set lineas = pacienteData[fecha]|split('<br>') %}
+                                            {% set estado = lineas[0] %}
+                                            <span class="estado-icon">
+                                                {% if 'Internado' in estado %}
+                                                    <i class="fas fa-procedures"></i>
+                                                {% elseif 'Ambulatorio' in estado %}
+                                                    <i class="fas fa-walking"></i>
+                                                {% elseif 'Hospital de día' in estado %}
+                                                    <i class="fas fa-clinic-medical"></i>
+                                                {% elseif 'ART' in estado %}
+                                                    <i class="fas fa-briefcase-medical"></i>
+                                                {% elseif 'Derivado' in estado %}
+                                                    <i class="fas fa-ambulance"></i>
+                                                {% elseif 'Egreso' in estado %}
+                                                    <i class="fas fa-sign-out-alt"></i>
+                                                {% else %}
+                                                    <i class="fas fa-question"></i>
+                                                {% endif %}
+                                            </span>
                                         </div>
                                     {% endif %}
                                 </td>
@@ -274,25 +367,44 @@
             {% for day in range %}
                 {% set fecha = day.format('d/m/Y') %}
                 <div class="col-md-4 mb-3">
-                    <div class="card">
-                        <div class="card-header {% if fecha == "now"|date('d/m/Y') %}bg-warning-light{% endif %}">
-                            <strong>{{ day.format('d/m/Y') }}</strong>
+                    <div class="card">                        <div class="card-header {% if fecha == "now"|date('d/m/Y') %}bg-warning-light{% endif %}">                            <strong>{{ day.format('d') }}</strong>
                             <span class="float-right">
-                                {% if totales.totalDia[fecha] is defined %}{{ totales.totalDia[fecha]|length }}{% else %}0{% endif %} pacientes
+                                {% if totales.totalDia[fecha] is defined %}{{ totales.totalDia[fecha]|length }}{% else %}0{% endif %} p
                             </span>
                         </div>
                         <div class="card-body">
                             <ul class="list-group">
-                                {% for clienteId, val in totales.totalDia[fecha] is defined ? totales.totalDia[fecha] : [] %}
-                                    <li class="list-group-item p-2 
+                                {% for clienteId, val in totales.totalDia[fecha] is defined ? totales.totalDia[fecha] : [] %}                                    <li class="list-group-item p-1 
                                         {% if totales.internados[fecha][clienteId] is defined %}list-group-item-primary
                                         {% elseif totales.ambulatorios[fecha][clienteId] is defined %}list-group-item-success
                                         {% elseif totales.derivados[fecha][clienteId] is defined %}list-group-item-warning
                                         {% elseif totales.egresos[fecha][clienteId] is defined %}list-group-item-danger
-                                        {% else %}list-group-item-secondary{% endif %}">
-                                        <strong>{{ clientesData[clienteId].apellido|upper }} {{ clientesData[clienteId].nombre }}</strong>
+                                        {% else %}list-group-item-secondary{% endif %}">                                        <strong class="text-truncate d-block" data-toggle="tooltip" title="{{ clientesData[clienteId].apellido|upper }} {{ clientesData[clienteId].nombre }}">{{ clientesData[clienteId].apellido|upper }} {{ clientesData[clienteId].nombre }}</strong>
+                                        <small class="d-block text-truncate" data-toggle="tooltip" title="{{ clientesData[clienteId].obraSocialNombre }}">
+                                            <i class="fas fa-id-card-alt mr-1"></i>{{ clientesData[clienteId].obraSocialNombre|length > 15 ? clientesData[clienteId].obraSocialNombre|slice(0, 15) ~ '...' : clientesData[clienteId].obraSocialNombre }}
+                                        </small>
                                         <br>
-                                        <small>{{ pacientes[clienteId][fecha]|raw }}</small>
+                                        <div data-toggle="tooltip" title="{{ pacientes[clienteId][fecha]|striptags }}">
+                                            {% set lineas = pacientes[clienteId][fecha]|split('<br>') %}
+                                            {% set estado = lineas[0] %}
+                                            <span class="estado-icon">
+                                                {% if 'Internado' in estado %}
+                                                    <i class="fas fa-procedures"></i>
+                                                {% elseif 'Ambulatorio' in estado %}
+                                                    <i class="fas fa-walking"></i>
+                                                {% elseif 'Hospital de día' in estado %}
+                                                    <i class="fas fa-clinic-medical"></i>
+                                                {% elseif 'ART' in estado %}
+                                                    <i class="fas fa-briefcase-medical"></i>
+                                                {% elseif 'Derivado' in estado %}
+                                                    <i class="fas fa-ambulance"></i>
+                                                {% elseif 'Egreso' in estado %}
+                                                    <i class="fas fa-sign-out-alt"></i>
+                                                {% else %}
+                                                    <i class="fas fa-question"></i>
+                                                {% endif %}
+                                            </span>
+                                        </div>
                                     </li>
                                 {% endfor %}
                             </ul>
@@ -410,6 +522,46 @@
                             </table>
                         </div>
                     </div>
+                </div>            </div>
+        </div>
+        
+        <!-- Nueva fila para estadísticas de días cama -->
+        <div class="row">
+            <!-- Estadísticas de Días Cama -->
+            <div class="col-md-12 mb-4">
+                <div class="card summary-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Estadísticas de Días Cama</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="stats-box text-center mb-3">
+                                    <h6>Total de Pacientes</h6>
+                                    <h3 id="totalPacientesDisplay">0</h3>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="stats-box text-center mb-3">
+                                    <h6>Total Días Cama</h6>
+                                    <h3 id="totalDiasCamaDisplay">0</h3>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="stats-box text-center mb-3">
+                                    <h6>Ocupación Promedio</h6>
+                                    <h3 id="ocupacionPromedioDisplay">0</h3>
+                                    <small>días/paciente</small>
+                                </div>
+                            </div>
+                        </div>
+                        <canvas id="diasCamaChart" width="800" height="300"></canvas>
+                        <div class="mt-3">
+                            <p class="text-muted small">
+                                <i class="fas fa-info-circle"></i> Los días cama se calculan sumando los días de internación de cada paciente en el período seleccionado.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -460,8 +612,27 @@
     <script src="{{ asset('assets/js/historico.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+    
     <script>
+        $('.predictivo').chosen();
+        // Función para inicializar tooltips con configuración optimizada
+        function initTooltips() {
+            $('[data-toggle="tooltip"]').tooltip('dispose').tooltip({
+                trigger: 'hover focus',
+                placement: 'auto',
+                html: true,
+                container: 'body',
+                boundary: 'window',
+                delay: {show: 50, hide: 100},
+                animation: true,
+                sanitize: false
+            });
+        }
+        
         document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar tooltips
+            initTooltips();
+            
             // Botones de cambio de vista
             const tableViewBtn = document.getElementById('tableView');
             const calendarViewBtn = document.getElementById('calendarView');
@@ -470,18 +641,24 @@
             const tableViewContent = document.getElementById('tableViewContent');
             const calendarViewContent = document.getElementById('calendarViewContent');
             const summaryViewContent = document.getElementById('summaryViewContent');
-            
-            tableViewBtn.addEventListener('click', function() {
+              tableViewBtn.addEventListener('click', function() {
                 tableViewContent.style.display = 'block';
                 calendarViewContent.style.display = 'none';
                 summaryViewContent.style.display = 'none';
-                
-                tableViewBtn.classList.add('active');
+                  tableViewBtn.classList.add('active');
                 calendarViewBtn.classList.remove('active');
                 summaryViewBtn.classList.remove('active');
-            });
-            
-            calendarViewBtn.addEventListener('click', function() {
+                
+                // Reinicializar tooltips con opciones mejoradas
+                $('[data-toggle="tooltip"]').tooltip('dispose').tooltip({
+                    trigger: 'hover',
+                    placement: 'auto',
+                    html: true,
+                    container: 'body',
+                    boundary: 'window',
+                    delay: {show: 50, hide: 50}
+                });
+            });                calendarViewBtn.addEventListener('click', function() {
                 tableViewContent.style.display = 'none';
                 calendarViewContent.style.display = 'block';
                 summaryViewContent.style.display = 'none';
@@ -489,9 +666,18 @@
                 tableViewBtn.classList.remove('active');
                 calendarViewBtn.classList.add('active');
                 summaryViewBtn.classList.remove('active');
+                
+                // Reinicializar tooltips con opciones mejoradas
+                $('[data-toggle="tooltip"]').tooltip('dispose').tooltip({
+                    trigger: 'hover',
+                    placement: 'auto',
+                    html: true,
+                    container: 'body',
+                    boundary: 'window',
+                    delay: {show: 50, hide: 50}
+                });
             });
-            
-            summaryViewBtn.addEventListener('click', function() {
+              summaryViewBtn.addEventListener('click', function() {
                 tableViewContent.style.display = 'none';
                 calendarViewContent.style.display = 'none';
                 summaryViewContent.style.display = 'block';
@@ -499,6 +685,16 @@
                 tableViewBtn.classList.remove('active');
                 calendarViewBtn.classList.remove('active');
                 summaryViewBtn.classList.add('active');
+                
+                // Reinicializar tooltips con opciones mejoradas
+                $('[data-toggle="tooltip"]').tooltip('dispose').tooltip({
+                    trigger: 'hover',
+                    placement: 'auto',
+                    html: true,
+                    container: 'body',
+                    boundary: 'window',
+                    delay: {show: 50, hide: 50}
+                });
                 
                 // Cargar gráficos solo cuando se muestra esta vista
                 loadCharts();
@@ -655,778 +851,201 @@
                 }
                 return colors;
             }
-            
-        });
+        }); // <-- Cierre correcto de document.addEventListener('DOMContentLoaded', ...)
     </script>
     <script>
-        $(document).ready(function() {
-            // Ocultar la vista de carga inicialmente
-            $("#loading").hide();
-            
-            // Cambio entre vistas
-            $("#viewTable").click(function() {
-                $(this).addClass('active');
-                $("#viewSummary").removeClass('active');
-                $("#tableView").show();
-                $("#summaryView").hide();
-            });
-            
-            $("#viewSummary").click(function() {
-                $(this).addClass('active');
-                $("#viewTable").removeClass('active');
-                $("#tableView").hide();
-                $("#summaryView").show();
-                renderCharts();
-            });
-            
-            // Controlador para colapsar/expandir filtros
-            $(".filters-toggle").click(function() {
-                $(this).find('i.fas').toggleClass('fa-chevron-up fa-chevron-down');
-            });
-            
-            // Filtros y búsqueda
-            $('#historicForm').submit(function(e) {
-                $("#buscarBtn").prop('disabled', true);
-                $("#limpiar").addClass('disabled');
-                $(".printiable").hide();
-                $("#loading").show();
-            });
-            
-            $("#limpiar").click(function(e) {
-                $(this).addClass('disabled');
-                $("#buscarBtn").prop('disabled', true);
-                $(".printiable").hide();
-                $("#loading").show();
-            });
-            
-            // Control del checkbox "todos"
-            $("#todos").change(function() {
-                $('.check').prop('checked', this.checked);
-            });
-            
-            $('.check').change(function() {
-                if (!this.checked) {
-                    $("#todos").prop('checked', false);
-                } else {
-                    if ($('.check:checked').length == $('.check').length) {
-                        $("#todos").prop('checked', true);
-                    }
-                }
-            });
-            
-            // Botón para imprimir
-            $("#updateLocal").off('click').on('click', function() {
-                // Obtener checkboxes seleccionados
-                let checkboxes = [];
-                $('#checkboxes input:checked').each(function() {
-                    checkboxes.push($(this).val());
-                });
-                
-                if (checkboxes.length < 1) {
-                    alert('Seleccione al menos un campo');
-                    return;
-                }
-                
-                // Deshabilitamos el botón y mostramos la animación de carga
-                $("#updateLocal").prop('disabled', true);
-                $(".modal-footer").html('<img src="{{ asset('assets/images/loading.gif') }}" style="max-height: 80px;">');
-                
-                // Crear una versión compacta de la tabla para imprimir
-                let compactHtml = createCompactTableForPrint(checkboxes);
-                
-                // Configuramos la página para impresión
-                let printWindow = window.open('', '_blank');
-                if (!printWindow) {
-                    alert("Por favor, permita las ventanas emergentes para imprimir.");
-                    resetButtons();
-                    return;
-                }
-                
-                printWindow.document.write(compactHtml);
-                printWindow.document.close();
-                
-                // Refrescar al volver el foco a la ventana principal
-                let reloadOnFocus = function() {
-                    window.removeEventListener('focus', reloadOnFocus);
-                    location.reload();
-                };
-                window.addEventListener('focus', reloadOnFocus);
-
-                // Esperar a que se cargue el contenido y luego imprimir
-                setTimeout(function() {
-                    try {
-                        printWindow.focus();
-                        printWindow.print();
-                        // Cerrar el modal después de imprimir
-                        $('.filtrosPlanillaLocal').modal('hide');
-                        // Refrescar la página
-                        location.reload();
-                        // Restaurar los botones
-                        resetButtons();
-                    } catch (e) {
-                        console.error("Error al imprimir:", e);
-                        alert("Hubo un error al imprimir. Por favor, inténtelo de nuevo.");
-                        resetButtons();
-                    }
-                }, 1000);
-            });
-            
-            // Botón para Excel
-            $("#descargarExcelLocal").off('click').on('click', function() {
-                // Deshabilitar el botón mientras se genera el archivo
-                $(this).prop('disabled', true);
-                // Extraer los datos agrupados
-                let pacientes = extractPatientData();
-                // Filtros y fecha
-                let filtros = obtenerFiltrosAplicados();
-                let fecha = '13/05/2025';
-                let ws_data = [];
-                ws_data.push(["Histórico de Pacientes"]);
-                ws_data.push(["Resumen agrupado por períodos"]);
-                ws_data.push(["Filtros aplicados:", filtros]);
-                ws_data.push(["Fecha de generación:", fecha]);
-                ws_data.push([]);
-                // Cabecera
-                ws_data.push(["Paciente", "HC", "Estado", "Período"]);
-                // Datos
-                for (let pacienteId in pacientes) {
-                    let paciente = pacientes[pacienteId];
-                    for (let i = 0; i < paciente.periodos.length; i++) {
-                        let periodo = paciente.periodos[i];
-                        // Formatear el estado igual que en impresión
-                        let estadoFormateado = periodo.estado;
-                        if (periodo.profesionales && periodo.profesionales.length > 0) {
-                            estadoFormateado += '\n' + periodo.profesionales.join('\n');
-                        }
-                        if (periodo.habitacion) {
-                            estadoFormateado += '\n' + periodo.habitacion;
-                        }
-                        // Separar por mayúsculas/números
-                        estadoFormateado = estadoFormateado.replace(/([a-z])([A-Z])/g, '$1\n$2');
-                        estadoFormateado = estadoFormateado.replace(/([a-zA-Z])([0-9])/g, '$1\n$2');
-                        estadoFormateado = estadoFormateado.replace(/([0-9])([A-Z])/g, '$1\n$2');
-                        estadoFormateado = estadoFormateado.replace(/([a-z])([A-Z]{2,})/g, '$1\n$2');
-                        // Calcular cantidad de días (inclusive)
-                        let dias = calcularDias(periodo.desde, periodo.hasta);
-                        ws_data.push([
-                            paciente.nombre,
-                            paciente.hc,
-                            estadoFormateado,
-                            periodo.desde + ' al ' + periodo.hasta + ' (' + dias + ' días)'
-                        ]);
-                    }
-                }
-                let ws = XLSX.utils.aoa_to_sheet(ws_data);
-                let wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Histórico Pacientes");
-                XLSX.writeFile(wb, `Historico_Pacientes_${new Date().toISOString().slice(0,10)}.xlsx`);
-                $(this).prop('disabled', false);
+// Función para imprimir el resumen desde el modal
+$(document).ready(function() {
+    // Configurar el evento del botón Imprimir
+    $(document).on('click', '#updateLocal', function() {
+        // Obtener checkboxes seleccionados
+        let checkboxes = [];
+        $('#checkboxes input:checked').each(function() {
+            checkboxes.push($(this).val());
+        });
+        if (checkboxes.length < 1) {
+            alert('Seleccione al menos un campo');
+            return;
+        }
+        // Deshabilitar el botón y mostrar animación
+        $('#updateLocal').prop('disabled', true);
+        $('.modal-footer').html('<img src="/assets/images/loading.gif" style="max-height: 80px;">');
+        // Crear HTML para imprimir
+        let compactHtml = (typeof createCompactTableForPrint === 'function') ? createCompactTableForPrint(checkboxes) : '<div>Error: función de impresión no encontrada.</div>';
+        let printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            alert("Por favor, permita las ventanas emergentes para imprimir.");
+            location.reload();
+            return;
+        }
+        printWindow.document.write(compactHtml);
+        printWindow.document.close();
+        setTimeout(function() {
+            try {
+                printWindow.focus();
+                printWindow.print();
                 $('.filtrosPlanillaLocal').modal('hide');
                 location.reload();
-            });
-            
-            // Función para restaurar los botones a su estado original
-            function resetButtons() {
-                $(".modal-footer").html('<button type="button" class="btn btn-primary" id="updateLocal">Imprimir</button><button type="button" class="btn btn-success" id="descargarExcelLocal">Descargar Excel</button>');
-                
-                // Reasignar los eventos
-                setupButtons();
+            } catch (e) {
+                alert("Hubo un error al imprimir. Por favor, inténtelo de nuevo.");
+                location.reload();
             }
-            
-            // Función para configurar los eventos de los botones
-            function setupButtons() {
-                // Asignar evento al botón de imprimir
-                $("#updateLocal").off('click').on('click', function() {
-                    // Obtener checkboxes seleccionados
-                    let checkboxes = [];
-                    $('#checkboxes input:checked').each(function() {
-                        checkboxes.push($(this).val());
-                    });
-                    
-                    if (checkboxes.length < 1) {
-                        alert('Seleccione al menos un campo');
-                        return;
-                    }
-                    
-                    // Deshabilitamos el botón y mostramos la animación de carga
-                    $("#updateLocal").prop('disabled', true);
-                    $(".modal-footer").html('<img src="{{ asset('assets/images/loading.gif') }}" style="max-height: 80px;">');
-                    
-                    // Crear una versión compacta de la tabla para imprimir
-                    let compactHtml = createCompactTableForPrint(checkboxes);
-                    
-                    // Configuramos la página para impresión
-                    let printWindow = window.open('', '_blank');
-                    if (!printWindow) {
-                        alert("Por favor, permita las ventanas emergentes para imprimir.");
-                        resetButtons();
-                        return;
-                    }
-                    
-                    printWindow.document.write(compactHtml);
-                    printWindow.document.close();
-                    
-                    // Refrescar al volver el foco a la ventana principal
-                    let reloadOnFocus = function() {
-                        window.removeEventListener('focus', reloadOnFocus);
-                        location.reload();
-                    };
-                    window.addEventListener('focus', reloadOnFocus);
+        }, 1000);
+    });
+});
+</script>
+<script>
+// Exportar los datos de pacientes con periodos (estructura para impresión)
+window.pacientesPeriodosData = {% if pacientesPeriodos is defined %}{{ pacientesPeriodos|json_encode(constant('JSON_UNESCAPED_UNICODE'))|raw }}{% else %}[] // <-- ATENCIÓN: Debes pasar la variable pacientesPeriodos desde el controlador Symfony a Twig para que esto funcione correctamente. {% endif %};
 
-                    // Esperar a que se cargue el contenido y luego imprimir
-                    setTimeout(function() {
-                        try {
-                            printWindow.focus();
-                            printWindow.print();
-                            // Cerrar el modal después de imprimir
-                            $('.filtrosPlanillaLocal').modal('hide');
-                            // Restauramos los botones
-                            resetButtons();
-                        } catch (e) {
-                            console.error("Error al imprimir:", e);
-                            alert("Hubo un error al imprimir. Por favor, inténtelo de nuevo.");
-                            resetButtons();
-                        }
-                    }, 1000);
+// Función para generar la tabla compacta para imprimir
+function createCompactTableForPrint(checkboxes) {
+    // Usar la estructura correcta
+    const pacientes = window.pacientesPeriodosData;
+    
+    // Calcular el total de días cama
+    let totalDiasCama = 0;
+    if (pacientes && pacientes.length > 0) {
+        pacientes.forEach(function(paciente) {
+            if (paciente.periodos && paciente.periodos.length > 0) {
+                paciente.periodos.forEach(function(periodo) {
+                    totalDiasCama += periodo.dias ? parseInt(periodo.dias) : 0;
                 });
-                
-                // Asignar evento al botón de Excel
-                $("#descargarExcelLocal").off('click').on('click', function() {
-                    // Deshabilitar el botón mientras se genera el archivo
-                    $(this).prop('disabled', true);
-                    // Extraer los datos agrupados
-                    let pacientes = extractPatientData();
-                    // Crear tabla para Excel
-                    let tableHtml = '<table><thead><tr>' +
-                        '<th>Paciente</th>' +
-                        '<th>HC</th>' +
-                        '<th>Estado</th>' +
-                        '<th>Período</th>' +
-                        '</tr></thead><tbody>';
-                    for (let pacienteId in pacientes) {
-                        let paciente = pacientes[pacienteId];
-                        for (let i = 0; i < paciente.periodos.length; i++) {
-                            let periodo = paciente.periodos[i];
-                            tableHtml += '<tr>' +
-                                '<td>' + paciente.nombre + '</td>' +
-                                '<td>' + paciente.hc + '</td>' +
-                                '<td>' + periodo.estado + '</td>' +
-                                '<td>' + periodo.desde + ' al ' + periodo.hasta + '</td>' +
-                                '</tr>';
-                        }
-                    }
-                    tableHtml += '</tbody></table>';
-                    // Convertir a hoja de Excel
-                    let tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = tableHtml;
-                    let table = tempDiv.querySelector('table');
-                    let wb = XLSX.utils.table_to_book(table, {sheet: "Histórico Pacientes"});
-                    XLSX.writeFile(wb, `Historico_Pacientes_${new Date().toISOString().slice(0,10)}.xlsx`);
-                    $(this).prop('disabled', false);
-                    // Cerrar la modal después de descargar el archivo
-                    $('.filtrosPlanillaLocal').modal('hide');
-                    location.reload();
-                });
-            }
-            
-            // Al abrir el modal, configuramos los eventos
-            $('.filtrosPlanillaLocal').on('shown.bs.modal', function() {
-                setupButtons();
-            });
-            
-            // Función para crear una tabla compacta para impresión
-            function createCompactTableForPrint(checkboxes) {
-                console.log("Checkboxes seleccionados:", checkboxes); // Debug
-
-                // Extraer datos
-                let pacientes = extractPatientData();
-                
-                // Verificar qué columnas mostrar
-                let mostrarDatos = checkboxes.includes('datos') || checkboxes.includes('todos');
-                let mostrarEstados = checkboxes.includes('estados') || checkboxes.includes('todos');
-                // let mostrarProfesionales = checkboxes.includes('profesionales') || checkboxes.includes('todos');
-                // let mostrarHabitaciones = checkboxes.includes('habitaciones') || checkboxes.includes('todos');
-                
-                // Crear tabla HTML
-                let tableHtml = '<table class="table table-bordered compact-table">';
-                
-                // Cabecera de tabla
-                tableHtml += '<thead><tr>';
-                
-                // Agregar solo las columnas seleccionadas
-                if (mostrarDatos) {
-                    tableHtml += '<th style="width: 20%">Paciente</th>';
-                    tableHtml += '<th style="width: 10%">HC</th>';
-                }
-                
-                if (mostrarEstados) {
-                    tableHtml += '<th style="width: 15%">Estado</th>';
-                }
-                
-                // La columna de períodos siempre se muestra
-                tableHtml += '<th style="width: 20%">Períodos</th>';
-                
-                tableHtml += '</tr></thead><tbody>';
-                
-                // Filas de datos
-                for (let pacienteId in pacientes) {
-                    let paciente = pacientes[pacienteId];
-                    
-                    // Por cada estado del paciente
-                    for (let estado in paciente.estados) {
-                        if (paciente.estados[estado].length > 0) {
-                            tableHtml += '<tr>';
-                            
-                            // Datos del paciente (solo si está seleccionado)
-                            if (mostrarDatos) {
-                                tableHtml += '<td>' + paciente.nombre + '</td>';
-                                tableHtml += '<td>' + paciente.hc + '</td>';
-                            }
-                            
-                            // Estado (solo si está seleccionado)
-                            if (mostrarEstados) {
-                                // Mostrar estado formateado con profesional y habitación si existen
-                                let estadoFormateado = periodo.estado;
-                                if (periodo.profesionales && periodo.profesionales.length > 0) {
-                                    estadoFormateado += '<br>' + periodo.profesionales.join('<br>');
-                                }
-                                if (periodo.habitacion) {
-                                    estadoFormateado += '<br>' + periodo.habitacion;
-                                }
-                                tableHtml += '<td>' + estadoFormateado + '</td>';
-                            }
-                            
-                            // Períodos (siempre se muestran)
-                            let periodos = agruparPeriodos(paciente.estados[estado]);
-                            tableHtml += '<td>' + periodos.join("<br>") + '</td>';
-                            
-                            tableHtml += '</tr>';
-                        }
-                    }
-                }
-                
-                tableHtml += '</tbody></table>';
-                
-                // HTML completo para imprimir
-                let htmlToPrint = '<!DOCTYPE html><html><head>';
-                htmlToPrint += '<meta charset="utf-8">';
-                htmlToPrint += '<title>Histórico de Pacientes</title>';
-                htmlToPrint += '<style>';
-                htmlToPrint += 'body { font-family: Arial, sans-serif; margin: 20px; }';
-                htmlToPrint += 'table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }';
-                htmlToPrint += 'th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }';
-                htmlToPrint += 'th { background-color: #f2f2f2; }';
-                htmlToPrint += '.title { font-size: 24px; margin-bottom: 20px; text-align: center; font-weight: bold; }';
-                htmlToPrint += '.subtitle { font-size: 16px; margin-bottom: 15px; }';
-                htmlToPrint += '.filters { margin-bottom: 15px; font-size: 12px; color: #666; }';
-                htmlToPrint += '@media print { body { padding: 0; margin: 0; } }';
-                htmlToPrint += 'table, tr, td, th { background-color: white !important; color: black !important; }';
-                htmlToPrint += '</style>';
-                htmlToPrint += '</head><body>';
-                htmlToPrint += '<div class="title">Histórico de Pacientes</div>';
-                htmlToPrint += '<div class="subtitle">Informe resumido - Agrupado por períodos</div>';
-                htmlToPrint += '<div class="filters">Filtros aplicados: ' + obtenerFiltrosAplicados() + '</div>';
-                htmlToPrint += '<p>Fecha de generación: ' + new Date().toLocaleDateString() + '</p>';
-                htmlToPrint += tableHtml;
-                htmlToPrint += '</body></html>';
-                
-                return htmlToPrint;
-            }
-            
-            // Función para obtener los filtros aplicados
-            function obtenerFiltrosAplicados() {
-                let filtros = [];
-                
-                let desde = $('#from').val();
-                let hasta = $('#to').val();
-                if (desde) filtros.push('Desde: ' + desde);
-                if (hasta) filtros.push('Hasta: ' + hasta);
-                
-                let modalidad = $('#modalidad option:selected').text();
-                if ($('#modalidad').val() != "0") filtros.push('Estado: ' + modalidad);
-                
-                let hc = $('#hc').val();
-                if (hc) filtros.push('HC: ' + hc);
-                
-                let nombre = $('#nombre').val();
-                if (nombre) filtros.push('Nombre/Apellido: ' + nombre);
-                
-                let obraSocial = $('#obraSocial option:selected').text();
-                if ($('#obraSocial').val()) filtros.push('Obra Social: ' + obraSocial);
-                
-                let profesional = $('#prof option:selected').text();
-                if ($('#prof').val()) filtros.push('Profesional: ' + profesional);
-                
-                return filtros.join(' | ');
-            }
-            
-            // Función para extraer los datos de los pacientes de la tabla
-            function extractPatientData() {
-                let pacientes = {};
-                let thFechas = [];
-                // Obtener las fechas de la cabecera
-                $("#tableViewContent .table thead th").each(function(idx) {
-                    if (idx === 0) return; // Saltar columna Paciente
-                    thFechas.push($(this).text().trim());
-                });
-                // Recorrer la tabla de pacientes
-                $("#tableViewContent .table tbody tr").each(function() {
-                    let $row = $(this);
-                    let pacienteLink = $row.find('td:eq(0) a');
-                    let pacienteId = null;
-                    if (pacienteLink.length) {
-                        let href = pacienteLink.attr('href');
-                        if (href) {
-                            pacienteId = href.split('/').pop();
-                        }
-                    }
-                    if (!pacienteId) return;
-                    if (!pacientes[pacienteId]) {
-                        let nombre = pacienteLink.text().trim();
-                        let hc = $row.find('td:eq(0) small').text().replace('HC:','').trim();
-                        pacientes[pacienteId] = {
-                            nombre: nombre,
-                            hc: hc,
-                            periodos: []
-                        };
-                    }
-                    // Agrupar por bloques de estado, profesional y habitación iguales
-                    let last = null;
-                    let periodo = null;
-                    $row.find('td').each(function(idx) {
-                        if (idx === 0) return; // Saltar columna Paciente
-                        let cell = $(this);
-                        let estadoDiv = cell.find('.patient-state');
-                        let estadoTexto = estadoDiv.length ? estadoDiv.text().trim() : '';
-                        if (!estadoTexto) {
-                            if (periodo) {
-                                periodo.hasta = thFechas[idx-1];
-                                pacientes[pacienteId].periodos.push(periodo);
-                                periodo = null;
-                                last = null;
-                            }
-                            return;
-                        }
-                        // Extraer profesional y habitación del texto
-                        let profesional = '';
-                        let habitacion = '';
-                        // Buscar patrones comunes (ajustar según formato real)
-                        // Ejemplo: "Ambulatorio\nLiz Marisol Benitez\nPrevencion ART"
-                        let lineas = estadoTexto.split(/\n|<br\s*\/?>(?![^<]*>)/g).map(x => x.trim()).filter(x => x);
-                        let estado = lineas[0] || '';
-                        if (lineas.length > 1) {
-                            profesional = lineas[1];
-                        }
-                        if (lineas.length > 2) {
-                            habitacion = lineas.slice(2).join(' - ');
-                        }
-                        // Si cambia el bloque (estado, profesional, habitación), cerrar el anterior y abrir uno nuevo
-                        let bloqueActual = estado + '|' + profesional + '|' + habitacion;
-                        if (!last || last !== bloqueActual) {
-                            if (periodo) {
-                                periodo.hasta = thFechas[idx-1];
-                                pacientes[pacienteId].periodos.push(periodo);
-                            }
-                            periodo = {
-                                desde: thFechas[idx-1],
-                                hasta: thFechas[idx-1],
-                                estado: estado,
-                                profesionales: profesional ? [profesional] : [],
-                                habitacion: habitacion
-                            };
-                            last = bloqueActual;
-                        } else {
-                            // Si es igual, solo extender el periodo
-                            periodo.hasta = thFechas[idx-1];
-                        }
-                    });
-                    // Si quedó un periodo abierto al final
-                    if (periodo) {
-                        pacientes[pacienteId].periodos.push(periodo);
-                    }
-                });
-                return pacientes;
-            }
-
-            // Modificar createCompactTableForPrint para usar los periodos agrupados
-            function createCompactTableForPrint(checkboxes) {
-                let pacientes = extractPatientData();
-                let mostrarDatos = checkboxes.includes('datos') || checkboxes.includes('todos');
-                let mostrarEstados = checkboxes.includes('estados') || checkboxes.includes('todos');
-                // let mostrarProfesionales = checkboxes.includes('profesionales') || checkboxes.includes('todos');
-                // let mostrarHabitaciones = checkboxes.includes('habitaciones') || checkboxes.includes('todos');
-                let tableHtml = '<table class="table table-bordered compact-table">';
-                tableHtml += '<thead><tr>';
-                if (mostrarDatos) {
-                    tableHtml += '<th style="width: 20%">Paciente</th>';
-                    tableHtml += '<th style="width: 10%">HC</th>';
-                }
-                if (mostrarEstados) {
-                    tableHtml += '<th style="width: 15%">Estado</th>';
-                }
-                tableHtml += '<th style="width: 20%">Período</th>';
-                tableHtml += '</tr></thead><tbody>';
-                for (let pacienteId in pacientes) {
-                    let paciente = pacientes[pacienteId];
-                    for (let i = 0; i < paciente.periodos.length; i++) {
-                        let periodo = paciente.periodos[i];
-                        tableHtml += '<tr>';
-                        if (mostrarDatos) {
-                            tableHtml += '<td>' + paciente.nombre + '</td>';
-                            tableHtml += '<td>' + paciente.hc + '</td>';
-                        }
-                        if (mostrarEstados) {
-                            // Mostrar estado formateado con profesional y habitación si existen
-                            let estadoFormateado = periodo.estado;
-                            if (periodo.profesionales && periodo.profesionales.length > 0) {
-                                estadoFormateado += '<br>' + periodo.profesionales.join('<br>');
-                            }
-                            if (periodo.habitacion) {
-                                estadoFormateado += '<br>' + periodo.habitacion;
-                            }
-                            // Separar el estadoFormateado en partes usando mayúsculas y números como separadores
-                            estadoFormateado = estadoFormateado.replace(/([a-z])([A-Z])/g, '$1\n$2');
-                            estadoFormateado = estadoFormateado.replace(/([a-zA-Z])([0-9])/g, '$1\n$2');
-                            estadoFormateado = estadoFormateado.replace(/([0-9])([A-Z])/g, '$1\n$2');
-                            // También separar si hay dos mayúsculas seguidas (casos como "BRITANICA SALUD")
-                            estadoFormateado = estadoFormateado.replace(/([a-z])([A-Z]{2,})/g, '$1\n$2');
-                            // Reemplazar los saltos de línea por <br> para HTML
-                            estadoFormateado = estadoFormateado.replace(/\n/g, '<br>');
-                            tableHtml += '<td>' + estadoFormateado + '</td>';
-                        }
-                        // Calcular cantidad de días (inclusive)
-                        let dias = calcularDias(periodo.desde, periodo.hasta);
-                        tableHtml += '<td>' + periodo.desde + ' al ' + periodo.hasta + ' (' + dias + ' días)</td>';
-                        tableHtml += '</tr>';
-                    }
-                }
-                tableHtml += '</tbody></table>';
-                let htmlToPrint = '<!DOCTYPE html><html><head>';
-                htmlToPrint += '<meta charset="utf-8">';
-                htmlToPrint += '<title>Histórico de Pacientes</title>';
-                htmlToPrint += '<style>';
-                htmlToPrint += 'body { font-family: Arial, sans-serif; margin: 20px; }';
-                htmlToPrint += 'table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }';
-                htmlToPrint += 'th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }';
-                htmlToPrint += 'th { background-color: #f2f2f2; }';
-                htmlToPrint += '.title { font-size: 24px; margin-bottom: 20px; text-align: center; font-weight: bold; }';
-                htmlToPrint += '.subtitle { font-size: 16px; margin-bottom: 15px; }';
-                htmlToPrint += '.filters { margin-bottom: 15px; font-size: 12px; color: #666; }';
-                htmlToPrint += '@media print { body { padding: 0; margin: 0; } }';
-                htmlToPrint += 'table, tr, td, th { background-color: white !important; color: black !important; }';
-                htmlToPrint += '</style>';
-                htmlToPrint += '</head><body>';
-                htmlToPrint += '<div class="title">Histórico de Pacientes</div>';
-                htmlToPrint += '<div class="subtitle">Informe resumido - Agrupado por períodos</div>';
-                htmlToPrint += '<div class="filters">Filtros aplicados: ' + obtenerFiltrosAplicados() + '</div>';
-                htmlToPrint += '<p>Fecha de generación: ' + new Date().toLocaleDateString() + '</p>';
-                htmlToPrint += tableHtml;
-                htmlToPrint += '</body></html>';
-                return htmlToPrint;
-            }
-            
-            // Función para agrupar períodos
-            function agruparPeriodos(periodos) {
-                let periodosAgrupados = [];
-                
-                for (let i = 0; i < periodos.length; i++) {
-                    let periodo = periodos[i];
-                    periodosAgrupados.push(periodo.desde + ' - ' + periodo.hasta);
-                }
-                
-                return periodosAgrupados;
-            }
-            
-            // Función para extraer profesionales sin repetir
-            function extraerProfesionales(periodos) {
-                let profesionalesSet = new Set();
-                
-                for (let i = 0; i < periodos.length; i++) {
-                    let periodo = periodos[i];
-                    for (let j = 0; j < periodo.profesionales.length; j++) {
-                        profesionalesSet.add(periodo.profesionales[j]);
-                    }
-                }
-                
-                return Array.from(profesionalesSet);
-            }
-            
-            // Función para agrupar períodos por habitación
-            function agruparPeriodosPorHabitacion(periodos) {
-                let result = [];
-                
-                for (let i = 0; i < periodos.length; i++) {
-                    let periodo = periodos[i];
-                    result.push({
-                        periodo: periodo.desde + ' - ' + periodo.hasta,
-                        habitacion: periodo.habitacion || 'No especificada'
-                    });
-                }
-                
-                return result;
-            }
-            
-            // Renderizar gráficos para la vista de resumen
-            function renderCharts() {
-                // ...implementación de gráficos...
             }
         });
-    </script>
-    <script>
-    // Mejorar formato de impresión
-    function createCompactTableForPrint(checkboxes) {
-        let pacientes = extractPatientData();
-        let mostrarDatos = checkboxes.includes('datos') || checkboxes.includes('todos');
-        let mostrarEstados = checkboxes.includes('estados') || checkboxes.includes('todos');
-        let tableHtml = '<table class="table table-bordered compact-table print-table">';
-        tableHtml += '<thead><tr>';
-        if (mostrarDatos) {
-            tableHtml += '<th>Paciente</th>';
-            tableHtml += '<th>HC</th>';
-        }
-        if (mostrarEstados) {
-            tableHtml += '<th>Estado</th>';
-        }
-        tableHtml += '<th>Período</th>';
-        tableHtml += '</tr></thead><tbody>';
-        for (let pacienteId in pacientes) {
-            let paciente = pacientes[pacienteId];
-            for (let i = 0; i < paciente.periodos.length; i++) {
-                let periodo = paciente.periodos[i];
-                tableHtml += '<tr>';
-                if (mostrarDatos) {
-                    tableHtml += '<td>' + paciente.nombre + '</td>';
-                    tableHtml += '<td>' + paciente.hc + '</td>';
-                }
-                if (mostrarEstados) {
-                    // Mostrar estado formateado con profesional y habitación si existen
-                    let estadoFormateado = periodo.estado;
-                    if (periodo.profesionales && periodo.profesionales.length > 0) {
-                        estadoFormateado += '<br>' + periodo.profesionales.join('<br>');
-                    }
-                    if (periodo.habitacion) {
-                        estadoFormateado += '<br>' + periodo.habitacion;
-                    }
-                    tableHtml += '<td>' + estadoFormateado + '</td>';
-                }
-                // Calcular cantidad de días (inclusive)
-                let dias = calcularDias(periodo.desde, periodo.hasta);
-                tableHtml += '<td>' + periodo.desde + ' al ' + periodo.hasta + ' (' + dias + ' días)</td>';
-                tableHtml += '</tr>';
-            }
-        }
-        tableHtml += '</tbody></table>';
-        let htmlToPrint = '<!DOCTYPE html><html><head>';
-        htmlToPrint += '<meta charset="utf-8">';
-        htmlToPrint += '<title>Histórico de Pacientes</title>';
-        htmlToPrint += '<style>';
-        htmlToPrint += 'body { font-family: Arial, sans-serif; margin: 30px; color: #222; }';
-        htmlToPrint += '.print-header { text-align: center; margin-bottom: 20px; }';
-        htmlToPrint += '.print-header .title { font-size: 28px; font-weight: bold; margin-bottom: 5px; }';
-        htmlToPrint += '.print-header .subtitle { font-size: 16px; margin-bottom: 10px; }';
-        htmlToPrint += '.print-header .filters { font-size: 13px; color: #555; margin-bottom: 10px; }';
-        htmlToPrint += '.print-header .date { font-size: 13px; color: #888; margin-bottom: 15px; }';
-        htmlToPrint += 'table.print-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }';
-        htmlToPrint += 'table.print-table th, table.print-table td { border: 1px solid #bbb; padding: 8px 6px; }';
-        htmlToPrint += 'table.print-table th { background: #f0f0f0; color: #222; font-size: 15px; }';
-        htmlToPrint += 'table.print-table tr:nth-child(even) { background: #fafbfc; }';
-        htmlToPrint += 'table.print-table tr:nth-child(odd) { background: #fff; }';
-        htmlToPrint += '.print-footer { margin-top: 30px; font-size: 12px; color: #888; text-align: right; }';
-        htmlToPrint += '@media print { body { margin: 10mm; } }';
-        htmlToPrint += '</style>';
-        htmlToPrint += '</head><body>';
-        htmlToPrint += '<div class="print-header">';
-        htmlToPrint += '<div class="title">Histórico de Pacientes</div>';
-        htmlToPrint += '<div class="subtitle">Resumen agrupado por períodos</div>';
-        htmlToPrint += '<div class="filters">Filtros aplicados: ' + obtenerFiltrosAplicados() + '</div>';
-        htmlToPrint += '<div class="date">Fecha de generación: 13/05/2025</div>';
-        htmlToPrint += '</div>';
-        htmlToPrint += tableHtml;
-        htmlToPrint += '<div class="print-footer">Generado automáticamente por el sistema</div>';
-        htmlToPrint += '</body></html>';
-        return htmlToPrint;
     }
-
-    // Mejorar formato de Excel
-    $("#descargarExcelLocal").off('click').on('click', function() {
-        $(this).prop('disabled', true);
-        let pacientes = extractPatientData();
-        // Filtros y fecha
-        let filtros = obtenerFiltrosAplicados();
-        let fecha = '13/05/2025';
-        let ws_data = [];
-        ws_data.push(["Histórico de Pacientes"]);
-        ws_data.push(["Resumen agrupado por períodos"]);
-        ws_data.push(["Filtros aplicados:", filtros]);
-        ws_data.push(["Fecha de generación:", fecha]);
-        ws_data.push([]);
-        // Cabecera
-        ws_data.push(["Paciente", "HC", "Estado", "Período"]);
-        // Datos
-        for (let pacienteId in pacientes) {
-            let paciente = pacientes[pacienteId];
-            for (let i = 0; i < paciente.periodos.length; i++) {
-                let periodo = paciente.periodos[i];
-                if (mostrarEstados) {
-                    // Mostrar estado formateado con profesional y habitación si existen
-                    let estadoFormateado = periodo.estado;
-                    if (periodo.profesionales && periodo.profesionales.length > 0) {
-                        estadoFormateado += '\n' + periodo.profesionales.join('\n');
-                    }
-                    if (periodo.habitacion) {
-                        estadoFormateado += '\n' + periodo.habitacion;
-                    }
-                    // Separar el estadoFormateado en partes usando mayúsculas y números como separadores
-                    estadoFormateado = estadoFormateado.replace(/([a-z])([A-Z])/g, '$1\n$2');
-                    estadoFormateado = estadoFormateado.replace(/([a-zA-Z])([0-9])/g, '$1\n$2');
-                    estadoFormateado = estadoFormateado.replace(/([0-9])([A-Z])/g, '$1\n$2');
-                    estadoFormateado = estadoFormateado.replace(/([a-z])([A-Z]{2,})/g, '$1\n$2');
-                    // Para Excel, dejar los saltos de línea como \n
-                    // Calcular cantidad de días (inclusive)
-                    let dias = calcularDias(periodo.desde, periodo.hasta);
-                    ws_data.push([
-                        paciente.nombre,
-                        paciente.hc,
-                        estadoFormateado,
-                        periodo.desde + ' al ' + periodo.hasta + ' (' + dias + ' días)'
-                    ]);
-                } else {
-                    ws_data.push([
-                        paciente.nombre,
-                        paciente.hc,
-                        '',
-                        periodo.desde + ' al ' + periodo.hasta
-                    ]);
+    
+    let html = '';
+    html += '<h2 style="text-align:center;">Histórico de Pacientes</h2>';
+    html += '<p><strong>Informe resumido - Agrupado por períodos</strong></p>';
+    html += '<p>Fecha de generación: {{ "now"|date("d/m/Y") }}</p>';
+    html += '<p><strong>Total de Pacientes:</strong> ' + (pacientes ? pacientes.length : 0) + ' | <strong>Total de Días Cama:</strong> ' + totalDiasCama + '</p>';
+    html += '<table border="1" cellpadding="6" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:1em;" class="compact-table">';
+    html += '<thead><tr>';
+    html += '<th>Paciente</th><th>HC</th><th>Estado</th><th>Periodo</th>';
+    html += '</tr></thead><tbody>';
+    if (pacientes && pacientes.length > 0) {
+        pacientes.forEach(function(paciente) {
+            if (!paciente.periodos || paciente.periodos.length === 0) return;
+            paciente.periodos.forEach(function(periodo, idx) {
+                html += '<tr>';
+                if (idx === 0) {
+                    html += '<td rowspan="' + paciente.periodos.length + '">' + (paciente.nombre || '') + '</td>';
+                    html += '<td rowspan="' + paciente.periodos.length + '">' + (paciente.hc || '') + '</td>';
                 }
-            }
+                // Estado y detalles
+                let estado = periodo.estado || '';
+                if (periodo.habitacion) {
+                    estado += '<br>H:' + periodo.habitacion;
+                    if (periodo.cama) estado += ' C:' + periodo.cama;
+                }
+                if (periodo.profesional) {
+                    estado += '<br>' + periodo.profesional;
+                }
+                if (periodo.obra_social) {
+                    estado += '<br>' + periodo.obra_social;
+                }
+                html += '<td>' + estado + '</td>';
+                // Periodo
+                let desde = periodo.desde ? periodo.desde : '';
+                let hasta = periodo.hasta ? periodo.hasta : '';
+                let dias = periodo.dias ? periodo.dias : '';
+                html += '<td>' + desde + ' al ' + hasta + (dias ? ' (' + dias + ' días)' : '') + '</td>';
+                html += '</tr>';
+            });
+        });
+    } else {
+        html += '<tr><td colspan="4">No hay datos para mostrar.</td></tr>';
+    }
+    html += '</tbody></table>';
+    return html;
+}
+</script>
+<script>
+$(document).ready(function () {
+    // Calcular y mostrar el total de días cama
+    function calcularTotalDiasCama() {
+        let totalDias = 0;
+        if (window.pacientesPeriodosData && window.pacientesPeriodosData.length > 0) {
+            window.pacientesPeriodosData.forEach(function(paciente) {
+                if (paciente.periodos && paciente.periodos.length > 0) {
+                    paciente.periodos.forEach(function(periodo) {
+                        totalDias += periodo.dias ? parseInt(periodo.dias) : 0;
+                    });
+                }
+            });
         }
-        let ws = XLSX.utils.aoa_to_sheet(ws_data);
-        // Estilos básicos para cabecera (negrita)
-        let range = XLSX.utils.decode_range(ws['!ref']);
-        for (let C = 0; C < 4; ++C) {
-            let cell = ws[XLSX.utils.encode_cell({r:5, c:C})];
-            if(cell) cell.s = { font: { bold: true }, fill: { fgColor: { rgb: "F0F0F0" } } };
-        }
-        let wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Histórico Pacientes");
-        XLSX.writeFile(wb, `Historico_Pacientes_${new Date().toISOString().slice(0,10)}.xlsx`);
-        $(this).prop('disabled', false);
-        $('.filtrosPlanillaLocal').modal('hide');
-        location.reload();
+        // Actualizar la visualización del total de días cama
+        $('#totalDiasCamaDisplay').text(totalDias);
+        $('#estadisticasDiasCama').html('<b>Total de Días Cama:</b> ' + totalDias);
+        return totalDias;
+    }
+    
+    // Mejorar la experiencia del selector múltiple de obra social
+    $('#obraSocial').on('click', function(e) {
+        // Mantener el dropdown abierto cuando se hace clic en opciones
+        e.stopPropagation();
     });
-
-    // Función para calcular la cantidad de días entre dos fechas (inclusive)
-    function calcularDias(desde, hasta) {
-        // desde y hasta en formato dd/mm/yyyy
-        let partesDesde = desde.split('/');
-        let partesHasta = hasta.split('/');
-        let fechaDesde = new Date(partesDesde[2], partesDesde[1] - 1, partesDesde[0]);
-        let fechaHasta = new Date(partesHasta[2], partesHasta[1] - 1, partesHasta[0]);
-        let diff = Math.abs(fechaHasta - fechaDesde);
-        let dias = Math.floor(diff / (1000 * 60 * 60 * 24)) + 1;
-        return dias;
+      // Agregar un botón para limpiar selección de obras sociales
+    if ($('#obraSocial').next('.clear-selection-btn').length === 0) {
+        $('<button type="button" class="btn btn-sm btn-outline-secondary clear-selection-btn mt-1 mb-2">Limpiar selección</button>')
+            .insertAfter('#obraSocial')
+            .on('click', function() {
+                $('#obraSocial option:selected').prop('selected', false);
+                actualizarFiltrosActivos();
+            });
     }
-    </script>
+    
+    // Función para mostrar los filtros activos como badges
+    function actualizarFiltrosActivos() {
+        const $filtrosActivos = $('#filtros-activos');
+        $filtrosActivos.empty();
+        
+        // Mostrar obras sociales seleccionadas
+        const $obrasSociales = $('#obraSocial option:selected');
+        if ($obrasSociales.length > 0) {
+            const $obrasSocialesContainer = $('<div class="mb-2"><strong>Obras Sociales:</strong> </div>');
+            
+            $obrasSociales.each(function() {
+                const $badge = $('<span class="badge badge-info mr-1 p-2"></span>').text($(this).text());
+                $obrasSocialesContainer.append($badge);
+            });
+            
+            $filtrosActivos.append($obrasSocialesContainer);
+        }
+        
+        // Mostrar otros filtros activos (puedes expandir según sea necesario)
+        const nombre = $('#nombre').val();
+        if (nombre) {
+            const $nombreContainer = $('<div class="mb-2"><strong>Nombre/Apellido:</strong> </div>');
+            const $badge = $('<span class="badge badge-secondary mr-1 p-2"></span>').text(nombre);
+            $nombreContainer.append($badge);
+            $filtrosActivos.append($nombreContainer);
+        }
+        
+        // Para profesionales
+        const $profesional = $('#prof option:selected');
+        if ($profesional.length > 0 && $profesional.val()) {
+            const $profesionalContainer = $('<div class="mb-2"><strong>Profesional:</strong> </div>');
+            const $badge = $('<span class="badge badge-primary mr-1 p-2"></span>').text($profesional.text());
+            $profesionalContainer.append($badge);
+            $filtrosActivos.append($profesionalContainer);
+        }
+    }
+    
+    // Actualizar filtros cuando cambien los selects
+    $('#obraSocial, #prof').on('change', actualizarFiltrosActivos);
+    $('#nombre').on('input', actualizarFiltrosActivos);
+    
+    // Inicializar filtros activos al cargar la página
+    actualizarFiltrosActivos();
+
+    // Inicializar el cálculo cuando la página se carga
+    setTimeout(function() {
+        calcularTotalDiasCama();
+    }, 500);
+});
+</script>
 {% endblock %}
 
 {% block titleButtons %}
@@ -1445,9 +1064,28 @@
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
-                </div>
-                <div class="modal-body">
-                    <p>Se imprimirá el resumen con todos los campos.</p>
+                </div>                <div class="modal-body">
+                    <p>Seleccione los campos que desea incluir en el resumen:</p>
+                    <div id="checkboxes">
+                        <div class="form-check">
+                            <input class="form-check-input check" type="checkbox" value="datos" id="datos" checked>
+                            <label class="form-check-label" for="datos">
+                                Datos del paciente
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input check" type="checkbox" value="estados" id="estados" checked>
+                            <label class="form-check-label" for="estados">
+                                Estados
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="todos" id="todos" checked>
+                            <label class="form-check-label" for="todos">
+                                <strong>Seleccionar todos</strong>
+                            </label>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary" id="updateLocal">Imprimir</button>
