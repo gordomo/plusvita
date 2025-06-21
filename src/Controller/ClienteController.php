@@ -352,7 +352,11 @@ class ClienteController extends AbstractController
         $currentPage = $request->query->get('currentPage', 1);
         $hc = $request->query->get('hc', null);
         $hab = $request->query->get('hab') ?? null;
-        $obraSocial = $request->query->get('obraSocial') ?? null;
+        $obraSocial = $request->query->get('obraSocial');
+        // Si obraSocial está definido y es un array vacío, establecerlo como null
+        if ($obraSocial !== null && (empty($obraSocial) || (is_array($obraSocial) && count($obraSocial) === 0))) {
+            $obraSocial = null;
+        }
 
         // Obtener todas las obras sociales para mostrar sus nombres
         $obrasSociales = $obraSocialRepository->findBy(array(), array('nombre' => 'ASC'));
@@ -448,10 +452,26 @@ class ClienteController extends AbstractController
             // Cargar todos los clientes involucrados de una sola vez para evitar consultas repetidas
             $todosClientesInvolucrados = $clienteRepository->findBy(['id' => array_keys($clientesIdsInvolucrados)]);
             foreach ($todosClientesInvolucrados as $cliente) {
+                // Obtener la historia más reciente del paciente para conocer su obra social actual
+                $historiaReciente = $historiaPacienteRepository->findOneBy(
+                    ['cliente' => $cliente->getId()],
+                    ['fecha' => 'DESC']
+                );
+                
+                $obraSocialId = null;
+                $obraSocialNombre = 'Sin obra social';
+                
+                if ($historiaReciente && $historiaReciente->getObraSocial()) {
+                    $obraSocialId = $historiaReciente->getObraSocial();
+                    $obraSocialNombre = isset($obArray[$obraSocialId]) ? $obArray[$obraSocialId] : 'Sin obra social';
+                }
+                
                 $clientesData[$cliente->getId()] = [
                     'nombre' => $cliente->getNombre(),
                     'apellido' => $cliente->getApellido(),
-                    'hClinica' => $cliente->getHClinica()
+                    'hClinica' => $cliente->getHClinica(),
+                    'obraSocialId' => $obraSocialId,
+                    'obraSocialNombre' => $obraSocialNombre
                 ];
             }
             

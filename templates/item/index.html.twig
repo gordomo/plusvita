@@ -34,6 +34,43 @@
             border-top: 1px solid #e9ecef;
             margin: 0.5rem 0;
         }
+        
+        /* Estilos para los grupos de items */
+        .tipo-card {
+            border: 1px solid #007bff;
+            border-radius: 0.25rem;
+            box-shadow: 0 2px 4px rgba(0, 123, 255, 0.1);
+            transition: all 0.2s ease;
+        }
+        
+        .tipo-card:hover {
+            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+        }
+        
+        .card-header.bg-white {
+            padding: 0.75rem 1.25rem;
+            background-color: #ffffff !important;
+        }
+        
+        .card-header.text-primary h5 {
+            font-weight: 400;
+            font-size: 1.2rem;
+            color: #007bff;
+        }
+        
+        .badge-primary {
+            background-color: #007bff;
+        }
+        
+        .table-hover tbody tr:hover {
+            background-color: rgba(0, 123, 255, 0.05);
+        }
+        
+        .table thead th {
+            border-top: none;
+            border-bottom: 2px solid #007bff;
+            background-color: #f8f9fa;
+        }
     </style>
 {% endblock %}
 
@@ -137,46 +174,90 @@
     </div>
 </div>
 
-<!-- Aquí empieza el listado de items -->
-<div class="table-responsive">
-    <table class="table table-striped table-hover">
-        <thead>
-            <tr>
-                <th>Imagen</th>
-                <th>Cantidad</th>
-                <th>Tipo</th>
-                <th>Detalles</th>
-                <th>Ubicación</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for grupo in itemsAgrupados %}
-                <tr>
-                    <td>
-                        {% set primerDetalle = grupo.detalles[0] %}
-                        {% set primerItem = items|filter(i => i.nombre == primerDetalle and (i.ubicacionActual and i.ubicacionActual.nombre == grupo.ubicacion) and (i.Tipo and i.Tipo.nombre == grupo.tipo))|first %}
-                        {% if primerItem and primerItem.imagen %}
-                            <img src="{{ asset('uploads/items/imagenes/' ~ primerItem.imagen) }}" alt="{{ primerItem.nombre }}" class="img-thumbnail" style="max-width: 50px;">
-                        {% else %}
-                            <span class="badge badge-secondary">Sin imagen</span>
-                        {% endif %}
-                    </td>
-                    <td>{{ grupo.cantidad }}</td>
-                    <td>{{ grupo.tipo }}</td>
-                    <td>{{ grupo.detalles|join(', ') }}</td>
-                    <td>
-                        <a href="{{ path('app_item_index_ubicacion', { ubicacion: ubicaciones|filter(u => u.nombre == grupo.ubicacion)|first.id }) }}">
-                            {{ grupo.ubicacion }}
-                        </a>
-                    </td>
-                </tr>
-            {% else %}
-                <tr>
-                    <td colspan="5" class="text-center">No hay registros agrupados</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<!-- Aquí empieza el listado de items agrupados por tipo -->
+<div>
+    {% set tipoActual = "" %}
+    {% set gruposTipo = {} %}
+    
+    {# Organizar los grupos por tipo #}
+    {% for grupo in itemsAgrupados %}
+        {% if gruposTipo[grupo.tipo] is not defined %}
+            {% set gruposTipo = gruposTipo|merge({(grupo.tipo): []}) %}
+        {% endif %}
+        {% set gruposTipo = gruposTipo|merge({(grupo.tipo): gruposTipo[grupo.tipo]|merge([grupo])}) %}
+    {% endfor %}
+    
+    {# Ordenar los tipos alfabéticamente #}
+    {% set gruposTipoOrdenados = {} %}
+    {% for tipo in gruposTipo|keys|sort %}
+        {% set gruposTipoOrdenados = gruposTipoOrdenados|merge({(tipo): gruposTipo[tipo]}) %}
+    {% endfor %}
+    {% set gruposTipo = gruposTipoOrdenados %}
+    
+    {# Mostrar los grupos por tipo #}
+    {% for tipo, grupos in gruposTipo %}
+        {% set totalItems = 0 %}
+        {% for grupo in grupos %}
+            {% set totalItems = totalItems + grupo.cantidad %}
+        {% endfor %}
+        {% set tipoId = 'tipo-' ~ loop.index %}
+        <div class="card mb-4 tipo-card">
+            <div class="card-header bg-white text-primary" role="button" data-toggle="collapse" data-target="#{{ tipoId }}" aria-expanded="false" aria-controls="{{ tipoId }}" style="cursor: pointer; border-bottom: 2px solid #007bff;">
+                <h5 class="mb-0 d-flex justify-content-between align-items-center">
+                    <span>
+                        <i class="fas fa-caret-right mr-2"></i>
+                        {{ tipo }}
+                    </span>
+                    <span class="badge badge-primary">{{ totalItems }} ítems</span>
+                </h5>
+            </div>
+            <div class="collapse" id="{{ tipoId }}">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 border-top-0">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th class="pl-3">Imagen</th>
+                                    <th>Cantidad</th>
+                                    <th>Detalles</th>
+                                    <th>Ubicación</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for grupo in grupos %}
+                                    <tr>
+                                        <td>
+                                            {% set primerDetalle = grupo.detalles[0] %}
+                                            {% set primerItem = items|filter(i => i.nombre == primerDetalle and (i.ubicacionActual and i.ubicacionActual.nombre == grupo.ubicacion) and (i.Tipo and i.Tipo.nombre == grupo.tipo))|first %}
+                                            {% if primerItem and primerItem.imagen %}
+                                                <img src="{{ asset('uploads/items/imagenes/' ~ primerItem.imagen) }}" alt="{{ primerItem.nombre }}" class="img-thumbnail" style="max-width: 50px;">
+                                            {% else %}
+                                                <span class="badge badge-secondary">Sin imagen</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ grupo.cantidad }}</td>
+                                        <td>{{ grupo.detalles|join(', ') }}</td>
+                                        <td>
+                                            {% set ubicacionObj = ubicaciones|filter(u => u.nombre == grupo.ubicacion)|first %}
+                                            {% if ubicacionObj %}
+                                                <a href="{{ path('app_item_index_ubicacion', { ubicacion: ubicacionObj.id }) }}">
+                                                    {{ grupo.ubicacion }}
+                                                </a>
+                                            {% else %}
+                                                {{ grupo.ubicacion }}
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info">No hay ítems disponibles</div>
+    {% endfor %}
 </div>
 <!-- Si quieres mantener la tabla original, puedes dejarla debajo o comentarla -->
 {# ...tabla original aquí si se desea... #}
@@ -213,6 +294,31 @@
     {{ parent() }}
     <script>
         var tituloExcel = 'Inventario_Items.xlsx';
+        
+        // Manejar el cambio de ícono al colapsar/expandir grupos
+        $(document).ready(function() {
+            // Asegurar que los iconos muestran el estado correcto al cargar
+            $('.card-header').each(function() {
+                var icon = $(this).find('i.fas');
+                var isExpanded = $(this).attr('aria-expanded') === 'true';
+                
+                if (isExpanded) {
+                    icon.removeClass('fa-caret-right').addClass('fa-caret-down');
+                } else {
+                    icon.removeClass('fa-caret-down').addClass('fa-caret-right');
+                }
+            });
+            
+            // Manejar el cambio al hacer clic
+            $('.card-header').on('click', function() {
+                var icon = $(this).find('i.fas');
+                if (icon.hasClass('fa-caret-down')) {
+                    icon.removeClass('fa-caret-down').addClass('fa-caret-right');
+                } else {
+                    icon.removeClass('fa-caret-right').addClass('fa-caret-down');
+                }
+            });
+        });
         
         function getHtmlToPrint(checkboxes, conHead) {
             let htmlToPrint = '<table border="1">';

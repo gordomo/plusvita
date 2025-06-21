@@ -26,8 +26,7 @@
         .filters-toggle {
             cursor: pointer;
         }
-        
-        .status-indicator {
+          .status-indicator {
             width: 12px;
             height: 12px;
             display: inline-block;
@@ -40,6 +39,24 @@
         .status-derivado { background-color: #ffc107; }
         .status-egreso { background-color: #dc3545; }
         .status-sin-modalidad { background-color: #6c757d; }
+        
+        /* Estilos para el select múltiple */
+        .select-multiple {
+            height: auto !important;
+            min-height: 100px;
+        }
+        
+        .select-multiple option {
+            padding: 6px;
+            margin-bottom: 1px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        
+        .select-multiple option:checked {
+            background-color: #007bff !important;
+            color: white;
+        }
           .table-responsive-historico {
             overflow-x: auto;
             /* Añadir scroll horizontal en pantallas pequeñas */
@@ -154,9 +171,18 @@
             text-align: center;
             cursor: help;
         }
-        
-        .estado-icon i {
+          .estado-icon i {
             font-size: 0.75rem;
+        }
+        
+        .obra-social-badge {
+            font-size: 0.7rem;
+            color: #555;
+            background-color: #f0f0f0;
+            padding: 1px 4px;
+            border-radius: 3px;
+            margin-top: 2px;
+            display: inline-block;
         }
     </style>
 {% endblock %}
@@ -205,13 +231,11 @@
                         <div class="col-md-4 col-sm-6">
                             <label for="nombre">Nombre / Apellido</label>
                             <input class="form-control" type="text" id="nombre" name="nombre" value="{{ nombre }}">
-                        </div>
-                        <div class="col-md-4 col-sm-6">
-                            <label for="obraSocial">Obra Social</label>
-                            <select class="form-control" name="obraSocial" id="obraSocial">
-                                <option value="">Seleccione una Obra Social</option>
+                        </div>                        <div class="col-md-4 col-sm-6">
+                            <label for="obraSocial">Obra Social <small>(Selección múltiple)</small></label>
+                            <select class="form-control predictivo" name="obraSocial[]" id="obraSocial" multiple>
                                 {% for idObra, obra in obraSociales %}
-                                    <option {{ obraSocial == idObra ? 'selected' : '' }} value="{{ idObra }}">{{ obra }}</option>
+                                    <option {{ obraSocial is defined and (obraSocial is iterable ? idObra in obraSocial : obraSocial == idObra) ? 'selected' : '' }} value="{{ idObra }}">{{ obra }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -223,6 +247,12 @@
                                     <option class="text-uppercase" {{ prof == profesional.id ? 'selected' : '' }} value="{{ profesional.id }}">{{ profesional.apellido }} {{ profesional.nombre }}</option>
                                 {% endfor %}
                             </select>
+                        </div>
+                    </div>                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3" id="filtros-activos">
+                                <!-- Aquí se mostrarán las selecciones activas -->
+                            </div>
                         </div>
                     </div>
                     <div class="row">                        <div class="col-12 d-flex justify-content-between">
@@ -288,7 +318,7 @@
                                 <a href="{{ path('cliente_show', {'id': clienteId}) }}" class="text-truncate d-block" data-toggle="tooltip" title="{{ clientesData[clienteId].apellido|upper }} {{ clientesData[clienteId].nombre }}">
                                     {{ clientesData[clienteId].apellido|upper }} {{ clientesData[clienteId].nombre }}
                                 </a>
-                                <small class="d-block text-truncate">HC: {{ clientesData[clienteId].hClinica }}</small>
+                                <small class="d-block text-truncate">HC: {{ clientesData[clienteId].hClinica }} | <span class="obra-social-badge"><i class="fas fa-id-card-alt mr-1"></i>{{ clientesData[clienteId].obraSocialNombre|default('Sin OS') }}</span></small>
                             </td>
                             {% for day in range %}
                                 {% set fecha = day.format('d/m/Y') %}
@@ -350,6 +380,9 @@
                                         {% elseif totales.derivados[fecha][clienteId] is defined %}list-group-item-warning
                                         {% elseif totales.egresos[fecha][clienteId] is defined %}list-group-item-danger
                                         {% else %}list-group-item-secondary{% endif %}">                                        <strong class="text-truncate d-block" data-toggle="tooltip" title="{{ clientesData[clienteId].apellido|upper }} {{ clientesData[clienteId].nombre }}">{{ clientesData[clienteId].apellido|upper }} {{ clientesData[clienteId].nombre }}</strong>
+                                        <small class="d-block text-truncate" data-toggle="tooltip" title="{{ clientesData[clienteId].obraSocialNombre }}">
+                                            <i class="fas fa-id-card-alt mr-1"></i>{{ clientesData[clienteId].obraSocialNombre|length > 15 ? clientesData[clienteId].obraSocialNombre|slice(0, 15) ~ '...' : clientesData[clienteId].obraSocialNombre }}
+                                        </small>
                                         <br>
                                         <div data-toggle="tooltip" title="{{ pacientes[clienteId][fecha]|striptags }}">
                                             {% set lineas = pacientes[clienteId][fecha]|split('<br>') %}
@@ -579,7 +612,9 @@
     <script src="{{ asset('assets/js/historico.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+    
     <script>
+        $('.predictivo').chosen();
         // Función para inicializar tooltips con configuración optimizada
         function initTooltips() {
             $('[data-toggle="tooltip"]').tooltip('dispose').tooltip({
@@ -945,6 +980,65 @@ $(document).ready(function () {
         $('#estadisticasDiasCama').html('<b>Total de Días Cama:</b> ' + totalDias);
         return totalDias;
     }
+    
+    // Mejorar la experiencia del selector múltiple de obra social
+    $('#obraSocial').on('click', function(e) {
+        // Mantener el dropdown abierto cuando se hace clic en opciones
+        e.stopPropagation();
+    });
+      // Agregar un botón para limpiar selección de obras sociales
+    if ($('#obraSocial').next('.clear-selection-btn').length === 0) {
+        $('<button type="button" class="btn btn-sm btn-outline-secondary clear-selection-btn mt-1 mb-2">Limpiar selección</button>')
+            .insertAfter('#obraSocial')
+            .on('click', function() {
+                $('#obraSocial option:selected').prop('selected', false);
+                actualizarFiltrosActivos();
+            });
+    }
+    
+    // Función para mostrar los filtros activos como badges
+    function actualizarFiltrosActivos() {
+        const $filtrosActivos = $('#filtros-activos');
+        $filtrosActivos.empty();
+        
+        // Mostrar obras sociales seleccionadas
+        const $obrasSociales = $('#obraSocial option:selected');
+        if ($obrasSociales.length > 0) {
+            const $obrasSocialesContainer = $('<div class="mb-2"><strong>Obras Sociales:</strong> </div>');
+            
+            $obrasSociales.each(function() {
+                const $badge = $('<span class="badge badge-info mr-1 p-2"></span>').text($(this).text());
+                $obrasSocialesContainer.append($badge);
+            });
+            
+            $filtrosActivos.append($obrasSocialesContainer);
+        }
+        
+        // Mostrar otros filtros activos (puedes expandir según sea necesario)
+        const nombre = $('#nombre').val();
+        if (nombre) {
+            const $nombreContainer = $('<div class="mb-2"><strong>Nombre/Apellido:</strong> </div>');
+            const $badge = $('<span class="badge badge-secondary mr-1 p-2"></span>').text(nombre);
+            $nombreContainer.append($badge);
+            $filtrosActivos.append($nombreContainer);
+        }
+        
+        // Para profesionales
+        const $profesional = $('#prof option:selected');
+        if ($profesional.length > 0 && $profesional.val()) {
+            const $profesionalContainer = $('<div class="mb-2"><strong>Profesional:</strong> </div>');
+            const $badge = $('<span class="badge badge-primary mr-1 p-2"></span>').text($profesional.text());
+            $profesionalContainer.append($badge);
+            $filtrosActivos.append($profesionalContainer);
+        }
+    }
+    
+    // Actualizar filtros cuando cambien los selects
+    $('#obraSocial, #prof').on('change', actualizarFiltrosActivos);
+    $('#nombre').on('input', actualizarFiltrosActivos);
+    
+    // Inicializar filtros activos al cargar la página
+    actualizarFiltrosActivos();
 
     // Inicializar el cálculo cuando la página se carga
     setTimeout(function() {

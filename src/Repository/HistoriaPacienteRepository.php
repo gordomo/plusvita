@@ -199,8 +199,16 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
                 $prof = '%'.$prof.'%';
                 $newQuery .= " and doc_referente like '" . $prof ."'";
             }
-            if ( $obraSocial ) { 
-                $newQuery .= " and obra_social = " . $obraSocial;
+            if ($obraSocial) { 
+                if (is_array($obraSocial)) {
+                    if (count($obraSocial) > 0) {
+                        $obrasSocialesIDs = implode(',', array_map('intval', $obraSocial));
+                        $newQuery .= " and obra_social IN (" . $obrasSocialesIDs . ")";
+                    }
+                } else {
+                    // Mantener compatibilidad con versiones anteriores (un solo ID)
+                    $newQuery .= " and obra_social = " . $obraSocial;
+                }
             }
             
             $ids = $this->em->getConnection()->prepare($newQuery)->executeQuery()->fetchFirstColumn();
