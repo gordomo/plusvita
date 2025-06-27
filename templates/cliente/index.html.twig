@@ -480,7 +480,7 @@
                                         <a class="dropdown-item" href="{{ path('adjuntos_pacientes_new', {'id': cliente.id}) }}">
                                             <i class="fas fa-paperclip"></i> Adjuntar
                                         </a>
-                                        <a class="dropdown-item" href="{{ path('evolucion_index', {'cliente': cliente.id}) }}">
+                                        <a class="dropdown-item" href="{{ path('cliente_historial', {'id': cliente.id}) }}">
                                             <i class="far fa-calendar-alt"></i> Historia clínica
                                         </a>
                                         <a class="dropdown-item" href="{{ path('make_qr_historia', {'id': cliente.id}) }}">

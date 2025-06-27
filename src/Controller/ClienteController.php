@@ -1629,6 +1629,197 @@ class ClienteController extends AbstractController
     }
 
     /**
+     * @Route("/{id}/historia", name="cliente_historial", methods={"GET"})
+     */
+    public function historia(Cliente $cliente, HistoriaPacienteRepository $historiaPacienteRepository, ObraSocialRepository $obraSocialRepository, NotasTurnoRepository $notasTurnoRepository, BookingRepository $bookingRepository, NotasHistoriaClinicaRepository $notasHistoriaClinicaRepository, EvolucionRepository $evolucionRepository, HistoriaEgresoRepository $historiaEgresoRepository, Request $request, DoctorRepository $doctorRepository, UserRepository $userRepository, HabitacionRepository $habitacionRepository): Response
+    {
+        $puedenEditarEvoluciones = in_array('ROLE_EDIT_HC', $this->getUser()->getRoles());
+
+        $tipos = [
+            'Nutricionista',
+            'Director medico',
+            'Sub director medico',
+            'Trabajadora social',
+            'Psiquiatra',
+            'Infectologo',
+            'Contador',
+            'Abogado',
+            'Estudio contable',
+            'Directivo',
+            'Profesional por prestacion',
+            'Medico de guardia',
+            'Medico Clínico',
+            'HidroTerapia motora',
+            'Kinesiologo',
+            'Kinesiologo respiratorio',
+            'Terapista ocupacional',
+            'Fonoaudiologo',
+            'Psicologo',
+            'Fisiatra',
+            'Neurologo',
+            'Cardiologo',
+            'Urologo',
+            'Hematologo',
+            'Neumonologo',
+            'Cirujano',
+            'Traumatologo',
+            'Neumonologo',
+        ];
+
+        $evolucionesDesde   = $request->get('evolucionesDesde');
+        $evolucionesHasta   = $request->get('evolucionesHasta');  
+        $fechaDesde         = $evolucionesDesde   ? new \DateTime($evolucionesDesde. '0:0:0')   : $evolucionesDesde;
+        $fechaHasta         = $evolucionesHasta   ? new \DateTime($evolucionesHasta. '23:59:59'): $evolucionesHasta;
+        $tiposEvolucion     = $request->query->get('filtrarPorTipo') ?? [];
+
+        $evoluciones = $evolucionRepository->findByFechaClienteYtipos($cliente, $fechaDesde, $fechaHasta, $tiposEvolucion);
+
+        $docId = $request->query->get('prof', 0);
+        $doc = $doctorRepository->find($docId);
+        $evArray = [];
+
+        if ($doc) {
+            foreach ($evoluciones as $evolucion) {
+                $doctor = $doctorRepository->findBy(['email' => $evolucion->getUser()]);
+
+                if (count($doctor) == 0) {
+                    $doctor = $userRepository->findBy(['email' => $evolucion->getUser()]);
+                }
+                if (count($doctor) == 0) {
+                    $doctor = $userRepository->findBy(['user' => $evolucion->getUser()]);
+                }
+                $firma = '';
+                if (count($doctor) > 0) {
+                    $firma = $doctor[0]->getFirma();
+                }
+
+                if($doc->getEmail() === $doctor[0]->getEmail()) {
+                    $evArray[] = ['evolucion' => $evolucion, 'firma' => $firma];
+                }
+            }
+        } else {
+            foreach ($evoluciones as $evolucion) {
+                $doctor = $doctorRepository->findBy(['email' => $evolucion->getUser()]);
+
+                if (count($doctor) == 0) {
+                    $doctor = $userRepository->findBy(['email' => $evolucion->getUser()]);
+                }
+                if (count($doctor) == 0) {
+                    $doctor = $userRepository->findBy(['user' => $evolucion->getUser()]);
+                }
+                $firma = '';
+                if (count($doctor) > 0) {
+                    $firma = $doctor[0]->getFirma();
+                }
+
+                $evArray[] = ['evolucion' => $evolucion, 'firma' => $firma];
+            }
+        }
+
+        $novedadesDesde   = $request->get('novedadesDesde');
+        $novedadesHasta   = $request->get('novedadesHasta');  
+        $fechaDesde       = $novedadesDesde   ? new \DateTime($novedadesDesde. '0:0:0')   : $novedadesDesde;
+        $fechaHasta       = $novedadesHasta   ? new \DateTime($novedadesHasta. '23:59:59'): $novedadesHasta;
+
+        $historiaPaciente = $historiaPacienteRepository->getHistorialDesdeHasta($cliente, $fechaDesde, $fechaHasta);
+
+        $obrasSociales = $obraSocialRepository->findAll();
+        $obraSocialesArray = [];
+        foreach ($obrasSociales as $obraSocial) {
+            $obraSocialesArray[$obraSocial->getId()] = $obraSocial->getNombre();
+        }
+
+        $notasDesde   = $request->get('notasDesde');
+        $notasHasta   = $request->get('notasHasta');  
+        $fechaDesde   = $notasDesde   ? new \DateTime($notasDesde. '0:0:0')   : $notasDesde;
+        $fechaHasta   = $notasHasta   ? new \DateTime($notasHasta. '23:59:59'): $notasHasta;
+        $notasTipo    = $request->query->get('notasTipo') ?? '';
+        $section      = $request->query->get('section') ?? '';
+
+        $turnos         = [];
+        $doctores       = "";
+        $notasTurnos    = [];
+
+        if($notasTipo) {
+            $arrTipo = [$notasTipo];
+            $doctores = $doctorRepository->findByContratos($arrTipo, null);
+            foreach ($doctores as $doctor) {
+                $turnos[] = $bookingRepository->turnosConFiltro($doctor, $cliente->getId(), $fechaDesde, $fechaHasta, 1);
+                foreach ($turnos as $turno) {
+                    $notas = $notasTurnoRepository->findBy(['turno' => $turno] );
+                    if ( !empty($notas) ) {
+                        $notasTurnos[$turno->getId()]['fecha'] = $turno->getBeginAt();
+                        $notasTurnos[$turno->getId()]['doctor'] = $turno->getDoctorName();
+                        $notasTurnos[$turno->getId()]['modalidad'] = $turno->getDoctorModalidad();
+                        foreach ($notas as $nota ) {
+                            $notasTurnos[$turno->getId()]['notas'][$nota->getId()] = $nota->getText();
+                        }
+                    }
+                }
+            }
+            dd($turnos);
+        } else {
+            $turnos = $bookingRepository->turnosConFiltro('', $cliente->getId(), $fechaDesde, $fechaHasta, 1);
+            foreach ($turnos as $turno) {
+                $notas = $notasTurnoRepository->findBy(['turno' => $turno] );
+                if ( !empty($notas) ) {
+                    $notasTurnos[$turno->getId()]['fecha'] = $turno->getBeginAt();
+                    $notasTurnos[$turno->getId()]['doctor'] = $turno->getDoctorName();
+                    $notasTurnos[$turno->getId()]['modalidad'] = $turno->getDoctorModalidad();
+                    foreach ($notas as $nota ) {
+                        $notasTurnos[$turno->getId()]['notas'][$nota->getId()] = $nota->getText();
+                    }
+                }
+            }
+        }
+        $notasHistoria = $notasHistoriaClinicaRepository->findBy(['cliente' => $cliente]);
+        $historiaEgreso = $historiaEgresoRepository->findBy(['cliente' => $cliente]);
+
+        $habitaciones = $habitacionRepository->findAll();
+        $habitacionesArray = [];
+        foreach ($habitaciones as $habitacion) {
+            $habitacionesArray[$habitacion->getId()] = $habitacion->getNombre();
+        }
+
+        $epicrisisIngreso = $cliente->getEpicrisisIngreso();
+        $extensionEI = '';
+        if ($epicrisisIngreso) {
+            $extensionEI = '.'.pathinfo($epicrisisIngreso, PATHINFO_EXTENSION);
+        }
+        
+
+        return $this->render('cliente/historia.html.twig', [
+                'cliente'               => $cliente,
+                'historiaPaciente'      => $historiaPaciente,
+                'obraSociales'          => $obraSocialesArray,
+                'paginaImprimible'      => false,//local
+                'notasTurnos'           => $notasTurnos,
+                'notasHistoria'         => $notasHistoria,
+                'titulo_solo'           => true,
+                'evoluciones'           => $evArray,
+                'ingreso'               => $cliente->getHistoriaIngreso(),
+                'historiaEgreso'        => $historiaEgreso,
+                'tipoSeleccionado'      => '',
+                'notasDesde'            => $notasDesde,
+                'notasHasta'            => $notasHasta,
+                'notasTipo'             => $notasTipo,
+                'section'               => $section,
+                'contratos'             => $tipos,
+                'tipoEvolucion'         => $tiposEvolucion,
+                'evolucionesDesde'      => $evolucionesDesde,
+                'evolucionesHasta'      => $evolucionesHasta,
+                'puedeEditarEvolucion'  => $puedenEditarEvoluciones,
+                'habitacionesArray'     => $habitacionesArray,
+                'novedadesDesde'        => $novedadesDesde,
+                'novedadesHasta'        => $novedadesHasta,
+                'doc'                   => $doc,
+                'doctorRepository'      => $doctorRepository,
+                'epicrisisIngreso'      => $epicrisisIngreso,
+                'extensionEI'           => $extensionEI,
+        ]);
+    }
+
+    /**
      * @Route("/guardar/epi/{id}", name="guardar_epi", methods={"POST"})
      */
     public function guardarEpi(Cliente $cliente, Request $request)
