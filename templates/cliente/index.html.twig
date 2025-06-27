@@ -396,7 +396,7 @@
                                 {% endif %}
                             </td>
                             <td class="fEgreso">{{ cliente.fEgreso ? cliente.fEgreso|date('d/m/Y') : '' }}</td>
-                            <td class="motivoEgr>{{ cliente.motivoEgr }}</td>
+                            <td class="motivoEgr">{{ cliente.motivoEgr }}</td>
                             <td class="obraSocial">
                                 {{ cliente.obraSocial.nombre ?? 'no tiene' }}
                             </td>
@@ -426,7 +426,7 @@
                                     {{ habitacionesArray[cliente.habitacion] }}
                                 {% endif %}
                             </td>
-                            <td class="nCama>
+                            <td class="nCama">
                                 {% if cliente.habPrivada %}
                                     <span class="badge badge-info">Privada</span>
                                 {% else %}
