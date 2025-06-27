@@ -220,7 +220,7 @@ class EvolucionController extends AbstractController
                 if($redirect !== '') {
                     return $this->redirect($redirect);
                 } else {
-                    return $this->redirectToRoute('cliente_historial', ['id' => $evolucion->getPaciente()->getId()], Response::HTTP_SEE_OTHER);
+                    return $this->redirectToRoute('evolucion_index', ['cliente' => $evolucion->getPaciente()->getId()], Response::HTTP_SEE_OTHER);
                 }
             }
 
@@ -230,7 +230,7 @@ class EvolucionController extends AbstractController
                 'form' => $form->createView(),
             ]);
         } else {
-            return $this->redirectToRoute('cliente_historial', ['id' => $evolucion->getPaciente()->getId()], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('evolucion_index', ['cliente' => $evolucion->getPaciente()->getId()], Response::HTTP_SEE_OTHER);
         }
 
     }

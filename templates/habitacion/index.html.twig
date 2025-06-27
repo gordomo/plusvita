@@ -63,7 +63,7 @@
                     {% for paciente in pacientesEnHab %}
                 <tr>
                     <td colspan="4">
-                        <a href="{{ path('cliente_historial', {id: paciente.id}) }}">{{ paciente.nombre }} {{ paciente.apellido }}</a>
+                        <a href="{{ path('evolucion_index', {cliente: paciente.id}) }}">{{ paciente.nombre }} {{ paciente.apellido }}</a>
                     </td>
                     <td colspan="1">
                         {% if not paciente.ambulatorioPresente %}

@@ -106,7 +106,7 @@
                     {% endif %}
                 </td>
                 <td class="obraSocial"></td>
-                <td><a href="{{ path('cliente_historial', {'id': cliente.id}) }}" class="btn btn-primary btn-sm">HC</a> </td>
+                <td><a href="{{ path('evolucion_index', {'cliente': cliente.id}) }}" class="btn btn-primary btn-sm">HC</a> </td>
             </tr>
             {% if historiasArray[cliente.id] is defined %}
                 {% for historia in historiasArray[cliente.id] %}

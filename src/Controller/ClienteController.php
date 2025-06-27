@@ -1642,7 +1642,7 @@ class ClienteController extends AbstractController
         $entityManager->persist($historiaEgreso);
         $entityManager->flush();
 
-        return $this->redirectToRoute('cliente_historial', ['id' => $cliente->getId()]);
+        return $this->redirectToRoute('evolucion_index', ['cliente' => $cliente->getId()]);
 
     }
 
