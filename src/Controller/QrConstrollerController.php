@@ -32,7 +32,7 @@ class QrConstrollerController extends AbstractController
      */
     public function make(int $id, UrlGeneratorInterface $router, BuilderInterface $customQrCodeBuilder): Response
     {
-        $url = $router->generate('cliente_historial', ['id'=>$id], urlGeneratorInterface::ABSOLUTE_URL); 
+        $url = $router->generate('evolucion_index', ['cliente'=>$id], urlGeneratorInterface::ABSOLUTE_URL); 
 
         $result = $customQrCodeBuilder->data($url)->size(400)->margin(20)->build();
         $response = new QrCodeResponse($result);
