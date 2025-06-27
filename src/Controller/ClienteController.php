@@ -1701,6 +1701,64 @@ class ClienteController extends AbstractController
         die('todo joya!');
     }
 
+    /**
+     * @Route("/patologia-select", name="patologia_select", methods={"GET"})
+     */
+    public function patologiaSelect(Request $request): Response
+    {
+        $motivoIng = $request->query->get('motivoIng');
+        
+        // Options for specific pathologies based on selected admission reason
+        $options = [];
+        switch ($motivoIng) {
+            case 1: // Neurologicas
+                $options = [
+                    'ACV' => 'ACV',
+                    'TCE' => 'TCE',
+                    'TRM' => 'TRM',
+                    'Enfermedad neurodegenerativa' => 'Enfermedad neurodegenerativa',
+                    'Otro' => 'Otro',
+                ];
+                break;
+            case 2: // Traumatológicas
+                $options = [
+                    'Fractura de cadera' => 'Fractura de cadera',
+                    'Fractura de miembro inferior' => 'Fractura de miembro inferior',
+                    'Fractura de miembro superior' => 'Fractura de miembro superior',
+                    'Amputación' => 'Amputación',
+                    'Otro' => 'Otro',
+                ];
+                break;
+            case 3: // Respiratorias
+                $options = [
+                    'EPOC' => 'EPOC',
+                    'Neumonía' => 'Neumonía',
+                    'Otro' => 'Otro',
+                ];
+                break;
+            case 4: // Paliativos
+                $options = [
+                    'Oncológico' => 'Oncológico',
+                    'No oncológico' => 'No oncológico',
+                ];
+                break;
+            case 5: // Patologías laborales
+                $options = [
+                    'Accidente laboral' => 'Accidente laboral',
+                    'Otro' => 'Otro',
+                ];
+                break;
+        }
+        
+        if (!$options) {
+            return new Response(''); // Return empty response when no specific options
+        }
+        
+        return $this->render('cliente/_patologia_options.html.twig', [
+            'options' => $options,
+        ]);
+    }
+
     public function acomodarHabitacion($habitacionNueva, int $nuevaCamaId, $habVieja, int $camaActualId, int $habPrivada, int $habPrivadaNueva, EntityManager $entityManager)
     {
         if (!empty($habVieja)) {
