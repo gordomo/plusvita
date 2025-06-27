@@ -247,11 +247,11 @@
                             </td>
                             <td class="text-capitalize datos">
                                 {% if prof is defined %}
-                                    <a class="" href="{{ path('cliente_historial', {'id': historiaPaciente[0].cliente.id, 'prof': prof}) }}">
+                                    <a class="" href="{{ path('evolucion_index', {'cliente': historiaPaciente[0].cliente.id, 'prof': prof}) }}">
                                         {{ cliente }}
                                     </a>
                                 {% else %}
-                                    <a class="" href="{{ path('cliente_historial', {'id': historiaPaciente[0].cliente.id}) }}">
+                                    <a class="" href="{{ path('evolucion_index', {'cliente': historiaPaciente[0].cliente.id}) }}">
                                         {{ cliente }}
                                     </a>
                                 {% endif %}

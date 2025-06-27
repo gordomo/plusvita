@@ -2,7 +2,7 @@
 
 {% block title %}Cliente{% endblock %}
 {% block panelTitle %}
-    Datos del Paciente <a href="{{path('cliente_edit', {id: cliente.id})}}" class="btn btn-default">Editar</a> <a href="{{path('cliente_historial', {id: cliente.id})}}" class="btn btn-default">H. C.</a>
+    Datos del Paciente <a href="{{path('cliente_edit', {id: cliente.id})}}" class="btn btn-default">Editar</a> <a href="{{path('evolucion_index', {cliente: cliente.id})}}" class="btn btn-default">H. C.</a>
 {% endblock %}
 {% block body %}
     <table class="table">

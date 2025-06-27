@@ -160,7 +160,7 @@
                                 <tr>
                                     <td class="border-0"></td>
                                     <td class="paciente border-0" >
-                                        <a href="{{ path('cliente_historial', {id: paciente.id}) }}">{{ paciente.nombre }} {{ paciente.apellido }}</a>
+                                        <a href="{{ path('evolucion_index', {cliente: paciente.id}) }}">{{ paciente.nombre }} {{ paciente.apellido }}</a>
                                     </td>
                                     <td class="obraSocial {{ (data.clientes | length > 1 and key != 0) ? '' : 'border-0' }}">
                                         <div>{{ paciente.obraSocial.nombre ?? 'No Tiene' }}</div>
