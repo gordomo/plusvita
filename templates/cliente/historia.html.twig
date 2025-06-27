@@ -224,7 +224,7 @@
                                     <button type="submit" class="btn btn-default" style="width: 100%;">filtrar</button>
                                 </div>
                                 <div class="col-xl-1 col-md-6 col-lg-3 col-sm-6">
-                                    <a class="btn btn-default" href="{{ path('evolucion_index', {'cliente': cliente.id}) }}#notasTurnosScroll" style="width: 100%;">limpiar</a>
+                                    <a class="btn btn-default" href="{{ path('cliente_historial', {'id': cliente.id}) }}#notasTurnosScroll" style="width: 100%;">limpiar</a>
                                 </div>
                             </div>
                         </div>
@@ -265,7 +265,7 @@
                     </a>
                 </div>
                 <div class="col-lg-9 col-sm-12 col-md-9">
-                    <form method="get" action="{{ path('evolucion_index', {'cliente': cliente.id}) }}#evolucionesScroll" class="remover">
+                    <form method="get" action="{{ path('cliente_historial', {'id': cliente.id}) }}#evolucionesScroll" class="remover">
                         <input type="hidden" name="section" value="evoluciones">
                         <div class="form-group">
                             <div class="form-row">
@@ -292,7 +292,7 @@
                                     <button type="submit" class="btn btn-default" style="width: 100%;">filtrar</button>
                                 </div>
                                 <div class="col-xl-1 col-md-6 col-lg-3 col-sm-6">
-                                    <a class="btn btn-default" href="{{ path('evolucion_index', {'cliente': cliente.id}) }}#evolucionesScroll" style="width: 100%;">limpiar</a>
+                                    <a class="btn btn-default" href="{{ path('cliente_historial', {'id': cliente.id}) }}#evolucionesScroll" style="width: 100%;">limpiar</a>
                                 </div>
                             </div>
                         </div>
@@ -354,7 +354,7 @@
                     </a>
                 </div>
                 <div class="col-lg-9 col-sm-12 col-md-9">
-                    <form method="get" action="{{ path('evolucion_index', {'cliente': cliente.id}) }}#novedadesScroll" class="remover">
+                    <form method="get" action="{{ path('cliente_historial', {'id': cliente.id}) }}#novedadesScroll" class="remover">
                         <input type="hidden" name="section" value="novedades">
                         <div class="form-group">
                             <div class="form-row">
@@ -374,7 +374,7 @@
                                     <button type="submit" class="btn btn-default" style="width: 100%;">filtrar</button>
                                 </div>
                                 <div class="col-xl-1 col-md-6 col-lg-3 col-sm-6">
-                                    <a class="btn btn-default" href="{{ path('evolucion_index', {'cliente': cliente.id}) }}#novedadesScroll" style="width: 100%;">limpiar</a>
+                                    <a class="btn btn-default" href="{{ path('cliente_historial', {'id': cliente.id}) }}#novedadesScroll" style="width: 100%;">limpiar</a>
                                 </div>
                             </div>
                         </div>
