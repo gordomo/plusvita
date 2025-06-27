@@ -311,8 +311,12 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
                 foreach ($orderBy as $field => $direction) {
                     $query->orderBy('h.' . $field, $direction);
                 }
-            } else {
+            } else if (is_string($orderBy) && $orderBy !== 'ASC' && $orderBy !== 'DESC') {
+                // Si es un string y no es una dirección de ordenamiento, usarlo como campo
                 $query->orderBy('h.' . $orderBy, 'ASC');
+            } else {
+                // Si es 'ASC', 'DESC' o cualquier otro valor, usar el valor predeterminado seguro
+                $query->orderBy('h.fechaDerivacion', 'ASC');
             }
         } else {
             $query->orderBy('h.fechaDerivacion', 'DESC');

@@ -1,0 +1,119 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Editar Informe Mensual{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Editar Informe Mensual</h3>
+                        <div class="card-tools">
+                            <a href="{{ path('informe_mensual_show', {'id': informeMensual.id}) }}" class="btn btn-sm btn-default">
+                                <i class="fas fa-arrow-left"></i> Volver
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Paciente:</strong> {{ informeMensual.cliente.nombre }} {{ informeMensual.cliente.apellido }}</p>
+                                <p><strong>DNI:</strong> {{ informeMensual.cliente.documento }}</p>
+                                <p><strong>Obra Social:</strong> {{ informeMensual.cliente.obraSocial ? informeMensual.cliente.obraSocial.nombre : 'No especificada' }}</p>
+                            </div>
+                            <div class="col-md-6 text-right">                            <p><strong>Fecha:</strong> {{ informeMensual.fechaCreacion|date("d/m/Y") }}</p>
+                            <p><strong>Médico:</strong> {{ informeMensual.doctor.nombre }} {{ informeMensual.doctor.apellido }}</p>
+                            </div>
+                        </div>
+                        <hr>
+
+                        {{ form_start(form, {'attr': {'class': 'informe-mensual-form'}}) }}
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                {{ form_label(form.evolucionMensual) }}
+                                {{ form_widget(form.evolucionMensual, {'attr': {'rows': 6}}) }}
+                                {{ form_errors(form.evolucionMensual) }}
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                {{ form_label(form.medicacionActual) }}
+                                {{ form_widget(form.medicacionActual, {'attr': {'rows': 4}}) }}
+                                {{ form_errors(form.medicacionActual) }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_label(form.frecuenciaSesiones) }}
+                                {{ form_widget(form.frecuenciaSesiones, {'attr': {'rows': 4}}) }}
+                                {{ form_errors(form.frecuenciaSesiones) }}
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                {{ form_label(form.estudiosComplementarios) }}
+                                {{ form_widget(form.estudiosComplementarios, {'attr': {'rows': 4}}) }}
+                                {{ form_errors(form.estudiosComplementarios) }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_label(form.proximasConsultas) }}
+                                {{ form_widget(form.proximasConsultas, {'attr': {'rows': 4}}) }}
+                                {{ form_errors(form.proximasConsultas) }}
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                {{ form_label(form.observaciones) }}
+                                {{ form_widget(form.observaciones, {'attr': {'rows': 4}}) }}
+                                {{ form_errors(form.observaciones) }}
+                            </div>
+                        </div>
+
+                        {{ form_rest(form) }}
+
+                        <div class="row mt-4">
+                            <div class="col-12 text-center">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Actualizar Informe
+                                </button>
+                            </div>
+                        </div>
+                        
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+    $(document).ready(function() {
+        // Si hay campos de fecha, inicializar datepicker
+        if ($('.js-datepicker').length > 0) {
+            $('.js-datepicker').datepicker({
+                format: 'dd/mm/yyyy',
+                language: 'es',
+                autoclose: true
+            });
+        }
+        
+        // Si hay campos de texto enriquecido, inicializar editor
+        if ($('textarea').length > 0) {
+            $('textarea').summernote({
+                height: 100,
+                toolbar: [
+                    ['style', ['bold', 'italic', 'underline', 'clear']],
+                    ['font', ['strikethrough']],
+                    ['para', ['ul', 'ol']]
+                ]
+            });
+        }
+    });
+</script>
+{% endblock %}

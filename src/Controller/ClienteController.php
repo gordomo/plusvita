@@ -127,7 +127,7 @@ class ClienteController extends AbstractController
             $clientes = $clienteRepository->findClientesEgresadosEsteMes($fechaInicioMes, $fechaFinMes, true, $currentPage, $limit);
             $pestana = 'inactivos';
         } elseif ($filtroFecha === 'derivados') {
-            $clientesIds = $historiaPacienteRepository->getPacientesDerivadosPorMes($fechaInicioMes, $fechaFinMes, 'ASC');
+            $clientesIds = $historiaPacienteRepository->getPacientesDerivadosPorMes($fechaInicioMes, $fechaFinMes, ['fechaDerivacion' => 'ASC']);
             $clientes = $clienteRepository->findAllByIds($clientesIds, $currentPage, $limit);
             $pestana = 'derivados';
            
@@ -334,7 +334,7 @@ class ClienteController extends AbstractController
     /**
      * @Route("/historico/prueba", name="cliente_historicos_habitaciones", methods={"GET"})
      */
-    public function historicoPrueba(Request $request, HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, DoctorRepository $doctorRepository, HistoriaPacienteRepository $historiaPacienteRepository): Response
+    public function historicoPrueba(Request $request, HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, DoctorRepository $doctorRepository, HistoriaPacienteRepository $historiaPacienteRepository, PresentesRepository $presentesRepository): Response
     {
         $user = $this->getUser();
         if (!$user) {
@@ -449,6 +449,19 @@ class ClienteController extends AbstractController
                 }
             }
             
+            // Cargar datos de presencia para todos los pacientes involucrados
+            $presentes = [];
+            if (!empty($clientesIdsInvolucrados)) {
+                $clientesIds = array_keys($clientesIdsInvolucrados);
+                $datosPresentes = $presentesRepository->getPresentes($clientesIds, $fechaDesde, $fechaHasta);
+                
+                foreach ($datosPresentes as $presente) {
+                    $clienteId = $presente->getPaciente()->getId();
+                    $fechaStr = $presente->getFecha()->format('d/m/Y');
+                    $presentes[$clienteId][$fechaStr] = $presente->getValor();
+                }
+            }
+            
             // Cargar todos los clientes involucrados de una sola vez para evitar consultas repetidas
             $todosClientesInvolucrados = $clienteRepository->findBy(['id' => array_keys($clientesIdsInvolucrados)]);
             foreach ($todosClientesInvolucrados as $cliente) {
@@ -494,6 +507,14 @@ class ClienteController extends AbstractController
                     
                     if (!$cliente) continue;
                     
+                    // Verificar si hay registro de presentes para esta fecha y cliente
+                    $estaPresenteHoy = isset($presentes[$clienteId][$fechaStr]) ? $presentes[$clienteId][$fechaStr] : null;
+                    
+                    // Si está marcado explícitamente como ausente, no lo mostramos
+                    if ($estaPresenteHoy === false) {
+                        continue; // Saltamos a la siguiente fecha
+                    }
+                    
                     // Si es día de egreso
                     if ($cliente->getFEgreso() && $fecha->format('Y-m-d') === $cliente->getFEgreso()->format('Y-m-d')) {
                         $texto = 'Egreso';
@@ -508,27 +529,38 @@ class ClienteController extends AbstractController
                     }
                     // Si tiene una modalidad ambulatoria (no es internación)
                     else if ($historia->getModalidad() != 2) {
-                        switch ($historia->getModalidad()) {
-                            case 1:
-                                $texto = 'Ambulatorio';
-                                $ambulatorios[$fechaStr][$clienteId] = '1';
-                                break;
-                            case 3:
-                                $texto = 'Hospital de día';
-                                $ambulatorios[$fechaStr][$clienteId] = '1';
-                                break;
-                            case 4:
-                                $texto = 'ART';
-                                $ambulatorios[$fechaStr][$clienteId] = '1';
-                                break;
-                            default:
-                                $texto = 'Sin modalidad registrada';
-                                $sinModalidad[$fechaStr][$clienteId] = '1'; // Registramos sin modalidad
-                                break;
+                        // Para ambulatorios, verificamos la presencia explícitamente
+                        if ($estaPresenteHoy === true) {
+                            switch ($historia->getModalidad()) {
+                                case 1:
+                                    $texto = 'Ambulatorio';
+                                    $ambulatorios[$fechaStr][$clienteId] = '1';
+                                    break;
+                                case 3:
+                                    $texto = 'Hospital de día';
+                                    $ambulatorios[$fechaStr][$clienteId] = '1';
+                                    break;
+                                case 4:
+                                    $texto = 'ART';
+                                    $ambulatorios[$fechaStr][$clienteId] = '1';
+                                    break;
+                                default:
+                                    $texto = 'Sin modalidad registrada';
+                                    $sinModalidad[$fechaStr][$clienteId] = '1'; // Registramos sin modalidad
+                                    break;
+                            }
+                        } else {
+                            // Si no hay registro de presencia o está marcado como false, lo saltamos
+                            continue; // Saltamos a la siguiente fecha
                         }
                     }
                     // Si es internado
                     else {
+                        // Para internados, verificamos si hay un registro explícito de ausencia
+                        if ($estaPresenteHoy === false) {
+                            continue; // Si está marcado como ausente explícitamente, lo saltamos
+                        }
+                        
                         $texto = 'Internado';
                         $internados[$fechaStr][$clienteId] = '1';
                         
@@ -1408,7 +1440,6 @@ class ClienteController extends AbstractController
                         $camasOcupadas[$ncama] = $ncama;
                     }
                     $habitacion->setCamasOcupadas($camasOcupadas);
-                    $entityManager->persist($habitacion);
                     $parametros['habitacion'] = $habitacion->getId();
                     $parametros['modalidad'] = 2;
                 } else {
@@ -1459,393 +1490,6 @@ class ClienteController extends AbstractController
 
             $entityManager->persist($cliente);
             $entityManager->persist($historial);
-
-            $entityManager->flush();
-
-            return $this->redirectToRoute('cliente_index');
-
-        }
-
-        return $this->render('cliente/reingresar.html.twig', [
-            'cliente' => $cliente,
-            'form' => $form->createView(),
-
-        ]);
-    }
-
-    /**
-     * @Route("/patologia-select", name="paciente_patologia_select")
-     */
-    public function getPatologiasSelect(Request $request): Response
-    {
-        $cliente = new Cliente();
-        $cliente->setMotivoIng($request->query->get('motivoIng'));
-        $form = $this->createForm(ClienteType::class, $cliente);
-
-        if (!$form->has('motivoIngEspecifico')) {
-            return new Response(null, 204);
-        }
-
-        return $this->render('cliente/_motivoIngEspecifico.html.twig', [
-            'form' => $form->createView(),
-        ]);
-
-    }
-
-    /**
-     * @Route("/{id}", name="cliente_show", methods={"GET"})
-     */
-    public function show(Cliente $cliente, AdjuntosPacientesRepository $adjuntosPacientesRepository, FamiliarExtraRepository $familiarExtraRepository): Response
-    {
-        $familiaresExtra = $familiarExtraRepository->findBy(['cliente_id' => $cliente->getId()]);
-        $adjuntosActuales = $adjuntosPacientesRepository->findBy(array('id_paciente' => $cliente->getId()), array('tipo' => 'ASC'));
-        $adjuntosArray = [];
-        foreach ($adjuntosActuales as $adjunto) {
-            $adjuntosArray[$adjunto->getTipo()][] = $adjunto;
-        }
-
-        return $this->render('cliente/show.html.twig', [
-            'cliente' => $cliente,
-            'adjuntosActuales' => $adjuntosArray,
-            'familiaresExtra' => $familiaresExtra
-        ]);
-    }
-
-    /**
-     * @Route("/{id}/historia", name="cliente_historial", methods={"GET"})
-     */
-    public function historia(Cliente $cliente, HistoriaPacienteRepository $historiaPacienteRepository, ObraSocialRepository $obraSocialRepository, NotasTurnoRepository $notasTurnoRepository, BookingRepository $bookingRepository, NotasHistoriaClinicaRepository $notasHistoriaClinicaRepository, EvolucionRepository $evolucionRepository, HistoriaEgresoRepository $historiaEgresoRepository, Request $request, DoctorRepository $doctorRepository, UserRepository $userRepository, HabitacionRepository $habitacionRepository): Response
-    {
-        $puedenEditarEvoluciones = in_array('ROLE_EDIT_HC', $this->getUser()->getRoles());
-
-        $tipos = [
-            'Nutricionista',
-            'Director medico',
-            'Sub director medico',
-            'Trabajadora social',
-            'Psiquiatra',
-            'Infectologo',
-            'Contador',
-            'Abogado',
-            'Estudio contable',
-            'Directivo',
-            'Profesional por prestacion',
-            'Medico de guardia',
-            'Medico Clínico',
-            'HidroTerapia motora',
-            'Kinesiologo',
-            'Kinesiologo respiratorio',
-            'Terapista ocupacional',
-            'Fonoaudiologo',
-            'Psicologo',
-            'Fisiatra',
-            'Neurologo',
-            'Cardiologo',
-            'Urologo',
-            'Hematologo',
-            'Neumonologo',
-            'Cirujano',
-            'Traumatologo',
-            'Neumonologo',
-        ];
-
-        $evolucionesDesde   = $request->get('evolucionesDesde');
-        $evolucionesHasta   = $request->get('evolucionesHasta');  
-        $fechaDesde         = $evolucionesDesde   ? new \DateTime($evolucionesDesde. '0:0:0')   : $evolucionesDesde;
-        $fechaHasta         = $evolucionesHasta   ? new \DateTime($evolucionesHasta. '23:59:59'): $evolucionesHasta;
-        $tiposEvolucion     = $request->query->get('filtrarPorTipo') ?? [];
-
-        $evoluciones = $evolucionRepository->findByFechaClienteYtipos($cliente, $fechaDesde, $fechaHasta, $tiposEvolucion);
-
-        $docId = $request->query->get('prof', 0);
-        $doc = $doctorRepository->find($docId);
-        $evArray = [];
-
-        if ($doc) {
-            foreach ($evoluciones as $evolucion) {
-                $doctor = $doctorRepository->findBy(['email' => $evolucion->getUser()]);
-
-                if (count($doctor) == 0) {
-                    $doctor = $userRepository->findBy(['email' => $evolucion->getUser()]);
-                }
-                if (count($doctor) == 0) {
-                    $doctor = $userRepository->findBy(['user' => $evolucion->getUser()]);
-                }
-                $firma = '';
-                if (count($doctor) > 0) {
-                    $firma = $doctor[0]->getFirma();
-                }
-
-                if($doc->getEmail() === $doctor[0]->getEmail()) {
-                    $evArray[] = ['evolucion' => $evolucion, 'firma' => $firma];
-                }
-            }
-        } else {
-            foreach ($evoluciones as $evolucion) {
-                $doctor = $doctorRepository->findBy(['email' => $evolucion->getUser()]);
-
-                if (count($doctor) == 0) {
-                    $doctor = $userRepository->findBy(['email' => $evolucion->getUser()]);
-                }
-                if (count($doctor) == 0) {
-                    $doctor = $userRepository->findBy(['user' => $evolucion->getUser()]);
-                }
-                $firma = '';
-                if (count($doctor) > 0) {
-                    $firma = $doctor[0]->getFirma();
-                }
-
-                $evArray[] = ['evolucion' => $evolucion, 'firma' => $firma];
-            }
-        }
-
-        $novedadesDesde   = $request->get('novedadesDesde');
-        $novedadesHasta   = $request->get('novedadesHasta');  
-        $fechaDesde       = $novedadesDesde   ? new \DateTime($novedadesDesde. '0:0:0')   : $novedadesDesde;
-        $fechaHasta       = $novedadesHasta   ? new \DateTime($novedadesHasta. '23:59:59'): $novedadesHasta;
-
-        $historiaPaciente = $historiaPacienteRepository->getHistorialDesdeHasta($cliente, $fechaDesde, $fechaHasta);
-
-        $obrasSociales = $obraSocialRepository->findAll();
-        $obraSocialesArray = [];
-        foreach ($obrasSociales as $obraSocial) {
-            $obraSocialesArray[$obraSocial->getId()] = $obraSocial->getNombre();
-        }
-
-        $notasDesde   = $request->get('notasDesde');
-        $notasHasta   = $request->get('notasHasta');  
-        $fechaDesde   = $notasDesde   ? new \DateTime($notasDesde. '0:0:0')   : $notasDesde;
-        $fechaHasta   = $notasHasta   ? new \DateTime($notasHasta. '23:59:59'): $notasHasta;
-        $notasTipo    = $request->query->get('notasTipo') ?? '';
-        $section      = $request->query->get('section') ?? '';
-
-        $turnos         = [];
-        $doctores       = "";
-        $notasTurnos    = [];
-
-        if($notasTipo) {
-            $arrTipo = [$notasTipo];
-            $doctores = $doctorRepository->findByContratos($arrTipo, null);
-            foreach ($doctores as $doctor) {
-                $turnos[] = $bookingRepository->turnosConFiltro($doctor, $cliente->getId(), $fechaDesde, $fechaHasta, 1);
-                foreach ($turnos as $turno) {
-                    $notas = $notasTurnoRepository->findBy(['turno' => $turno] );
-                    if ( !empty($notas) ) {
-                        $notasTurnos[$turno->getId()]['fecha'] = $turno->getBeginAt();
-                        $notasTurnos[$turno->getId()]['doctor'] = $turno->getDoctorName();
-                        $notasTurnos[$turno->getId()]['modalidad'] = $turno->getDoctorModalidad();
-                        foreach ($notas as $nota ) {
-                            $notasTurnos[$turno->getId()]['notas'][$nota->getId()] = $nota->getText();
-                        }
-                    }
-                }
-            }
-            dd($turnos);
-        } else {
-            $turnos = $bookingRepository->turnosConFiltro('', $cliente->getId(), $fechaDesde, $fechaHasta, 1);
-            foreach ($turnos as $turno) {
-                $notas = $notasTurnoRepository->findBy(['turno' => $turno] );
-                if ( !empty($notas) ) {
-                    $notasTurnos[$turno->getId()]['fecha'] = $turno->getBeginAt();
-                    $notasTurnos[$turno->getId()]['doctor'] = $turno->getDoctorName();
-                    $notasTurnos[$turno->getId()]['modalidad'] = $turno->getDoctorModalidad();
-                    foreach ($notas as $nota ) {
-                        $notasTurnos[$turno->getId()]['notas'][$nota->getId()] = $nota->getText();
-                    }
-                }
-            }
-        }
-        $notasHistoria = $notasHistoriaClinicaRepository->findBy(['cliente' => $cliente]);
-        $historiaEgreso = $historiaEgresoRepository->findBy(['cliente' => $cliente]);
-
-        $habitaciones = $habitacionRepository->findAll();
-        $habitacionesArray = [];
-        foreach ($habitaciones as $habitacion) {
-            $habitacionesArray[$habitacion->getId()] = $habitacion->getNombre();
-        }
-
-        $epicrisisIngreso = $cliente->getEpicrisisIngreso();
-        $extensionEI = '';
-        if ($epicrisisIngreso) {
-            $extensionEI = '.'.pathinfo($epicrisisIngreso, PATHINFO_EXTENSION);
-        }
-        
-
-        return $this->render('cliente/historia.html.twig', [
-                'cliente'               => $cliente,
-                'historiaPaciente'      => $historiaPaciente,
-                'obraSociales'          => $obraSocialesArray,
-                'paginaImprimible'      => false, // Activamos el botón global
-                'notasTurnos'           => $notasTurnos,
-                'notasHistoria'         => $notasHistoria,
-                'titulo_solo'           => true,
-                'evoluciones'           => $evArray,
-                'ingreso'               => $cliente->getHistoriaIngreso(),
-                'historiaEgreso'        => $historiaEgreso,
-                'tipoSeleccionado'      => '',
-                'notasDesde'            => $notasDesde,
-                'notasHasta'            => $notasHasta,
-                'notasTipo'             => $notasTipo,
-                'section'               => $section,
-                'contratos'             => $tipos,
-                'tipoEvolucion'         => $tiposEvolucion,
-                'evolucionesDesde'      => $evolucionesDesde,
-                'evolucionesHasta'      => $evolucionesHasta,
-                'puedeEditarEvolucion'  => $puedenEditarEvoluciones,
-                'habitacionesArray'     => $habitacionesArray,
-                'novedadesDesde'        => $novedadesDesde,
-                'novedadesHasta'        => $novedadesHasta,
-                'doc'                   => $doc,
-                'doctorRepository'      => $doctorRepository,
-                'epicrisisIngreso'      => $epicrisisIngreso,
-                'extensionEI'           => $extensionEI,
-        ]);
-    }
-
-    public function buildErrorArray(FormInterface $form)
-    {
-        $errors = [];
-
-        foreach ($form->all() as $child) {
-            $errors = array_merge(
-                $errors,
-                $this->buildErrorArray($child)
-            );
-        }
-
-        foreach ($form->getErrors() as $error) {
-            $errors[$error->getCause()->getPropertyPath()] = $error->getMessage();
-        }
-
-        return $errors;
-    }
-    /**
-     * @Route("/{id}/egreso", name="cliente_egreso", methods={"GET","POST"})
-     */
-    public function egreso(Request $request, Cliente $cliente, HistoriaPacienteRepository $historiaPacienteRepository, HabitacionRepository $habitacionRepository, BookingRepository $bookingRepository): Response
-    {
-        $user = $this->security->getUser();
-        $form = $this->createForm(ClienteType::class, $cliente, ['egreso' => true]);
-
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-
-            $entityManager = $this->getDoctrine()->getManager();
-            $doctoresReferentes = $cliente->getDocReferente();
-
-            foreach ($doctoresReferentes as $doctor) {
-                $doctor->addCliente($cliente);
-                $entityManager->persist($doctor);
-            }
-            if ($form->has('fEgreso') && !empty($form->get('fEgreso')->getData())) {
-                $cliente->setFEgreso($form->get('fEgreso')->getData());
-            }
-            
-            $fEgresoCliente = $cliente->getFEgreso();
-
-            if ( $fEgresoCliente instanceof \DateTime ) {
-                $fechaDeEgresoString = $fEgresoCliente->setTime(00, 00, 00)->format('Y-m-d H:i:s');
-
-                $turnos = $bookingRepository->turnosConFiltro('', $cliente, $fechaDeEgresoString);
-    
-                foreach ($turnos as $turno) {
-                    $entityManager->remove($turno);
-                }
-            }
-
-            $entityManager->persist($cliente);
-
-            $parametros = [
-                'fEgreso' => $cliente->getFEgreso(),
-            ];
-
-            if($cliente->getFEgreso() <= new \DateTime()) {
-                $this->liberarCamaCliente($cliente);
-                $parametros['habitacion'] = '';
-                $parametros['cama'] = '';   
-            }
-
-            $historial = $this->getHistorialActualizado($cliente, $parametros, $user);
-            $entityManager->persist($historial);
-
-            $entityManager->flush();
-
-            return $this->redirectToRoute('cliente_index');
-        }
-
-        return $this->render('cliente/edit.html.twig', [
-            'cliente' => $cliente,
-            'form' => $form->createView(),
-            'title' => 'Egreso para:' . $cliente->getNombre() . ' ' . $cliente->getApellido(),
-        ]);
-    }
-
-    /**
-     * @Route("/{id}/reingreso", name="cliente_reingreso", methods={"GET","POST"})
-     */
-    public function reingreso(Request $request, Cliente $cliente, HistoriaPacienteRepository $historiaPacienteRepository, HabitacionRepository $habitacionRepository, BookingRepository $bookingRepository, ClienteRepository $clienteRepository): Response
-    {
-        $user = $this->security->getUser();
-        $habitaciones = $habitacionRepository->findHabitacionConCamasDisponibles($clienteRepository);
-
-        $haArray = [];
-        foreach ( $habitaciones as $ha ) {
-            $haArray[$ha->getId()] = $ha->getNombre();
-        }
-        $haArray = array_flip($haArray);
-        $cliente->setDisponibleParaTerapia(true);
-
-        $form = $this->createForm(ReingresoType::class, $cliente, ['allow_extra_fields' =>true, 'habitaciones' => $haArray]);
-
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $historial = new HistoriaPaciente();
-            $entityManager = $this->getDoctrine()->getManager();
-
-            $ncama = $request->request->get('cliente')['nCama'] ?? null;
-
-            $habitacion = $form->get('habitacion')->getData() ? $habitacionRepository->find($form->get('habitacion')->getData()) : null;
-
-
-
-            if($habitacion) {
-                $camasOcupadas = $habitacion->getCamasOcupadas();
-                $habPrivada = $request->request->get('cliente')['habPrivada'] ?? null;
-
-                if ($habPrivada) {
-                    $cliente->setHabPrivada(1);
-                    for ($i=1; $i <= $habitacion->getCamasDisponibles(); $i++) {
-                        $camasOcupadas[$i] = $i;
-                    }
-                } else {
-                    $camasOcupadas[$ncama] = $ncama;
-                }
-                $habitacion->setCamasOcupadas($camasOcupadas);
-                $historial->setHabitacion($habitacion->getId());
-                $entityManager->persist($habitacion);
-            }
-
-            $cliente->setDerivado(false);
-            $cliente->setNCama($ncama);
-
-
-            $historial->setCama($ncama);
-            $historial->setCliente($cliente);
-            $historial->setIdPaciente($cliente->getId());
-            $historial->setFecha(new \DateTime());
-
-            $historial->setFechaReingresoDerivacion($form->get('fechaReingresoDerivacion')->getData() ?? null);
-            $historial->setDerivadoEn(null);
-            $historial->setMotivoDerivacion($form->get('motivoReingresoDerivacion')->getData() ?? null);
-            $historial->setEmpresaTransporteDerivacion(null);
-            $historial->setUsuario($user->getUsername());
-            
-
-
-
-            $entityManager->persist($cliente);
 
             $entityManager->flush();
 

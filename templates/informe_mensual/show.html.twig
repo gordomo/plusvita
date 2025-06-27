@@ -1,0 +1,101 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Informe Mensual{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Informe Mensual</h3>
+                        <div class="card-tools">
+                            <a href="{{ path('doctor_historia') }}" class="btn btn-sm btn-default">
+                                <i class="fas fa-arrow-left"></i> Volver
+                            </a>
+                            <a href="{{ path('informe_mensual_edit', {'id': informeMensual.id}) }}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-edit"></i> Editar
+                            </a>
+                            <a href="{{ path('informe_mensual_pdf', {'id': informeMensual.id}) }}" class="btn btn-sm btn-danger" target="_blank">
+                                <i class="fas fa-file-pdf"></i> Generar PDF
+                            </a>
+                            <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Paciente:</strong> {{ informeMensual.cliente.nombre }} {{ informeMensual.cliente.apellido }}</p>
+                                <p><strong>DNI:</strong> {{ informeMensual.cliente.documento }}</p>
+                                <p><strong>Obra Social:</strong> {{ informeMensual.cliente.obraSocial ? informeMensual.cliente.obraSocial.nombre : 'No especificada' }}</p>
+                            </div>
+                            <div class="col-md-6 text-right">                            <p><strong>Fecha:</strong> {{ informeMensual.fechaCreacion|date("d/m/Y") }}</p>
+                            <p><strong>Médico:</strong> {{ informeMensual.doctor.nombre }} {{ informeMensual.doctor.apellido }}</p>
+                            </div>
+                        </div>
+                        <hr>
+
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <h5>Evolución Mensual</h5>
+                                <div class="p-3 bg-light">{{ informeMensual.evolucionMensual|raw }}</div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <h5>Medicación Actual</h5>
+                                <div class="p-3 bg-light">{{ informeMensual.medicacionActual|raw }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Frecuencia de Sesiones</h5>
+                                <div class="p-3 bg-light">{{ informeMensual.frecuenciaSesiones|raw }}</div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <h5>Estudios Complementarios</h5>
+                                <div class="p-3 bg-light">{{ informeMensual.estudiosComplementarios|raw }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Próximas Consultas</h5>
+                                <div class="p-3 bg-light">{{ informeMensual.proximasConsultas|raw }}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <h5>Observaciones</h5>
+                                <div class="p-3 bg-light">{{ informeMensual.observaciones|raw }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmación de eliminación -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Confirmar eliminación</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    ¿Está seguro de que desea eliminar este informe mensual?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <a href="{{ path('informe_mensual_delete', {'id': informeMensual.id}) }}" class="btn btn-danger">Eliminar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

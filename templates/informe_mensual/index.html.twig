@@ -1,0 +1,62 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Informes Mensuales{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Informes Mensuales</h3>
+                        <div class="card-tools">
+                            <a href="{{ path('doctor_historia') }}" class="btn btn-sm btn-default">
+                                <i class="fas fa-arrow-left"></i> Volver a Historias
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if informes is empty %}
+                            <div class="alert alert-info">
+                                No hay informes mensuales registrados.
+                            </div>
+                        {% else %}
+                            <table class="table table-bordered table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Paciente</th>
+                                        <th>Doctor</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for informe in informes %}
+                                        <tr>
+                                            <td>{{ informe.fechaCreacion|date('d/m/Y') }}</td>
+                                            <td>{{ informe.cliente.nombre }} {{ informe.cliente.apellido }}</td>
+                                            <td>{{ informe.doctor.nombre }} {{ informe.doctor.apellido }}</td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <a href="{{ path('informe_mensual_show', {'id': informe.id}) }}" class="btn btn-sm btn-info">
+                                                        <i class="fas fa-eye"></i> Ver
+                                                    </a>
+                                                    <a href="{{ path('informe_mensual_edit', {'id': informe.id}) }}" class="btn btn-sm btn-primary">
+                                                        <i class="fas fa-edit"></i> Editar
+                                                    </a>
+                                                    <a href="{{ path('informe_mensual_pdf', {'id': informe.id}) }}" class="btn btn-sm btn-danger" target="_blank">
+                                                        <i class="fas fa-file-pdf"></i> PDF
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

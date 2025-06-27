@@ -238,6 +238,12 @@
                                 <a class="dropdown-item" href="{{ path('prescripcion_new', {'id': cliente.id}) }}">
                                     <i class="fas fa-user-nurse" data-toggle="tooltip" data-placement="top" title="Prescripciones"></i> Prescripciones
                                 </a>
+                                <a class="dropdown-item" href="{{ path('informe_mensual_new', {'cliente': cliente.id}) }}">
+                                    <i class="far fa-file-alt" data-toggle="tooltip" data-placement="top" title="informe mensual"></i> Generar Informe Mensual
+                                </a>
+                                <a class="dropdown-item" href="{{ path('informe_mensual_new', {'cliente': cliente.id}) }}">
+                                    <i class="fas fa-file-medical-alt" data-toggle="tooltip" data-placement="top" title="Informe Mensual"></i> Generar Informe Mensual
+                                </a>
                                 {% if (puedeEvolucionar and cliente.ambulatorioPresente or ( app.user and 'ROLE_EDIT_HC' in app.user.roles )) %}
                                     <a class="dropdown-item" href="{{ path('evolucion_index', {'cliente': cliente.id}) }}">
                                         <i class="far fa-eye" data-toggle="tooltip" data-placement="top" title="evoluciones"></i> Evoluciones
