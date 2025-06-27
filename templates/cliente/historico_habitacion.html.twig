@@ -83,7 +83,7 @@
                 {% for clienteId, data in historialCamas %}
                 <tr>
                     <td>
-                        <a href={{path('cliente_show', {id: clienteId})}}>
+                        <a href={{path('cliente_edit', {id: clienteId})}}>
                             {{clienteRepository.find(clienteId).nombreApellido}}
                         </a> 
                     </td>
