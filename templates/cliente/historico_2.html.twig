@@ -33,12 +33,12 @@
             border-radius: 50%;
             margin-right: 5px;
         }
-        
-        .status-ambulatorio { background-color: #28a745; }
+          .status-ambulatorio { background-color: #28a745; }
         .status-internado { background-color: #007bff; }
         .status-derivado { background-color: #ffc107; }
         .status-egreso { background-color: #dc3545; }
         .status-sin-modalidad { background-color: #6c757d; }
+        .status-ausente { background-color: #e83e8c; }
         
         /* Estilos para el select múltiple */
         .select-multiple {
@@ -267,21 +267,34 @@
                             <div>
                                 <span><b>Total de Pacientes:</b> {{ pacientes | length }}</span>
                                 <span id="estadisticasDiasCama" class="ml-3"></span>
+                                <span class="ml-3"><b><i class="fas fa-user-md mr-1"></i> Pacientes por Fisiatra:</b> 
+                                    {% set sortedReferentes = totalReferentes|sort|reverse %}
+                                    {% set fisiatrasCount = 0 %}
+                                    {% for profName, cantidad in sortedReferentes %}
+                                        {% if cantidad > 0 %}
+                                            {% if not loop.first %} | {% endif %}
+                                            <span title="Fisiatra">{{ profName }}</span>: <b>{{ cantidad }}</b>
+                                            {% set fisiatrasCount = fisiatrasCount + 1 %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if fisiatrasCount == 0 %}
+                                        <span class="text-muted">Sin datos</span>
+                                    {% endif %}
+                                </span>
                             </div>
                         </div>
                     </div>
                 </form>
             </div>
         </div>
-        
-        <!-- Leyenda de estados -->
-        <div class="mb-3">
+          <!-- Leyenda de estados -->        <div class="mb-3">
             <p class="mb-0"><strong>Estados:</strong></p>
             <span class="mr-3"><span class="status-indicator status-internado"></span> Internados</span>
             <span class="mr-3"><span class="status-indicator status-ambulatorio"></span> Ambulatorios</span>
             <span class="mr-3"><span class="status-indicator status-derivado"></span> Derivados</span>
             <span class="mr-3"><span class="status-indicator status-egreso"></span> Egresos</span>
-            <span><span class="status-indicator status-sin-modalidad"></span> Sin Modalidad</span>
+            <span class="mr-3"><span class="status-indicator status-sin-modalidad"></span> Sin Modalidad</span>
+            <span class="mr-3"><span class="status-indicator status-ausente"></span> Ausente</span>
         </div>
         
         <!-- Opciones de vista -->
@@ -314,8 +327,7 @@
                 </thead>
                 <tbody>
                     {% for clienteId, pacienteData in pacientes %}
-                        <tr>                            <td class="sticky-first-col">
-                                <a href="{{ path('cliente_show', {'id': clienteId}) }}" class="text-truncate d-block" data-toggle="tooltip" title="{{ clientesData[clienteId].apellido|upper }} {{ clientesData[clienteId].nombre }}">
+                        <tr>                            <td class="sticky-first-col">                                <a href="{{ path('cliente_edit', {'id': clienteId}) }}" class="text-truncate d-block" data-toggle="tooltip" title="{{ clientesData[clienteId].apellido|upper }} {{ clientesData[clienteId].nombre }}">
                                     {{ clientesData[clienteId].apellido|upper }} {{ clientesData[clienteId].nombre }}
                                 </a>
                                 <small class="d-block text-truncate">HC: {{ clientesData[clienteId].hClinica }} | <span class="obra-social-badge"><i class="fas fa-id-card-alt mr-1"></i>{{ clientesData[clienteId].obraSocialNombre|default('Sin OS') }}</span></small>
@@ -464,17 +476,26 @@
             <div class="col-md-12">
                 <div class="card summary-card">
                     <div class="card-header">
-                        <h5 class="mb-0">Pacientes por Profesional Referente</h5>
+                        <h5 class="mb-0">Distribución por Fisiatras</h5>
                     </div>
                     <div class="card-body">
                         <canvas id="referenteChart" width="800" height="300"></canvas>
-                        <div class="mt-3 referente-list" style="max-height: 200px; overflow-y: auto;">
-                            <div class="row">
-                                {% for nombre, cantidad in totalReferentes %}
-                                    <div class="col-md-4">
-                                        <p><strong>{{ nombre }}</strong>: {{ cantidad }} pacientes</p>
-                                    </div>
-                                {% endfor %}
+                        <div class="mt-3">
+                            <div class="referente-list" style="max-height: 300px; overflow-y: auto;">
+                                <h6 class="mb-3">Distribución por Fisiatras</h6>
+                                <div class="row">
+                                    {% set sortedReferentes = totalReferentes|sort|reverse %}
+                                    {% for nombre, cantidad in sortedReferentes %}
+                                        <div class="col-md-4 mb-2">
+                                            <p><strong>{{ nombre }}</strong>: {{ cantidad }} pacientes</p>
+                                        </div>
+                                    {% endfor %}
+                                    {% if totalReferentes|length == 0 %}
+                                        <div class="col-12">
+                                            <p class="text-muted">No hay datos de fisiatras disponibles</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -777,12 +798,29 @@
                     }
                 });
                 // Referentes
+                // Preparar datos de referentes ordenados por cantidad
                 const refLabels = [];
                 const refData = [];
+                const refColors = [];
+                
+                // Crear una array temporal para ordenar
+                let tempReferentes = [];
                 {% for nombre, cantidad in totalReferentes %}
-                    refLabels.push('{{ nombre }}');
-                    refData.push({{ cantidad }});
+                    tempReferentes.push({ nombre: '{{ nombre }}', cantidad: {{ cantidad }} });
                 {% endfor %}
+                
+                // Ordenar por cantidad descendente
+                tempReferentes.sort((a, b) => b.cantidad - a.cantidad);
+                
+                // Generar colores para todos los fisiatras
+                tempReferentes.forEach((ref, index) => {
+                    refLabels.push(ref.nombre);
+                    refData.push(ref.cantidad);
+                    
+                    // Generar colores variados para todos los fisiatras
+                    refColors.push(generateColors(1, 0.7)[0]);
+                });
+                
                 const referenteCtx = document.getElementById('referenteChart').getContext('2d');
                 new Chart(referenteCtx, {
                     type: 'bar',
@@ -791,8 +829,8 @@
                         datasets: [{
                             label: 'Pacientes',
                             data: refData,
-                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: refColors,
+                            borderColor: refColors.map(color => color.replace('0.5', '1').replace('0.8', '1')),
                             borderWidth: 1
                         }]
                     },
@@ -983,10 +1021,10 @@ $(document).ready(function () {
     
     // Mejorar la experiencia del selector múltiple de obra social
     $('#obraSocial').on('click', function(e) {
-        // Mantener el dropdown abierto cuando se hace clic en opciones
         e.stopPropagation();
     });
-      // Agregar un botón para limpiar selección de obras sociales
+    
+    // Agregar un botón para limpiar selección de obras sociales
     if ($('#obraSocial').next('.clear-selection-btn').length === 0) {
         $('<button type="button" class="btn btn-sm btn-outline-secondary clear-selection-btn mt-1 mb-2">Limpiar selección</button>')
             .insertAfter('#obraSocial')

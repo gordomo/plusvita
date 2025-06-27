@@ -55,6 +55,15 @@ class StatsController extends AbstractController
         $ocupacionPorDia = $this->getOcupacionPorDia($em);
         
         // --- Métrica: días de internación por patología ---
+        // Mapeo de IDs a nombres de patologías
+        $patologiasLabels = [
+            1 => 'Neurológicas',
+            2 => 'Traumatológicas',
+            3 => 'Respiratorias',
+            4 => 'Paliativos',
+            5 => 'Patologías laborales',
+        ];
+        
         $conn = $em->getConnection();
         $sql = "SELECT patologia, fecha_ingreso, fecha_engreso FROM historia_paciente WHERE modalidad = '2' AND fecha_ingreso IS NOT NULL AND fecha_engreso IS NOT NULL AND patologia IS NOT NULL";
         $stmt = $conn->prepare($sql);
@@ -63,12 +72,14 @@ class StatsController extends AbstractController
 
         $diasPorPatologia = [];
         foreach ($internaciones as $row) {
-            $patologia = $row['patologia'] ?: 'Sin especificar';
+            $patologiaId = $row['patologia'];
+            // Usar el ID como clave pero guardar el nombre para mostrar
+            $nombrePatologia = isset($patologiasLabels[$patologiaId]) ? $patologiasLabels[$patologiaId] : ('Patología ' . $patologiaId);
             $fechaIngreso = $row['fecha_ingreso'];
             $fechaEngreso = $row['fecha_engreso'];
             if ($fechaIngreso && $fechaEngreso) {
                 $dias = (new \DateTime($fechaIngreso))->diff(new \DateTime($fechaEngreso))->days + 1;
-                $diasPorPatologia[$patologia][] = $dias;
+                $diasPorPatologia[$nombrePatologia][] = $dias;
             }
         }
         $statsInternacion = [];

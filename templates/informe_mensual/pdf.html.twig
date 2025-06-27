@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Informe Mensual - {{ informeMensual.cliente.nombre }} {{ informeMensual.cliente.apellido }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.5;
+        }
+        .header {
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .logo {
+            max-height: 60px;
+            float: left;
+        }
+        .header-info {
+            float: right;
+            text-align: right;
+        }
+        .clearfix:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+        .patient-info {
+            margin-bottom: 20px;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .section h3 {
+            background-color: #f3f3f3;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+        .section-content {
+            padding-left: 10px;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+        .signature {
+            margin-top: 40px;
+            text-align: right;
+        }
+        .signature img {
+            max-height: 80px;
+            max-width: 200px;
+        }
+        .doctor-info {
+            text-align: right;
+        }
+        table {
+            width: 100%;
+        }
+        td {
+            vertical-align: top;
+        }
+    </style>
+</head>
+<body>
+    <div class="header clearfix">
+        <img src="{{ asset('build/images/logo.png') }}" alt="Logo" class="logo">
+        <div class="header-info">
+            <h1>Informe Mensual</h1>
+            <p>Fecha: {{ informeMensual.fechaCreacion|date('d/m/Y') }}</p>
+        </div>
+    </div>
+    
+    <div class="patient-info clearfix">
+        <table>
+            <tr>
+                <td width="50%">
+                    <p><strong>Paciente:</strong> {{ informeMensual.cliente.nombre }} {{ informeMensual.cliente.apellido }}</p>
+                    <p><strong>DNI:</strong> {{ informeMensual.cliente.documento }}</p>
+                    <p><strong>Obra Social:</strong> {{ informeMensual.cliente.obraSocial ? informeMensual.cliente.obraSocial.nombre : 'No especificada' }}</p>
+                </td>
+                <td width="50%" style="text-align: right;">
+                    <p><strong>Doctor:</strong> {{ informeMensual.doctor.nombre }} {{ informeMensual.doctor.apellido }}</p>
+                    <p><strong>Matrícula:</strong> {{ informeMensual.doctor.matricula }}</p>
+                </td>
+            </tr>
+        </table>
+    </div>
+    
+    <div class="section">
+        <h3>Evolución Mensual</h3>
+        <div class="section-content">{{ informeMensual.evolucionMensual|raw }}</div>
+    </div>
+    
+    <table>
+        <tr>
+            <td width="50%">
+                <div class="section">
+                    <h3>Medicación Actual</h3>
+                    <div class="section-content">{{ informeMensual.medicacionActual|raw }}</div>
+                </div>
+            </td>
+            <td width="50%">
+                <div class="section">
+                    <h3>Frecuencia de Sesiones</h3>
+                    <div class="section-content">{{ informeMensual.frecuenciaSesiones|raw }}</div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td width="50%">
+                <div class="section">
+                    <h3>Estudios Complementarios</h3>
+                    <div class="section-content">{{ informeMensual.estudiosComplementarios|raw }}</div>
+                </div>
+            </td>
+            <td width="50%">
+                <div class="section">
+                    <h3>Próximas Consultas</h3>
+                    <div class="section-content">{{ informeMensual.proximasConsultas|raw }}</div>
+                </div>
+            </td>
+        </tr>
+    </table>
+    
+    <div class="section">
+        <h3>Observaciones</h3>
+        <div class="section-content">{{ informeMensual.observaciones|raw }}</div>
+    </div>
+    
+    <div class="signature">
+        {% if informeMensual.doctor.firmaDigital %}
+            <img src="{{ asset('uploads/firmas/' ~ informeMensual.doctor.firmaDigital) }}" alt="Firma Digital">
+        {% endif %}
+        <div class="doctor-info">
+            <p>{{ informeMensual.doctor.nombre }} {{ informeMensual.doctor.apellido }}</p>
+            <p>Matrícula {{ informeMensual.doctor.matricula }}</p>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>Este documento es confidencial y contiene información médica protegida.</p>
+    </div>
+</body>
+</html>
