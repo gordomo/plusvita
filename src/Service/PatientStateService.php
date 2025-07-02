@@ -521,6 +521,7 @@ class PatientStateService
         
         $this->entityManager->persist($habitacionActual);
         $this->entityManager->persist($cliente);
+        $this->entityManager->flush(); // Asegurar que los cambios se guardan inmediatamente
     }
 
     /**
