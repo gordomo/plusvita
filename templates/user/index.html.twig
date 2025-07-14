@@ -2,48 +2,99 @@
 
 {% block title %}Administradores{% endblock %}
 {% block panelTitle %}Administradores{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('assets/css/user-admin.css') }}">
+{% endblock %}
 {% block body %}
-    <div class="printiable">
-        <table class="table table-responsive">
-            <thead>
-                <tr>
-                    <th class="id">Id</th>
-                    <th class="user">Nombre de Usuario</th>
-                    <th class="roles">Roles</th>
-                    <th class="email">Email</th>
-                    <th class="telefono">Teléfono</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for user in users %}
-                <tr class="{% if user.habilitado %} bg-info {% else %} bg-light {% endif %}">
-                    <td class="id">{{ user.id }}</td>
-                    <td class="user">{{ user.username }}</td>
-                    <td class="roles">
-                        {% for role in user.roles %}
-                            {% if role == "ROLE_ADMIN" %}
-                                Administrador
-                            {% elseif role == "ROLE_USER" %}
-                                Operador
-                            {% endif %}
-                        {% endfor %}
-                    </td>
-                    <td class="lowercase email">{{ user.email }}</td>
-                    <td class="telefono">{{ user.telefono }}</td>
-                    <td>
-                        <a class="text-bold text-dark" href="{{ path('user_edit', {'id': user.id}) }}">Editar</a>
-                    </td>
-                </tr>
-            {% else %}
-                <tr>
-                    <td colspan="5">No se encontraron Usuarios Administradores</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+    <div class="container-fluid">
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <i class="fas fa-users-cog mr-2"></i>Listado de Administradores
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive printiable">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th class="id">ID</th>
+                                        <th class="user">Usuario</th>
+                                        <th class="roles">Roles</th>
+                                        <th class="email">Email</th>
+                                        <th class="telefono">Teléfono</th>
+                                        <th class="acciones">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {% for user in users %}
+                                    <tr class="{% if user.habilitado %}enabled-user{% else %}disabled-user{% endif %}">
+                                        <td class="id">{{ user.id }}</td>
+                                        <td class="user">
+                                            <div class="d-flex align-items-center">
+                                                <span class="status-indicator {% if user.habilitado %}status-active{% else %}status-inactive{% endif %}"></span>
+                                                <strong>{{ user.username }}</strong>
+                                            </div>
+                                        </td>
+                                        <td class="roles">
+                                            {% for role in user.roles %}
+                                                {% if role == "ROLE_ADMIN" %}
+                                                    <span class="role-pill role-admin">Administrador</span>
+                                                {% elseif role == "ROLE_USER" %}
+                                                    <span class="role-pill role-user">Operador</span>
+                                                {% elseif role == "ROLE_EDIT_HC" %}
+                                                    <span class="role-pill role-edit-hc">Editar HC</span>
+                                                {% elseif role == "ROLE_DOCTOR" %}
+                                                    <span class="role-pill role-edit-hc">Doctor</span>
+                                                {% else %}
+                                                    <span class="role-pill role-other">{{ role|replace({'ROLE_': ''}) }}</span>
+                                                {% endif %}
+                                                {% if not loop.last %}<br>{% endif %}
+                                            {% endfor %}
+                                        </td>
+                                        <td class="lowercase email">{{ user.email }}</td>
+                                        <td class="telefono">{{ user.telefono|default('--') }}</td>
+                                        <td class="text-center">
+                                            <div class="btn-group">
+                                                <a class="btn btn-sm btn-primary btn-action" href="{{ path('user_edit', {'id': user.id}) }}" data-toggle="tooltip" title="Editar">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                {% if not user.id == app.user.id %}
+                                                <form method="post" action="{{ path('user_delete', {'id': user.id}) }}" style="display: inline-block;" onsubmit="return confirm('¿Está seguro que desea eliminar este usuario?');">
+                                                    <input type="hidden" name="_method" value="DELETE">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
+                                                    <button class="btn btn-sm btn-danger btn-action" data-toggle="tooltip" title="Eliminar">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </form>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="6" class="text-center py-4">
+                                            <div class="alert alert-info mb-0">
+                                                <i class="fas fa-info-circle mr-2"></i>No se encontraron Usuarios Administradores
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="text-center">
+            <a href="{{ path('user_new') }}" class="btn btn-primary btn-create-user">
+                <i class="fas fa-user-plus mr-2"></i>Crear nuevo Usuario Administrador
+            </a>
+        </div>
     </div>
-    <a href="{{ path('user_new') }}">Crear nuevo Usuario Administrador</a>
 {% endblock %}
 
 {% block modalImprimir %}
@@ -88,6 +139,7 @@
 {% block javascripts %}
     {{ parent() }}
     <script src="{{ asset('assets/js/dashboard.js') }}"></script>
+    <script src="{{ asset('assets/js/user-admin.js') }}"></script>
     <script>
         var tituloExcel = 'administradores.xlsx';
         let printUrl = "{{ path('imprimir') }}";

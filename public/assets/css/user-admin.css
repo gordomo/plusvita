@@ -1,0 +1,147 @@
+/* User admin specific styles - New design */
+.table-responsive {
+    overflow-x: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+/* Table header styling */
+.table thead th {
+    background-color: #60b9b9;
+    color: white;
+    border-bottom: 2px solid #4da0a0;
+    font-weight: 600;
+    padding: 12px;
+    vertical-align: middle;
+}
+
+/* Ensure columns have appropriate widths */
+.table .id {
+    width: 5%;
+    min-width: 50px;
+}
+
+.table .user {
+    width: 18%;
+    min-width: 120px;
+}
+
+.table .roles {
+    width: 18%;
+    min-width: 130px;
+}
+
+.table .email {
+    width: 25%;
+    min-width: 180px;
+}
+
+.table .telefono {
+    width: 15%;
+    min-width: 100px;
+}
+
+.table .acciones {
+    width: 12%;
+    text-align: center;
+}
+
+/* Row styling */
+.table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background-color: #f5f5f5;
+}
+
+/* Style for disabled users */
+.table tr.disabled-user td {
+    color: #6c757d;
+    background-color: #f8f9fa;
+}
+
+/* Style for enabled users */
+.table tr.enabled-user td {
+    color: #212529;
+}
+
+/* Style for cells */
+.table td {
+    padding: 12px;
+    vertical-align: middle;
+}
+
+/* Role pill styling */
+.role-pill {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    margin: 2px 0;
+    font-weight: 500;
+}
+
+.role-admin {
+    background-color: #b088be;
+    color: white;
+}
+
+.role-user {
+    background-color: #60b9b9;
+    color: white;
+}
+
+.role-edit-hc {
+    background-color: #889cbe;
+    color: white;
+}
+
+.role-other {
+    background-color: #6c757d;
+    color: white;
+}
+
+/* Button styling */
+.btn-action {
+    margin: 0 3px;
+}
+
+/* Status indicator */
+.status-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.status-active {
+    background-color: #28a745;
+}
+
+.status-inactive {
+    background-color: #dc3545;
+}
+
+/* Create new user button */
+.btn-create-user {
+    margin-top: 20px;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-weight: 600;
+    background-color: #b088be;
+    border-color: #b088be;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.btn-create-user:hover {
+    background-color: #a070b0;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}

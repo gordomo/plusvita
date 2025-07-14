@@ -2,7 +2,7 @@
 
 {% block title %}Editar Informe Mensual{% endblock %}
 
-{% block content %}
+{% block body %}
     <div class="container-fluid">
         <div class="row">
             <div class="col-12">
@@ -19,7 +19,7 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <p><strong>Paciente:</strong> {{ informeMensual.cliente.nombre }} {{ informeMensual.cliente.apellido }}</p>
-                                <p><strong>DNI:</strong> {{ informeMensual.cliente.documento }}</p>
+                                <p><strong>DNI:</strong> {{ informeMensual.cliente.dni }}</p>
                                 <p><strong>Obra Social:</strong> {{ informeMensual.cliente.obraSocial ? informeMensual.cliente.obraSocial.nombre : 'No especificada' }}</p>
                             </div>
                             <div class="col-md-6 text-right">                            <p><strong>Fecha:</strong> {{ informeMensual.fechaCreacion|date("d/m/Y") }}</p>
@@ -30,26 +30,7 @@
 
                         {{ form_start(form, {'attr': {'class': 'informe-mensual-form'}}) }}
                         
-                        <div class="row">
-                            <div class="col-md-12">
-                                {{ form_label(form.evolucionMensual) }}
-                                {{ form_widget(form.evolucionMensual, {'attr': {'rows': 6}}) }}
-                                {{ form_errors(form.evolucionMensual) }}
-                            </div>
-                        </div>
-
-                        <div class="row mt-3">
-                            <div class="col-md-6">
-                                {{ form_label(form.medicacionActual) }}
-                                {{ form_widget(form.medicacionActual, {'attr': {'rows': 4}}) }}
-                                {{ form_errors(form.medicacionActual) }}
-                            </div>
-                            <div class="col-md-6">
-                                {{ form_label(form.frecuenciaSesiones) }}
-                                {{ form_widget(form.frecuenciaSesiones, {'attr': {'rows': 4}}) }}
-                                {{ form_errors(form.frecuenciaSesiones) }}
-                            </div>
-                        </div>
+                        {{ form_rest(form) }}
 
                         <div class="row mt-3">
                             <div class="col-md-6">
@@ -66,13 +47,7 @@
                         
                         <div class="row mt-3">
                             <div class="col-md-12">
-                                {{ form_label(form.observaciones) }}
-                                {{ form_widget(form.observaciones, {'attr': {'rows': 4}}) }}
-                                {{ form_errors(form.observaciones) }}
-                            </div>
-                        </div>
-
-                        {{ form_rest(form) }}
+                        <!-- Campos eliminados: evolucionMensual, medicacionActual, frecuenciaSesiones, estudiosComplementarios, proximasConsultas, observaciones -->
 
                         <div class="row mt-4">
                             <div class="col-12 text-center">

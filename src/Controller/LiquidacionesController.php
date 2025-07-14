@@ -242,6 +242,7 @@ class LiquidacionesController extends AbstractController
                 'estado' => $estado,
                 'evolucionesPivotOs' => $evolucionesPivotOs,
                 'evolucionesCount' => $evolucionesCount,
+                'isDoctor' => $this->isGranted('ROLE_STAFF') && $user->getDoctor() !== null,
             ]);
     }
 }

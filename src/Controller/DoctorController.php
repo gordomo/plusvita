@@ -672,6 +672,7 @@ class DoctorController extends AbstractController
             'obraSocialSelected' => $obraSocialSelected,
             'obrasSociales' => $obrasSocialesArray,
             'paginaImprimible' => true,
+            'isDoctor' => $this->isGranted('ROLE_STAFF') && $user->getDoctor() !== null,
         ]);
 
     }
@@ -749,7 +750,8 @@ class DoctorController extends AbstractController
             'pestana' => $pestana,
             'obrasSociales' => $obrasSocialesArray,
             'habitacionesArray' => $habitacionesArray,
-            'puedeEvolucionar' => $DoctorService->puedeEvolucionar()
+            'puedeEvolucionar' => $DoctorService->puedeEvolucionar(),
+            'isDoctor' => true
         ]);
 
     }

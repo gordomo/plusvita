@@ -28,7 +28,7 @@ class Habitacion
     private $nombre;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="integer", name="camas_disponibles")
      */
     private $camasDisponibles;
 

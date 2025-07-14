@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}Estadísticas de Altas Médicas - Plus Vita{% endblock %}
-{% block panelTitle %}Análisis de Altas Médicas{% endblock %}
+{% block panelTitle %}Análisis de Altas Médicas{% if periodLabel is defined %} - {{ periodLabel }}{% endif %}{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -122,23 +122,48 @@
         </div>
     </div>
     
-    <!-- Selector de año -->
-    <div class="card stats-card year-selector">
+    <!-- Filtro de período -->
+    <div class="card stats-card">
         <div class="card-body">
             <div class="row">
                 <div class="col-md-8">
-                    <h5>Seleccione el año para el análisis:</h5>
-                    <div class="btn-group" role="group">
-                        {% for y in range(year - 2, year + 1) %}
-                            <a href="{{ path('app_stats_altas', {'year': y}) }}" class="btn {{ y == year ? 'btn-primary' : 'btn-outline-primary' }}">
-                                {{ y }}
-                            </a>
-                        {% endfor %}
-                    </div>
+                    <form id="period-filter" class="form-inline" method="get">
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text bg-light"><i class="fas fa-calendar-alt"></i></span>
+                            </div>
+                            <select name="month" class="form-control">
+                                <option value="0" {% if selectedMonth == 0 %}selected{% endif %}>Todos los meses</option>
+                                {% for i in 1..12 %}
+                                    <option value="{{ i }}" {% if selectedMonth == i %}selected{% endif %}>
+                                        {% set meses = {1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril', 5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto', 9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'} %}
+                                        {{ meses[i] }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <select name="year" class="form-control">
+                                {% for y in (currentYear-5)..(currentYear+1) %}
+                                    <option value="{{ y }}" {% if selectedYear == y %}selected{% endif %}>{{ y }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-primary">Filtrar</button>
+                            </div>
+                            <div class="input-group-append">
+                                <a href="{{ path('app_stats_altas') }}" class="btn btn-outline-secondary">Reiniciar</a>
+                            </div>
+                        </div>
+                    </form>
                 </div>
                 <div class="col-md-4 text-right">
                     <p class="mb-0">Período analizado:</p>
-                    <h5>Año {{ year }}</h5>
+                    <h5>
+                        {% if month > 0 %}
+                            {{ periodLabel }}
+                        {% else %}
+                            Año {{ year }}
+                        {% endif %}
+                    </h5>
                 </div>
             </div>
         </div>
@@ -242,6 +267,20 @@
     {{ parent() }}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Auto-submit del formulario cuando cambia algún select
+            const monthSelect = document.querySelector('select[name="month"]');
+            const yearSelect = document.querySelector('select[name="year"]');
+            
+            if (monthSelect && yearSelect) {
+                monthSelect.addEventListener('change', function() {
+                    document.getElementById('period-filter').submit();
+                });
+                
+                yearSelect.addEventListener('change', function() {
+                    document.getElementById('period-filter').submit();
+                });
+            }
+
             // Datos para gráfico mensual
             const meses = {{ meses|json_encode()|raw }};
             const datosPorMes = {{ datosPorMes|json_encode()|raw }};

@@ -2,7 +2,7 @@
 
 {% block title %}Informe Mensual{% endblock %}
 
-{% block content %}
+{% block body %}
     <div class="container-fluid">
         <div class="row">
             <div class="col-12">
@@ -28,7 +28,7 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <p><strong>Paciente:</strong> {{ informeMensual.cliente.nombre }} {{ informeMensual.cliente.apellido }}</p>
-                                <p><strong>DNI:</strong> {{ informeMensual.cliente.documento }}</p>
+                                <p><strong>DNI:</strong> {{ informeMensual.cliente.dni }}</p>
                                 <p><strong>Obra Social:</strong> {{ informeMensual.cliente.obraSocial ? informeMensual.cliente.obraSocial.nombre : 'No especificada' }}</p>
                             </div>
                             <div class="col-md-6 text-right">                            <p><strong>Fecha:</strong> {{ informeMensual.fechaCreacion|date("d/m/Y") }}</p>
@@ -36,42 +36,137 @@
                             </div>
                         </div>
                         <hr>
-
-                        <div class="row mt-3">
-                            <div class="col-md-12">
-                                <h5>Evolución Mensual</h5>
-                                <div class="p-3 bg-light">{{ informeMensual.evolucionMensual|raw }}</div>
-                            </div>
-                        </div>
-
-                        <div class="row mt-3">
+                        
+                        <div class="row mt-4">
                             <div class="col-md-6">
-                                <h5>Medicación Actual</h5>
-                                <div class="p-3 bg-light">{{ informeMensual.medicacionActual|raw }}</div>
+                                <p><strong>Lugar:</strong> {{ informeMensual.lugar }}</p>
+                                <p><strong>Mes correspondiente:</strong> {{ informeMensual.mesCorrespondiente }}</p>
                             </div>
                             <div class="col-md-6">
-                                <h5>Frecuencia de Sesiones</h5>
-                                <div class="p-3 bg-light">{{ informeMensual.frecuenciaSesiones|raw }}</div>
-                            </div>
-                        </div>
-
-                        <div class="row mt-3">
-                            <div class="col-md-6">
-                                <h5>Estudios Complementarios</h5>
-                                <div class="p-3 bg-light">{{ informeMensual.estudiosComplementarios|raw }}</div>
-                            </div>
-                            <div class="col-md-6">
-                                <h5>Próximas Consultas</h5>
-                                <div class="p-3 bg-light">{{ informeMensual.proximasConsultas|raw }}</div>
+                                <p><strong>Fecha de creación:</strong> {{ informeMensual.fechaCreacion|date("d/m/Y H:i") }}</p>
                             </div>
                         </div>
                         
+                        {% if informeMensual.escaras %}
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <h5>Escaras</h5>
+                                <div class="p-3 bg-light">{{ informeMensual.escaras|raw }}</div>
+                            </div>
+                            {% if informeMensual.tipoEscaras %}
+                            <div class="col-md-6">
+                                <h5>Tipo de Escaras</h5>
+                                <div class="p-3 bg-light">{{ informeMensual.tipoEscaras }}</div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        
+                        {% if informeMensual.requerimientosEspeciales %}
                         <div class="row mt-3">
                             <div class="col-md-12">
-                                <h5>Observaciones</h5>
-                                <div class="p-3 bg-light">{{ informeMensual.observaciones|raw }}</div>
+                                <h5>Requerimientos Especiales</h5>
+                                <div class="p-3 bg-light">{{ informeMensual.requerimientosEspeciales|raw }}</div>
                             </div>
                         </div>
+                        {% endif %}
+                        
+                        <div class="row mt-3">
+                            {% if informeMensual.oxigeno %}
+                            <div class="col-md-4">
+                                <h5>O2</h5>
+                                <div class="p-3 bg-light">{{ informeMensual.oxigeno }}</div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if informeMensual.armBpap %}
+                            <div class="col-md-4">
+                                <h5>ARM/BPAP</h5>
+                                <div class="p-3 bg-light">{{ informeMensual.armBpap }}</div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if informeMensual.traqueo %}
+                            <div class="col-md-4">
+                                <h5>Traqueo</h5>
+                                <div class="p-3 bg-light">{{ informeMensual.traqueo }}</div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if informeMensual.alimentacion or informeMensual.tipoAlimentacion %}
+                        <div class="row mt-3">
+                            {% if informeMensual.alimentacion %}
+                            <div class="col-md-6">
+                                <h5>Alimentación</h5>
+                                <div class="p-3 bg-light">{{ informeMensual.alimentacion }}</div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if informeMensual.tipoAlimentacion %}
+                            <div class="col-md-6">
+                                <h5>Tipo de Alimentación</h5>
+                                <div class="p-3 bg-light">{{ informeMensual.tipoAlimentacion }}</div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        
+                        {% if informeMensual.imcMayor40 or informeMensual.aislamientoContacto %}
+                        <div class="row mt-3">
+                            {% if informeMensual.imcMayor40 %}
+                            <div class="col-md-6">
+                                <h5>IMC +40</h5>
+                                <div class="p-3 bg-light">Sí</div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if informeMensual.aislamientoContacto %}
+                            <div class="col-md-6">
+                                <h5>Aislamiento de Contacto</h5>
+                                <div class="p-3 bg-light">{{ informeMensual.aislamientoContacto }}</div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        
+                        {% if informeMensual.derivacionesSegundoNivel %}
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <h5>Derivaciones a II nivel</h5>
+                                <div class="p-3 bg-light">{{ informeMensual.derivacionesSegundoNivel|raw }}</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if informeMensual.antecedentes %}
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <h5>Antecedentes</h5>
+                                <div class="p-3 bg-light">{{ informeMensual.antecedentes|raw }}</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if informeMensual.estadoActual %}
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <h5>Estado Actual</h5>
+                                <div class="p-3 bg-light">{{ informeMensual.estadoActual|raw }}</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if informeMensual.pedidoMedico %}
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <h5>Pedido Médico</h5>
+                                <div class="p-3 bg-light">{{ informeMensual.pedidoMedico|raw }}</div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Campos eliminados: evolucionMensual, medicacionActual, frecuenciaSesiones, estudiosComplementarios, proximasConsultas, observaciones -->
                     </div>
                 </div>
             </div>

@@ -46,4 +46,35 @@ class InformeMensualRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Encuentra informes mensuales según varios criterios de filtrado
+     */
+    public function findByFilters($pacienteId = null, $doctorId = null, \DateTime $fechaDesde = null, \DateTime $fechaHasta = null)
+    {
+        $qb = $this->createQueryBuilder('i')
+            ->orderBy('i.fechaCreacion', 'DESC');
+        
+        if ($pacienteId) {
+            $qb->andWhere('i.cliente = :paciente')
+               ->setParameter('paciente', $pacienteId);
+        }
+        
+        if ($doctorId) {
+            $qb->andWhere('i.doctor = :doctor')
+               ->setParameter('doctor', $doctorId);
+        }
+        
+        if ($fechaDesde) {
+            $qb->andWhere('i.fechaCreacion >= :fechaDesde')
+               ->setParameter('fechaDesde', $fechaDesde->format('Y-m-d').' 00:00:00');
+        }
+        
+        if ($fechaHasta) {
+            $qb->andWhere('i.fechaCreacion <= :fechaHasta')
+               ->setParameter('fechaHasta', $fechaHasta->format('Y-m-d').' 23:59:59');
+        }
+        
+        return $qb->getQuery()->getResult();
+    }
 }

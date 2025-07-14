@@ -24,10 +24,59 @@ class InformeMensualController extends AbstractController
     /**
      * @Route("/", name="informe_mensual_index", methods={"GET"})
      */
-    public function index(InformeMensualRepository $informeMensualRepository): Response
+    public function index(Request $request, InformeMensualRepository $informeMensualRepository, ClienteRepository $clienteRepository): Response
     {
+        // Obtener parámetros de filtrado de la URL
+        $pacienteId = $request->query->get('paciente');
+        $doctorId = $request->query->get('doctor');
+        $desde = $request->query->get('desde');
+        $hasta = $request->query->get('hasta');
+        
+        // Convertir cadenas de fecha a objetos DateTime
+        $fechaDesde = null;
+        $fechaHasta = null;
+        
+        try {
+            if ($desde) {
+                $fechaDesde = new \DateTime($desde);
+            }
+            
+            if ($hasta) {
+                $fechaHasta = new \DateTime($hasta);
+                // Asegurar que la fecha hasta incluya todo el día
+                $fechaHasta->setTime(23, 59, 59);
+            }
+        } catch (\Exception $e) {
+            // Si hay un error de formato de fecha, ignorar ese filtro
+            $this->addFlash('error', 'Formato de fecha incorrecto. Por favor use YYYY-MM-DD');
+        }
+        
+        // Si no hay filtros, mostrar los informes recientes (último mes)
+        if (!$pacienteId && !$doctorId && !$desde && !$hasta) {
+            $fechaDesde = new \DateTime('-1 month');
+            $fechaHasta = new \DateTime();
+        }
+        
+        // Obtener los informes filtrados
+        $informes = $informeMensualRepository->findByFilters($pacienteId, $doctorId, $fechaDesde, $fechaHasta);
+        
+        // Obtener la lista de pacientes para el filtro
+        $pacientes = $clienteRepository->findBy([], ['apellido' => 'ASC']);
+        
+        // Obtener la lista de doctores para el filtro
+        $entityManager = $this->getDoctrine()->getManager();
+        $doctores = $entityManager->getRepository(Doctor::class)->findBy([], ['apellido' => 'ASC']);
+        
         return $this->render('informe_mensual/index.html.twig', [
-            'informes' => $informeMensualRepository->findAll(),
+            'informes' => $informes,
+            'pacientes' => $pacientes,
+            'doctores' => $doctores,
+            'filtros' => [
+                'pacienteId' => $pacienteId,
+                'doctorId' => $doctorId,
+                'desde' => $desde,
+                'hasta' => $hasta,
+            ]
         ]);
     }
 
@@ -43,7 +92,7 @@ class InformeMensualController extends AbstractController
         }
         
         $entityManager = $this->getDoctrine()->getManager();
-        $doctor = $entityManager->getRepository(Doctor::class)->findOneBy(['user' => $user]);
+        $doctor = $entityManager->getRepository(Doctor::class)->findOneBy(['email' => $user->getEmail()]);
         
         if (!$doctor) {
             $this->addFlash('error', 'No se encontró el doctor asociado al usuario actual.');
@@ -66,6 +115,7 @@ class InformeMensualController extends AbstractController
 
         return $this->render('informe_mensual/new.html.twig', [
             'informe_mensual' => $informeMensual,
+            'doctor' => $doctor,
             'cliente' => $cliente,
             'form' => $form->createView(),
         ]);
@@ -123,6 +173,9 @@ class InformeMensualController extends AbstractController
         $options = new Options();
         $options->set('isHtml5ParserEnabled', true);
         $options->set('isRemoteEnabled', true);
+        $options->set('isPhpEnabled', true);
+        $options->set('isJavascriptEnabled', true);
+        $options->set('chroot', '/');  // Permitir acceso a todo el sistema de archivos
         $dompdf = new Dompdf($options);
         
         // Renderizar la vista que queremos convertir a PDF
