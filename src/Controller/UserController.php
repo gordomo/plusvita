@@ -32,10 +32,15 @@ class UserController extends AbstractController
         if (!$user) {
             return $this->redirectToRoute('app_login');
         }
+        
+        // Make sure we get all users, sorted by username for better organization
+        $allUsers = $userRepository->findBy([], ['username' => 'ASC']);
+        
         return $this->render('user/index.html.twig', [
-            'users' => $userRepository->findAll(),
+            'users' => $allUsers,
             'paginaImprimible' => true,
-            
+            'isDoctor' => in_array('ROLE_DOCTOR', $user->getRoles()),
+            'currentUser' => $user
         ]);
     }
 

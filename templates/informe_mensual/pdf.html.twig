@@ -16,8 +16,10 @@
             margin-bottom: 20px;
         }
         .logo {
-            max-height: 60px;
+            max-height: 80px;
+            max-width: 200px;
             float: left;
+            margin-right: 20px;
         }
         .header-info {
             float: right;
@@ -47,17 +49,25 @@
             text-align: center;
             border-top: 1px solid #ddd;
             padding-top: 20px;
+            font-size: 11px;
+            color: #666;
         }
         .signature {
             margin-top: 40px;
             text-align: right;
+            border-top: 1px dashed #ccc;
+            padding-top: 15px;
         }
         .signature img {
             max-height: 80px;
             max-width: 200px;
+            display: block;
+            margin-left: auto;
+            margin-bottom: 10px;
         }
         .doctor-info {
             text-align: right;
+            line-height: 1.2;
         }
         table {
             width: 100%;
@@ -69,7 +79,7 @@
 </head>
 <body>
     <div class="header clearfix">
-        <img src="{{ asset('build/images/logo.png') }}" alt="Logo" class="logo">
+        <img src="http://troxus.cf/assets/images/plusVitaLogo.png" alt="Logo Plus Vita" class="logo">
         <div class="header-info">
             <h1>Informe Mensual</h1>
             <p>Fecha: {{ informeMensual.fechaCreacion|date('d/m/Y') }}</p>
@@ -81,7 +91,7 @@
             <tr>
                 <td width="50%">
                     <p><strong>Paciente:</strong> {{ informeMensual.cliente.nombre }} {{ informeMensual.cliente.apellido }}</p>
-                    <p><strong>DNI:</strong> {{ informeMensual.cliente.documento }}</p>
+                    <p><strong>DNI:</strong> {{ informeMensual.cliente.dni }}</p>
                     <p><strong>Obra Social:</strong> {{ informeMensual.cliente.obraSocial ? informeMensual.cliente.obraSocial.nombre : 'No especificada' }}</p>
                 </td>
                 <td width="50%" style="text-align: right;">
@@ -92,59 +102,141 @@
         </table>
     </div>
     
+    <!-- Los siguientes campos han sido eliminados:
+         - evolucionMensual
+         - medicacionActual
+         - frecuenciaSesiones
+         - estudiosComplementarios
+         - proximasConsultas
+         - observaciones 
+    -->
+    
     <div class="section">
-        <h3>Evolución Mensual</h3>
-        <div class="section-content">{{ informeMensual.evolucionMensual|raw }}</div>
+        <h3>Información del Informe</h3>
+        <div class="section-content">
+            <p><strong>Lugar:</strong> {{ informeMensual.lugar }}</p>
+            <p><strong>Mes correspondiente:</strong> {{ informeMensual.mesCorrespondiente }}</p>
+        </div>
     </div>
+    
+    {% if informeMensual.escaras %}
+    <div class="section">
+        <h3>Escaras</h3>
+        <div class="section-content">{{ informeMensual.escaras|raw }}</div>
+    </div>
+    {% endif %}
+    
+    {% if informeMensual.tipoEscaras %}
+    <div class="section">
+        <h3>Tipo de Escaras</h3>
+        <div class="section-content">{{ informeMensual.tipoEscaras }}</div>
+    </div>
+    {% endif %}
+    
+    {% if informeMensual.requerimientosEspeciales %}
+    <div class="section">
+        <h3>Requerimientos Especiales</h3>
+        <div class="section-content">{{ informeMensual.requerimientosEspeciales|raw }}</div>
+    </div>
+    {% endif %}
     
     <table>
         <tr>
+            {% if informeMensual.oxigeno %}
             <td width="50%">
                 <div class="section">
-                    <h3>Medicación Actual</h3>
-                    <div class="section-content">{{ informeMensual.medicacionActual|raw }}</div>
+                    <h3>O2</h3>
+                    <div class="section-content">{{ informeMensual.oxigeno }}</div>
                 </div>
             </td>
+            {% endif %}
+            {% if informeMensual.armBpap %}
             <td width="50%">
                 <div class="section">
-                    <h3>Frecuencia de Sesiones</h3>
-                    <div class="section-content">{{ informeMensual.frecuenciaSesiones|raw }}</div>
+                    <h3>ARM/BPAP</h3>
+                    <div class="section-content">{{ informeMensual.armBpap }}</div>
                 </div>
             </td>
-        </tr>
-        <tr>
-            <td width="50%">
-                <div class="section">
-                    <h3>Estudios Complementarios</h3>
-                    <div class="section-content">{{ informeMensual.estudiosComplementarios|raw }}</div>
-                </div>
-            </td>
-            <td width="50%">
-                <div class="section">
-                    <h3>Próximas Consultas</h3>
-                    <div class="section-content">{{ informeMensual.proximasConsultas|raw }}</div>
-                </div>
-            </td>
+            {% endif %}
         </tr>
     </table>
     
+    {% if informeMensual.traqueo %}
     <div class="section">
-        <h3>Observaciones</h3>
-        <div class="section-content">{{ informeMensual.observaciones|raw }}</div>
+        <h3>Traqueo</h3>
+        <div class="section-content">{{ informeMensual.traqueo }}</div>
     </div>
+    {% endif %}
+    
+    {% if informeMensual.alimentacion %}
+    <div class="section">
+        <h3>Alimentación</h3>
+        <div class="section-content">{{ informeMensual.alimentacion }}</div>
+    </div>
+    {% endif %}
+    
+    {% if informeMensual.tipoAlimentacion %}
+    <div class="section">
+        <h3>Tipo de Alimentación</h3>
+        <div class="section-content">{{ informeMensual.tipoAlimentacion }}</div>
+    </div>
+    {% endif %}
+    
+    {% if informeMensual.imcMayor40 %}
+    <div class="section">
+        <h3>IMC +40</h3>
+        <div class="section-content">Sí</div>
+    </div>
+    {% endif %}
+    
+    {% if informeMensual.aislamientoContacto %}
+    <div class="section">
+        <h3>Aislamiento de Contacto</h3>
+        <div class="section-content">{{ informeMensual.aislamientoContacto }}</div>
+    </div>
+    {% endif %}
+    
+    {% if informeMensual.derivacionesSegundoNivel %}
+    <div class="section">
+        <h3>Derivaciones a II nivel</h3>
+        <div class="section-content">{{ informeMensual.derivacionesSegundoNivel|raw }}</div>
+    </div>
+    {% endif %}
+    
+    {% if informeMensual.antecedentes %}
+    <div class="section">
+        <h3>Antecedentes</h3>
+        <div class="section-content">{{ informeMensual.antecedentes|raw }}</div>
+    </div>
+    {% endif %}
+    
+    {% if informeMensual.estadoActual %}
+    <div class="section">
+        <h3>Estado Actual</h3>
+        <div class="section-content">{{ informeMensual.estadoActual|raw }}</div>
+    </div>
+    {% endif %}
+    
+    {% if informeMensual.pedidoMedico %}
+    <div class="section">
+        <h3>Pedido Médico</h3>
+        <div class="section-content">{{ informeMensual.pedidoMedico|raw }}</div>
+    </div>
+    {% endif %}
     
     <div class="signature">
-        {% if informeMensual.doctor.firmaDigital %}
-            <img src="{{ asset('uploads/firmas/' ~ informeMensual.doctor.firmaDigital) }}" alt="Firma Digital">
+        {% if informeMensual.doctor.firma is defined and informeMensual.doctor.firma %}
+            <img src="http://troxus.cf/uploads/firmas/{{ informeMensual.doctor.firma }}" alt="Firma Digital">
         {% endif %}
         <div class="doctor-info">
-            <p>{{ informeMensual.doctor.nombre }} {{ informeMensual.doctor.apellido }}</p>
-            <p>Matrícula {{ informeMensual.doctor.matricula }}</p>
+            <p><strong>{{ informeMensual.doctor.nombre }} {{ informeMensual.doctor.apellido }}</strong></p>
+            <p><strong>Matrícula {{ informeMensual.doctor.matricula }}</strong></p>
         </div>
     </div>
     
     <div class="footer">
         <p>Este documento es confidencial y contiene información médica protegida.</p>
+        <p>Plus Vita - Atención Domiciliaria y Telemedicina</p>
     </div>
 </body>
 </html>

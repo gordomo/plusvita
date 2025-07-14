@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}Estadísticas - Plus Vita{% endblock %}
-{% block panelTitle %}Estadísticas del sistema{% endblock %}
+{% block panelTitle %}Estadísticas del sistema{% if periodLabel is defined %} - {{ periodLabel }}{% endif %}{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -83,6 +83,35 @@
             background-color: #60b9b9;
             color: white;
         }
+        
+        /* Estilos para la tabla de patologías */
+        .table-patologias .subcategoria-row {
+            background-color: #f8f9fa;
+        }
+        
+        .subcategoria-container td {
+            padding: 0 !important;
+        }
+        
+        .subcategoria-container table {
+            margin: 0;
+        }
+        
+        .subcategoria-container tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .toggle-subcategoria {
+            transition: all 0.2s ease;
+        }
+        
+        .toggle-subcategoria:hover {
+            transform: translateY(-2px);
+        }
+        
+        .table-primary td {
+            vertical-align: middle;
+        }
     </style>
     <!-- Chart.js para visualizaciones -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
@@ -91,7 +120,7 @@
 {% block body %}
 <div class="container-fluid">
     <div class="row mb-4">
-        <div class="col-12">
+        <div class="col-12 d-flex justify-content-between align-items-center">
             <div class="btn-group" role="group">
                 <a href="{{ path('app_stats_index') }}" class="btn {{ app.request.get('_route') == 'app_stats_index' ? 'btn-primary' : 'btn-stats' }}">
                     <i class="fas fa-chart-line"></i> Panel General
@@ -106,20 +135,56 @@
                     <i class="fas fa-boxes"></i> Inventario
                 </a>
             </div>
+            
+            <!-- Filtro de período -->
+            <div class="card shadow-sm">
+                <div class="card-body p-2">
+                    <form id="period-filter" class="form-inline" method="get">
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text bg-light"><i class="fas fa-calendar-alt"></i></span>
+                            </div>
+                            <select name="month" class="form-control form-control-sm">
+                                {% for i in 1..12 %}
+                                    <option value="{{ i }}" {% if selectedMonth == i %}selected{% endif %}>
+                                        {% set meses = {1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril', 5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto', 9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'} %}
+                                        {{ meses[i] }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <select name="year" class="form-control form-control-sm">
+                                {% for y in (currentYear-5)..(currentYear+1) %}
+                                    <option value="{{ y }}" {% if selectedYear == y %}selected{% endif %}>{{ y }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-sm btn-primary">Filtrar</button>
+                            </div>
+                            <div class="input-group-append">
+                                <a href="{{ path('app_stats_index') }}" class="btn btn-sm btn-outline-secondary">Reiniciar</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Resumen general -->
-    <div class="row">
+    <div class="row justify-content-center">
         <!-- Tarjeta de ocupación general -->
-        <div class="col-md-3">
-            <div class="card stats-card bg-light">
+        <div class="col-md-4">
+            <div class="card stats-card bg-light h-100">
                 <div class="stats-card-header bg-primary text-white">
-                    <i class="fas fa-bed"></i> Ocupación Actual
+                    <i class="fas fa-bed"></i> Ocupación Promedio
                 </div>
-                <div class="stats-card-body text-center">
-                    <div class="d-flex justify-content-center align-items-center">
-                        <div id="ocupacion-gauge" style="width: 120px; height: 120px;"></div>
+                <div class="stats-card-body text-center d-flex flex-column justify-content-center">
+                    <div class="d-flex justify-content-center align-items-center mb-2">
+                        <div class="stats-value" id="porcentaje-ocupacion">
+                            <span class="{% if ocupacionActual > 80 %}text-danger{% elseif ocupacionActual > 60 %}text-warning{% else %}text-success{% endif %}">
+                                {{ ocupacionActual }}%
+                            </span>
+                        </div>
                     </div>
                     <div class="stats-info">
                         <span class="text-muted">Habitaciones:</span>
@@ -129,60 +194,49 @@
                         <span class="text-muted">Camas totales:</span>
                         <span class="font-weight-bold">{{ totalCamas }}</span>
                     </div>
+                    <div class="stats-trend mt-2">
+                        <i class="fas fa-calculator"></i> Promedio de {{ periodLabel }}
+                    </div>
                 </div>
             </div>
         </div>
         
         <!-- Tarjeta de ingresos del mes -->
-        <div class="col-md-3">
-            <div class="card stats-card bg-light">
+        <div class="col-md-4">
+            <div class="card stats-card bg-light h-100">
                 <div class="stats-card-header bg-success text-white">
-                    <i class="fas fa-sign-in-alt"></i> Ingresos del Mes
+                    <i class="fas fa-sign-in-alt"></i> Ingresos
                 </div>
-                <div class="stats-card-body text-center">
-                    <div class="stats-value">{{ ingresosDelMes }}</div>
+                <div class="stats-card-body text-center d-flex flex-column justify-content-center">
+                    <div class="stats-value mb-2">{{ ingresosDelMes }}</div>
                     <div class="stats-info">pacientes ingresados</div>
-                    <div class="stats-trend">
-                        <i class="fas fa-calendar-day"></i> {{ "now"|date("F Y") }}
+                    <div class="stats-trend mt-2">
+                        <i class="fas fa-calendar-day"></i> {{ periodLabel }}
                     </div>
                 </div>
             </div>
         </div>
         
         <!-- Tarjeta de egresos del mes -->
-        <div class="col-md-3">
-            <div class="card stats-card bg-light">
+        <div class="col-md-4">
+            <div class="card stats-card bg-light h-100">
                 <div class="stats-card-header bg-info text-white">
-                    <i class="fas fa-sign-out-alt"></i> Egresos del Mes
+                    <i class="fas fa-sign-out-alt"></i> Egresos
                 </div>
-                <div class="stats-card-body text-center">
-                    <div class="stats-value">{{ egresosDelMes }}</div>
+                <div class="stats-card-body text-center d-flex flex-column justify-content-center">
+                    <div class="stats-value mb-2">{{ egresosDelMes }}</div>
                     <div class="stats-info">pacientes con alta</div>
-                    <div class="stats-trend">
-                        <i class="fas fa-calendar-day"></i> {{ "now"|date("F Y") }}
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Tarjeta de ocupación vs capacidad -->
-        <div class="col-md-3">
-            <div class="card stats-card bg-light">
-                <div class="stats-card-header bg-warning text-white">
-                    <i class="fas fa-percent"></i> Ocupación vs Capacidad
-                </div>
-                <div class="stats-card-body">
-                    <div class="chart-container" style="height: 188px;">
-                        <canvas id="ocupacion-chart"></canvas>
+                    <div class="stats-trend mt-2">
+                        <i class="fas fa-calendar-day"></i> {{ periodLabel }}
                     </div>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Gráfico de ocupación por día (últimos 30 días) -->
+    <!-- Gráfico de ocupación por día (para el período seleccionado) -->
     <div class="stats-section">
-        <h3 class="section-title">Tendencia de ocupación (últimos 30 días)</h3>
+        <h3 class="section-title">Tendencia en {{ periodLabel }}</h3>
         <div class="card stats-card">
             <div class="card-body">
                 <div class="chart-container">
@@ -252,20 +306,52 @@
                                         <th>Máximo</th>
                                         <th>Total días</th>
                                         <th>Cantidad de casos</th>
+                                        <th>Detalles</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% for patologia, datos in statsInternacion %}
-                                        <tr>
-                                            <td>{{ patologia }}</td>
-                                            <td>{{ datos.promedio }}</td>
-                                            <td>{{ datos.min }}</td>
-                                            <td>{{ datos.max }}</td>
-                                            <td>{{ datos.total }}</td>
-                                            <td>{{ datos.casos }}</td>
+                                        <tr class="table-primary">
+                                            <td><strong>{{ patologia }}</strong></td>
+                                            <td><strong>{{ datos.promedio }}</strong></td>
+                                            <td><strong>{{ datos.min }}</strong></td>
+                                            <td><strong>{{ datos.max }}</strong></td>
+                                            <td><strong>{{ datos.total }}</strong></td>
+                                            <td><strong>{{ datos.casos }}</strong></td>
+                                            <td class="text-center">
+                                                {% if datos.subcategorias|length > 0 %}
+                                                    <button type="button" class="btn btn-sm btn-info toggle-subcategoria" 
+                                                            data-id="{{ datos.id }}">
+                                                        <i class="fas fa-plus-circle"></i> Ver subcategorías
+                                                    </button>
+                                                {% else %}
+                                                    <span class="badge badge-secondary">Sin subcategorías</span>
+                                                {% endif %}
+                                            </td>
                                         </tr>
+                                        {% if datos.subcategorias|length > 0 %}
+                                            <tr class="subcategoria-container" id="subcategoria-{{ datos.id }}" style="display:none">
+                                                <td colspan="7" class="p-0">
+                                                    <table class="table table-sm mb-0 table-striped">
+                                                        <tbody>
+                                                            {% for subcategoria, subDatos in datos.subcategorias %}
+                                                                <tr class="table-light">
+                                                                    <td class="pl-4" style="width:22%">{{ subcategoria }}</td>
+                                                                    <td style="width:13%">{{ subDatos.promedio }}</td>
+                                                                    <td style="width:13%">{{ subDatos.min }}</td>
+                                                                    <td style="width:13%">{{ subDatos.max }}</td>
+                                                                    <td style="width:13%">{{ subDatos.total }}</td>
+                                                                    <td style="width:13%">{{ subDatos.casos }}</td>
+                                                                    <td style="width:13%"></td>
+                                                                </tr>
+                                                            {% endfor %}
+                                                        </tbody>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        {% endif %}
                                     {% else %}
-                                        <tr><td colspan="6" class="text-center">No hay datos de internación registrados.</td></tr>
+                                        <tr><td colspan="7" class="text-center">No hay datos de internación registrados.</td></tr>
                                     {% endfor %}
                                 </tbody>
                             </table>
@@ -294,86 +380,15 @@
             // Datos para los gráficos
             const ocupacionData = {{ ocupacionPorDia|raw }};
             
-            // Calcular ocupación actual (último día disponible)
+            // El porcentaje de ocupación ya se establece en el HTML directamente
+            // desde el backend con {{ ocupacionActual }}%, así que no necesitamos actualizarlo aquí
+            
+            // Solo para debugging
             const ultimoDia = ocupacionData[ocupacionData.length - 1];
-            const ocupacionActual = ultimoDia ? ultimoDia.porcentaje : 0;
-            
-            // Gráfico de gauge para ocupación actual
-            const gaugeEl = document.getElementById('ocupacion-gauge');
-            if (gaugeEl) {
-                new Chart(gaugeEl, {
-                    type: 'doughnut',
-                    data: {
-                        datasets: [{
-                            data: [ocupacionActual, 100 - ocupacionActual],
-                            backgroundColor: [
-                                ocupacionActual > 80 ? '#dc3545' : (ocupacionActual > 60 ? '#ffc107' : '#28a745'),
-                                '#e9ecef'
-                            ],
-                            borderWidth: 0
-                        }]
-                    },
-                    options: {
-                        cutout: '70%',
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            tooltip: {
-                                enabled: false
-                            },
-                            legend: {
-                                display: false
-                            }
-                        }
-                    }
-                });
-                
-                // Agregar texto al centro del doughnut
-                const textEl = document.createElement('div');
-                textEl.style.position = 'absolute';
-                textEl.style.top = '50%';
-                textEl.style.left = '50%';
-                textEl.style.transform = 'translate(-50%, -50%)';
-                textEl.style.textAlign = 'center';
-                textEl.innerHTML = `<span style="font-size: 1.5rem; font-weight: bold;">${Math.round(ocupacionActual)}%</span>`;
-                gaugeEl.style.position = 'relative';
-                gaugeEl.appendChild(textEl);
-            }
-            
-            // Gráfico de barras para ocupación vs capacidad (por camas)
-            const ocupacionChartEl = document.getElementById('ocupacion-chart');
-            if (ocupacionChartEl && ultimoDia) {
-                new Chart(ocupacionChartEl, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Ocupación'],
-                        datasets: [
-                            {
-                                label: 'Ocupadas',
-                                data: [ultimoDia.ocupadas],
-                                backgroundColor: '#007bff'
-                            },
-                            {
-                                label: 'Disponibles',
-                                data: [ultimoDia.total - ultimoDia.ocupadas],
-                                backgroundColor: '#e9ecef'
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            x: {
-                                stacked: true
-                            },
-                            y: {
-                                stacked: true,
-                                beginAtZero: true
-                            }
-                        }
-                    }
-                });
+            if (ultimoDia) {
+                console.log('Datos de ocupación disponibles: ' + Math.round(ultimoDia.porcentaje) + '%');
+            } else {
+                console.log('No se encontraron datos históricos de ocupación para el período seleccionado');
             }
             
             // Gráfico de línea para tendencia de ocupación
@@ -436,11 +451,13 @@
                 var promedios = [];
                 var minimos = [];
                 var maximos = [];
+                var casos = [];
                 {% for patologia, datos in statsInternacion %}
                     labels.push(`{{ patologia|e('js') }}`);
                     promedios.push({{ datos.promedio }});
                     minimos.push({{ datos.min }});
                     maximos.push({{ datos.max }});
+                    casos.push({{ datos.casos }});
                 {% endfor %}
                 new Chart(ctx, {
                     type: 'bar',
@@ -476,6 +493,43 @@
                     }
                 });
             }
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-submit del formulario cuando cambia algún select
+            const monthSelect = document.querySelector('select[name="month"]');
+            const yearSelect = document.querySelector('select[name="year"]');
+            
+            if (monthSelect && yearSelect) {
+                monthSelect.addEventListener('change', function() {
+                    document.getElementById('period-filter').submit();
+                });
+                
+                yearSelect.addEventListener('change', function() {
+                    document.getElementById('period-filter').submit();
+                });
+            }
+            
+            // Funcionalidad para mostrar/ocultar subcategorías
+            document.querySelectorAll('.toggle-subcategoria').forEach(function(button) {
+                button.addEventListener('click', function() {
+                    const patologiaId = this.getAttribute('data-id');
+                    const subcategoriaRow = document.getElementById('subcategoria-' + patologiaId);
+                    
+                    if (subcategoriaRow.style.display === 'none') {
+                        subcategoriaRow.style.display = 'table-row';
+                        this.innerHTML = '<i class="fas fa-minus-circle"></i> Ocultar subcategorías';
+                        this.classList.remove('btn-info');
+                        this.classList.add('btn-secondary');
+                    } else {
+                        subcategoriaRow.style.display = 'none';
+                        this.innerHTML = '<i class="fas fa-plus-circle"></i> Ver subcategorías';
+                        this.classList.remove('btn-secondary');
+                        this.classList.add('btn-info');
+                    }
+                });
+            });
         });
     </script>
 {% endblock %}

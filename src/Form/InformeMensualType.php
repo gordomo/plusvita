@@ -86,36 +86,13 @@ class InformeMensualType extends AbstractType
                 'required' => false,
                 'attr' => ['rows' => 5],
             ])
-            ->add('evolucionMensual', TextareaType::class, [
-                'label' => 'Evolución Mensual',
-                'required' => false,
-                'attr' => ['rows' => 5],
-            ])
-            ->add('medicacionActual', TextareaType::class, [
-                'label' => 'Medicación Actual',
-                'required' => false,
-                'attr' => ['rows' => 5],
-            ])
-            ->add('frecuenciaSesiones', TextareaType::class, [
-                'label' => 'Frecuencia de Sesiones',
-                'required' => false,
-                'attr' => ['rows' => 5],
-            ])
-            ->add('estudiosComplementarios', TextareaType::class, [
-                'label' => 'Estudios Complementarios',
-                'required' => false,
-                'attr' => ['rows' => 5],
-            ])
-            ->add('proximasConsultas', TextareaType::class, [
-                'label' => 'Próximas Consultas',
-                'required' => false,
-                'attr' => ['rows' => 5],
-            ])
-            ->add('observaciones', TextareaType::class, [
-                'label' => 'Observaciones',
-                'required' => false,
-                'attr' => ['rows' => 5],
-            ])
+            // Los siguientes campos han sido eliminados:
+            // - evolucionMensual
+            // - medicacionActual
+            // - frecuenciaSesiones
+            // - estudiosComplementarios
+            // - proximasConsultas
+            // - observaciones
         ;
     }
 
