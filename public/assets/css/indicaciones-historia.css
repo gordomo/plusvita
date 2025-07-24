@@ -1,0 +1,89 @@
+/* Estilos para la sección de indicaciones en Historia Clínica */
+
+.indicaciones-resumen-container {
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 10px;
+}
+
+.indicaciones-list {
+    margin-bottom: 15px;
+}
+
+.indicacion-item {
+    background-color: #ffffff;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    border-left: 4px solid #4a90e2;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.indicacion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f1f5f9;
+    padding: 10px 15px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.indicacion-header span:first-child {
+    font-weight: 600;
+    color: #2c5282;
+}
+
+.indicacion-date {
+    font-size: 0.9em;
+    color: #718096;
+}
+
+.indicacion-content {
+    padding: 15px;
+    line-height: 1.5;
+    white-space: pre-line;
+}
+
+.indicacion-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 15px;
+    background-color: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    font-size: 0.9em;
+}
+
+.indicacion-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    color: white;
+    font-size: 0.8em;
+    margin-left: 5px;
+}
+
+.indicacion-badge-month {
+    background-color: #4a90e2;
+}
+
+.indicacion-badge-year {
+    background-color: #4a5568;
+}
+
+.indicacion-badge-ingreso {
+    background-color: #805ad5;
+}
+
+.indicaciones-link {
+    text-align: center;
+    margin-top: 10px;
+}
+
+h5.mt-3.mb-2, h5.mt-4.mb-2 {
+    color: #2c5282;
+    font-weight: 600;
+    border-bottom: 1px dashed #cbd5e0;
+    padding-bottom: 5px;
+}

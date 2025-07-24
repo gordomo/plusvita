@@ -199,15 +199,25 @@ class ConsumibleController extends AbstractController
 
         $year = $request->get('year', '');
         $mes = $request->get('mes', '');
-        $indicacionesCargadas = $consumiblesClientesRepository->findIndicacionesParaElCliente($cliente->getId(), $year, $mes);
+        $indicacionesCargadas = $consumiblesClientesRepository->findIndicacionesParaElCliente($cliente->getId(), $year, $mes, null, false);
 
+        // Verificar si el usuario es un doctor
+        $user = $this->getUser();
+        $isDoctor = false;
+        if ($user && $this->isGranted('ROLE_DOCTOR')) {
+            $isDoctor = true;
+        } elseif ($user && $this->isGranted('ROLE_STAFF') && $user->getDoctor() !== null) {
+            $isDoctor = true;
+        }
+        
         return $this->render('consumible/imputar.html.twig', [
             'cliente' => $cliente,
             'consumibles' => $consumibles,
             'indicacionesCargadas' => $indicacionesCargadas,
             'mes' => $mes,
             'year' => $year,
-            'meses' => ['Enero' => '01', 'Febrero' => '02', 'Marzo' => '03', 'Abril' => 04, 'Mayo' => '05', 'Junio' => '06', 'Julio' => '07', 'Agosto' => '08', 'Septiembre' => '09', 'Octubre' => '10', 'Noviembre' => '11', 'Diciembre' => '12', ]
+            'meses' => ['Enero' => '01', 'Febrero' => '02', 'Marzo' => '03', 'Abril' => 04, 'Mayo' => '05', 'Junio' => '06', 'Julio' => '07', 'Agosto' => '08', 'Septiembre' => '09', 'Octubre' => '10', 'Noviembre' => '11', 'Diciembre' => '12', ],
+            'isDoctor' => $isDoctor
         ]);
     }
 
@@ -262,12 +272,22 @@ class ConsumibleController extends AbstractController
         $now = new \DateTime();
         $mes = $now->format('m');
 
+        // Verificar si el usuario es un doctor
+        $user = $this->getUser();
+        $isDoctor = false;
+        if ($user && $this->isGranted('ROLE_DOCTOR')) {
+            $isDoctor = true;
+        } elseif ($user && $this->isGranted('ROLE_STAFF') && $user->getDoctor() !== null) {
+            $isDoctor = true;
+        }
+        
         return $this->render('consumible/indicar.html.twig', [
             'cliente' => $cliente,
             'consumibles' => $consumibles,
             'mes' => $mes,
             'indicacionesCargadas' => $indicacionesCargadas,
-            'meses' => ['Enero' => '01', 'Febrero' => '02', 'Marzo' => '03', 'Abril' => 04, 'Mayo' => '05', 'Junio' => '06', 'Julio' => '07', 'Agosto' => '08', 'Septiembre' => '09', 'Octubre' => '10', 'Noviembre' => '11', 'Diciembre' => '12', ]
+            'meses' => ['Enero' => '01', 'Febrero' => '02', 'Marzo' => '03', 'Abril' => 04, 'Mayo' => '05', 'Junio' => '06', 'Julio' => '07', 'Agosto' => '08', 'Septiembre' => '09', 'Octubre' => '10', 'Noviembre' => '11', 'Diciembre' => '12', ],
+            'isDoctor' => $isDoctor
         ]);
     }
 
@@ -324,11 +344,12 @@ class ConsumibleController extends AbstractController
     {
         $clienteId = $request->get('cliente');
         $consumibleId = $request->get('consumibleId');
-        $cantidad = $request->get('cantidad');
+        $cantidad = $request->get('cantidad', 1); // Default to 1 if not provided
         $accion = $request->get('accion');
         $mes = $request->get('mes', '');
         $year = $request->get('year', '');
         $isAjax = $request->get('isAjax', false);
+        $activo = $request->get('activo', true);
         $error = false;
         $message = 'ok';
 
@@ -337,21 +358,37 @@ class ConsumibleController extends AbstractController
         }
 
         try {
-            $consumible = $consumibleRepository->find($consumibleId);
-
-            //$existenciaActual = $consumible->getExistencia();
-            /*if ($cantidad <= $existenciaActual) {
-                $consumible->setExistencia($existenciaActual - $cantidad);
-            }*/
-
+            // Crear un nuevo objeto ConsumiblesClientes con datos completos
             $consumiblesClientesHistorico = new ConsumiblesClientes();
-            $consumiblesClientesHistorico->setFecha(new \DateTime);
+            
+            // Configurar todos los campos correctamente
+            $ahora = new \DateTime();
+            $consumiblesClientesHistorico->setFecha($ahora);
+            
+            // Si no se proporciona mes o año, usar el mes y año actuales
+            if (empty($mes)) {
+                $mes = $ahora->format('m');
+            }
+            if (empty($year)) {
+                $year = $ahora->format('Y');
+            }
+            
             $consumiblesClientesHistorico->setMes($mes);
             $consumiblesClientesHistorico->setYear($year);
+            $consumiblesClientesHistorico->setActivo(filter_var($activo, FILTER_VALIDATE_BOOLEAN));
+            // No podemos guardar el usuario porque no existe el campo en la entidad
+            // Será necesario modificar la entidad para añadir este campo
+            
+            // Guardar las notas o indicaciones de texto libre
+            $notas = $request->get('notas', '');
+            $consumiblesClientesHistorico->setNotas($notas);
             $consumiblesClientesHistorico->setAccion($accion);
             $consumiblesClientesHistorico->setCantidad($cantidad);
             $consumiblesClientesHistorico->setClienteId($clienteId);
-            $consumiblesClientesHistorico->setConsumibleId($consumibleId);
+            // ConsumibleId puede ser null para indicaciones sin medicamento específico
+            if (!empty($consumibleId)) {
+                $consumiblesClientesHistorico->setConsumibleId($consumibleId);
+            }
 
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($consumiblesClientesHistorico);

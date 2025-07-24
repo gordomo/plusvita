@@ -1,6 +1,12 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Pacientes{% endblock %}
+{% block title %}Historia Clínica - {{ cliente.nombre }} {{ cliente.apellido }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('assets/css/indicaciones-resumen.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/indicaciones-historia.css') }}">
+{% endblock %}
 {% block panelTitle %}
     <div id="head">
         Nombre y Apellido: <strong class="text-capitalize">{{ cliente.nombre }} {{ cliente.apellido }}</strong><br>
@@ -48,7 +54,7 @@
                 <div class="modal-body">
                     <div class="form-group columnas-de-dos" id="checkboxes">
                         {% set campos = {
-                            'historia-al-ingreso': 'Ingreso', 'notas': 'Notas', 'notas-en-turnos': 'Notas en Turno', 'evoluciones-imprimir': 'Evoluciones', 'novedades': 'Novedades', 'epicrisis-al-alta': 'Epicrisis'
+                            'historia-al-ingreso': 'Ingreso', 'notas': 'Notas', 'notas-en-turnos': 'Notas en Turno', 'evoluciones-imprimir': 'Evoluciones', 'novedades': 'Novedades', 'indicaciones-imprimir': 'Indicaciones Médicas', 'epicrisis-al-alta': 'Epicrisis'
                         }%}
 
                         {% for fiel, key in campos %}
@@ -118,7 +124,14 @@
                         <td><b> Exámen Complementario:</b> {{ ingreso.examenComplementarioDesc }}</td>
                     </tr>
                     <tr>
-                        <td><b> Indicaciones:</b> {{ ingreso.indicaciones }}</td>
+                        <td>
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <b>Indicaciones:</b> {{ ingreso.indicaciones }}
+                                </div>
+                                
+                            </div>
+                        </td>
                     </tr>
                     <tr>
                         <td><b> Adjuntos:</b> 
@@ -679,6 +692,88 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Sección de Indicaciones Médicas -->
+        <div id="accordion" style="width: 100%;" class="indicaciones-imprimir">
+            <div class="col-12 mb-4 history-col-12" id="indicacionesScroll">
+                <div class="col-lg-2 col-sm-12 col-md-2">
+                    <h4>Indicaciones Médicas</h4>
+                </div>
+                <div class="col-lg-1 col-sm-12 col-md-1">
+                    <a href class="btn btn-link abrir" aria-expanded="true" aria-controls="collapseOne" data-toogle="cerrado" data-seccion="indicaciones-section">
+                        <i class="fas fa-chevron-down"></i>
+                    </a>
+                </div>
+                <div class="col-lg-9 col-sm-12 col-md-9">
+                    <div class="text-right">
+                        <a href="{{ path('cardex_paciente', {'id': cliente.id}) }}" class="btn btn-info">
+                            <i class="fas fa-clipboard-list"></i> Ver Cardex Completo
+                        </a>
+                        {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_DOCTOR') %}
+                            <a href="{{ path('consumible_indicar_view', {'id': cliente.id}) }}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Nueva Indicación
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div id="indicaciones-section" class="collapse {% if section == 'indicaciones' %} show {% endif %}" aria-labelledby="headingOne" data-parent="#accordion">
+                        <div class="indicaciones-resumen-container">
+                            <!-- Indicaciones Recientes -->
+                            <h5 class="mt-3 mb-2">Indicaciones Recientes</h5>
+                            {% if indicacionesRecientes is defined and indicacionesRecientes|length > 0 %}
+                                {% for indicacion in indicacionesRecientes %}
+                                    <div class="indicacion-item mb-3">
+                                        <div class="indicacion-header">
+                                            <span>{{ indicacion.consumibleNombre }}</span>
+                                            <span class="indicacion-date">{{ indicacion.fecha|date('d/m/Y') }}</span>
+                                        </div>
+                                        <div class="indicacion-content">
+                                            {% if indicacion.notas is defined and indicacion.notas %}
+                                                {{ indicacion.notas|nl2br }}
+                                            {% else %}
+                                                <strong>Cantidad:</strong> {{ indicacion.cantidad }} 
+                                                {% if indicacion.unidades %}<small>({{ indicacion.unidades }})</small>{% endif %}
+                                            {% endif %}
+                                        </div>
+                                        <div class="indicacion-footer">
+                                            <span>
+                                                <i class="fas fa-user-md"></i> 
+                                                {% if indicacion.doctorNombre is defined and indicacion.doctorApellido is defined %}
+                                                    {{ indicacion.doctorNombre }} {{ indicacion.doctorApellido }}
+                                                {% else %}
+                                                    Usuario del sistema
+                                                {% endif %}
+                                            </span>
+                                            <div>
+                                                <span class="indicacion-badge indicacion-badge-month">{{ mesesNombres[indicacion.mes] }}</span>
+                                                <span class="indicacion-badge indicacion-badge-year">{{ indicacion.year }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="alert alert-warning">
+                                    No hay indicaciones recientes registradas para este paciente. 
+                                    {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_DOCTOR') %}
+                                    <p>Puedes agregar una nueva indicación usando el botón "Nueva Indicación" a continuación.</p>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                            
+                            {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_DOCTOR') %}
+                            <div class="text-right mt-3">
+                                <a href="{{ path('consumible_indicar_view', {'id': cliente.id}) }}" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> Nueva Indicación
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <div class="col-12 mb-4 history-col-12 epicrisis-al-alta" >
             {% if historiaEgreso is not empty %}
                 <div class="col-4">
@@ -805,7 +900,7 @@
                 $(".modal-footer").html('<button type="button" class="btn btn-primary" id="updateLocal">Imprimir</button>');
             } else {
                 console.log('Imprimiendo secciones:', checkboxes); // Agregar log para debug
-                let secciones = ['historia-al-ingreso', 'notas', 'notas-en-turnos', 'evoluciones-imprimir', 'novedades-imprimir', 'epicrisis-al-alta'];
+                let secciones = ['historia-al-ingreso', 'notas', 'notas-en-turnos', 'evoluciones-imprimir', 'novedades-imprimir', 'indicaciones-imprimir', 'epicrisis-al-alta'];
 
                 secciones.forEach((seccion) => {
                     if (!checkboxes.includes(seccion)) {
@@ -887,6 +982,7 @@
 
 
     </script>
+    <script src="{{ asset('assets/js/indicaciones-resumen.js') }}"></script>
 {% endblock %}
 
 

@@ -36,8 +36,9 @@ class ClienteRepository extends ServiceEntityRepository
         $query
             ->andWhere('c.derivado = 0')
             ->orWhere('c.derivado is null')
-            ->andWhere('c.dePermiso = 0')
-            ->orWhere('c.dePermiso is null')
+            // Incluir tanto pacientes normales como los de permiso
+            // ->andWhere('c.dePermiso = 0')
+            // ->orWhere('c.dePermiso is null')
             ->andWhere('c.ambulatorio = 0')
             ->orWhere('c.ambulatorio is null')
             ->andWhere('c.habitacion is not null');
@@ -342,15 +343,24 @@ class ClienteRepository extends ServiceEntityRepository
             ;
     }
 
-    public function findClienteEnHabitacion($habitacion) {
+    public function findClienteEnHabitacion($habitacion, $soloConCamaFisica = false, $incluirPacientesDePermiso = false) {
         $hoy = new \DateTime();
-        return $this->createQueryBuilder('c')
+        $query = $this->createQueryBuilder('c')
             ->andWhere('(c.fEgreso is null or c.fEgreso >= :hoy) and (c.habitacion is not null and c.habitacion = :habitacion)')
             ->setParameter(':hoy', $hoy)
-            ->setParameter(':habitacion', $habitacion->getId())
-            ->getQuery()
-            ->getResult()
-            ;
+            ->setParameter(':habitacion', $habitacion->getId());
+            
+        // Si se solicita, filtrar solo pacientes con cama física (nCama > 0)
+        if ($soloConCamaFisica) {
+            $query->andWhere('c.nCama > 0');
+        }
+        
+        // Excluir a los pacientes de permiso si se indica
+        if (!$incluirPacientesDePermiso) {
+            $query->andWhere('c.dePermiso = 0 OR c.dePermiso IS NULL');
+        }
+            
+        return $query->getQuery()->getResult();
     }
 
     public function findAllInactivos($value)
@@ -603,5 +613,54 @@ class ClienteRepository extends ServiceEntityRepository
             ->setMaxResults($limit); // Limit
 
         return $paginator;
+    }
+    
+    /**
+     * Encuentra pacientes con habitación asignada pero sin número de cama o con número inválido (0)
+     * y que no tengan habitación privada.
+     * Útil para detectar inconsistencias en la asignación de camas.
+     * 
+     * @return Cliente[]
+     */
+    public function findClientesConHabitacionSinCama()
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.habitacion IS NOT NULL')
+            ->andWhere('(c.nCama IS NULL OR c.nCama = 0)')
+            ->andWhere('c.fEgreso IS NULL')
+            ->andWhere('c.derivado = 0')
+            ->andWhere('c.dePermiso = 0')
+            ->andWhere('c.habPrivada != 1 OR c.habPrivada IS NULL')  // Excluir pacientes con habitación privada
+            ->getQuery()
+            ->getResult();
+    }
+    
+    /**
+     * Encuentra casos donde múltiples pacientes activos están asignados a la misma cama.
+     * 
+     * @return array Retorna un array de arrays con formato: [['habitacion_id' => x, 'n_cama' => y, 'cantidad' => z]]
+     */
+    public function findClientesCompartiendoCama()
+    {
+        $entityManager = $this->getEntityManager();
+        $conn = $entityManager->getConnection();
+        
+        $sql = '
+            SELECT habitacion, n_cama, COUNT(*) as cantidad 
+            FROM cliente 
+            WHERE habitacion IS NOT NULL 
+            AND n_cama IS NOT NULL 
+            AND n_cama > 0
+            AND f_egreso IS NULL 
+            AND derivado = 0 
+            AND de_permiso = 0 
+            GROUP BY habitacion, n_cama 
+            HAVING COUNT(*) > 1
+        ';
+        
+        $stmt = $conn->prepare($sql);
+        $result = $stmt->executeQuery();
+        
+        return $result->fetchAllAssociative();
     }
 }

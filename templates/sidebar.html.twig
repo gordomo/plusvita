@@ -3,16 +3,16 @@
     <div class="sidebar-heading">Plus Vita </div>
     <div class="list-group list-group-flush">
         {% if app.user %}
-            <a class="list-group-item list-group-item-action bg-light " href="{{ path('dashboard_index') }}">
-                <i class="fas fa-chart-line"></i>
-                Dashboard
-            </a>
-            
-            {% if not (isDoctor is defined and isDoctor) %}
-            <a class="list-group-item list-group-item-action bg-light " href="{{ path('app_stats_index') }}">
-                <i class="fas fa-chart-pie"></i>
-                Estadísticas
-            </a>
+            {% if not (is_granted('ROLE_DOCTOR') or (isDoctor is defined and isDoctor)) %}
+                <a class="list-group-item list-group-item-action bg-light " href="{{ path('dashboard_index') }}">
+                    <i class="fas fa-chart-line"></i>
+                    Dashboard
+                </a>
+                
+                <a class="list-group-item list-group-item-action bg-light " href="{{ path('app_stats_index') }}">
+                    <i class="fas fa-chart-pie"></i>
+                    Estadísticas
+                </a>
             {% endif %}
         {% endif %}
         {% if app.user and 'ROLE_ADMIN' in app.user.roles %}
@@ -54,6 +54,25 @@
                 <i class="fas fa-file-medical-alt"></i>
                 Informes Mensuales
             </a>
+        {% endif %}
+        
+        {% if app.user and ('ROLE_ADMIN' in app.user.roles or 'ROLE_DOCTOR' in app.user.roles) %}
+            <div class="dropdown show dropright">
+                <a class="list-group-item list-group-item-action bg-light" href="#" role="button" id="dropdownCardexLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-clipboard-list"></i>
+                    Cardex de Indicaciones <span class="float-right"> > </span>
+                </a>
+                <div class="dropdown-menu" aria-labelledby="dropdownCardexLink">
+                    {% if app.request.get('_route') == 'cliente_historia' and app.request.get('id') %}
+                        <a class="text-white dropdown-item" href="{{ path('cardex_paciente', {'id': app.request.get('id')}) }}">
+                            Cardex del paciente actual
+                        </a>
+                    {% endif %}
+                    <a class="text-white dropdown-item" href="{{ path('cliente_index') }}">
+                        Seleccionar paciente
+                    </a>
+                </div>
+            </div>
             <a class="list-group-item list-group-item-action bg-light " href="{{ path('obra_social_index') }}">
                 <i class="fas fa-first-aid"></i>
                 Obras Sociales
@@ -109,7 +128,11 @@
             
         
         {% elseif  is_granted('ROLE_STAFF')%}
-            {% if isDoctor is defined and isDoctor %}
+            {% if is_granted('ROLE_DOCTOR') or (isDoctor is defined and isDoctor) %}
+                <a class="list-group-item list-group-item-action bg-light " href="{{ path('dashboard_index') }}">
+                    <i class="fas fa-chart-line"></i>
+                    Dashboard
+                </a>
                 <a class="list-group-item list-group-item-action bg-light " href="{{ path('doctor_historia') }}">
                     <i class="fas fa-user-injured"></i>
                     Pacientes

@@ -1,14 +1,21 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}Consumibles Imputar{% endblock %}
+
 {% block panelTitle %}
-    Cargar Indicaciones para <b style="text-transform: capitalize"> {{ cliente.nombre }} {{ cliente.apellido }}</b>
+    <div id="head">
+        <h3>Cargar Indicaciones</h3>
+        Paciente: <strong class="text-capitalize">{{ cliente.nombre }} {{ cliente.apellido }}</strong>
+    </div>
 {% endblock %}
+
 {% block titleButtons %}
-    <a href="javascript:history.back()" class="btn-danger btn">Volver</a>
-    <a href="{{ path('consumible_new') }}" class="btn-success btn">Nuevo Consumible</a>
-    <a href="{{ path('cliente_index') }}" class="btn-info btn">Pacientes</a>
-    <a href="{{ path('consumible_imputar_view', {'id': cliente.id}) }}" class="btn-info btn">Imputar</a>
+    <div class="d-flex">
+        <a href="javascript:history.back()" class="btn btn-danger mr-2">Volver</a>
+        <a href="{{ path('consumible_new') }}" class="btn btn-success mr-2">Nuevo Consumible</a>
+        <a href="{{ path('cliente_index') }}" class="btn btn-info mr-2">Pacientes</a>
+        <a href="{{ path('consumible_imputar_view', {'id': cliente.id}) }}" class="btn btn-info">Imputar</a>
+    </div>
 {% endblock %}
 {% block body %}
     {% set rowCount = 0 %}
@@ -17,7 +24,7 @@
             <thead>
                 <tr>
                     <th>
-                        Consumible
+                        Consumible <small>(opcional si ingresa notas)</small>
                     </th>
                     <th>
                         Cantidad Mensual
@@ -27,6 +34,9 @@
                     </th>
                     <th>
                         Año
+                    </th>
+                    <th>
+                        Notas e Indicación Activa/Inactiva
                     </th>
                 </tr>
                     <td>
@@ -68,9 +78,21 @@
                         </td>
                         <td>
                             <select class="form-control year col-sm-10" id="year-{{ rowCount }}" data-row="{{ rowCount }}" style="display: inline;">
-                                <option {% if 2021 == indicacionCargada.year %} selected {% endif %} value="2021">2021</option>
+                                <option {% if 2025 == indicacionCargada.year %} selected {% endif %} value="2025">2025</option>
+                                <option {% if 2024 == indicacionCargada.year %} selected {% endif %} value="2024">2024</option>
+                                <option {% if 2023 == indicacionCargada.year %} selected {% endif %} value="2023">2023</option>
                                 <option {% if 2022 == indicacionCargada.year %} selected {% endif %} value="2022">2022</option>
+                                <option {% if 2021 == indicacionCargada.year %} selected {% endif %} value="2021">2021</option>
                             </select>
+                        </td>
+                        <td>
+                            <div class="form-group">
+                                <textarea class="form-control mb-2" id="notas-{{ rowCount }}" placeholder="Notas o indicaciones de texto libre (ej: 'Rotar colchón')">{{ indicacionCargada.notas }}</textarea>
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="activo-{{ rowCount }}" {% if indicacionCargada.activo is not defined or indicacionCargada.activo %}checked{% endif %}>
+                                    <label class="custom-control-label" for="activo-{{ rowCount }}">Indicación activa</label>
+                                </div>
+                            </div>
                         </td>
                     </tr>
                     {% set rowCount = rowCount + 1 %}
@@ -86,7 +108,7 @@
                         </select>
                     </td>
                     <td>
-                        <input class="form-control" type="number" placeholder="Cantidad" id="cantidad-{{ rowCount }}">
+                        <input class="form-control" type="number" placeholder="Cantidad" id="cantidad-{{ rowCount }}" value="1">
                     </td>
                     <td>
                         <select class="form-control mes" id="mes-{{ rowCount }}" data-row="{{ rowCount }}">
@@ -97,15 +119,27 @@
                     </td>
                     <td>
                         <select class="form-control year col-sm-10" id="year-{{ rowCount }}" data-row="{{ rowCount }}" style="display: inline;">
+                            <option value="2025" selected>2025</option>
+                            <option value="2024">2024</option>
+                            <option value="2023">2023</option>
                             <option value="2022">2022</option>
                             <option value="2021">2021</option>
                         </select>
+                    </td>
+                    <td>
+                        <div class="form-group">
+                            <textarea class="form-control mb-2" id="notas-{{ rowCount }}" placeholder="Notas o indicaciones de texto libre (ej: 'Rotar colchón')"></textarea>
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" id="activo-{{ rowCount }}" checked>
+                                <label class="custom-control-label" for="activo-{{ rowCount }}">Indicación activa</label>
+                            </div>
+                        </div>
                     </td>
                 </tr>
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="4" class="text-right">
+                    <td colspan="5" class="text-right">
                         <button class="btn btn-success" id="guardar">Guardar Indicaciones</button>
                     </td>
                 </tr>
@@ -118,6 +152,19 @@
     <script src="{{ asset('assets/js/consumibles.js') }}"></script>
 
     <script>
+        console.log("Página de indicaciones cargada correctamente");
+        
+        // Asegurar que el sidebar esté visible
+        $(document).ready(function() {
+            console.log("Document ready en indicar.html.twig");
+            $("#sidebar-wrapper").css({
+                'margin-left': '0',
+                'display': 'block',
+                'visibility': 'visible'
+            });
+            $("#wrapper").removeClass("toggled");
+        });
+        
         $('.borrar-row').click(function (e) {
             e.preventDefault();
             let row = $(this).data('row');
@@ -126,29 +173,33 @@
         });
 
         $("#guardar").on( 'click', function() {
-
             let rows = $('#tabla-imputar tr:visible').not('guardada');
             let todoOK = true;
 
             $(rows).each(function() {
                 $(this).removeClass('error');
                 let newRowCount = $(this).data('row');
-                let cantidad = $('#cantidad-' + newRowCount).val();
+                let cantidad = $('#cantidad-' + newRowCount).val() || 1;
                 let mes = $('#mes-' + newRowCount).val();
                 let year = $('#year-' + newRowCount).val();
                 let consumible = $('#consumible-' + newRowCount).val();
-
-                if (!isNaN(cantidad) && cantidad > 0 && consumible !== '') {
+                let notas = $('#notas-' + newRowCount).val();
+                let activo = $('#activo-' + newRowCount).is(':checked');
+                
+                // Validación: o bien hay un consumible seleccionado, o hay notas
+                if ((consumible !== '' && consumible !== 'seleccione una opcion') || (notas && notas.trim() !== '')) {
                     $.ajax({
                         url: '{{ path('consumible_imputar') }}',
                         data: {
                             'cliente': {{ cliente.id }},
-                            'consumibleId': consumible,
-                            'cantidad': $('#cantidad-' + newRowCount).val(),
+                            'consumibleId': consumible !== 'seleccione una opcion' ? consumible : null,
+                            'cantidad': cantidad,
                             'mes': mes,
                             'year': year,
                             'accion': 0,
                             'isAjax': true,
+                            'notas': notas,
+                            'activo': activo
                         },
                         success: function (response) {
                             if (response.error) {
@@ -161,13 +212,34 @@
                 } else if (!$(this).hasClass('rowOriginal')) {
                     todoOK = false;
                     $(this).addClass('error');
-                    alert("Existe un error en la linea con fondo rojo");
+                    alert("Debe seleccionar un medicamento o ingresar una indicación textual en el campo de notas");
                 }
-            })
+            });
+            
             if (todoOK) {
-                window.location.href = "{{ path('consumible_historico', {'id': cliente.id}) }}";
+                // Redirigir a la historia clínica en lugar del histórico de consumibles
+                window.location.href = "{{ path('cliente_historial', {'id': cliente.id}) }}";
             }
-        } );
+        });
+        
+        // Ocultar las indicaciones del mes anterior al cargar la página
+        $(document).ready(function() {
+            $('.indicacionesMesAnterior').hide();
+            $('#ocultarIndMesAnt').hide();
+        });
+        
+        // Mostrar/ocultar las indicaciones del mes anterior
+        $('#verIndMesAnt').click(function() {
+            $('.indicacionesMesAnterior').show();
+            $('#verIndMesAnt').hide();
+            $('#ocultarIndMesAnt').show();
+        });
+        
+        $('#ocultarIndMesAnt').click(function() {
+            $('.indicacionesMesAnterior').hide();
+            $('#verIndMesAnt').show();
+            $('#ocultarIndMesAnt').hide();
+        });
     </script>
 
 {% endblock %}

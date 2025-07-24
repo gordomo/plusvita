@@ -61,19 +61,35 @@
             </tr>
             {% set pacientesEnHab = clienteRepository.findActivosSinPag(fecha, '', habitacion.id) %}
                     {% for paciente in pacientesEnHab %}
-                <tr>
+                <tr {% if paciente.dePermiso %} style="border-left: 3px solid #6c757d;" title="Paciente de permiso" {% endif %}>
                     <td colspan="4">
-                        <a href="{{ path('evolucion_index', {cliente: paciente.id}) }}">{{ paciente.nombre }} {{ paciente.apellido }}</a>
+                        <a href="{{ path('evolucion_index', {cliente: paciente.id}) }}">
+                            {{ paciente.nombre }} {{ paciente.apellido }}
+                            {% if paciente.dePermiso %}
+                                <small class="text-muted">
+                                    <i class="fa fa-clock-o" aria-hidden="true"></i> De permiso 
+                                    {% if paciente.fechaAltaPorPermiso %}
+                                        - Regresa: {{ paciente.fechaAltaPorPermiso|date('d/m/Y') }}
+                                    {% endif %}
+                                </small>
+                            {% endif %}
+                        </a>
                     </td>
                     <td colspan="1">
-                        {% if not paciente.ambulatorioPresente %}
-                            <a class="btn btn-default" href="{{ path('dar_presente', {'id': paciente.id, 'pestana': pestana}) }}">
-                                <i class="fa fa-check-square-o" aria-hidden="true"></i> dar presente
-                            </a>
-                        {% endif %}
-                        {% if paciente.ambulatorioPresente %}
-                            <a class="btn btn-default" href="{{ path('dar_ausente', {'id': paciente.id, 'pestana': pestana}) }}">
-                                <i class="fa fa-window-close-o" aria-hidden="true"></i> dar ausente
+                        {% if not paciente.dePermiso %}
+                            {% if not paciente.ambulatorioPresente %}
+                                <a class="btn btn-default" href="{{ path('dar_presente', {'id': paciente.id, 'pestana': pestana}) }}">
+                                    <i class="fa fa-check-square-o" aria-hidden="true"></i> dar presente
+                                </a>
+                            {% endif %}
+                            {% if paciente.ambulatorioPresente %}
+                                <a class="btn btn-default" href="{{ path('dar_ausente', {'id': paciente.id, 'pestana': pestana}) }}">
+                                    <i class="fa fa-window-close-o" aria-hidden="true"></i> dar ausente
+                                </a>
+                            {% endif %}
+                        {% else %}
+                            <a class="btn btn-outline-secondary btn-sm" href="{{ path('cliente_reingreso_permiso', {'id': paciente.id}) }}" title="Reingresar de permiso">
+                                <i class="fa fa-undo" aria-hidden="true"></i> Reingresar
                             </a>
                         {% endif %}
                     </td>

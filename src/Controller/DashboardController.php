@@ -322,7 +322,7 @@ class DashboardController extends AbstractController
                 if ($habitacion) {
                     $data[$habitacion->getId()]['clientes'][] = $cliente;
                     $data[$habitacion->getId()]['totales'] = $habitacion->getCamasDisponibles();
-                    $data[$habitacion->getId()]['disponibles'] = $cliente->getHabPrivada() ? 0 : isset($data[$habitacion->getId()]['disponibles']) ? $data[$habitacion->getId()]['disponibles'] - 1 : $habitacion->getCamasDisponibles() - 1; 
+                    $data[$habitacion->getId()]['disponibles'] = $cliente->getHabPrivada() ? 0 : (isset($data[$habitacion->getId()]['disponibles']) ? $data[$habitacion->getId()]['disponibles'] - 1 : $habitacion->getCamasDisponibles() - 1); 
                 }
             }
         }
