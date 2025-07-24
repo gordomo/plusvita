@@ -156,13 +156,33 @@ class HabitacionController extends AbstractController
         $camasOcupadas = $habitacion->getCamasOcupadas();
         $cantCamas = $habitacion->getCamasDisponibles();
         $camasDispArray = [];
+        
+        // Verificar si la habitación está completamente ocupada
+        $esHabitacionPrivada = false;
+        if (count($camasOcupadas) === $cantCamas) {
+            // La habitación podría estar marcada como privada por otro paciente
+            $pacientesEnHabitacion = $clienteRepository->findBy([
+                'habitacion' => $id,
+                'habPrivada' => 1,
+                'fEgreso' => null
+            ]);
+            $esHabitacionPrivada = count($pacientesEnHabitacion) > 0;
+        }
+        
+        // Agregar la opción "sin cama" (n_cama = 0) solo si es habitación privada o el cliente ya lo tiene
+        if ($esHabitacionPrivada || ($cliente->getNCama() === '0' && $cliente->getHabitacion() == $id)) {
+            $camasDispArray['sin cama'] = 0;
+        }
+        
+        // Agregar camas físicas disponibles (1 a n)
         for ($i = 1; $i <= $cantCamas; $i++) {
-            if(!in_array($i, $camasOcupadas)) {
+            if (!in_array($i, $camasOcupadas)) {
                 $camasDispArray[$i] = $i;
             }
         }
 
-        if ($cliente->getHabitacion() == $id) {
+        // Si el cliente ya está en esta habitación, mantener su cama actual disponible
+        if ($cliente->getHabitacion() == $id && $cliente->getNCama() > 0) {
             $camasDispArray[$cliente->getNCama()] = $cliente->getNCama();
         }
 

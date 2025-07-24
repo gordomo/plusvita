@@ -268,13 +268,16 @@ class ClienteType extends AbstractType
             if ($options['camasDisp']) {
                 $builder->add('nCama', ChoiceType::class, [
                     'label' => 'Cama',
-                    'choices'  => $options['camasDisp']
+                    'choices'  => $options['camasDisp'],
+                    'required' => true,
+                    'help' => 'Seleccione un número de cama. Si es habitación privada, puede quedar en "sin cama".'
                 ]);
             }
             if ($options['bloquearHab']) {
                 $builder->add('habPrivada', ChoiceType::class, [
-                    'label' => 'Habitacion Individual',
-                    'choices'  => ['no'=>0, 'si'=>1],
+                    'label' => 'Habitación Privada',
+                    'choices'  => ['No'=>0, 'Sí'=>1],
+                    'help' => 'Marcar como privada ocupará todas las camas de la habitación'
                 ]);
             }
 

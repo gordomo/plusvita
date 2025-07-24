@@ -51,8 +51,11 @@ class HabitacionRepository extends ServiceEntityRepository
         foreach ($todas as $habitacion) {
             $totalCamas = $habitacion->getCamasDisponibles();
 
-            $cli = $clienteRepository->findClienteEnHabitacion($habitacion);
-            if (count($cli) < $totalCamas) {
+            // Obtener todos los pacientes, incluyendo los que están de permiso
+            // Ya que queremos que los pacientes de permiso sigan ocupando su cama
+            $pacientesConCamaFisica = $clienteRepository->findClienteEnHabitacion($habitacion, true, true);
+            
+            if (count($pacientesConCamaFisica) < $totalCamas) {
                 $resp[]  = $habitacion;
             }
         }
@@ -60,20 +63,30 @@ class HabitacionRepository extends ServiceEntityRepository
 
     }
 
-    public function findHabitacionSinCamasDisponibles()
+    public function findHabitacionSinCamasDisponibles($clienteRepository = null)
     {
         $resp = [];
         $todas = $this->findBy(array(), array('nombre' => 'ASC'));
         foreach ($todas as $habitacion) {
-            $arrayCamas = $habitacion->getCamasOcupadas();
-
-            if ($habitacion->getCamasDisponibles() == count($arrayCamas)) {
-                $resp[]  = $habitacion;
-
+            $totalCamas = $habitacion->getCamasDisponibles();
+            
+            if ($clienteRepository) {
+                // Usar el método de repositorio para contar pacientes incluyendo los de permiso
+                // Ya que queremos que los pacientes de permiso sigan ocupando su cama
+                $pacientesConCamaFisica = $clienteRepository->findClienteEnHabitacion($habitacion, true, true);
+                
+                if (count($pacientesConCamaFisica) >= $totalCamas) {
+                    $resp[] = $habitacion;
+                }
+            } else {
+                // Método antiguo basado en JSON de camas ocupadas (mantener por compatibilidad)
+                $arrayCamas = $habitacion->getCamasOcupadas();
+                if ($habitacion->getCamasDisponibles() == count($arrayCamas)) {
+                    $resp[] = $habitacion;
+                }
             }
         }
         return $resp;
-
     }
 
     public function getCamasDisp(int $id)

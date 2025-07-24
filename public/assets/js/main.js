@@ -40,6 +40,13 @@ function initjQueryScripts() {
     $("#menu-toggle").click(function (e) {
         e.preventDefault();
         $("#wrapper").toggleClass("toggled");
+        console.log("Menu toggle clicked");
+    });
+    
+    // Asegurar que el sidebar esté visible al cargar la página
+    $(document).ready(function() {
+        console.log("Document ready - Setting sidebar");
+        $("#wrapper").removeClass("toggled");
     });
 
     // Validación de formularios

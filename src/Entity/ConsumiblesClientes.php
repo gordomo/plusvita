@@ -46,11 +46,21 @@ class ConsumiblesClientes
      * @ORM\Column(type="integer", nullable=false)
      */
     private $accion;
+    
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $notas;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
     private $year;
+    
+    /**
+     * @ORM\Column(type="boolean", nullable=false, options={"default"=true})
+     */
+    private $activo = true;
 
     /**
      * @return mixed
@@ -172,6 +182,44 @@ class ConsumiblesClientes
     public function setYear(?int $year): self
     {
         $this->year = $year;
+        
+        return $this;
+    }
+    
+    /**
+     * @return string|null
+     */
+    public function getNotas(): ?string
+    {
+        return $this->notas;
+    }
+    
+    /**
+     * @param string|null $notas
+     * @return $this
+     */
+    public function setNotas(?string $notas): self
+    {
+        $this->notas = $notas;
+
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isActivo(): bool
+    {
+        return $this->activo;
+    }
+
+    /**
+     * @param bool $activo
+     * @return $this
+     */
+    public function setActivo(bool $activo): self
+    {
+        $this->activo = $activo;
 
         return $this;
     }

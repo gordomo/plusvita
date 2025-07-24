@@ -57,16 +57,42 @@ class LiberarCamasCommand extends Command
                 if($cliente->getHabitacion()) {
                     $habitacionActual = $habitacionRepository->find($cliente->getHabitacion());
 
-                    $habPrivada = $cliente->getHabPrivada();
-                    $camasOcupadasPorCliente = $habitacionActual->getCamasOcupadas();
+                    // Verificar si hay otros pacientes en la misma habitación para evitar liberar sus camas
+                    $otrosPacientes = $clienteRepository->findBy([
+                        'habitacion' => $habitacionActual->getId(),
+                        'fEgreso' => null
+                    ]);
+                    
+                    // Filtrar el cliente actual de la lista
+                    $otrosPacientes = array_filter($otrosPacientes, function($p) use ($cliente) {
+                        return $p->getId() != $cliente->getId();
+                    });
 
-                    if($habPrivada != null && $habPrivada) {
-                        $camasOcupadasPorCliente = [];
-                    } else {
-                        unset($camasOcupadasPorCliente[$cliente->getNCama()]);
+                    // Determinar qué camas deben permanecer ocupadas
+                    $camasOcupadas = [];
+                    $camasAsignadas = 0;
+                    foreach ($otrosPacientes as $paciente) {
+                        if ($paciente->getNCama() !== null) {
+                            // Si el paciente tiene número de cama (incluso si es 0), mantenerlo
+                            $camasOcupadas[$paciente->getNCama()] = $paciente->getNCama();
+                        } else {
+                            // Si hay pacientes sin número de cama, asignarles una
+                            $camasAsignadas++;
+                            $numeroCama = $camasAsignadas;
+                            
+                            // Buscar la primera cama disponible
+                            while (isset($camasOcupadas[$numeroCama])) {
+                                $numeroCama++;
+                            }
+                            
+                            // Asignar la cama al paciente y actualizar el registro
+                            $paciente->setNCama($numeroCama);
+                            $camasOcupadas[$numeroCama] = $numeroCama;
+                            $em->persist($paciente);
+                        }
                     }
 
-                    $habitacionActual->setCamasOcupadas($camasOcupadasPorCliente);
+                    $habitacionActual->setCamasOcupadas($camasOcupadas);
 
                     $cliente->setHabitacion(null);
                     $cliente->setNCama(null);

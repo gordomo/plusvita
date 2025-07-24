@@ -9,6 +9,7 @@ use App\Entity\ObraSocial;
 use App\Repository\HabitacionRepository;
 use App\Repository\HistoriaPacienteRepository;
 use App\Repository\BookingRepository;
+use App\Repository\ClienteRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -28,17 +29,20 @@ class PatientStateService
     private $habitacionRepository;
     private $historiaPacienteRepository;
     private $bookingRepository;
+    private $clienteRepository;
 
     public function __construct(
         EntityManagerInterface $entityManager,
         HabitacionRepository $habitacionRepository,
         HistoriaPacienteRepository $historiaPacienteRepository,
-        BookingRepository $bookingRepository
+        BookingRepository $bookingRepository,
+        ClienteRepository $clienteRepository
     ) {
         $this->entityManager = $entityManager;
         $this->habitacionRepository = $habitacionRepository;
         $this->historiaPacienteRepository = $historiaPacienteRepository;
         $this->bookingRepository = $bookingRepository;
+        $this->clienteRepository = $clienteRepository;
     }
 
     /**
@@ -502,18 +506,43 @@ class PatientStateService
             return;
         }
         
-        $habPrivada = $cliente->getHabPrivada();
-        $camasOcupadasPorCliente = $habitacionActual->getCamasOcupadas();
+        // Verificar si hay otros pacientes en la misma habitación para evitar liberar sus camas
+        $otrosPacientes = $this->clienteRepository->findBy([
+            'habitacion' => $habitacionActual->getId(),
+            'fEgreso' => null
+        ]);
         
-        if ($habPrivada) {
-            // Si es habitación privada, liberar todas las camas
-            $camasOcupadasPorCliente = [];
-        } else {
-            // Si no, liberar solo la cama asignada
-            unset($camasOcupadasPorCliente[$cliente->getNCama()]);
+        // Filtrar el cliente actual de la lista
+        $otrosPacientes = array_filter($otrosPacientes, function($p) use ($cliente) {
+            return $p->getId() != $cliente->getId();
+        });
+
+        // Determinar qué camas deben permanecer ocupadas
+        $camasOcupadas = [];
+        $camasAsignadas = 0;
+        foreach ($otrosPacientes as $paciente) {
+            if ($paciente->getNCama() !== null) {
+                // Si el paciente tiene número de cama (incluso si es 0), mantenerlo
+                $camasOcupadas[$paciente->getNCama()] = $paciente->getNCama();
+            } else {
+                // Si hay pacientes sin número de cama, asignarles una
+                $camasAsignadas++;
+                $numeroCama = $camasAsignadas;
+                
+                // Buscar la primera cama disponible
+                while (isset($camasOcupadas[$numeroCama])) {
+                    $numeroCama++;
+                }
+                
+                // Asignar la cama al paciente y actualizar el registro
+                $paciente->setNCama($numeroCama);
+                $camasOcupadas[$numeroCama] = $numeroCama;
+                $this->entityManager->persist($paciente);
+            }
         }
         
-        $habitacionActual->setCamasOcupadas($camasOcupadasPorCliente);
+        // Actualizar las camas ocupadas de la habitación
+        $habitacionActual->setCamasOcupadas($camasOcupadas);
         
         $cliente->setHabitacion(null);
         $cliente->setNCama(null);

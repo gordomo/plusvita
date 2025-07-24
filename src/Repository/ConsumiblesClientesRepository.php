@@ -70,26 +70,113 @@ class ConsumiblesClientesRepository extends ServiceEntityRepository
             return $query->orderBy('c.consumibleId', 'ASC')->getQuery()->getResult();
     }
 
-    public function findIndicacionesParaElCliente($id, $year = '', $mes = '')
+    public function findIndicacionesParaElCliente($id, $year = '', $mes = '', $limit = null, $soloActivas = true)
     {
-        $query = $this->createQueryBuilder('c')
-            ->where('c.mes is not null')
-            ->andWhere('c.clienteId = :cid')
-            ->setParameter('cid', $id);
-
+        // Ejecutar consulta SQL directa para verificar los datos
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT * FROM consumibles_clientes WHERE cliente_id = :cid ORDER BY id DESC";
+        $stmt = $conn->prepare($sql);
+        $stmt->bindValue('cid', $id);
+        $resultSet = $stmt->executeQuery();
+        $rawData = $resultSet->fetchAllAssociative();
+        
+        // Solo usar los datos raw para depuración, no devolver directamente
+        $rawDataExists = !empty($rawData);
+        // Si no hay registros, mostrar mensaje en la consola pero continuar con la consulta normal
+        if (!$rawDataExists) {
+            // No hay indicaciones en la base de datos para este cliente
+            error_log("No se encontraron indicaciones en la base de datos para el cliente ID: " . $id);
+        }
+        
+        // Continuar con la consulta normal
+        $qb = $this->createQueryBuilder('c');
+        
+        $query = $qb
+            ->select('c')
+            ->where('c.clienteId = :cid')
+            ->andWhere('c.accion = :accion')
+            ->setParameter('cid', $id)
+            ->setParameter('accion', '0');
+            
+        // Si soloActivas es true, filtramos para mostrar solo indicaciones activas
+        if ($soloActivas) {
+            $query->andWhere('c.activo = :activo')
+                  ->setParameter('activo', true);
+        }
+        
         if (!empty($year)) {
             $query->andWhere('c.year = :year')
-                ->setParameter('year', $year);
+                  ->setParameter('year', $year);
         }
+        
         if (!empty($mes)) {
             $query->andWhere('c.mes = :mes')
-                ->setParameter('mes', $mes);
+                  ->setParameter('mes', $mes);
         }
-
-        $query->andWhere('c.accion = :accion')
-                ->setParameter('accion', '0');
-
-        return $query->orderBy('c.year', 'DESC')->getQuery()->getResult();
+        
+        // Realizar un debug de la consulta SQL para ver qué está pasando
+        $query->orderBy('c.id', 'DESC');
+        
+        // Guardar la consulta SQL para depuración
+        $sqlQuery = $query->getQuery()->getSQL();
+        
+        // Aplicamos límite antes de ejecutar la consulta si está especificado
+        if ($limit !== null) {
+            $query->setMaxResults($limit);
+        }
+        // Obtener la consulta SQL
+        $result = $query->getQuery()->getResult();
+        $indicaciones = [];
+        
+        // Si no hay resultados, solo registrar el mensaje en el log
+        if (empty($result)) {
+            error_log("No se encontraron indicaciones en la consulta ORM para el cliente ID: " . $id);
+            // Devolver un array vacío
+            return [];
+        }
+        
+        foreach ($result as $indicacion) {
+            // Ahora trabajamos directamente con objetos ConsumiblesClientes
+            $consumible = $this->getEntityManager()
+                ->getRepository('App\Entity\Consumible')
+                ->find($indicacion->getConsumibleId());
+            
+            $doctorNombre = "Usuario";
+            $doctorApellido = "del Sistema";
+            
+            $indicacionArray = [
+                'id' => $indicacion->getId(),
+                'consumibleId' => $indicacion->getConsumibleId(),
+                'consumibleNombre' => $consumible ? $consumible->getNombre() : '',
+                'unidades' => $consumible ? $consumible->getUnidades() : '',
+                'tipo' => $consumible && method_exists($consumible, 'getTipo') && $consumible->getTipo() ? $consumible->getTipo()->getId() : null,
+                'clienteId' => $indicacion->getClienteId(),
+                'fecha' => $indicacion->getFecha(),
+                'mes' => $indicacion->getMes(),
+                'year' => $indicacion->getYear(),
+                'cantidad' => $indicacion->getCantidad(),
+                'accion' => $indicacion->getAccion(),
+                'doctorNombre' => $doctorNombre,
+                'doctorApellido' => $doctorApellido,
+                'notas' => $indicacion->getNotas(),
+                'activo' => method_exists($indicacion, 'isActivo') ? $indicacion->isActivo() : true,
+            ];
+            
+            $indicaciones[] = $indicacionArray;
+        }
+        
+        // Ordenar por año (DESC), mes (DESC) y fecha (DESC)
+        usort($indicaciones, function($a, $b) {
+            if ($a['year'] != $b['year']) {
+                return $b['year'] <=> $a['year']; // Ordenar por año descendente
+            }
+            if ($a['mes'] != $b['mes']) {
+                return $b['mes'] <=> $a['mes']; // Ordenar por mes descendente
+            }
+            return $b['fecha'] <=> $a['fecha']; // Ordenar por fecha descendente
+        });
+        
+        return $indicaciones;
     }
 
     public function findImputacionesMesConsumibleCliente($mes, $consumibleId, $cid, $year)

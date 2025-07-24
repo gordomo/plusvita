@@ -1,0 +1,220 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Cardex de Indicaciones - {{ cliente.nombre }} {{ cliente.apellido }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('assets/css/cardex.css') }}">
+    <style>
+        .inactive-indication {
+            opacity: 0.7;
+            border-left: 3px solid #dc3545;
+        }
+        .cardex-badge-text {
+            background-color: #17a2b8;
+        }
+    </style>
+{% endblock %}
+
+{% block panelTitle %}
+    <div id="head">
+        <h3>Cardex de Indicaciones</h3>
+        Paciente: <strong class="text-capitalize">{{ cliente.nombre }} {{ cliente.apellido }}</strong><br>
+        DNI: <strong>{{ cliente.dni }}</strong> - Fecha de nacimiento: <strong>{{ cliente.fNacimiento | date('d/m/Y') }}</strong><br>
+        Prof. Responsable:
+        <strong>
+            {% for doc in cliente.docReferente %}
+                {{ doc.nombre }} {{ doc.apellido }}
+            {% endfor %}
+        </strong>
+    </div>
+{% endblock %}
+
+{% block body %}
+    <div class="cardex-container">
+        <div class="cardex-header">
+            <h4>
+                <i class="fas fa-clipboard-list"></i> 
+                Indicaciones Médicas
+                <span class="cardex-badge">
+                    <span id="cardex-counter"></span>/<span id="cardex-total-counter"></span>
+                </span>
+            </h4>
+            <div class="cardex-actions">
+                <a href="{{ path('cliente_historial', {'id': cliente.id}) }}" class="btn btn-sm btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver a Historia Clínica
+                </a>
+                {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_DOCTOR') %}
+                    <a href="{{ path('consumible_indicar_view', {'id': cliente.id}) }}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus"></i> Nueva Indicación
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="cardex-filter-bar">
+            <select id="cardex-filter-year" class="form-control form-control-sm">
+                <option value="all">Todos los años</option>
+                {% for year in years %}
+                    <option value="{{ year }}" {% if year == currentYear %}selected{% endif %}>{{ year }}</option>
+                {% endfor %}
+            </select>
+            
+            <select id="cardex-filter-month" class="form-control form-control-sm">
+                <option value="all">Todos los meses</option>
+                {% for monthNum, monthName in mesesNombres %}
+                    <option value="{{ monthNum }}" {% if monthNum == currentMonth %}selected{% endif %}>{{ monthName }}</option>
+                {% endfor %}
+            </select>
+            
+            {% if categories|length > 0 %}
+                <select id="cardex-filter-category" class="form-control form-control-sm">
+                    <option value="all">Todas las categorías</option>
+                    {% for category in categories %}
+                        <option value="{{ category }}">{{ category }}</option>
+                    {% endfor %}
+                </select>
+            {% endif %}
+            
+            <button id="cardex-clear-filters" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-times"></i> Limpiar filtros
+            </button>
+        </div>
+        
+        <div class="cardex-body">
+            <!-- Indicaciones al ingreso -->
+            {% if historiaIngreso and historiaIngreso.indicaciones %}
+                <div class="cardex-category-toggle">
+                    <i class="fas fa-chevron-down"></i> Indicaciones al Ingreso
+                </div>
+                <div class="cardex-category-content" style="display: block;">
+                    <div class="cardex-item" data-category="ingreso" data-year="{{ cliente.fingreso ? cliente.fingreso|date('Y') : '' }}" data-month="{{ cliente.fingreso ? cliente.fingreso|date('m') : '' }}">
+                        <div class="cardex-item-header">
+                            <span>Ingreso del paciente</span>
+                            <span class="cardex-item-date">{{ cliente.fingreso ? cliente.fingreso|date('d/m/Y') : 'Fecha no registrada' }}</span>
+                        </div>
+                        <div class="cardex-item-content">
+                            {{ historiaIngreso.indicaciones|nl2br }}
+                        </div>
+                        <div class="cardex-item-footer">
+                            <span>
+                                <i class="fas fa-user-md"></i> Profesional al ingreso
+                            </span>
+                            <div>
+                                <span class="cardex-badge cardex-badge-new">Ingreso</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Indicaciones registradas -->
+            {% if indicaciones|length > 0 %}
+                {% set currentMonth = '' %}
+                {% set currentYear = '' %}
+                {% set openDiv = false %}
+                
+                {% for indicacion in indicaciones %}
+                    {% if currentMonth != indicacion.mes or currentYear != indicacion.year %}
+                        {% if openDiv %}
+                            </div>
+                        {% endif %}
+                        
+                        {% set currentMonth = indicacion.mes %}
+                        {% set currentYear = indicacion.year %}
+                        {% set openDiv = true %}
+                        
+                        <div class="cardex-category-toggle">
+                            <i class="fas fa-chevron-down"></i> 
+                            {{ mesesNombres[currentMonth] }} {{ currentYear }}
+                        </div>
+                        <div class="cardex-category-content" style="display: block;">
+                    {% endif %}
+                    
+                    <div class="cardex-item {% if indicacion.activo is defined and not indicacion.activo %}inactive-indication{% endif %}" data-category="{{ indicacion.tipo|default('general') }}" data-year="{{ indicacion.year }}" data-month="{{ indicacion.mes }}">
+                        <div class="cardex-item-header">
+                            <span>
+                                {% if indicacion.consumibleNombre is defined and indicacion.consumibleNombre %}
+                                    {{ indicacion.consumibleNombre }}
+                                {% else %}
+                                    Indicación sin medicamento
+                                {% endif %}
+                            </span>
+                            <span class="cardex-item-date">{{ indicacion.fecha|date('d/m/Y') }}</span>
+                        </div>
+                        <div class="cardex-item-content">
+                            {% if indicacion.notas %}
+                                {{ indicacion.notas|nl2br }}
+                            {% endif %}
+                            {% if indicacion.consumibleId %}
+                                <div {% if indicacion.notas %}class="mt-2"{% endif %}>
+                                    <strong>Cantidad:</strong> {{ indicacion.cantidad }} 
+                                    {% if indicacion.unidades is defined %}<small>({{ indicacion.unidades }})</small>{% endif %}
+                                </div>
+                            {% endif %}
+                            {% if indicacion.activo is defined and not indicacion.activo %}
+                                <div class="mt-2 text-danger">
+                                    <strong><i class="fas fa-times-circle"></i> Indicación inactiva</strong>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="cardex-item-footer">
+                            <span>
+                                <i class="fas fa-user"></i> 
+                                {% if indicacion.doctorNombre is defined and indicacion.doctorApellido is defined %}
+                                    {{ indicacion.doctorNombre }} {{ indicacion.doctorApellido }}
+                                {% else %}
+                                    Usuario del sistema
+                                {% endif %}
+                            </span>
+                            <div>
+                                <span class="cardex-badge cardex-badge-month">{{ mesesNombres[indicacion.mes] }}</span>
+                                <span class="cardex-badge cardex-badge-year">{{ indicacion.year }}</span>
+                                {% if indicacion.notas is defined and indicacion.notas and (indicacion.consumibleNombre is not defined or not indicacion.consumibleNombre) %}
+                                    <span class="cardex-badge cardex-badge-text">Texto libre</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+                
+                {% if openDiv %}
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="cardex-empty">
+                    No se encontraron indicaciones con los filtros seleccionados
+                    {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_DOCTOR') %}
+                        <div class="mt-3">
+                            <a href="{{ path('consumible_indicar_view', {'id': cliente.id}) }}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Agregar nueva indicación
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('assets/js/cardex.js') }}"></script>
+    <script>
+        // Script adicional para forzar la visualización correcta
+        $(window).on('load', function() {
+            // Ejecutar después de que todo esté cargado
+            setTimeout(function() {
+                console.log("Forzando visualización de todos los elementos...");
+                $('.cardex-category-content').attr('style', 'display: block !important');
+                $('.cardex-item').attr('style', 'display: block !important');
+                $('.cardex-empty').hide();
+                
+                // Actualizar contadores
+                const totalItems = $('.cardex-item').length;
+                $('#cardex-counter').text(totalItems);
+                $('#cardex-total-counter').text(totalItems);
+            }, 500);
+        });
+    </script>
+{% endblock %}
