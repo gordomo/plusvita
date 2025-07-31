@@ -232,7 +232,8 @@
                 <h5 class="mb-0 d-flex justify-content-between align-items-center">
                     <span>
                         <i class="fas fa-caret-right mr-2"></i>
-                        {{ tipo }}
+                         {% set nombreTipo = tipo|title %}
+                        {{ nombreTipo }}
                     </span>
                     <span class="badge badge-primary">{{ totalItems }} ítems</span>
                 </h5>
@@ -243,7 +244,7 @@
                     {% set itemsPorNombre = {} %}
                     {% for item in items %}
                         {% if item.Tipo and item.Tipo.nombre == tipo %}
-                            {% set nombreItem = item.nombre %}
+                            {% set nombreItem = item.nombre|title %}
                             {% if itemsPorNombre[nombreItem] is not defined %}
                                 {% set itemsPorNombre = itemsPorNombre|merge({(nombreItem): []}) %}
                             {% endif %}
