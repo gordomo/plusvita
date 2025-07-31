@@ -1,7 +1,10 @@
 <div class="col-sm dinamicHabitaciones">
     {%  if form.nCama is defined %}
         {{ form_label(form.nCama) }}
-        {{ form_widget(form.nCama) }}
+        {{ form_widget(form.nCama, {'attr': {'class': 'form-control required-cama', 'data-validation-required-message': 'Debe seleccionar un número de cama válido.'}}) }}
+        <div class="invalid-feedback">
+            Debe seleccionar un número de cama.
+        </div>
     {% endif %}
 </div>
 <div class="col-sm dinamicHabitaciones">

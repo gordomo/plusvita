@@ -14,6 +14,23 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         
+        /* Estilos para el nuevo diseño de estadísticas */
+        .statistics-container {
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .stat-box {
+            padding: 10px;
+            font-size: 1.1em;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        
+        .card-header.bg-light {
+            background-color: #f0f0f0 !important;
+        }
+        
         /* Estilos específicos para hacer las celdas más compactas */        .table td, .table th {
             padding: 0.15rem;
             font-size: 0.85rem;
@@ -63,7 +80,7 @@
         }
         
         .text-truncate {
-            max-width: 130px;
+            max-width: 170px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -78,12 +95,12 @@
         }
         
         .sticky-first-col {
-            max-width: 120px;
-            width: 120px;
+            max-width: 110px;
+            width: 110px;
             padding: 2px 3px !important;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            white-space: normal;
+            overflow: visible;
+            word-wrap: break-word;
         }
         
         .bg-warning-light {
@@ -98,9 +115,6 @@
             padding: 0.5rem;
         }
         
-        .list-group-item {
-            font-size: 0.85rem;
-        }
         
         .table th {
             vertical-align: middle;
@@ -120,8 +134,8 @@
             }
             
             .sticky-first-col {
-                max-width: 100px;
-                width: 100px;
+                max-width: 140px;
+                width: 140px;
             }
             
             .table td, .table th {
@@ -255,32 +269,119 @@
                             </div>
                         </div>
                     </div>
-                    <div class="row">                        <div class="col-12 d-flex justify-content-between">
-                            <div>
+                    <div class="row">                        <div class="col-12">
+                            <div class="mb-3">
                                 <button type="submit" id="buscarBtn" class="btn btn-primary">
                                     <i class="fas fa-search mr-1"></i> Buscar
                                 </button>
-                                <a id="limpiar" href="{{ path('cliente_historicos_habitaciones') }}" class="btn btn-secondary">
+                                <a id="limpiar" href="{{ path('cliente_historicos_habitaciones') }}" class="btn btn-secondary ml-2">
                                     <i class="fas fa-eraser mr-1"></i> Limpiar
                                 </a>
                             </div>
-                            <div>
-                                <span><b>Total de Pacientes:</b> {{ pacientes | length }}</span>
-                                <span id="estadisticasDiasCama" class="ml-3"></span>
-                                <span class="ml-3"><b><i class="fas fa-user-md mr-1"></i> Pacientes por Fisiatra:</b> 
-                                    {% set sortedReferentes = totalReferentes|sort|reverse %}
-                                    {% set fisiatrasCount = 0 %}
-                                    {% for profName, cantidad in sortedReferentes %}
-                                        {% if cantidad > 0 %}
-                                            {% if not loop.first %} | {% endif %}
-                                            <span title="Fisiatra">{{ profName }}</span>: <b>{{ cantidad }}</b>
-                                            {% set fisiatrasCount = fisiatrasCount + 1 %}
-                                        {% endif %}
-                                    {% endfor %}
-                                    {% if fisiatrasCount == 0 %}
-                                        <span class="text-muted">Sin datos</span>
-                                    {% endif %}
-                                </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Contenedor de estadísticas -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="statistics-container mb-4">
+                                <!-- Totales principales -->
+                                <div class="row mb-3 text-center">
+                                    <div class="col-md-3">
+                                        <div class="stat-box border-right">
+                                            <i class="fas fa-users mr-1"></i> <strong>Pacientes:</strong> {{ totalPacientesUnicos is defined ? totalPacientesUnicos : (pacientes | length) }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="stat-box border-right">
+                                            <i class="fas fa-bed mr-1"></i> <strong>Días cama:</strong> {{ totalDiasCama is defined ? totalDiasCama : 0 }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="stat-box border-right">
+                                            <i class="fas fa-walking mr-1"></i> <strong>Ambulatorios:</strong> {{ totalPacientesAmbulatorios is defined ? totalPacientesAmbulatorios : 0 }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="stat-box">
+                                            <i class="fas fa-clock mr-1"></i> <strong>Días ambulatorios:</strong> {{ totalDiasAmbulatorio is defined ? totalDiasAmbulatorio : 0 }}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Internados por fisiatra -->
+                                <div class="card mb-3">
+                                    <div class="card-header bg-light py-2">
+                                        <h6 class="mb-0"><i class="fas fa-procedures mr-1"></i> Internados por fisiatra</h6>
+                                    </div>
+                                    <div class="card-body py-2">
+                                        {% set totalSinFisiatra = sinFisiatraCount is defined ? sinFisiatraCount : 0 %}
+                                        {% set sortedReferentes = totalReferentes|sort|reverse %}
+                                        {% set fisiatrasCount = 0 %}
+                                        {% set totalPacientesFisiatras = 0 %}
+                                        {% for profName, cantidad in sortedReferentes %}
+                                            {% if cantidad > 0 %}
+                                                {% set fisiatrasCount = fisiatrasCount + 1 %}
+                                                {% set totalPacientesFisiatras = totalPacientesFisiatras + cantidad %}
+                                            {% endif %}
+                                        {% endfor %}
+
+                                        <div class="row">
+                                            {% for profName, cantidad in sortedReferentes %}
+                                                {% if cantidad > 0 %}
+                                                    <div class="col-md-3 mb-1">
+                                                        <span class="badge badge-info p-2 w-100 text-left">{{ profName }}: <b>{{ cantidad }}</b> días</span>
+                                                    </div>
+                                                {% endif %}
+                                            {% endfor %}
+                                            {% if fisiatrasCount == 0 %}
+                                                <div class="col-12">
+                                                    <span class="badge badge-secondary p-2">Sin datos</span>
+                                                </div>
+                                            {% endif %}
+                                            <div class="col-md-3 mb-1">
+                                                <span class="badge badge-warning p-2 w-100 text-left">Sin asignar: <b>{{ totalSinFisiatra }}</b> días</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Ambulatorios por fisiatra -->
+                                <div class="card mb-3">
+                                    <div class="card-header bg-light py-2">
+                                        <h6 class="mb-0"><i class="fas fa-walking mr-1"></i> Ambulatorios por fisiatra</h6>
+                                    </div>
+                                    <div class="card-body py-2">
+                                        {% set sortedReferentesAmbulatorio = fisiatrasAmbulatorio|sort|reverse %}
+                                        {% set fisiatrasCountAmbulatorio = 0 %}
+                                        {% set totalPacientesAmbulatoriosFisiatras = 0 %}
+                                        {% for profName, cantidad in sortedReferentesAmbulatorio %}
+                                            {% if cantidad > 0 %}
+                                                {% set fisiatrasCountAmbulatorio = fisiatrasCountAmbulatorio + 1 %}
+                                                {% set totalPacientesAmbulatoriosFisiatras = totalPacientesAmbulatoriosFisiatras + cantidad %}
+                                            {% endif %}
+                                        {% endfor %}
+                                        {% set totalSinFisiatraAmbulatorio = sinFisiatraCountAmbulatorio is defined ? sinFisiatraCountAmbulatorio : 0 %}
+
+                                        <div class="row">
+                                            {% for profName, cantidad in sortedReferentesAmbulatorio %}
+                                                {% if cantidad > 0 %}
+                                                    <div class="col-md-3 mb-1">
+                                                        <span class="badge badge-success p-2 w-100 text-left">{{ profName }}: <b>{{ cantidad }}</b> días</span>
+                                                    </div>
+                                                {% endif %}
+                                            {% endfor %}
+                                            {% if fisiatrasCountAmbulatorio == 0 %}
+                                                <div class="col-12">
+                                                    <span class="badge badge-secondary p-2">Sin datos</span>
+                                                </div>
+                                            {% endif %}
+                                            <div class="col-md-3 mb-1">
+                                                <span class="badge badge-warning p-2 w-100 text-left">Sin asignar: <b>{{ totalSinFisiatraAmbulatorio }}</b> días</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -330,7 +431,7 @@
                         <tr>                            <td class="sticky-first-col">                                <a href="{{ path('cliente_edit', {'id': clienteId}) }}" class="text-truncate d-block" data-toggle="tooltip" title="{{ clientesData[clienteId].apellido|upper }} {{ clientesData[clienteId].nombre }}">
                                     {{ clientesData[clienteId].apellido|upper }} {{ clientesData[clienteId].nombre }}
                                 </a>
-                                <small class="d-block text-truncate">HC: {{ clientesData[clienteId].hClinica }} | <span class="obra-social-badge"><i class="fas fa-id-card-alt mr-1"></i>{{ clientesData[clienteId].obraSocialNombre|default('Sin OS') }}</span></small>
+                                <small class="d-block">HC: {{ clientesData[clienteId].hClinica }} | <span class="obra-social-badge" data-toggle="tooltip" title="{{ clientesData[clienteId].obraSocialNombre|default('Sin OS') }}"><i class="fas fa-id-card-alt mr-1"></i>{{ (clientesData[clienteId].obraSocialNombre|default('Sin OS'))|length > 18 ? (clientesData[clienteId].obraSocialNombre|default('Sin OS'))|slice(0, 18) ~ '...' : (clientesData[clienteId].obraSocialNombre|default('Sin OS')) }}</span></small>
                             </td>
                             {% for day in range %}
                                 {% set fecha = day.format('d/m/Y') %}
@@ -392,8 +493,8 @@
                                         {% elseif totales.derivados[fecha][clienteId] is defined %}list-group-item-warning
                                         {% elseif totales.egresos[fecha][clienteId] is defined %}list-group-item-danger
                                         {% else %}list-group-item-secondary{% endif %}">                                        <strong class="text-truncate d-block" data-toggle="tooltip" title="{{ clientesData[clienteId].apellido|upper }} {{ clientesData[clienteId].nombre }}">{{ clientesData[clienteId].apellido|upper }} {{ clientesData[clienteId].nombre }}</strong>
-                                        <small class="d-block text-truncate" data-toggle="tooltip" title="{{ clientesData[clienteId].obraSocialNombre }}">
-                                            <i class="fas fa-id-card-alt mr-1"></i>{{ clientesData[clienteId].obraSocialNombre|length > 15 ? clientesData[clienteId].obraSocialNombre|slice(0, 15) ~ '...' : clientesData[clienteId].obraSocialNombre }}
+                                        <small class="d-block" data-toggle="tooltip" title="{{ clientesData[clienteId].obraSocialNombre }}">
+                                            <i class="fas fa-id-card-alt mr-1"></i>{{ clientesData[clienteId].obraSocialNombre|length > 18 ? clientesData[clienteId].obraSocialNombre|slice(0, 18) ~ '...' : clientesData[clienteId].obraSocialNombre }}
                                         </small>
                                         <br>
                                         <div data-toggle="tooltip" title="{{ pacientes[clienteId][fecha]|striptags }}">
@@ -556,19 +657,25 @@
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <div class="stats-box text-center mb-3">
                                     <h6>Total de Pacientes</h6>
                                     <h3 id="totalPacientesDisplay">0</h3>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <div class="stats-box text-center mb-3">
                                     <h6>Total Días Cama</h6>
                                     <h3 id="totalDiasCamaDisplay">0</h3>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
+                                <div class="stats-box text-center mb-3">
+                                    <h6>Total Ambulatorios</h6>
+                                    <h3 id="totalPacientesAmbulatoriosDisplay">0</h3>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
                                 <div class="stats-box text-center mb-3">
                                     <h6>Ocupación Promedio</h6>
                                     <h3 id="ocupacionPromedioDisplay">0</h3>
@@ -636,6 +743,15 @@
     
     <script>
         $('.predictivo').chosen();
+        
+        // Script para manejar el acordeón sin recargar la página
+        $(document).ready(function() {
+            // Prevenir que los botones del acordeón envíen el formulario
+            $('#accordion .btn-link').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+        });
         // Función para inicializar tooltips con configuración optimizada
         function initTooltips() {
             $('[data-toggle="tooltip"]').tooltip('dispose').tooltip({
@@ -936,6 +1052,14 @@ $(document).ready(function() {
 // Exportar los datos de pacientes con periodos (estructura para impresión)
 window.pacientesPeriodosData = {% if pacientesPeriodos is defined %}{{ pacientesPeriodos|json_encode(constant('JSON_UNESCAPED_UNICODE'))|raw }}{% else %}[] // <-- ATENCIÓN: Debes pasar la variable pacientesPeriodos desde el controlador Symfony a Twig para que esto funcione correctamente. {% endif %};
 
+// Exportar los valores calculados en el backend para que estén disponibles para otras funciones
+window.sinFisiatraCount = {{ sinFisiatraCount is defined ? sinFisiatraCount : 'null' }};
+window.totalDiasCama = {{ totalDiasCama is defined ? totalDiasCama : 'null' }};
+window.totalPacientesUnicos = {{ totalPacientesUnicos is defined ? totalPacientesUnicos : 'null' }};
+window.totalDiasAmbulatorio = {{ totalDiasAmbulatorio is defined ? totalDiasAmbulatorio : 'null' }};
+window.sinFisiatraCountAmbulatorio = {{ sinFisiatraCountAmbulatorio is defined ? sinFisiatraCountAmbulatorio : 'null' }};
+window.totalPacientesAmbulatorios = {{ totalPacientesAmbulatorios is defined ? totalPacientesAmbulatorios : 'null' }};
+
 // Función para generar la tabla compacta para imprimir
 function createCompactTableForPrint(checkboxes) {
     // Usar la estructura correcta
@@ -1001,22 +1125,32 @@ function createCompactTableForPrint(checkboxes) {
 </script>
 <script>
 $(document).ready(function () {
-    // Calcular y mostrar el total de días cama
-    function calcularTotalDiasCama() {
-        let totalDias = 0;
-        if (window.pacientesPeriodosData && window.pacientesPeriodosData.length > 0) {
-            window.pacientesPeriodosData.forEach(function(paciente) {
-                if (paciente.periodos && paciente.periodos.length > 0) {
-                    paciente.periodos.forEach(function(periodo) {
-                        totalDias += periodo.dias ? parseInt(periodo.dias) : 0;
-                    });
-                }
-            });
+    // Ahora los cálculos vienen del backend, por lo que no necesitamos recalcular
+    // Los valores ya están disponibles en las variables:
+    // totalDiasCama, sinFisiatraCount, totalPacientesUnicos, totalReferentes
+    
+    // Actualizar los valores del dashboard
+    if (window.totalPacientesUnicos !== null) {
+        $('#totalPacientesDisplay').text(window.totalPacientesUnicos);
+    }
+    
+    if (window.totalDiasCama !== null) {
+        $('#totalDiasCamaDisplay').text(window.totalDiasCama);
+        
+        // Calcular y mostrar la ocupación promedio (días/paciente) - calculado con total de pacientes (internados y ambulatorios)
+        const totalPacientes = (window.totalPacientesUnicos || 0) + (window.totalPacientesAmbulatorios || 0);
+        if (totalPacientes > 0) {
+            const totalDias = (window.totalDiasCama || 0) + (window.totalDiasAmbulatorio || 0);
+            const ocupacionPromedio = (totalDias / totalPacientes).toFixed(2);
+            $('#ocupacionPromedioDisplay').text(ocupacionPromedio);
+        } else {
+            $('#ocupacionPromedioDisplay').text('0');
         }
-        // Actualizar la visualización del total de días cama
-        $('#totalDiasCamaDisplay').text(totalDias);
-        $('#estadisticasDiasCama').html('<b>Total de Días Cama:</b> ' + totalDias);
-        return totalDias;
+    }
+    
+    // Actualizar estadísticas de ambulatorios
+    if (window.totalPacientesAmbulatorios !== null) {
+        $('#totalPacientesAmbulatoriosDisplay').text(window.totalPacientesAmbulatorios);
     }
     
     // Mejorar la experiencia del selector múltiple de obra social

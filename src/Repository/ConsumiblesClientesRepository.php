@@ -50,6 +50,9 @@ class ConsumiblesClientesRepository extends ServiceEntityRepository
             ;
     }
 
+    /**
+     * @deprecated Usar findActiveIndicationsForClient en su lugar
+     */
     public function findConsumibleMesAnteriorParaElCliente($id, $accion = null)
     {
         $now = new \DateTime();
@@ -68,6 +71,71 @@ class ConsumiblesClientesRepository extends ServiceEntityRepository
                 ->setParameter('accion', $accion);
         }
             return $query->orderBy('c.consumibleId', 'ASC')->getQuery()->getResult();
+    }
+    
+    /**
+     * Encuentra todas las indicaciones activas para un cliente
+     * 
+     * Una indicación está activa si:
+     * 1. El campo activo es true
+     * 2. La fecha actual está entre fechaInicio y fechaFin (o fechaFin es null para indicaciones indefinidas)
+     */
+    public function findActiveIndicationsForClient($clienteId)
+    {
+        $today = new \DateTime();
+        
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.clienteId = :clienteId')
+            ->setParameter('clienteId', $clienteId)
+            ->andWhere('c.activo = :activo')
+            ->setParameter('activo', true)
+            ->andWhere('(c.fechaInicio IS NULL OR c.fechaInicio <= :today)')
+            ->andWhere('(c.fechaFin IS NULL OR c.fechaFin >= :today)')
+            ->setParameter('today', $today)
+            ->orderBy('c.fecha', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+    
+    /**
+     * Encuentra indicaciones que están próximas a vencer (en los próximos X días)
+     */
+    public function findExpiringIndicationsForClient($clienteId, $daysThreshold = 7)
+    {
+        $today = new \DateTime();
+        $futureDate = (new \DateTime())->modify("+{$daysThreshold} days");
+        
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.clienteId = :clienteId')
+            ->setParameter('clienteId', $clienteId)
+            ->andWhere('c.activo = :activo')
+            ->setParameter('activo', true)
+            ->andWhere('c.fechaFin IS NOT NULL')
+            ->andWhere('c.fechaFin > :today')
+            ->andWhere('c.fechaFin <= :futureDate')
+            ->setParameter('today', $today)
+            ->setParameter('futureDate', $futureDate)
+            ->orderBy('c.fechaFin', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+    
+    /**
+     * Encuentra indicaciones históricas (inactivas o vencidas)
+     */
+    public function findHistoricalIndicationsForClient($clienteId)
+    {
+        $today = new \DateTime();
+        
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.clienteId = :clienteId')
+            ->setParameter('clienteId', $clienteId)
+            ->andWhere('(c.activo = :inactivo OR (c.fechaFin IS NOT NULL AND c.fechaFin < :today))')
+            ->setParameter('inactivo', false)
+            ->setParameter('today', $today)
+            ->orderBy('c.fecha', 'DESC')
+            ->getQuery()
+            ->getResult();
     }
 
     public function findIndicacionesParaElCliente($id, $year = '', $mes = '', $limit = null, $soloActivas = true)
@@ -160,6 +228,11 @@ class ConsumiblesClientesRepository extends ServiceEntityRepository
                 'doctorApellido' => $doctorApellido,
                 'notas' => $indicacion->getNotas(),
                 'activo' => method_exists($indicacion, 'isActivo') ? $indicacion->isActivo() : true,
+                // Nuevos campos agregados
+                'tipoIndicacion' => method_exists($indicacion, 'getTipoIndicacion') ? $indicacion->getTipoIndicacion() : null,
+                'frecuencia' => method_exists($indicacion, 'getFrecuencia') ? $indicacion->getFrecuencia() : null,
+                'duracion' => method_exists($indicacion, 'getDuracion') ? $indicacion->getDuracion() : null,
+                'viaAdministracion' => method_exists($indicacion, 'getViaAdministracion') ? $indicacion->getViaAdministracion() : null,
             ];
             
             $indicaciones[] = $indicacionArray;

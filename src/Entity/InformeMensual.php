@@ -148,7 +148,37 @@ class InformeMensual
     {
         $this->fechaCreacion = new \DateTime();
         $this->lugar = 'Funes';
-        $this->mesCorrespondiente = date('F Y'); // Mes actual en formato "Junio 2025"
+        $this->mesCorrespondiente = $this->getMesEnEspanol(); // Mes actual en formato "Julio 2025"
+    }
+
+    private function getMesEnEspanol(): string
+    {
+        $mesesEspanol = [
+            1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril',
+            5 => 'Mayo', 6 => 'Junio', 7 => 'Julio', 8 => 'Agosto',
+            9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre'
+        ];
+        
+        $mesNumero = (int)date('n');
+        $año = date('Y');
+        
+        return $mesesEspanol[$mesNumero] . ' ' . $año;
+    }
+
+    private function convertirMesAEspanol(string $mesEnIngles): string
+    {
+        $traduccionMeses = [
+            'January' => 'Enero', 'February' => 'Febrero', 'March' => 'Marzo',
+            'April' => 'Abril', 'May' => 'Mayo', 'June' => 'Junio',
+            'July' => 'Julio', 'August' => 'Agosto', 'September' => 'Septiembre',
+            'October' => 'Octubre', 'November' => 'Noviembre', 'December' => 'Diciembre'
+        ];
+
+        foreach ($traduccionMeses as $ingles => $español) {
+            $mesEnIngles = str_replace($ingles, $español, $mesEnIngles);
+        }
+
+        return $mesEnIngles;
     }
 
     public function getId(): ?int
@@ -206,6 +236,10 @@ class InformeMensual
 
     public function getMesCorrespondiente(): ?string
     {
+        // Si el mes está en inglés, convertirlo a español
+        if ($this->mesCorrespondiente) {
+            return $this->convertirMesAEspanol($this->mesCorrespondiente);
+        }
         return $this->mesCorrespondiente;
     }
 

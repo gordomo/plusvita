@@ -134,6 +134,9 @@
                 <a href="{{ path('app_stats_inventario') }}" class="btn {{ app.request.get('_route') == 'app_stats_inventario' ? 'btn-primary' : 'btn-stats' }}">
                     <i class="fas fa-boxes"></i> Inventario
                 </a>
+                <a href="{{ path('app_stats_comparacion', {'fecha_desde': fechaDesde, 'fecha_hasta': fechaHasta}) }}" class="btn {{ app.request.get('_route') == 'app_stats_comparacion' ? 'btn-primary' : 'btn-stats' }}">
+                    <i class="fas fa-balance-scale"></i> Comparación de Períodos
+                </a>
             </div>
             
             <!-- Filtro de período -->
@@ -144,19 +147,13 @@
                             <div class="input-group-prepend">
                                 <span class="input-group-text bg-light"><i class="fas fa-calendar-alt"></i></span>
                             </div>
-                            <select name="month" class="form-control form-control-sm">
-                                {% for i in 1..12 %}
-                                    <option value="{{ i }}" {% if selectedMonth == i %}selected{% endif %}>
-                                        {% set meses = {1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril', 5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto', 9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'} %}
-                                        {{ meses[i] }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                            <select name="year" class="form-control form-control-sm">
-                                {% for y in (currentYear-5)..(currentYear+1) %}
-                                    <option value="{{ y }}" {% if selectedYear == y %}selected{% endif %}>{{ y }}</option>
-                                {% endfor %}
-                            </select>
+                            <input type="date" name="fecha_desde" class="form-control form-control-sm" 
+                                   value="{{ fechaDesde }}" title="Fecha desde">
+                            <div class="input-group-append input-group-prepend">
+                                <span class="input-group-text bg-light">hasta</span>
+                            </div>
+                            <input type="date" name="fecha_hasta" class="form-control form-control-sm" 
+                                   value="{{ fechaHasta }}" title="Fecha hasta">
                             <div class="input-group-append">
                                 <button type="submit" class="btn btn-sm btn-primary">Filtrar</button>
                             </div>

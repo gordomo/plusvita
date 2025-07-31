@@ -112,6 +112,9 @@
                 <a href="{{ path('app_stats_inventario') }}" class="btn {{ app.request.get('_route') == 'app_stats_inventario' ? 'btn-primary' : 'btn-stats' }}">
                     <i class="fas fa-boxes"></i> Inventario
                 </a>
+                <a href="{{ path('app_stats_comparacion') }}" class="btn {{ app.request.get('_route') == 'app_stats_comparacion' ? 'btn-primary' : 'btn-stats' }}">
+                    <i class="fas fa-balance-scale"></i> Comparación de Períodos
+                </a>
             </div>
         </div>
     </div>

@@ -25,25 +25,33 @@ class StatsController extends AbstractController
      */
     public function index(EntityManagerInterface $em, Request $request): Response
     {
-        // Recuperar filtros de fecha (mes y año)
+        // Recuperar filtros de fecha (desde - hasta)
         $currentMonth = (int)date('m');
         $currentYear = (int)date('Y');
         
-        $month = (int)$request->query->get('month', $currentMonth);
-        $year = (int)$request->query->get('year', $currentYear);
+        // Obtener fechas desde la request o usar por defecto (mes actual)
+        $fechaDesde = $request->query->get('fecha_desde');
+        $fechaHasta = $request->query->get('fecha_hasta');
         
-        // Validación básica
-        if ($month < 1 || $month > 12) {
-            $month = $currentMonth;
-        }
-        if ($year < 2000 || $year > 2100) {
-            $year = $currentYear;
+        if ($fechaDesde && $fechaHasta) {
+            try {
+                $startOfMonth = new \DateTime($fechaDesde . ' 00:00:00');
+                $endOfMonth = new \DateTime($fechaHasta . ' 23:59:59');
+            } catch (\Exception $e) {
+                // Si hay error en las fechas, usar mes actual
+                $startOfMonth = new \DateTime("$currentYear-$currentMonth-01 00:00:00");
+                $endOfMonth = clone $startOfMonth;
+                $endOfMonth->modify('last day of this month 23:59:59');
+            }
+        } else {
+            // Por defecto: mes actual
+            $startOfMonth = new \DateTime("$currentYear-$currentMonth-01 00:00:00");
+            $endOfMonth = clone $startOfMonth;
+            $endOfMonth->modify('last day of this month 23:59:59');
         }
         
-        // Crear objetos de fecha para el período seleccionado
-        $startOfMonth = new \DateTime("$year-$month-01 00:00:00");
-        $endOfMonth = clone $startOfMonth;
-        $endOfMonth->modify('last day of this month 23:59:59');
+        // Calcular la diferencia en días para mostrar en la etiqueta
+        $diasPeriodo = $startOfMonth->diff($endOfMonth)->days + 1;
         
         // Datos para el panel de resumen con manejo de errores
         try {
@@ -94,31 +102,15 @@ class StatsController extends AbstractController
             // Para períodos pasados o en curso, calculamos el promedio correctamente
             $diasValidos = [];
             
-            // En períodos pasados o en curso, considerar todos los días
-            // Para el mes actual, solo considerar los días hasta hoy
+            // Para períodos pasados o en curso, considerar todos los días hasta hoy
             foreach ($ocupacionPorDia as $index => $dia) {
-                // Crear fecha completa con año para comparación
-                $fechaCompleta = \DateTime::createFromFormat(
-                    'd/m/Y', 
-                    $dia['fecha'] . '/' . $year
-                );
+                // Reconstruir fecha usando el índice y la fecha de inicio
+                $currentDate = clone $startOfMonth;
+                $currentDate->modify("+{$index} days");
                 
-                if (!$fechaCompleta) {
-                    // Si hay error al formatear fecha, usar el índice y reconstruir fecha
-                    $currentDate = clone $startOfMonth;
-                    $currentDate->modify("+{$index} days");
-                    
-                    // Si es mes pasado o día hasta hoy, incluirlo
-                    if ($currentDate->format('m') < $currentMonth || 
-                        ($currentDate->format('m') == $currentMonth && $currentDate->format('Y') < $currentYear) || 
-                        $currentDate <= $hoy) {
-                        $diasValidos[] = $dia['porcentaje'];
-                    }
-                } else {
-                    // Si es mes pasado o día hasta hoy, incluirlo
-                    if ($fechaCompleta <= $hoy || $month < $currentMonth || $year < $currentYear) {
-                        $diasValidos[] = $dia['porcentaje'];
-                    }
+                // Si la fecha es anterior o igual a hoy, incluirla en el cálculo
+                if ($currentDate <= $hoy) {
+                    $diasValidos[] = $dia['porcentaje'];
                 }
             }
             
@@ -258,14 +250,215 @@ class StatsController extends AbstractController
             'ingresosDelMes' => $ingresosDelMes,
             'egresosDelMes' => $egresosDelMes,
             'ocupacionPorDia' => json_encode($ocupacionPorDia),
-            'selectedMonth' => $month,
-            'selectedYear' => $year,
+            'fechaDesde' => $startOfMonth->format('Y-m-d'),
+            'fechaHasta' => $endOfMonth->format('Y-m-d'),
             'currentMonth' => $currentMonth,
             'currentYear' => $currentYear,
-            'periodLabel' => $meses[$month - 1] . ' ' . $year,
+            'periodLabel' => $startOfMonth->format('d/m/Y') . ' - ' . $endOfMonth->format('d/m/Y') . ' (' . $diasPeriodo . ' días)',
             'statsInternacion' => $statsInternacion,
             'ocupacionActual' => round($ocupacionActual),
         ]);
+    }
+    
+    /**
+     * @Route("/comparacion", name="app_stats_comparacion")
+     */
+    public function comparacion(EntityManagerInterface $em, Request $request): Response
+    {
+        // Obtener el período base desde la request o usar mes actual
+        $fechaDesde = $request->query->get('fecha_desde');
+        $fechaHasta = $request->query->get('fecha_hasta');
+        
+        $currentMonth = (int)date('m');
+        $currentYear = (int)date('Y');
+        
+        if ($fechaDesde && $fechaHasta) {
+            try {
+                $basePeriodStart = new \DateTime($fechaDesde . ' 00:00:00');
+                $basePeriodEnd = new \DateTime($fechaHasta . ' 23:59:59');
+            } catch (\Exception $e) {
+                // Si hay error, usar mes actual
+                $basePeriodStart = new \DateTime("$currentYear-$currentMonth-01 00:00:00");
+                $basePeriodEnd = clone $basePeriodStart;
+                $basePeriodEnd->modify('last day of this month 23:59:59');
+            }
+        } else {
+            // Por defecto: mes actual
+            $basePeriodStart = new \DateTime("$currentYear-$currentMonth-01 00:00:00");
+            $basePeriodEnd = clone $basePeriodStart;
+            $basePeriodEnd->modify('last day of this month 23:59:59');
+        }
+        
+        // Calcular los mismos períodos para los 3 años consecutivos
+        $periodos = [];
+        $year = (int)$basePeriodStart->format('Y');
+        
+        for ($i = 0; $i < 3; $i++) {
+            $yearToCompare = $year - $i;
+            
+            // Crear las fechas para este año
+            $startDate = clone $basePeriodStart;
+            $endDate = clone $basePeriodEnd;
+            $startDate->setDate($yearToCompare, (int)$basePeriodStart->format('m'), (int)$basePeriodStart->format('d'));
+            $endDate->setDate($yearToCompare, (int)$basePeriodEnd->format('m'), (int)$basePeriodEnd->format('d'));
+            
+            $periodos[] = [
+                'startDate' => $startDate,
+                'endDate' => $endDate,
+                'year' => $yearToCompare,
+                'label' => $startDate->format('d/m/Y') . ' - ' . $endDate->format('d/m/Y')
+            ];
+        }
+        
+        // Obtener datos para cada período
+        $datosComparacion = [];
+        
+        foreach ($periodos as $index => $periodo) {
+            // Obtener métricas para este período
+            $metrics = $this->getMetricsForPeriod($em, $periodo['startDate'], $periodo['endDate']);
+            
+            $datosComparacion[$index] = [
+                'period' => $periodo,
+                'periodLabel' => $periodo['label'],
+                'metrics' => $metrics,
+                'ocupacionPorDia' => $this->getOcupacionPorDia($em, $periodo['startDate'], $periodo['endDate'])
+            ];
+        }
+        
+        // Calcular datos comparativos
+        $comparaciones = $this->calculateComparisons($datosComparacion);
+        
+        return $this->render('stats/comparacion.html.twig', [
+            'datosComparacion' => $datosComparacion,
+            'comparaciones' => $comparaciones,
+            'periodos' => $periodos,
+            'fechaDesde' => $basePeriodStart->format('Y-m-d'),
+            'fechaHasta' => $basePeriodEnd->format('Y-m-d'),
+            'currentMonth' => $currentMonth,
+            'currentYear' => $currentYear
+        ]);
+    }
+    
+    /**
+     * Obtiene métricas para un período específico
+     */
+    private function getMetricsForPeriod(EntityManagerInterface $em, \DateTime $startDate, \DateTime $endDate): array
+    {
+        try {
+            $conn = $em->getConnection();
+            
+            // Ingresos del período
+            $sql = "SELECT COUNT(id) as total FROM cliente WHERE f_ingreso BETWEEN :start AND :end";
+            $stmt = $conn->prepare($sql);
+            $stmt->bindValue('start', $startDate->format('Y-m-d H:i:s'));
+            $stmt->bindValue('end', $endDate->format('Y-m-d H:i:s'));
+            $result = $stmt->executeQuery();
+            $ingresos = $result->fetchOne() ?: 0;
+            
+            // Egresos del período
+            $sql = "SELECT COUNT(id) as total FROM historia_paciente WHERE fecha_engreso BETWEEN :start AND :end";
+            $stmt = $conn->prepare($sql);
+            $stmt->bindValue('start', $startDate->format('Y-m-d H:i:s'));
+            $stmt->bindValue('end', $endDate->format('Y-m-d H:i:s'));
+            $result = $stmt->executeQuery();
+            $egresos = $result->fetchOne() ?: 0;
+            
+            // Ocupación promedio del período
+            $ocupacionData = $this->getOcupacionPorDia($em, $startDate, $endDate);
+            $diasValidos = array_filter($ocupacionData, function($dia) {
+                return $dia['porcentaje'] >= 0;
+            });
+            
+            $ocupacionPromedio = 0;
+            if (count($diasValidos) > 0) {
+                $sumaOcupacion = array_sum(array_column($diasValidos, 'porcentaje'));
+                $ocupacionPromedio = $sumaOcupacion / count($diasValidos);
+            }
+            
+            // Días de internación promedio
+            $sql = "SELECT AVG(DATEDIFF(fecha_engreso, fecha_ingreso) + 1) as promedio 
+                   FROM historia_paciente 
+                   WHERE fecha_ingreso BETWEEN :start AND :end 
+                   AND fecha_engreso IS NOT NULL 
+                   AND modalidad = '2'";
+            $stmt = $conn->prepare($sql);
+            $stmt->bindValue('start', $startDate->format('Y-m-d H:i:s'));
+            $stmt->bindValue('end', $endDate->format('Y-m-d H:i:s'));
+            $result = $stmt->executeQuery();
+            $diasInternacionPromedio = $result->fetchOne() ?: 0;
+            
+            return [
+                'ingresos' => (int)$ingresos,
+                'egresos' => (int)$egresos,
+                'ocupacionPromedio' => round($ocupacionPromedio, 1),
+                'diasInternacionPromedio' => round((float)$diasInternacionPromedio, 1),
+                'rotacion' => $ingresos > 0 ? round($egresos / $ingresos * 100, 1) : 0
+            ];
+        } catch (\Exception $e) {
+            return [
+                'ingresos' => 0,
+                'egresos' => 0,
+                'ocupacionPromedio' => 0,
+                'diasInternacionPromedio' => 0,
+                'rotacion' => 0
+            ];
+        }
+    }
+    
+    /**
+     * Calcula comparaciones entre períodos
+     */
+    private function calculateComparisons(array $datosComparacion): array
+    {
+        $comparaciones = [];
+        
+        if (count($datosComparacion) < 2) {
+            return $comparaciones;
+        }
+        
+        // Comparar cada período con el anterior
+        for ($i = 1; $i < count($datosComparacion); $i++) {
+            $actual = $datosComparacion[$i]['metrics'];
+            $anterior = $datosComparacion[$i-1]['metrics'];
+            
+            $comparaciones[] = [
+                'fromLabel' => $datosComparacion[$i-1]['periodLabel'],
+                'toLabel' => $datosComparacion[$i]['periodLabel'],
+                'ingresos' => $this->calculatePercentageChange($anterior['ingresos'], $actual['ingresos']),
+                'egresos' => $this->calculatePercentageChange($anterior['egresos'], $actual['egresos']),
+                'ocupacionPromedio' => $this->calculatePercentageChange($anterior['ocupacionPromedio'], $actual['ocupacionPromedio']),
+                'diasInternacionPromedio' => $this->calculatePercentageChange($anterior['diasInternacionPromedio'], $actual['diasInternacionPromedio']),
+                'rotacion' => $this->calculatePercentageChange($anterior['rotacion'], $actual['rotacion'])
+            ];
+        }
+        
+        return $comparaciones;
+    }
+    
+    /**
+     * Calcula el cambio porcentual entre dos valores
+     */
+    private function calculatePercentageChange($old, $new): array
+    {
+        if ($old == 0) {
+            return [
+                'value' => $new,
+                'change' => $new > 0 ? 100 : 0,
+                'trend' => $new > 0 ? 'up' : 'neutral',
+                'formatted' => $new > 0 ? '+100%' : '0%'
+            ];
+        }
+        
+        $change = (($new - $old) / $old) * 100;
+        $trend = $change > 0 ? 'up' : ($change < 0 ? 'down' : 'neutral');
+        $formatted = ($change > 0 ? '+' : '') . round($change, 1) . '%';
+        
+        return [
+            'value' => $new,
+            'change' => round($change, 1),
+            'trend' => $trend,
+            'formatted' => $formatted
+        ];
     }
     
     /**
@@ -599,6 +792,7 @@ class StatsController extends AbstractController
         
         // Verificar si estamos en un período futuro
         $hoy = new \DateTime();
+        $hoy->setTime(0, 0, 0); // Establecer a medianoche para comparaciones justas
         $esPeriodoFuturo = $startDate > $hoy;
         
         // Variable para almacenar el último valor válido conocido
@@ -611,8 +805,17 @@ class StatsController extends AbstractController
             $dateStr = $currentDate->format('Y-m-d');
             $ocupadas = 0;
             
-            // Solo las fechas posteriores a la actual se consideran futuro
-            $esFuturo = $currentDate > $hoy;
+            // Comparar solo las fechas (sin hora) para determinar si es futuro
+            $currentDateOnly = clone $currentDate;
+            $currentDateOnly->setTime(0, 0, 0);
+            $esFuturo = $currentDateOnly > $hoy;
+            
+            // Solo excluir si es realmente una fecha futura (después de hoy)
+            if ($esFuturo) {
+                // No agregar este punto al array para que la línea se corte en "hoy"
+                $currentDate->modify('+1 day');
+                continue;
+            }
             
             // Si hay datos históricos para esta fecha específica, usarlos (prioridad máxima)
             if (isset($historicoIndexado[$dateStr])) {
@@ -624,12 +827,8 @@ class StatsController extends AbstractController
                 $ocupadas = $ocupacionActualCalculada;
                 $ultimoValorValido = $ocupadas;
             }
-            // Si es una fecha futura (posterior a hoy), mostrar 0
-            else if ($esFuturo) {
-                $ocupadas = 0;
-            }
             // Para fechas pasadas sin dato específico pero con histórico general
-            else if ($currentDate < $hoy && $hayDatosHistoricos) {
+            else if ($currentDateOnly < $hoy && $hayDatosHistoricos) {
                 // Usar el último valor válido para mantener continuidad
                 $ocupadas = $ultimoValorValido;
             }

@@ -1,0 +1,173 @@
+/* Estilos para la nueva interfaz simplificada de indicaciones */
+.indicaciones-container {
+    margin: 0 0 30px 0;
+}
+
+.indicaciones-tabs {
+    margin-bottom: 15px;
+    display: flex;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 10px;
+}
+
+.indicaciones-tabs .tab-btn {
+    padding: 8px 16px;
+    background: none;
+    border: none;
+    border-radius: 4px;
+    margin-right: 10px;
+    font-weight: 500;
+    color: #6c757d;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.indicaciones-tabs .tab-btn.active {
+    background-color: #e9ecef;
+    color: #495057;
+    font-weight: 600;
+}
+
+.listado-indicaciones h5 {
+    margin-bottom: 15px;
+    color: #495057;
+    font-weight: 600;
+}
+
+.indicacion-form {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.indicacion-form h5 {
+    margin-bottom: 20px;
+    color: #495057;
+    font-weight: 600;
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 10px;
+}
+
+.form-section {
+    margin-bottom: 25px;
+}
+
+.form-section-title {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 15px;
+    font-size: 1rem;
+}
+
+.form-actions {
+    border-top: 1px solid #e9ecef;
+    padding-top: 15px;
+    margin-top: 20px;
+}
+
+/* Botón flotante para guardar */
+.floating-save-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 1000;
+}
+
+.floating-save-btn button {
+    border-radius: 50px;
+    padding: 10px 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    transition: all 0.3s;
+}
+
+.floating-save-btn button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+}
+
+/* Estilos para los campos de formulario */
+.indicacion-form label {
+    font-weight: 500;
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.indicacion-form .form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+    .indicacion-form {
+        padding: 15px;
+    }
+    
+    .floating-save-btn {
+        bottom: 15px;
+        right: 15px;
+        left: 15px;
+    }
+    
+    .floating-save-btn button {
+        width: 100%;
+    }
+}
+
+/* Animación para botón con cambios pendientes */
+@keyframes pulseButton {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.cambios-pendientes {
+    animation: pulseButton 2s infinite;
+}
+
+/* Ajustes para las tablas */
+.table-sm th, .table-sm td {
+    padding: 0.5rem;
+}
+
+.table-responsive {
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+/* Mensaje de alerta para validación */
+.indicacion-alert {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 2000;
+    padding: 15px 20px;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transition: all 0.3s;
+    transform: translateX(150%);
+}
+
+.indicacion-alert.show {
+    transform: translateX(0);
+}
+
+.indicacion-alert.error {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+}
+
+.indicacion-alert.success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+}

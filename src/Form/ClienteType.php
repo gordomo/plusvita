@@ -270,7 +270,7 @@ class ClienteType extends AbstractType
                     'label' => 'Cama',
                     'choices'  => $options['camasDisp'],
                     'required' => true,
-                    'help' => 'Seleccione un número de cama. Si es habitación privada, puede quedar en "sin cama".'
+                    'help' => 'Seleccione un número de cama. Es obligatorio asignar una cama.'
                 ]);
             }
             if ($options['bloquearHab']) {

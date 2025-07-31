@@ -61,6 +61,46 @@ class ConsumiblesClientes
      * @ORM\Column(type="boolean", nullable=false, options={"default"=true})
      */
     private $activo = true;
+    
+    /**
+     * @ORM\Column(type="string", length=50, nullable=true, options={"comment"="Tipo de indicación: medicamento, procedimiento, control"})
+     */
+    private $tipoIndicacion;
+    
+    /**
+     * @ORM\Column(type="string", length=50, nullable=true, options={"comment"="Frecuencia de administración o realización"})
+     */
+    private $frecuencia;
+    
+    /**
+     * @ORM\Column(type="string", length=50, nullable=true, options={"comment"="Duración del tratamiento o control"})
+     */
+    private $duracion;
+    
+    /**
+     * @ORM\Column(type="string", length=50, nullable=true, options={"comment"="Vía de administración (para medicamentos)"})
+     */
+    private $viaAdministracion;
+    
+    /**
+     * @ORM\Column(type="string", length=20, nullable=true, options={"comment"="Unidad de medida (g, ml, cc, etc)"})
+     */
+    private $unidadMedida;
+    
+    /**
+     * @ORM\Column(type="date", nullable=true, options={"comment"="Fecha de inicio de la indicación"})
+     */
+    private $fechaInicio;
+    
+    /**
+     * @ORM\Column(type="date", nullable=true, options={"comment"="Fecha de fin de la indicación (null para indefinidas)"})
+     */
+    private $fechaFin;
+    
+    /**
+     * @ORM\Column(type="text", nullable=true, options={"comment"="Descripción personalizada para procedimientos o controles"})
+     */
+    private $procedimientoPersonalizado;
 
     /**
      * @return mixed
@@ -221,6 +261,158 @@ class ConsumiblesClientes
     {
         $this->activo = $activo;
 
+        return $this;
+    }
+    
+    /**
+     * @return string|null
+     */
+    public function getTipoIndicacion(): ?string
+    {
+        return $this->tipoIndicacion;
+    }
+    
+    /**
+     * @param string|null $tipoIndicacion
+     * @return $this
+     */
+    public function setTipoIndicacion(?string $tipoIndicacion): self
+    {
+        $this->tipoIndicacion = $tipoIndicacion;
+        
+        return $this;
+    }
+    
+    /**
+     * @return string|null
+     */
+    public function getFrecuencia(): ?string
+    {
+        return $this->frecuencia;
+    }
+    
+    /**
+     * @param string|null $frecuencia
+     * @return $this
+     */
+    public function setFrecuencia(?string $frecuencia): self
+    {
+        $this->frecuencia = $frecuencia;
+        
+        return $this;
+    }
+    
+    /**
+     * @return string|null
+     */
+    public function getDuracion(): ?string
+    {
+        return $this->duracion;
+    }
+    
+    /**
+     * @param string|null $duracion
+     * @return $this
+     */
+    public function setDuracion(?string $duracion): self
+    {
+        $this->duracion = $duracion;
+        
+        return $this;
+    }
+    
+    /**
+     * @return string|null
+     */
+    public function getViaAdministracion(): ?string
+    {
+        return $this->viaAdministracion;
+    }
+    
+    /**
+     * @param string|null $viaAdministracion
+     * @return $this
+     */
+    public function setViaAdministracion(?string $viaAdministracion): self
+    {
+        $this->viaAdministracion = $viaAdministracion;
+
+        return $this;
+    }
+    
+    /**
+     * @return string|null
+     */
+    public function getUnidadMedida(): ?string
+    {
+        return $this->unidadMedida;
+    }
+    
+    /**
+     * @param string|null $unidadMedida
+     * @return $this
+     */
+    public function setUnidadMedida(?string $unidadMedida): self
+    {
+        $this->unidadMedida = $unidadMedida;
+        
+        return $this;
+    }
+    
+    /**
+     * @return \DateTime|null
+     */
+    public function getFechaInicio(): ?\DateTime
+    {
+        return $this->fechaInicio;
+    }
+    
+    /**
+     * @param \DateTime|null $fechaInicio
+     * @return $this
+     */
+    public function setFechaInicio(?\DateTime $fechaInicio): self
+    {
+        $this->fechaInicio = $fechaInicio;
+        
+        return $this;
+    }
+    
+    /**
+     * @return \DateTime|null
+     */
+    public function getFechaFin(): ?\DateTime
+    {
+        return $this->fechaFin;
+    }
+    
+    /**
+     * @param \DateTime|null $fechaFin
+     * @return $this
+     */
+    public function setFechaFin(?\DateTime $fechaFin): self
+    {
+        $this->fechaFin = $fechaFin;
+        
+        return $this;
+    }
+    
+    /**
+     * @return string|null
+     */
+    public function getProcedimientoPersonalizado(): ?string
+    {
+        return $this->procedimientoPersonalizado;
+    }
+    
+    /**
+     * @param string|null $procedimientoPersonalizado
+     * @return $this
+     */
+    public function setProcedimientoPersonalizado(?string $procedimientoPersonalizado): self
+    {
+        $this->procedimientoPersonalizado = $procedimientoPersonalizado;
+        
         return $this;
     }
 }

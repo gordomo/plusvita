@@ -143,7 +143,8 @@ class ConsumibleController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        $agregar = $request->query->get('agregarQuitar') == 'agregar' ? 1 : 0;
+        // Siempre será agregar ya que eliminamos la opción de quitar
+        $agregar = 1;
 
         $cantidad = $request->query->get('cantidad') ?? 0;
         $aNombreDe = $request->query->get('aNombreDe') ?? 0;
@@ -160,12 +161,9 @@ class ConsumibleController extends AbstractController
 
 
         $nuevoTotal = $consumible->getExistencia();
-
-        if ($agregar) {
-            $nuevoTotal += $cantidad;
-        } else {
-            $nuevoTotal -= $cantidad;
-        }
+        
+        // Siempre agregamos ya que eliminamos la opción de quitar
+        $nuevoTotal += $cantidad;
 
         $consumible->setExistencia($nuevoTotal);
 
@@ -268,7 +266,18 @@ class ConsumibleController extends AbstractController
     public function indicarView(Cliente $cliente, ConsumibleRepository $consumibleRepository, ConsumiblesClientesRepository $consumiblesClientesRepository): Response
     {
         $consumibles = $consumibleRepository->findBy([], ['nombre' => 'ASC']);
-        $indicacionesCargadas = $consumiblesClientesRepository->findConsumibleMesAnteriorParaElCliente($cliente->getId(), 0);
+        
+        // Crear array asociativo para acceso más eficiente en el template
+        $consumiblesArray = [];
+        foreach ($consumibles as $consumible) {
+            $consumiblesArray[$consumible->getId()] = $consumible->getNombre();
+        }
+        
+        // Obtener indicaciones por estado
+        $indicacionesActivas = $consumiblesClientesRepository->findActiveIndicationsForClient($cliente->getId());
+        $indicacionesProximasVencer = $consumiblesClientesRepository->findExpiringIndicationsForClient($cliente->getId());
+        $indicacionesHistoricas = $consumiblesClientesRepository->findHistoricalIndicationsForClient($cliente->getId());
+        
         $now = new \DateTime();
         $mes = $now->format('m');
 
@@ -280,12 +289,15 @@ class ConsumibleController extends AbstractController
         } elseif ($user && $this->isGranted('ROLE_STAFF') && $user->getDoctor() !== null) {
             $isDoctor = true;
         }
-        
+       
         return $this->render('consumible/indicar.html.twig', [
             'cliente' => $cliente,
             'consumibles' => $consumibles,
+            'consumiblesArray' => $consumiblesArray,
             'mes' => $mes,
-            'indicacionesCargadas' => $indicacionesCargadas,
+            'indicacionesActivas' => $indicacionesActivas,
+            'indicacionesProximasVencer' => $indicacionesProximasVencer, 
+            'indicacionesHistoricas' => $indicacionesHistoricas,
             'meses' => ['Enero' => '01', 'Febrero' => '02', 'Marzo' => '03', 'Abril' => 04, 'Mayo' => '05', 'Junio' => '06', 'Julio' => '07', 'Agosto' => '08', 'Septiembre' => '09', 'Octubre' => '10', 'Noviembre' => '11', 'Diciembre' => '12', ],
             'isDoctor' => $isDoctor
         ]);
@@ -338,6 +350,73 @@ class ConsumibleController extends AbstractController
 
 
     /**
+     * @Route("/extender-indicacion", name="consumible_extender_indicacion", methods={"POST"})
+     */
+    public function extenderIndicacion(Request $request, EntityManagerInterface $entityManager)
+    {
+        $indicacionId = $request->request->get('indicacionId');
+        $nuevaFechaFin = $request->request->get('nuevaFechaFin');
+        
+        if (!$indicacionId || !$nuevaFechaFin) {
+            return $this->json(['success' => false, 'message' => 'Parámetros incompletos']);
+        }
+        
+        $indicacion = $entityManager->getRepository(ConsumiblesClientes::class)->find($indicacionId);
+        
+        if (!$indicacion) {
+            return $this->json(['success' => false, 'message' => 'Indicación no encontrada']);
+        }
+        
+        try {
+            $fechaFinObj = new \DateTime($nuevaFechaFin);
+            $indicacion->setFechaFin($fechaFinObj);
+            
+            $entityManager->persist($indicacion);
+            $entityManager->flush();
+            
+            return $this->json(['success' => true]);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => $e->getMessage()]);
+        }
+    }
+    
+    /**
+     * @Route("/reactivar-indicacion", name="consumible_reactivar_indicacion", methods={"POST"})
+     */
+    public function reactivarIndicacion(Request $request, EntityManagerInterface $entityManager)
+    {
+        $indicacionId = $request->request->get('indicacionId');
+        $fechaInicio = $request->request->get('fechaInicio');
+        $fechaFin = $request->request->get('fechaFin');
+        
+        if (!$indicacionId || !$fechaInicio || !$fechaFin) {
+            return $this->json(['success' => false, 'message' => 'Parámetros incompletos']);
+        }
+        
+        $indicacion = $entityManager->getRepository(ConsumiblesClientes::class)->find($indicacionId);
+        
+        if (!$indicacion) {
+            return $this->json(['success' => false, 'message' => 'Indicación no encontrada']);
+        }
+        
+        try {
+            $fechaInicioObj = new \DateTime($fechaInicio);
+            $fechaFinObj = new \DateTime($fechaFin);
+            
+            $indicacion->setFechaInicio($fechaInicioObj);
+            $indicacion->setFechaFin($fechaFinObj);
+            $indicacion->setActivo(true);
+            
+            $entityManager->persist($indicacion);
+            $entityManager->flush();
+            
+            return $this->json(['success' => true]);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => $e->getMessage()]);
+        }
+    }
+    
+    /**
      * @Route("/acciones/imputar", name="consumible_imputar", methods={"GET"})
      */
     public function imputar(Request $request, ConsumibleRepository $consumibleRepository): Response
@@ -345,11 +424,23 @@ class ConsumibleController extends AbstractController
         $clienteId = $request->get('cliente');
         $consumibleId = $request->get('consumibleId');
         $cantidad = $request->get('cantidad', 1); // Default to 1 if not provided
+        $unidadMedida = $request->get('unidadMedida', 'unidades'); // Unidad de medida
         $accion = $request->get('accion');
         $mes = $request->get('mes', '');
         $year = $request->get('year', '');
         $isAjax = $request->get('isAjax', false);
         $activo = $request->get('activo', true);
+        
+        // Nuevos campos
+        $tipoIndicacion = $request->get('tipoIndicacion');
+        $frecuencia = $request->get('frecuencia');
+        $duracion = $request->get('duracion');
+        $viaAdministracion = $request->get('viaAdministracion');
+        
+        // Fechas de vigencia
+        $fechaInicio = $request->get('fechaInicio');
+        $fechaFin = $request->get('fechaFin');
+        
         $error = false;
         $message = 'ok';
 
@@ -385,6 +476,38 @@ class ConsumibleController extends AbstractController
             $consumiblesClientesHistorico->setAccion($accion);
             $consumiblesClientesHistorico->setCantidad($cantidad);
             $consumiblesClientesHistorico->setClienteId($clienteId);
+            
+            // Guardar los nuevos campos de indicación
+            if (!empty($tipoIndicacion)) {
+                $consumiblesClientesHistorico->setTipoIndicacion($tipoIndicacion);
+            }
+            if (!empty($frecuencia)) {
+                $consumiblesClientesHistorico->setFrecuencia($frecuencia);
+            }
+            if (!empty($duracion)) {
+                $consumiblesClientesHistorico->setDuracion($duracion);
+            }
+            if (!empty($viaAdministracion)) {
+                $consumiblesClientesHistorico->setViaAdministracion($viaAdministracion);
+            }
+            if (!empty($unidadMedida)) {
+                $consumiblesClientesHistorico->setUnidadMedida($unidadMedida);
+            }
+            
+            // Configurar fechas de vigencia
+            if (!empty($fechaInicio)) {
+                $fechaInicioObj = new \DateTime($fechaInicio);
+                $consumiblesClientesHistorico->setFechaInicio($fechaInicioObj);
+            } else {
+                // Si no se especifica, usar la fecha actual
+                $consumiblesClientesHistorico->setFechaInicio(new \DateTime());
+            }
+            
+            if (!empty($fechaFin)) {
+                $fechaFinObj = new \DateTime($fechaFin);
+                $consumiblesClientesHistorico->setFechaFin($fechaFinObj);
+            }
+            
             // ConsumibleId puede ser null para indicaciones sin medicamento específico
             if (!empty($consumibleId)) {
                 $consumiblesClientesHistorico->setConsumibleId($consumibleId);
@@ -550,6 +673,172 @@ class ConsumibleController extends AbstractController
         return $this->redirectToRoute('consumible_historico', ['id' => $clientId, 'mes' => $request->get('mes')]);
 
     }
+    /**
+     * @Route("/guardar-indicaciones/{id}", name="consumible_guardar_indicaciones", methods={"POST"})
+     */
+    public function guardarIndicaciones($id, Request $request): Response
+    {
+        $entityManager = $this->getDoctrine()->getManager();
+        $cliente = $entityManager->getRepository(Cliente::class)->find($id);
+        
+        if (!$cliente) {
+            return $this->json(['success' => false, 'message' => 'Cliente no encontrado']);
+        }
+        
+        try {
+            // Obtener datos directamente del request
+            $tipoIndicacion = $request->request->get('tipoIndicacion');
+            $consumibleId = $request->request->get('consumibleId');
+            $procedimientoPersonalizado = $request->request->get('procedimientoPersonalizado');
+            $cantidad = $request->request->get('cantidad');
+            $unidadMedida = $request->request->get('unidadMedida');
+            $frecuencia = $request->request->get('frecuencia');
+            $fechaInicio = $request->request->get('fechaInicio');
+            $duracion = $request->request->get('duracion');
+            $duracionValor = $request->request->get('duracionValor');
+            $fechaFin = $request->request->get('fechaFin');
+            $notas = $request->request->get('notas');
+            $activo = $request->request->get('activo') ? true : false;
+            $historiaPacienteId = $request->request->get('historiaPacienteId');
+            
+            // Validar datos básicos
+            if ($tipoIndicacion === 'medicamento' && !$consumibleId) {
+                return $this->json(['success' => false, 'message' => 'Debe seleccionar un medicamento']);
+            }
+            
+            // Si es medicamento, buscamos el consumible
+            $consumible = null;
+            if ($consumibleId) {
+                $consumible = $entityManager->getRepository(Consumible::class)->find($consumibleId);
+                
+                if (!$consumible) {
+                    return $this->json(['success' => false, 'message' => 'Consumible no encontrado']);
+                }
+            }
+            
+            // Buscar si ya existe una indicación similar para actualizar
+            $existente = null;
+            if ($consumible) {
+                $existente = $entityManager->getRepository(ConsumiblesClientes::class)->findOneBy([
+                    'clienteId' => $cliente->getId(),
+                    'consumibleId' => $consumibleId
+                ]);
+            }
+            
+            if ($existente) {
+                // Actualizar registro existente
+                $existente->setCantidad($cantidad ?? 1);
+                $existente->setActivo($activo);
+                $existente->setNotas($notas ?? '');
+                $existente->setTipoIndicacion($tipoIndicacion);
+                $existente->setUnidadMedida($unidadMedida);
+                $existente->setFrecuencia($frecuencia);
+                
+                // Asegurarse de que el año y mes estén establecidos
+                if (!$existente->getYear()) {
+                    $existente->setYear((new \DateTime())->format('Y'));
+                }
+                if (!$existente->getMes()) {
+                    $existente->setMes((new \DateTime())->format('m'));
+                }
+                // Asegurarse de que accion y via_administracion estén establecidos
+                if (!$existente->getAccion()) {
+                    $existente->setAccion('indicacion');
+                }
+                if (!$existente->getViaAdministracion()) {
+                    $existente->setViaAdministracion($unidadMedida); // Usar unidad de medida como vía por defecto
+                }
+                
+                if ($fechaInicio) {
+                    $fechaInicioObj = new \DateTime($fechaInicio);
+                    $existente->setFechaInicio($fechaInicioObj);
+                    // También actualizamos fecha_inicio para mantener coherencia
+                    $existente->setFechaInicio($fechaInicioObj);
+                }
+                
+                if ($duracion === 'especifica' && $duracionValor) {
+                    $existente->setDuracionValor($duracionValor);
+                    $existente->setFechaFin(null);
+                } else if ($duracion === 'fechaFin' && $fechaFin) {
+                    $existente->setDuracionValor(null);
+                    $existente->setFechaFin(new \DateTime($fechaFin));
+                } else {
+                    $existente->setDuracionValor(null);
+                    $existente->setFechaFin(null);
+                }
+                
+                if ($historiaPacienteId) {
+                    $existente->setHistoriaPacienteId($historiaPacienteId);
+                }
+                
+                // Asegurarse de que todos los campos requeridos en la base de datos estén establecidos
+                $entityManager->persist($existente);
+            } else {
+                // Crear nueva indicación
+                $nuevaIndicacion = new ConsumiblesClientes();
+                $nuevaIndicacion->setClienteId($cliente->getId());
+                $nuevaIndicacion->setConsumibleId($consumibleId);
+                $nuevaIndicacion->setCantidad($cantidad ?? 1);
+                $nuevaIndicacion->setActivo($activo);
+                $nuevaIndicacion->setNotas($notas ?? '');
+                
+                // Establecer fecha actual
+                $fechaActual = new \DateTime();
+                $nuevaIndicacion->setFecha($fechaActual);
+                
+                // Establecer el año y mes (necesario para la base de datos)
+                $nuevaIndicacion->setYear($fechaActual->format('Y'));
+                $nuevaIndicacion->setMes($fechaActual->format('m'));
+                
+                // Establecer otros campos requeridos por la base de datos
+                $nuevaIndicacion->setAccion('indicacion');
+                $nuevaIndicacion->setViaAdministracion($unidadMedida); // Usar unidad de medida como vía de administración si no hay otra info
+                
+                $nuevaIndicacion->setTipoIndicacion($tipoIndicacion);
+                $nuevaIndicacion->setUnidadMedida($unidadMedida);
+                $nuevaIndicacion->setFrecuencia($frecuencia);
+                
+                // Procedimiento personalizado si aplica
+                if ($procedimientoPersonalizado && ($tipoIndicacion === 'procedimiento' || $tipoIndicacion === 'control')) {
+                    $nuevaIndicacion->setProcedimientoPersonalizado($procedimientoPersonalizado);
+                }
+                
+                // Establecer fecha de inicio
+                if ($fechaInicio) {
+                    $fechaInicioObj = new \DateTime($fechaInicio);
+                    $nuevaIndicacion->setFechaInicio($fechaInicioObj);
+                    // Establecer fecha de inicio también como fecha_inicio
+                    $nuevaIndicacion->setFechaInicio($fechaInicioObj);
+                }
+                
+                // Manejar duración
+                if ($duracion === 'especifica' && $duracionValor) {
+                    $nuevaIndicacion->setDuracionValor($duracionValor);
+                } else if ($duracion === 'fechaFin' && $fechaFin) {
+                    $nuevaIndicacion->setFechaFin(new \DateTime($fechaFin));
+                }
+                
+                // Asociar con historia del paciente si está disponible
+                if ($historiaPacienteId) {
+                    $nuevaIndicacion->setHistoriaPacienteId($historiaPacienteId);
+                }
+                
+                // Asegurarse de que todos los campos requeridos en la base de datos estén establecidos
+                if ($nuevaIndicacion->getConsumibleId() === null && $tipoIndicacion === 'medicamento') {
+                    throw new \Exception('Falta seleccionar un consumible para la indicación de tipo medicamento');
+                }
+                
+                $entityManager->persist($nuevaIndicacion);
+            }
+            
+            $entityManager->flush();
+            return $this->json(['success' => true, 'message' => 'Indicación guardada correctamente']);
+            
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => 'Error al guardar la indicación: ' . $e->getMessage()]);
+        }
+    }
+    
     /**
      * @Route("/recibos/{id}", name="consumibles_recibos", methods={"GET"})
      */

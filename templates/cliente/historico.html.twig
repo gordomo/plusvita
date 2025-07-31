@@ -47,6 +47,15 @@
                 white-space: normal !important;
                 word-break: break-word !important;
             }
+            
+            /* Permitir que la obra social se muestre completa sin truncar */
+            table.table td.obraSocial {
+                overflow: visible !important;
+                text-overflow: none !important;
+                white-space: normal !important;
+                max-width: none !important;
+                word-wrap: break-word !important;
+            }
         }
         
         /* Estilos para el resumen (compacto) */
@@ -399,7 +408,12 @@
                                                 {% if (historiaPaciente[key - 1].obraSocial is not empty) %}
                                                     {% set obrasSocialesCliente = historiaPaciente[key - 1].obraSocial|split(',') %}
                                                     {% for obraSocialCliente in obrasSocialesCliente %}
-                                                        <div>{{ obraSociales[obraSocialCliente] }}</div>
+                                                        {% set nombreObraSocial = obraSociales[obraSocialCliente] %}
+                                                        <div>
+                                                            <span data-toggle="tooltip" data-placement="top" title="{{ nombreObraSocial }}" style="cursor: help;">
+                                                                {{ nombreObraSocial|length > 20 ? nombreObraSocial|slice(0, 20) ~ '...' : nombreObraSocial }}
+                                                            </span>
+                                                        </div>
                                                     {% endfor %}
                                                 {% else %}
                                                     Vacío
@@ -410,7 +424,12 @@
                                             {% if (historia.obraSocial is not empty) %}
                                                 {% set obrasSocialesCliente = historia.obraSocial|split(',') %}
                                                 {% for obraSocialCliente in obrasSocialesCliente %}
-                                                    <div>{{ obraSociales[obraSocialCliente] }}</div>
+                                                    {% set nombreObraSocial = obraSociales[obraSocialCliente] %}
+                                                    <div>
+                                                        <span data-toggle="tooltip" data-placement="top" title="{{ nombreObraSocial }}" style="cursor: help;">
+                                                            {{ nombreObraSocial|length > 20 ? nombreObraSocial|slice(0, 20) ~ '...' : nombreObraSocial }}
+                                                        </span>
+                                                    </div>
                                                 {% endfor %}
                                             {% else %}
                                                 Vacío
@@ -742,6 +761,9 @@
 
         // Funciones para la impresión y exportación
         $(document).ready(function() {
+            // Inicializar tooltips
+            $('[data-toggle="tooltip"]').tooltip();
+            
             // Impresión en formato resumido
             $('#btnPrintSummary').click(function() {
                 // Mostrar todas las secciones de novedades antes de imprimir
