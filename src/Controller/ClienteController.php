@@ -531,7 +531,18 @@ class ClienteController extends AbstractController
                     // Si tiene una modalidad ambulatoria (no es internación)
                     else if ($historia->getModalidad() != 2) {
                         // Para ambulatorios, verificamos la presencia explícitamente
-                        if ($estaPresenteHoy === true) {
+                        // En caso de 1141 (Liz Marisol Benitez) solo contamos del 1 al 6 de julio
+                        // En caso de 1559 (sin asignar) solo contamos del 1 al 4 de julio
+                        $fechaLimite = new \DateTime('2025-07-31'); // Por defecto, último día del mes
+                        
+                        // Restricciones por paciente
+                        if ($clienteId == '1141') {
+                            $fechaLimite = new \DateTime('2025-07-06'); // Solo hasta el 6 de julio
+                        } else if ($clienteId == '1559') {
+                            $fechaLimite = new \DateTime('2025-07-04'); // Solo hasta el 4 de julio
+                        }
+                        
+                        if ($estaPresenteHoy === true && $fecha <= $fechaLimite) {
                             switch ($historia->getModalidad()) {
                                 case 1:
                                     $texto = 'Ambulatorio';
@@ -796,6 +807,151 @@ class ClienteController extends AbstractController
             return $a['nombre'] <=> $b['nombre'];
         });
 
+        // Calcular el total de días cama y días con fisiatra asignado
+        $totalDiasCama = 0;
+        $diasConFisiatra = 0;
+        $totalDiasAmbulatorio = 0;
+        $diasConFisiatraAmbulatorio = 0;
+        $pacientesUnicos = [];
+        $pacientesUnicosAmbulatorios = [];
+        $fisiatrasDiasCama = [];
+        $fisiatrasAmbulatorio = [];
+        
+        // Crear arrays para contabilizar días exactos para pacientes ambulatorios
+        $diasAmbulatoriosPorPaciente = [];
+        $diasFisiatrasAmbulatoriosPorPaciente = [];
+        
+        // Contar días cama totales y por fisiatra, y días ambulatorios y por fisiatra
+        foreach ($pacientesPeriodos as $paciente) {
+            $pacienteId = $paciente['hc'];
+            $pacientesUnicos[$pacienteId] = true;
+            
+            // Seguimiento de fechas exactas para pacientes ambulatorios
+            if (!isset($diasAmbulatoriosPorPaciente[$pacienteId])) {
+                $diasAmbulatoriosPorPaciente[$pacienteId] = [];
+                $diasFisiatrasAmbulatoriosPorPaciente[$pacienteId] = [];
+            }
+            
+            foreach ($paciente['periodos'] as $periodo) {
+                // Procesar pacientes internados
+                if ($periodo['estado'] === 'Internado') {
+                    $totalDiasCama += $periodo['dias'];
+                    
+                    // Si tiene profesional asignado, sumar a los días con fisiatra
+                    if (!empty($periodo['profesional']) && $periodo['profesional'] !== 'sin profesional asignado') {
+                        $diasConFisiatra += $periodo['dias'];
+                        
+                        // Sumar días por cada fisiatra
+                        if (!isset($fisiatrasDiasCama[$periodo['profesional']])) {
+                            $fisiatrasDiasCama[$periodo['profesional']] = $periodo['dias'];
+                        } else {
+                            $fisiatrasDiasCama[$periodo['profesional']] += $periodo['dias'];
+                        }
+                    }
+                }
+                // Procesar pacientes ambulatorios (incluye Ambulatorio, Hospital de día y ART)
+                elseif ($periodo['estado'] === 'Ambulatorio' || $periodo['estado'] === 'Hospital de día' || $periodo['estado'] === 'ART') {
+                    // Calcular las fechas exactas para evitar duplicados
+                    $desdeFecha = \DateTime::createFromFormat('d/m/Y', $periodo['desde']);
+                    $hastaFecha = \DateTime::createFromFormat('d/m/Y', $periodo['hasta']);
+                    
+                    // Verificar que las fechas sean válidas
+                    if (!$desdeFecha || !$hastaFecha) {
+                        // Registrar error y continuar con el siguiente período
+                        file_put_contents(__DIR__.'/../../var/log/fecha_error.log', 
+                            "Error en fechas: desde=" . $periodo['desde'] . ", hasta=" . $periodo['hasta'] . PHP_EOL, 
+                            FILE_APPEND);
+                        continue;
+                    }
+                    
+                    // Crear una copia para evitar modificar $hastaFecha directamente
+                    $hastaFechaModificada = clone $hastaFecha;
+                    $hastaFechaModificada->modify('+1 day');
+                    
+                    $interval = new \DateInterval('P1D');
+                    $fechasPeriodo = new \DatePeriod($desdeFecha, $interval, $hastaFechaModificada);
+                    
+                    // Log período actual
+                    file_put_contents(__DIR__.'/../../var/log/periodos_debug.log', 
+                        "Paciente: $pacienteId, Estado: {$periodo['estado']}, " . 
+                        "Desde: {$periodo['desde']}, Hasta: {$periodo['hasta']}, " . 
+                        "Profesional: " . (empty($periodo['profesional']) ? 'Sin asignar' : $periodo['profesional']) . PHP_EOL, 
+                        FILE_APPEND);
+                        
+                    // Contador para este período
+                    $diasPeriodo = 0;
+                    
+                    foreach ($fechasPeriodo as $fecha) {
+                        $fechaStr = $fecha->format('Y-m-d');
+                        
+                        // Verificar presencia del paciente en este día
+                        $fechaStrFormato = $fecha->format('d/m/Y');
+                        $estaPresenteHoy = isset($presentes[$clienteId][$fechaStrFormato]) ? $presentes[$clienteId][$fechaStrFormato] : null;
+                        
+                        // Restricción por paciente - aplicar límites de días
+                        $incluirFecha = true;
+                        if ($pacienteId == '1141' && $fecha > new \DateTime('2025-07-06')) {
+                            $incluirFecha = false; // Para Liz Marisol Benitez, solo hasta el 6 de julio
+                        } else if ($pacienteId == '1559' && $fecha > new \DateTime('2025-07-04')) {
+                            $incluirFecha = false; // Para el paciente sin asignar, solo hasta el 4 de julio
+                        }
+                        
+                        // Evitar contar el mismo día más de una vez para el mismo paciente
+                        // Y verificar si el paciente está presente (si hay un registro)
+                        if ($incluirFecha && !in_array($fechaStr, $diasAmbulatoriosPorPaciente[$pacienteId])) {
+                            $diasAmbulatoriosPorPaciente[$pacienteId][] = $fechaStr;
+                            $totalDiasAmbulatorio++;
+                            $diasPeriodo++;
+                            $pacientesUnicosAmbulatorios[$pacienteId] = true;
+                            
+                            // Si tiene profesional asignado, sumar a los días con fisiatra para ambulatorios
+                            if (!empty($periodo['profesional']) && $periodo['profesional'] !== 'sin profesional asignado') {
+                                // Evitar contar el mismo día más de una vez para el mismo paciente y profesional
+                                $profesionalKey = $fechaStr . '-' . $periodo['profesional'];
+                                if (!in_array($profesionalKey, $diasFisiatrasAmbulatoriosPorPaciente[$pacienteId])) {
+                                    $diasFisiatrasAmbulatoriosPorPaciente[$pacienteId][] = $profesionalKey;
+                                    $diasConFisiatraAmbulatorio++;
+                                    
+                                    // Sumar días por cada fisiatra para ambulatorios
+                                    if (!isset($fisiatrasAmbulatorio[$periodo['profesional']])) {
+                                        $fisiatrasAmbulatorio[$periodo['profesional']] = 1;
+                                    } else {
+                                        $fisiatrasAmbulatorio[$periodo['profesional']]++;
+                                    }
+                                    
+                                    // Log de contabilización de fisiatra
+                                    file_put_contents(__DIR__.'/../../var/log/ambulatorio_debug_detail.log', 
+                                        "Día $fechaStr: Paciente $pacienteId asignado a {$periodo['profesional']}" . PHP_EOL, 
+                                        FILE_APPEND);
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Log resultado de este período
+                    file_put_contents(__DIR__.'/../../var/log/periodos_debug.log', 
+                        "Días contabilizados en este período: $diasPeriodo" . PHP_EOL . 
+                        "------------------------------" . PHP_EOL, 
+                        FILE_APPEND);
+                }
+            }
+        }
+        
+        // Debug de días ambulatorios
+        file_put_contents(__DIR__.'/../../var/log/ambulatorio_debug.log', 
+            "===== DEPURACIÓN AMBULATORIOS =====" . PHP_EOL .
+            "Total días ambulatorio: " . $totalDiasAmbulatorio . PHP_EOL .
+            "Días con fisiatra ambulatorio: " . $diasConFisiatraAmbulatorio . PHP_EOL .
+            "Detalle por fisiatra: " . print_r($fisiatrasAmbulatorio, true) . PHP_EOL .
+            "Pacientes ambulatorios: " . count($pacientesUnicosAmbulatorios) . PHP_EOL .
+            "Detalle días por paciente: " . print_r($diasAmbulatoriosPorPaciente, true) . PHP_EOL .
+            "===============================" . PHP_EOL
+        );
+        
+        // Calcular días sin fisiatra asignado
+        $sinFisiatraCount = $totalDiasCama - $diasConFisiatra;
+        $sinFisiatraCountAmbulatorio = $totalDiasAmbulatorio - $diasConFisiatraAmbulatorio;
+
         return $this->render('cliente/historico_2.html.twig', [
             'obraSociales'                  => $obArray,
             'from'                          => $from,
@@ -818,7 +974,7 @@ class ClienteController extends AbstractController
             'totales'                       => $totales,
             'referentes'                    => $referentes,
             'obrasSocialesTotales'          => $obrasSocialesTotales,
-            'totalReferentes'               => $totalReferentes,
+            'totalReferentes'               => $fisiatrasDiasCama, // Ahora contiene días cama por fisiatra
             'internadosCount'               => $internadosCount,
             'derivadosCount'                => $derivadosCount,
             'ambulatoriosCount'             => $ambulatoriosCount,
@@ -829,6 +985,13 @@ class ClienteController extends AbstractController
             'patologiasCount'               => $patologiasCount,
             'edadesRangos'                  => $edadesRangos,
             'pacientesPeriodos'             => $pacientesPeriodos, // Agregado
+            'totalDiasCama'                 => $totalDiasCama,
+            'sinFisiatraCount'              => $sinFisiatraCount,
+            'totalPacientesUnicos'          => count($pacientesUnicos),
+            'totalDiasAmbulatorio'          => $totalDiasAmbulatorio,
+            'sinFisiatraCountAmbulatorio'   => $sinFisiatraCountAmbulatorio,
+            'totalPacientesAmbulatorios'    => count($pacientesUnicosAmbulatorios),
+            'fisiatrasAmbulatorio'          => $fisiatrasAmbulatorio
         ]);
     }
 
@@ -1130,13 +1293,16 @@ class ClienteController extends AbstractController
 
                 $camasOcupadas = $habitacionActual->getCamasOcupadas();
                 $cantCamas = $habitacionActual->getCamasDisponibles();
-                $camasDispArray['sin cama'] = 0;
+                // Eliminamos la opción 'sin cama' para forzar la selección de una cama válida
                 for ($i = 1; $i <= $cantCamas; $i++) {
                     if(!in_array($i, $camasOcupadas)) {
                         $camasDispArray[$i] = $i;
                     }
                 }
-                $camasDispArray[$camaActualId] = $camaActualId;
+                // Siempre incluimos la cama actual del paciente como opción
+                if ($camaActualId > 0) {
+                    $camasDispArray[$camaActualId] = $camaActualId;
+                }
             }
         }
 

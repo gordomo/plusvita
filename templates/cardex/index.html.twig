@@ -149,7 +149,8 @@
                             {% if indicacion.consumibleId %}
                                 <div {% if indicacion.notas %}class="mt-2"{% endif %}>
                                     <strong>Cantidad:</strong> {{ indicacion.cantidad }} 
-                                    {% if indicacion.unidades is defined %}<small>({{ indicacion.unidades }})</small>{% endif %}
+                                    {% if indicacion.unidadMedida is defined and indicacion.unidadMedida %}<small>({{ indicacion.unidadMedida }})</small>
+                                    {% elseif indicacion.unidades is defined %}<small>({{ indicacion.unidades }})</small>{% endif %}
                                 </div>
                             {% endif %}
                             {% if indicacion.activo is defined and not indicacion.activo %}
@@ -161,7 +162,7 @@
                         <div class="cardex-item-footer">
                             <span>
                                 <i class="fas fa-user"></i> 
-                                {% if indicacion.doctorNombre is defined and indicacion.doctorApellido is defined %}
+                                {% if indicacion.doctorNombre is defined and indicacion.doctorNombre and indicacion.doctorApellido is defined and indicacion.doctorApellido %}
                                     {{ indicacion.doctorNombre }} {{ indicacion.doctorApellido }}
                                 {% else %}
                                     Usuario del sistema

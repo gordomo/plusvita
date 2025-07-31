@@ -1,0 +1,169 @@
+.row-padding {
+    padding: 20px 15px !important;
+}
+
+/* Estilos para los contenedores de tipo de indicación */
+.tipoIndicacion {
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+/* Estilo para resaltar campos obligatorios */
+.campo-obligatorio label::after {
+    content: " *";
+    color: red;
+}
+
+/* Estilos para los selectores mejorados */
+.form-control {
+    border-radius: 3px;
+}
+
+/* Nuevos estilos para la interfaz mejorada */
+.indicaciones-panel {
+    margin-bottom: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.indicaciones-header {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-bottom: 1px solid #ddd;
+}
+
+.indicaciones-body {
+    padding: 20px;
+    background-color: white;
+}
+
+.indicacion-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    background-color: #fff;
+    transition: all 0.3s ease;
+}
+
+.indicacion-card:hover {
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+
+.indicacion-card.activa {
+    border-left: 4px solid #28a745;
+}
+
+.indicacion-card.proxima-vencer {
+    border-left: 4px solid #ffc107;
+}
+
+.indicacion-card.historica {
+    border-left: 4px solid #6c757d;
+    opacity: 0.8;
+}
+
+.indicacion-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.indicacion-tipo {
+    font-weight: bold;
+    color: #495057;
+}
+
+.indicacion-fecha {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.indicacion-detalle {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+}
+
+.indicacion-accion {
+    text-align: right;
+    margin-top: 15px;
+}
+
+.indicacion-badge {
+    font-size: 0.8rem;
+    padding: 3px 8px;
+    margin-right: 5px;
+}
+
+.nav-indicaciones {
+    margin-bottom: 15px;
+}
+
+.nav-indicaciones .btn {
+    border-radius: 20px;
+    margin-right: 5px;
+    padding: 8px 15px;
+}
+
+.nueva-indicacion-form {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 25px;
+    display: none;
+}
+
+/* Estilizar los tipos de indicación */
+.badge-tipo-medicamento {
+    background-color: #28a745;
+    color: white;
+}
+
+.badge-tipo-procedimiento {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.badge-tipo-control {
+    background-color: #6f42c1;
+    color: white;
+}
+
+.badge-tipo-otro {
+    background-color: #6c757d;
+    color: white;
+}
+
+/* Mejorar estilos de los contenedores de campos adicionales */
+#viaAdministracionContainer, 
+#procedimientoPersonalizadoContainer,
+#otraFrecuenciaContainer,
+#duracionValorContainer {
+    transition: all 0.3s ease;
+}
+
+/* Estilo para las filas con errores de validación */
+tr.error {
+    background-color: rgba(220, 53, 69, 0.1) !important;
+    border-left: 3px solid #dc3545;
+}
+
+/* Estilo para filas guardadas */
+tr.guardada {
+    background-color: rgba(40, 167, 69, 0.1) !important;
+    border-left: 3px solid #28a745;
+}
+
+/* Estilos para dispositivos móviles */
+@media (max-width: 768px) {
+    .d-flex.mb-2 {
+        flex-direction: column;
+    }
+    
+    .d-flex.mb-2 .form-control {
+        margin-bottom: 10px;
+    }
+}

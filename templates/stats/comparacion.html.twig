@@ -1,0 +1,538 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Comparación de Períodos - Plus Vita{% endblock %}
+{% block panelTitle %}📊 Comparación Histórica{% if datosComparacion[0] is defined %} - {{ datosComparacion[0].periodLabel }}{% endif %}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .comparison-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .comparison-hero h2 {
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 300;
+        }
+        
+        .comparison-hero p {
+            margin: 0.5rem 0 0 0;
+            opacity: 0.9;
+        }
+        
+        .period-timeline {
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            position: relative;
+            padding: 0 1rem;
+        }
+        
+        .period-timeline::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 2rem;
+            right: 2rem;
+            height: 2px;
+            background: linear-gradient(90deg, #60b9b9, #b088be, #ffc107);
+            z-index: 0;
+        }
+        
+        .timeline-period {
+            background: white;
+            border-radius: 12px;
+            padding: 1.8rem 1.5rem;
+            flex: 1;
+            max-width: 320px;
+            min-height: 280px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            border: 3px solid #e9ecef;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .timeline-period.current {
+            border-color: #60b9b9;
+            transform: scale(1.02);
+            box-shadow: 0 8px 16px rgba(96, 185, 185, 0.2);
+        }
+        
+        .timeline-period.previous {
+            border-color: #b088be;
+            box-shadow: 0 6px 12px rgba(176, 136, 190, 0.15);
+        }
+        
+        .timeline-period.oldest {
+            border-color: #ffc107;
+            box-shadow: 0 6px 12px rgba(255, 193, 7, 0.15);
+        }
+        
+        .period-year {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+        
+        .period-date {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.2rem;
+            flex-grow: 1;
+        }
+        
+        .metric-item {
+            text-align: center;
+            padding: 0.5rem;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+        
+        .metric-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 0.3rem;
+            line-height: 1.2;
+        }
+        
+        .metric-label {
+            color: #6c757d;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .comparison-summary {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .summary-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+            color: #495057;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 0.5rem;
+        }
+        
+        .comparison-metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #dee2e6;
+        }
+        
+        .comparison-metric.positive {
+            border-left-color: #28a745;
+            background: #f8fff9;
+        }
+        
+        .comparison-metric.negative {
+            border-left-color: #dc3545;
+            background: #fff8f8;
+        }
+        
+        .comparison-metric.neutral {
+            border-left-color: #ffc107;
+            background: #fffef8;
+        }
+        
+        .metric-name {
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .metric-change {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .metric-change.positive {
+            color: #28a745;
+        }
+        
+        .metric-change.negative {
+            color: #dc3545;
+        }
+        
+        .metric-change.neutral {
+            color: #ffc107;
+        }
+        
+        .change-icon {
+            margin-right: 0.5rem;
+        }
+        
+        .btn-stats {
+            background-color: #889cbe;
+            color: white;
+            margin-right: 0.5rem;
+        }
+        
+        .btn-stats:hover {
+            background-color: #60b9b9;
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .period-timeline {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 0;
+            }
+            
+            .period-timeline::before {
+                display: none;
+            }
+            
+            .timeline-period {
+                margin: 0;
+                max-width: none;
+                min-height: auto;
+                transform: none !important;
+            }
+            
+            .timeline-period.current {
+                transform: none !important;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 0.8rem;
+            }
+            
+            .metric-value {
+                font-size: 1.2rem;
+            }
+            
+            .metric-label {
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+    <!-- Chart.js para visualizaciones -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <!-- Navegación -->
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <div class="btn-group" role="group">
+                <a href="{{ path('app_stats_index', {'fecha_desde': fechaDesde, 'fecha_hasta': fechaHasta}) }}" class="btn btn-stats">
+                    <i class="fas fa-chart-line"></i> Panel General
+                </a>
+                <a href="{{ path('app_stats_ocupacion') }}" class="btn btn-stats">
+                    <i class="fas fa-bed"></i> Ocupación de Camas
+                </a>
+                <a href="{{ path('app_stats_altas') }}" class="btn btn-stats">
+                    <i class="fas fa-procedures"></i> Altas Médicas
+                </a>
+                <a href="{{ path('app_stats_inventario') }}" class="btn btn-stats">
+                    <i class="fas fa-boxes"></i> Inventario
+                </a>
+                <a href="{{ path('app_stats_comparacion', {'fecha_desde': fechaDesde, 'fecha_hasta': fechaHasta}) }}" class="btn btn-primary">
+                    <i class="fas fa-balance-scale"></i> Comparación de Períodos
+                </a>
+            </div>
+            
+            <!-- Botón para cambiar período -->
+            <div>
+                <a href="{{ path('app_stats_index') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-calendar-alt"></i> Cambiar Período
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {% if datosComparacion is not empty %}
+        <!-- Hero Section -->
+        <div class="comparison-hero">
+            <h2>Comparando el mismo período en los últimos 3 años</h2>
+            <p>Período analizado: <strong>{{ datosComparacion[0].periodLabel }}</strong></p>
+        </div>
+
+        <!-- Timeline de Períodos -->
+        <div class="period-timeline">
+            {% for index, datos in datosComparacion %}
+                <div class="timeline-period {{ index == 0 ? 'current' : (index == 1 ? 'previous' : 'oldest') }}">
+                    <div class="period-year">{{ datos.period.year }}</div>
+                    <div class="period-date">{{ datos.periodLabel }}</div>
+                    
+                    <div class="metrics-grid">
+                        <div class="metric-item">
+                            <div class="metric-value" style="color: #28a745;">{{ datos.metrics.ingresos }}</div>
+                            <div class="metric-label">Ingresos</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-value" style="color: #17a2b8;">{{ datos.metrics.egresos }}</div>
+                            <div class="metric-label">Egresos</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-value" style="color: #ffc107;">{{ datos.metrics.ocupacionPromedio }}%</div>
+                            <div class="metric-label">Ocupación</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-value" style="color: #6f42c1;">{{ datos.metrics.diasInternacionPromedio }}</div>
+                            <div class="metric-label">Días Int.</div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Resumen de Cambios -->
+        {% if comparaciones is not empty %}
+            <div class="comparison-summary">
+                <div class="summary-title">📈 Resumen de Cambios Interanuales</div>
+                
+                {% for index, comp in comparaciones %}
+                    <div class="mb-4">
+                        <h5 class="text-muted mb-3">
+                            <i class="fas fa-arrows-alt-h"></i> 
+                            Cambios de {{ datosComparacion[index+1].period.year }} a {{ datosComparacion[index].period.year }}
+                        </h5>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="comparison-metric {{ comp.ingresos.change > 0 ? 'positive' : (comp.ingresos.change < 0 ? 'negative' : 'neutral') }}">
+                                    <span class="metric-name">
+                                        <i class="fas fa-sign-in-alt"></i> Ingresos
+                                    </span>
+                                    <span class="metric-change {{ comp.ingresos.change > 0 ? 'positive' : (comp.ingresos.change < 0 ? 'negative' : 'neutral') }}">
+                                        {% if comp.ingresos.change > 0 %}
+                                            <i class="fas fa-arrow-up change-icon"></i>
+                                        {% elseif comp.ingresos.change < 0 %}
+                                            <i class="fas fa-arrow-down change-icon"></i>
+                                        {% else %}
+                                            <i class="fas fa-minus change-icon"></i>
+                                        {% endif %}
+                                        {{ comp.ingresos.formatted }}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="comparison-metric {{ comp.egresos.change > 0 ? 'positive' : (comp.egresos.change < 0 ? 'negative' : 'neutral') }}">
+                                    <span class="metric-name">
+                                        <i class="fas fa-sign-out-alt"></i> Egresos
+                                    </span>
+                                    <span class="metric-change {{ comp.egresos.change > 0 ? 'positive' : (comp.egresos.change < 0 ? 'negative' : 'neutral') }}">
+                                        {% if comp.egresos.change > 0 %}
+                                            <i class="fas fa-arrow-up change-icon"></i>
+                                        {% elseif comp.egresos.change < 0 %}
+                                            <i class="fas fa-arrow-down change-icon"></i>
+                                        {% else %}
+                                            <i class="fas fa-minus change-icon"></i>
+                                        {% endif %}
+                                        {{ comp.egresos.formatted }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="comparison-metric {{ comp.ocupacionPromedio.change > 0 ? 'positive' : (comp.ocupacionPromedio.change < 0 ? 'negative' : 'neutral') }}">
+                                    <span class="metric-name">
+                                        <i class="fas fa-bed"></i> Ocupación Promedio
+                                    </span>
+                                    <span class="metric-change {{ comp.ocupacionPromedio.change > 0 ? 'positive' : (comp.ocupacionPromedio.change < 0 ? 'negative' : 'neutral') }}">
+                                        {% if comp.ocupacionPromedio.change > 0 %}
+                                            <i class="fas fa-arrow-up change-icon"></i>
+                                        {% elseif comp.ocupacionPromedio.change < 0 %}
+                                            <i class="fas fa-arrow-down change-icon"></i>
+                                        {% else %}
+                                            <i class="fas fa-minus change-icon"></i>
+                                        {% endif %}
+                                        {{ comp.ocupacionPromedio.formatted }}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="comparison-metric {{ comp.diasInternacionPromedio.change > 0 ? 'positive' : (comp.diasInternacionPromedio.change < 0 ? 'negative' : 'neutral') }}">
+                                    <span class="metric-name">
+                                        <i class="fas fa-clock"></i> Días Internación Promedio
+                                    </span>
+                                    <span class="metric-change {{ comp.diasInternacionPromedio.change > 0 ? 'positive' : (comp.diasInternacionPromedio.change < 0 ? 'negative' : 'neutral') }}">
+                                        {% if comp.diasInternacionPromedio.change > 0 %}
+                                            <i class="fas fa-arrow-up change-icon"></i>
+                                        {% elseif comp.diasInternacionPromedio.change < 0 %}
+                                            <i class="fas fa-arrow-down change-icon"></i>
+                                        {% else %}
+                                            <i class="fas fa-minus change-icon"></i>
+                                        {% endif %}
+                                        {{ comp.diasInternacionPromedio.formatted }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if not loop.last %}
+                            <hr class="my-4">
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <!-- Gráfico Comparativo -->
+        <div class="comparison-summary">
+            <div class="summary-title">📊 Gráfico Comparativo de Ocupación</div>
+            <div style="height: 400px;">
+                <canvas id="ocupacion-comparison-chart"></canvas>
+            </div>
+        </div>
+        
+    {% else %}
+        <div class="alert alert-info text-center">
+            <h4><i class="fas fa-info-circle"></i> No hay datos para comparar</h4>
+            <p>Selecciona un período en el Panel General para ver la comparación histórica.</p>
+            <a href="{{ path('app_stats_index') }}" class="btn btn-primary">
+                <i class="fas fa-calendar-alt"></i> Ir al Panel General
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    // Configurar gráfico de comparación de ocupación
+    {% if datosComparacion is not empty %}
+        const ctx = document.getElementById('ocupacion-comparison-chart').getContext('2d');
+        
+        // Preparar datos para el gráfico
+        const datasets = [];
+        const colors = ['#60b9b9', '#b088be', '#889cbe'];
+        
+        {% for index, datos in datosComparacion %}
+            const ocupacionData{{ index }} = {{ datos.ocupacionPorDia | json_encode | raw }};
+            datasets.push({
+                label: '{{ datos.period.year }}',
+                data: ocupacionData{{ index }}.map(d => d.porcentaje),
+                borderColor: colors[{{ index }}],
+                backgroundColor: colors[{{ index }}] + '20',
+                borderWidth: 3,
+                fill: false,
+                tension: 0.1
+            });
+        {% endfor %}
+        
+        // Crear etiquetas unificadas desde todos los períodos para cubrir todos los días posibles
+        let allLabels = new Set();
+        {% for index, datos in datosComparacion %}
+            const labels{{ index }} = {{ datos.ocupacionPorDia | json_encode | raw }}.map(d => d.fecha);
+            labels{{ index }}.forEach(label => allLabels.add(label));
+        {% endfor %}
+        
+        // Convertir el Set a Array y ordenar las fechas
+        const labels = Array.from(allLabels).sort((a, b) => {
+            const [dayA, monthA] = a.split('/').map(Number);
+            const [dayB, monthB] = b.split('/').map(Number);
+            return monthA !== monthB ? monthA - monthB : dayA - dayB;
+        });
+        
+        // Reajustar los datos para que coincidan con las etiquetas unificadas
+        const adjustedDatasets = datasets.map((dataset, index) => {
+            let originalData;
+            {% for i, datos in datosComparacion %}
+                {% if loop.index0 == 0 %}
+            if (index === {{ i }}) {
+                originalData = {{ datos.ocupacionPorDia | json_encode | raw }};
+                {% else %}
+            } else if (index === {{ i }}) {
+                originalData = {{ datos.ocupacionPorDia | json_encode | raw }};
+                {% endif %}
+                {% if loop.last %}
+            }
+                {% endif %}
+            {% endfor %}
+            
+            // Crear un mapa de fecha -> porcentaje para este dataset
+            const dataMap = {};
+            originalData.forEach(item => {
+                dataMap[item.fecha] = item.porcentaje;
+            });
+            
+            // Mapear los datos a las etiquetas unificadas
+            const adjustedData = labels.map(label => {
+                return dataMap[label] !== undefined ? dataMap[label] : null;
+            });
+            
+            return {
+                ...dataset,
+                data: adjustedData
+            };
+        });
+        
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: adjustedDatasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Porcentaje de Ocupación (%)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Días del Período'
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Comparación de Ocupación Diaria por Año'
+                    },
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    {% endif %}
+</script>
+{% endblock %}

@@ -115,15 +115,6 @@ $('#agregarItem').click(function () {
     //$('.predictivo').chosen();
 });
 
-$('#eliminarItem').click(function () {
-    let rows = $('#tabla-imputar tr:not(#rowOriginal, .indicacionesMesAnterior)');
-    if (rows.length > 0) {
-        rowCount --;
-        console.log(rowCount);
-        rows.last().remove();
-    }
-});
-
 $('#verIndMesAnt').click(function () {
     $('.indicacionesMesAnterior').show();
     $('#verIndMesAnt').hide();

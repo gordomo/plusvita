@@ -1,0 +1,66 @@
+/* Estilos para la sección de Indicaciones Médicas */
+.indicaciones-resumen-container {
+    padding: 15px;
+}
+
+.indicaciones-resumen-container table {
+    font-size: 14px;
+}
+
+.indicaciones-resumen-container .table th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.indicacion-notas {
+    max-height: 100px;
+    overflow-y: auto;
+    padding: 5px 0;
+    margin-bottom: 5px;
+    border-bottom: 1px dashed #e0e0e0;
+}
+
+.indicaciones-resumen-container .badge {
+    font-size: 85%;
+    padding: 5px 8px;
+}
+
+.indicaciones-resumen-container .badge-success {
+    background-color: #28a745;
+}
+
+.indicaciones-resumen-container .badge-secondary {
+    background-color: #6c757d;
+}
+
+.indicaciones-resumen-container .badge-info {
+    background-color: #17a2b8;
+}
+
+.card-header.bg-info {
+    background-color: #17a2b8 !important;
+}
+
+@media print {
+    .indicaciones-imprimir {
+        page-break-inside: avoid;
+        margin-bottom: 20px;
+    }
+    
+    .indicaciones-resumen-container table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+    
+    .indicaciones-resumen-container th,
+    .indicaciones-resumen-container td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+    
+    .indicacion-notas {
+        max-height: none;
+        overflow-y: visible;
+    }
+}

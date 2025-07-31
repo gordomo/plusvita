@@ -71,6 +71,30 @@
             border-bottom: 2px solid #007bff;
             background-color: #f8f9fa;
         }
+        
+        /* Estilos para el segundo nivel de agrupación */
+        .border-bottom {
+            border-bottom: 1px solid #dee2e6 !important;
+        }
+        
+        .border-bottom:last-child {
+            border-bottom: none !important;
+        }
+        
+        /* Hover effect para los grupos de nombres */
+        [role="button"][data-toggle="collapse"]:hover {
+            background-color: #e9ecef !important;
+        }
+        
+        /* Estilos para las tablas anidadas */
+        .table-responsive .table {
+            margin-bottom: 0;
+        }
+        
+        .table-responsive .table td {
+            padding: 0.5rem;
+            vertical-align: middle;
+        }
     </style>
 {% endblock %}
 
@@ -197,8 +221,10 @@
     {# Mostrar los grupos por tipo #}
     {% for tipo, grupos in gruposTipo %}
         {% set totalItems = 0 %}
-        {% for grupo in grupos %}
-            {% set totalItems = totalItems + grupo.cantidad %}
+        {% for item in items %}
+            {% if item.Tipo and item.Tipo.nombre == tipo %}
+                {% set totalItems = totalItems + 1 %}
+            {% endif %}
         {% endfor %}
         {% set tipoId = 'tipo-' ~ loop.index %}
         <div class="card mb-4 tipo-card">
@@ -213,45 +239,98 @@
             </div>
             <div class="collapse" id="{{ tipoId }}">
                 <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0 border-top-0">
-                            <thead class="thead-light">
-                                <tr>
-                                    <th class="pl-3">Imagen</th>
-                                    <th>Cantidad</th>
-                                    <th>Detalles</th>
-                                    <th>Ubicación</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for grupo in grupos %}
-                                    <tr>
-                                        <td>
-                                            {% set primerDetalle = grupo.detalles[0] %}
-                                            {% set primerItem = items|filter(i => i.nombre == primerDetalle and (i.ubicacionActual and i.ubicacionActual.nombre == grupo.ubicacion) and (i.Tipo and i.Tipo.nombre == grupo.tipo))|first %}
-                                            {% if primerItem and primerItem.imagen %}
-                                                <img src="{{ asset('uploads/items/imagenes/' ~ primerItem.imagen) }}" alt="{{ primerItem.nombre }}" class="img-thumbnail" style="max-width: 50px;">
-                                            {% else %}
-                                                <span class="badge badge-secondary">Sin imagen</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>{{ grupo.cantidad }}</td>
-                                        <td>{{ grupo.detalles|join(', ') }}</td>
-                                        <td>
-                                            {% set ubicacionObj = ubicaciones|filter(u => u.nombre == grupo.ubicacion)|first %}
-                                            {% if ubicacionObj %}
-                                                <a href="{{ path('app_item_index_ubicacion', { ubicacion: ubicacionObj.id }) }}">
-                                                    {{ grupo.ubicacion }}
-                                                </a>
-                                            {% else %}
-                                                {{ grupo.ubicacion }}
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                    {# Agrupar items por nombre dentro de cada tipo #}
+                    {% set itemsPorNombre = {} %}
+                    {% for item in items %}
+                        {% if item.Tipo and item.Tipo.nombre == tipo %}
+                            {% set nombreItem = item.nombre %}
+                            {% if itemsPorNombre[nombreItem] is not defined %}
+                                {% set itemsPorNombre = itemsPorNombre|merge({(nombreItem): []}) %}
+                            {% endif %}
+                            {% set itemsPorNombre = itemsPorNombre|merge({(nombreItem): itemsPorNombre[nombreItem]|merge([item])}) %}
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {# Mostrar grupos por nombre #}
+                    {% for nombreItem, itemsDelNombre in itemsPorNombre %}
+                        {% set cantidadItems = itemsDelNombre|length %}
+                        {% set nombreId = tipoId ~ '-nombre-' ~ loop.index %}
+                        
+                        <div class="border-bottom">
+                            <div class="d-flex justify-content-between align-items-center py-2 px-3" 
+                                 role="button" data-toggle="collapse" data-target="#{{ nombreId }}" 
+                                 aria-expanded="false" aria-controls="{{ nombreId }}" 
+                                 style="cursor: pointer; background-color: #f8f9fa;">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-caret-right mr-2"></i>
+                                    <strong>{{ nombreItem }}</strong>
+                                </div>
+                                <span class="badge badge-secondary">{{ cantidadItems }} unidades</span>
+                            </div>
+                            
+                            <div class="collapse" id="{{ nombreId }}">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead class="thead-light">
+                                            <tr>
+                                                <th class="pl-3">Imagen</th>
+                                                <th>Identificador</th>
+                                                <th>Cantidad</th>
+                                                <th>Ubicación</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for item in itemsDelNombre %}
+                                                <tr>
+                                                    <td class="pl-3">
+                                                        {% if item.imagen %}
+                                                            <img src="{{ asset('uploads/items/imagenes/' ~ item.imagen) }}" alt="{{ item.nombre }}" class="img-thumbnail" style="max-width: 50px;">
+                                                        {% else %}
+                                                            <span class="badge badge-secondary">Sin imagen</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if item.identificador %}
+                                                            <code>{{ item.identificador }}</code>
+                                                        {% else %}
+                                                            <span class="text-muted">Sin identificador</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge badge-info">{{ item.cantidad ?? 1 }}</span>
+                                                    </td>
+                                                    <td>
+                                                        {% if item.ubicacionActual %}
+                                                            <a href="{{ path('app_item_index_ubicacion', { ubicacion: item.ubicacionActual.id }) }}" class="text-decoration-none">
+                                                                <i class="fas fa-map-marker-alt text-primary"></i> {{ item.ubicacionActual.nombre }}
+                                                            </a>
+                                                        {% else %}
+                                                            <span class="text-muted">Sin ubicación</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        <div class="btn-group" role="group">
+                                                            <a href="{{ path('app_item_show', {'id': item.id}) }}" class="btn btn-sm btn-outline-info" title="Ver detalle">
+                                                                <i class="fas fa-eye"></i>
+                                                            </a>
+                                                            <a href="{{ path('app_item_edit', {'id': item.id}) }}" class="btn btn-sm btn-outline-warning" title="Editar">
+                                                                <i class="fas fa-edit"></i>
+                                                            </a>
+                                                            <button type="button" class="btn btn-sm btn-outline-primary" title="Mover" 
+                                                                    onclick="openMoveModal({{ item.id }}, '{{ item.nombre|e('js') }}', {{ item.cantidad ?? 1 }})">
+                                                                <i class="fas fa-arrows-alt"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -259,6 +338,47 @@
         <div class="alert alert-info">No hay ítems disponibles</div>
     {% endfor %}
 </div>
+
+{# Modal para mover items #}
+<div class="modal fade" id="moveModal" tabindex="-1" aria-labelledby="moveModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" id="moveForm">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="moveModalLabel">Mover Item</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="item_id" id="moveItemId">
+                    <p>Nombre: <strong id="moveItemName"></strong></p>
+                    <p>Cantidad disponible: <strong id="moveItemQuantity"></strong></p>
+                    
+                    <div class="form-group">
+                        <label for="newQuantity">Cantidad a mover:</label>
+                        <input type="number" class="form-control" id="newQuantity" name="quantity" min="1" value="1" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="newLocation">Nueva ubicación:</label>
+                        <select class="form-control" id="newLocation" name="location" required>
+                            <option value="">Seleccione una ubicación</option>
+                            {% for ubicacion in ubicaciones %}
+                                <option value="{{ ubicacion.id }}">{{ ubicacion.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Mover</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Si quieres mantener la tabla original, puedes dejarla debajo o comentarla -->
 {# ...tabla original aquí si se desea... #}
 {% endblock %}
@@ -309,7 +429,7 @@
                 }
             });
             
-            // Manejar el cambio al hacer clic
+            // Manejar el cambio al hacer clic en headers de tipo
             $('.card-header').on('click', function() {
                 var icon = $(this).find('i.fas');
                 if (icon.hasClass('fa-caret-down')) {
@@ -318,7 +438,35 @@
                     icon.removeClass('fa-caret-right').addClass('fa-caret-down');
                 }
             });
+            
+            // Manejar el cambio al hacer clic en headers de nombre (segundo nivel)
+            $('[role="button"][data-toggle="collapse"]').on('click', function() {
+                // Solo para los elementos que no son card-header (segundo nivel)
+                if (!$(this).hasClass('card-header')) {
+                    var icon = $(this).find('i.fas');
+                    if (icon.hasClass('fa-caret-down')) {
+                        icon.removeClass('fa-caret-down').addClass('fa-caret-right');
+                    } else {
+                        icon.removeClass('fa-caret-right').addClass('fa-caret-down');
+                    }
+                }
+            });
         });
+        
+        // Función para abrir el modal de mover item
+        function openMoveModal(itemId, itemName, itemQuantity) {
+            document.getElementById('moveItemId').value = itemId;
+            document.getElementById('moveItemName').textContent = itemName;
+            document.getElementById('moveItemQuantity').textContent = itemQuantity;
+            document.getElementById('newQuantity').value = 1;
+            document.getElementById('newQuantity').max = itemQuantity;
+            document.getElementById('newLocation').value = '';
+            
+            // Establecer la acción del formulario con el ID del item
+            document.getElementById('moveForm').action = '/item/' + itemId + '/move';
+            
+            $('#moveModal').modal('show');
+        }
         
         function getHtmlToPrint(checkboxes, conHead) {
             let htmlToPrint = '<table border="1">';

@@ -169,7 +169,10 @@
                     <td class="fEgreso">{{ cliente.fEgreso ? cliente.fEgreso|date('d/m/Y') : '' }}</td>
                     <td class="motivoEgr">{{ cliente.motivoEgr }}</td>
                     <td class="obraSocial">
-                        {{ cliente.obraSocial.nombre }}
+                        {% set obraSocialNombre = cliente.obraSocial.nombre %}
+                        <span data-toggle="tooltip" data-placement="top" title="{{ obraSocialNombre }}" style="cursor: help;">
+                            {{ obraSocialNombre|length > 15 ? obraSocialNombre|slice(0, 15) ~ '...' : obraSocialNombre }}
+                        </span>
                     </td>
                     <td class="obraSocialAfiliado">{{ cliente.obraSocialAfiliado }}</td>
                     {#<td class="tipoDePago">{{ cliente.tipoDePago }}</td>#}
@@ -235,12 +238,12 @@
                                 <a class="dropdown-item" href="{{ path('historia_ingreso_new', {'cliente': cliente.id}) }}">
                                     <i class="far fa-calendar-alt" data-toggle="tooltip" data-placement="top" title="historia"></i> Historia de Ingreso
                                 </a>
-                                <a class="dropdown-item" href="{{ path('consumible_indicar_view', {'id': cliente.id}) }}">
+                                {# <a class="dropdown-item" href="{{ path('consumible_indicar_view', {'id': cliente.id}) }}">
                                     <i class="fas fa-band-aid" data-toggle="tooltip" data-placement="top" title="consumible"></i> Cargar Indicación
-                                </a>
-                                <a class="dropdown-item" href="{{ path('prescripcion_new', {'id': cliente.id}) }}">
+                                </a> #}
+                                {# <a class="dropdown-item" href="{{ path('prescripcion_new', {'id': cliente.id}) }}">
                                     <i class="fas fa-user-nurse" data-toggle="tooltip" data-placement="top" title="Prescripciones"></i> Prescripciones
-                                </a>
+                                </a> #}
                                 <a class="dropdown-item" href="{{ path('informe_mensual_new', {'cliente': cliente.id}) }}">
                                     <i class="fas fa-file-medical-alt" data-toggle="tooltip" data-placement="top" title="Informe Mensual"></i> Generar Informe Mensual
                                 </a>
@@ -457,6 +460,11 @@
         {{ parent() }}
         <script src="{{ asset('assets/js/cliente.js') }}"></script>
         <script>
+            // Inicializar tooltips
+            $(document).ready(function() {
+                $('[data-toggle="tooltip"]').tooltip();
+            });
+            
             var tituloExcel = 'clientes.xlsx';
         </script>
     {% endblock %}

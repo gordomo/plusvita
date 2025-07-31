@@ -169,10 +169,7 @@ class HabitacionController extends AbstractController
             $esHabitacionPrivada = count($pacientesEnHabitacion) > 0;
         }
         
-        // Agregar la opción "sin cama" (n_cama = 0) solo si es habitación privada o el cliente ya lo tiene
-        if ($esHabitacionPrivada || ($cliente->getNCama() === '0' && $cliente->getHabitacion() == $id)) {
-            $camasDispArray['sin cama'] = 0;
-        }
+        // Ya no agregamos la opción "sin cama" porque queremos forzar la selección de una cama válida
         
         // Agregar camas físicas disponibles (1 a n)
         for ($i = 1; $i <= $cantCamas; $i++) {
