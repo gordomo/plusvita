@@ -44,7 +44,7 @@
                 <a href="{{ path('cliente_historial', {'id': cliente.id}) }}" class="btn btn-sm btn-secondary">
                     <i class="fas fa-arrow-left"></i> Volver a Historia Clínica
                 </a>
-                {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_DOCTOR') %}
+                {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_DOCTOR') or (is_granted('ROLE_STAFF') and (isDoctor is defined and isDoctor)) %}
                     <a href="{{ path('consumible_indicar_view', {'id': cliente.id}) }}" class="btn btn-sm btn-primary">
                         <i class="fas fa-plus"></i> Nueva Indicación
                     </a>
@@ -185,7 +185,7 @@
             {% else %}
                 <div class="cardex-empty">
                     No se encontraron indicaciones con los filtros seleccionados
-                    {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_DOCTOR') %}
+                    {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_DOCTOR') or (is_granted('ROLE_STAFF') and (isDoctor is defined and isDoctor)) %}
                         <div class="mt-3">
                             <a href="{{ path('consumible_indicar_view', {'id': cliente.id}) }}" class="btn btn-primary">
                                 <i class="fas fa-plus"></i> Agregar nueva indicación

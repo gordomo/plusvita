@@ -238,6 +238,9 @@
                                 <a class="dropdown-item" href="{{ path('historia_ingreso_new', {'cliente': cliente.id}) }}">
                                     <i class="far fa-calendar-alt" data-toggle="tooltip" data-placement="top" title="historia"></i> Historia de Ingreso
                                 </a>
+                                <a class="dropdown-item" href="{{ path('consumible_indicar_view', {'id': cliente.id}) }}">
+                                    <i class="fas fa-pills"></i> Indicaciones
+                                </a>
                                 {# <a class="dropdown-item" href="{{ path('consumible_indicar_view', {'id': cliente.id}) }}">
                                     <i class="fas fa-band-aid" data-toggle="tooltip" data-placement="top" title="consumible"></i> Cargar Indicación
                                 </a> #}

@@ -1158,16 +1158,6 @@ $(document).ready(function () {
         e.stopPropagation();
     });
     
-    // Agregar un botón para limpiar selección de obras sociales
-    if ($('#obraSocial').next('.clear-selection-btn').length === 0) {
-        $('<button type="button" class="btn btn-sm btn-outline-secondary clear-selection-btn mt-1 mb-2">Limpiar selección</button>')
-            .insertAfter('#obraSocial')
-            .on('click', function() {
-                $('#obraSocial option:selected').prop('selected', false);
-                actualizarFiltrosActivos();
-            });
-    }
-    
     // Función para mostrar los filtros activos como badges
     function actualizarFiltrosActivos() {
         const $filtrosActivos = $('#filtros-activos');
