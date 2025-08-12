@@ -152,7 +152,7 @@
                         <div class="row mt-3">
                             <div class="col-md-12">
                                 <h5>Estado Actual</h5>
-                                <div class="p-3 bg-light">{{ informeMensual.estadoActual|raw }}</div>
+                                <div class="p-3 bg-light" style="white-space: pre-line;">{{ informeMensual.estadoActual|nl2br|raw }}</div>
                             </div>
                         </div>
                         {% endif %}

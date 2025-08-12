@@ -103,6 +103,10 @@ class InformeMensualController extends AbstractController
         $informeMensual->setCliente($cliente);
         $informeMensual->setDoctor($doctor);
         
+        // Generar información automática del estado actual del paciente
+        $estadoActualSugerido = $this->generarEstadoActualPaciente($cliente);
+        $informeMensual->setEstadoActual($estadoActualSugerido);
+        
         $form = $this->createForm(InformeMensualType::class, $informeMensual);
         $form->handleRequest($request);
 
@@ -206,5 +210,119 @@ class InformeMensualController extends AbstractController
                 'Content-Disposition' => 'attachment; filename="' . $filename . '"'
             ]
         );
+    }
+    
+    /**
+     * Genera automáticamente la información del estado actual del paciente
+     */
+    private function generarEstadoActualPaciente(Cliente $cliente): string
+    {
+        $estadoActual = [];
+        
+        // 1. Estado de modalidad del paciente
+        $modalidad = $cliente->getModalidad();
+        switch ($modalidad) {
+            case 1:
+                $estadoActual[] = "• Modalidad: Ambulatorio";
+                break;
+            case 2:
+                $estadoActual[] = "• Modalidad: Internación";
+                if ($cliente->getHabitacion()) {
+                    $entityManager = $this->getDoctrine()->getManager();
+                    $habitacion = $entityManager->getRepository(\App\Entity\Habitacion::class)->find($cliente->getHabitacion());
+                    if ($habitacion) {
+                        $estadoActual[] = "  - Habitación: " . $habitacion->getNombre() . ", Cama: " . ($cliente->getNCama() ?: 'No asignada');
+                    }
+                }
+                break;
+            case 3:
+                $estadoActual[] = "• Modalidad: Hospital de día";
+                break;
+            case 4:
+                $estadoActual[] = "• Modalidad: ART";
+                break;
+            default:
+                $estadoActual[] = "• Modalidad: No definida";
+        }
+        
+        // 2. Estados especiales
+        if ($cliente->getDerivado()) {
+            $estadoActual[] = "• Estado: Derivado";
+            if ($cliente->getDerivadoEn()) {
+                $estadoActual[] = "  - Derivado en: " . $cliente->getDerivadoEn();
+            }
+            if ($cliente->getFechaDerivacion()) {
+                $estadoActual[] = "  - Fecha de derivación: " . $cliente->getFechaDerivacion()->format('d/m/Y');
+            }
+            if ($cliente->getMotivoDerivacion()) {
+                $estadoActual[] = "  - Motivo: " . $cliente->getMotivoDerivacion();
+            }
+        }
+        
+        if ($cliente->getDePermiso()) {
+            $estadoActual[] = "• Estado: De permiso";
+            if ($cliente->getFechaBajaPorPermiso()) {
+                $estadoActual[] = "  - Desde: " . $cliente->getFechaBajaPorPermiso()->format('d/m/Y');
+            }
+            if ($cliente->getFechaAltaPorPermiso()) {
+                $estadoActual[] = "  - Hasta: " . $cliente->getFechaAltaPorPermiso()->format('d/m/Y');
+            }
+        }
+        
+        if ($cliente->getFEgreso()) {
+            $estadoActual[] = "• Estado: Egresado";
+            $estadoActual[] = "  - Fecha de egreso: " . $cliente->getFEgreso()->format('d/m/Y');
+            if ($cliente->getMotivoEgr()) {
+                $estadoActual[] = "  - Motivo: " . $cliente->getMotivoEgr();
+            }
+        }
+        
+        // 3. Disponibilidad para terapia
+        if ($cliente->getDisponibleParaTerapia() !== null) {
+            $disponible = $cliente->getDisponibleParaTerapia() ? "Sí" : "No";
+            $estadoActual[] = "• Disponible para terapia: " . $disponible;
+        }
+        
+        // 4. Obra social
+        if ($cliente->getObraSocial()) {
+            $estadoActual[] = "• Obra Social: " . $cliente->getObraSocial()->getNombre();
+            if ($cliente->getObraSocialAfiliado()) {
+                $estadoActual[] = "  - N° Afiliado: " . $cliente->getObraSocialAfiliado();
+            }
+        }
+        
+        // 5. Médico referente
+        if ($cliente->getDocReferente() && count($cliente->getDocReferente()) > 0) {
+            $doctores = [];
+            foreach ($cliente->getDocReferente() as $doctor) {
+                $doctores[] = $doctor->getNombre() . ' ' . $doctor->getApellido();
+            }
+            $estadoActual[] = "• Médico/s referente/s: " . implode(', ', $doctores);
+        }
+        
+        // 6. Fecha de ingreso
+        if ($cliente->getFIngreso()) {
+            $estadoActual[] = "• Fecha de ingreso: " . $cliente->getFIngreso()->format('d/m/Y');
+        }
+        
+        // 7. Patología actual
+        if ($cliente->getMotivoIng()) {
+            $patologias = [
+                1 => 'Neurológicas',
+                2 => 'Traumatológicas', 
+                3 => 'Respiratorias',
+                4 => 'Paliativos',
+                5 => 'Patologías laborales'
+            ];
+            if (isset($patologias[$cliente->getMotivoIng()])) {
+                $estadoActual[] = "• Patología: " . $patologias[$cliente->getMotivoIng()];
+            }
+        }
+        
+        // 8. Agregar fecha de generación
+        $estadoActual[] = "";
+        $estadoActual[] = "Estado generado automáticamente el " . (new \DateTime())->format('d/m/Y H:i');
+        
+        return implode("\n", $estadoActual);
     }
 }

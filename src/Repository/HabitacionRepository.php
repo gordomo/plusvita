@@ -124,14 +124,9 @@ class HabitacionRepository extends ServiceEntityRepository
 
         $camasTotales = $habitacion->getCamasDisponibles();
         $estadoCamas = $habitacion->getCamasOcupadas();
-        $camasOcupadas = 0;
-
-        // Contar las camas ocupadas en la columna JSON
-        foreach ($estadoCamas as $estado) {
-            if (!empty($estado) && $estado !== "0") {
-                $camasOcupadas++;
-            }
-        }
+        
+        // Contar las camas ocupadas usando el mismo método que el listado de habitaciones
+        $camasOcupadas = $estadoCamas ? count($estadoCamas) : 0;
 
         // Calcular las camas disponibles
         $camasDisponibles = $camasTotales - $camasOcupadas;
