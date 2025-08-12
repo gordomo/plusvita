@@ -58,20 +58,35 @@
         if ($('.js-datepicker').length > 0) {
             $('.js-datepicker').datepicker({
                 format: 'dd/mm/yyyy',
-                language: 'es',
-                autoclose: true
+                autoclose: true,
+                todayHighlight: true
             });
         }
         
-        // Si hay campos de texto enriquecido, inicializar editor si summernote está disponible
-        if ($('textarea').length > 0 && typeof $.fn.summernote !== 'undefined') {
-            $('textarea').summernote({
-                height: 100,
-                toolbar: [
-                    ['style', ['bold', 'italic', 'underline', 'clear']],
-                    ['font', ['strikethrough']],
-                    ['para', ['ul', 'ol']]
-                ]
+        // Agregar funcionalidad para el campo de estado actual
+        const estadoActualField = $('#informe_mensual_estadoActual');
+        if (estadoActualField.length > 0) {
+                    
+            // Manejar el clic del botón regenerar
+            $('#regenerarEstadoActual').on('click', function() {
+                if (confirm('¿Está seguro de que desea regenerar la información del estado actual? Esto sobrescribirá cualquier cambio que haya realizado.')) {
+                    // Recargar la página para obtener información fresca
+                    window.location.reload();
+                }
+            });
+            
+            // Agregar indicador visual cuando el campo ha sido modificado
+            let contenidoOriginal = estadoActualField.val();
+            estadoActualField.on('input', function() {
+                if ($(this).val() !== contenidoOriginal) {
+                    $(this).addClass('border-warning');
+                    if (!$(this).next('.campo-modificado').length) {
+                        $(this).after('<small class="text-warning campo-modificado"><i class="fas fa-edit"></i> Campo modificado manualmente</small>');
+                    }
+                } else {
+                    $(this).removeClass('border-warning');
+                    $(this).next('.campo-modificado').remove();
+                }
             });
         }
     });
