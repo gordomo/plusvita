@@ -374,6 +374,18 @@ class ClienteController extends AbstractController
         $fechaDesde = $from ? new \DateTime($from . ' 00:00:00') : null;
         $fechaHasta = $to ? new \DateTime($to . ' 23:59:59') : null;
 
+        // Debug para verificar el rango de fechas y los parámetros recibidos
+        file_put_contents('/tmp/debug_parametros.log', 
+            "Fecha desde: " . ($fechaDesde ? $fechaDesde->format('Y-m-d H:i:s') : 'NULL') . PHP_EOL . 
+            "Fecha hasta: " . ($fechaHasta ? $fechaHasta->format('Y-m-d H:i:s') : 'NULL') . PHP_EOL .
+            "Modalidad: " . $modalidad . PHP_EOL .
+            "Nombre: " . ($nombre ? $nombre : 'NULL') . PHP_EOL .
+            "Profesional: " . ($prof ? $prof : 'NULL') . PHP_EOL .
+            "Obra Social: " . ($obraSocial ? (is_array($obraSocial) ? implode(',', $obraSocial) : $obraSocial) : 'NULL') . PHP_EOL .
+            "HC: " . ($hc ? $hc : 'NULL') . PHP_EOL .
+            PHP_EOL
+        );
+
         // Inicializar arrays para almacenar resultados
         $totalDia = [];
         $internados = [];
@@ -389,6 +401,20 @@ class ClienteController extends AbstractController
         $clientesData = []; // Array para guardar datos de clientes
         
         if ($from && $to) {
+            // IMPORTANTE: Verificar que las fechas son válidas para Agosto 2025
+            // Si no se especificó fecha, usar el mes actual (Agosto 2025)
+            if (!$from || !$to) {
+                $fechaDesde = new \DateTime('2025-08-01 00:00:00');
+                $fechaHasta = new \DateTime('2025-08-31 23:59:59');
+            }
+            
+            // Debug fecha
+            file_put_contents('/tmp/debug_fechas_corregidas.log', 
+                "Fechas corregidas - Desde: " . $fechaDesde->format('Y-m-d H:i:s') . 
+                ", Hasta: " . $fechaHasta->format('Y-m-d H:i:s') . PHP_EOL,
+                FILE_APPEND
+            );
+            
             // Limitar fecha hasta a fin de día de hoy si es mayor
             if ($fechaHasta > new \DateTime()) {
                 $fechaHasta = new \DateTime('today 23:59:59');
@@ -406,6 +432,31 @@ class ClienteController extends AbstractController
 
             // Obtener todas las historias que coincidan con los filtros
             $historias = $historiaPacienteRepository->getHistoricoDesdeHasta($fechaDesde, $fechaHasta, $nombre, $modalidad, $obraSocial, $prof, $hc);
+            
+            // Debug para registrar cuántas historias se encontraron
+            file_put_contents('/tmp/debug_consultas.log', 
+                "Total historias encontradas: " . count($historias) . PHP_EOL .
+                "Modalidades de las historias: " . PHP_EOL,
+                FILE_APPEND
+            );
+            
+            // Contar modalidades
+            $conteoModalidades = [];
+            foreach ($historias as $historia) {
+                $mod = $historia->getModalidad();
+                if (!isset($conteoModalidades[$mod])) {
+                    $conteoModalidades[$mod] = 0;
+                }
+                $conteoModalidades[$mod]++;
+            }
+            
+            // Registrar el conteo de modalidades
+            foreach ($conteoModalidades as $mod => $cantidad) {
+                file_put_contents('/tmp/debug_consultas.log', 
+                    "Modalidad $mod: $cantidad pacientes" . PHP_EOL,
+                    FILE_APPEND
+                );
+            }
             
             // Cargar todos los doctores para evitar consultas repetidas
             $todosDoctores = $doctorRepository->findAll();
@@ -456,11 +507,32 @@ class ClienteController extends AbstractController
                 $clientesIds = array_keys($clientesIdsInvolucrados);
                 $datosPresentes = $presentesRepository->getPresentes($clientesIds, $fechaDesde, $fechaHasta);
                 
+                // Debug para ver cuántos registros de presencia se encontraron
+                file_put_contents('/tmp/debug_consultas.log', 
+                    "Total registros de presencia: " . count($datosPresentes) . PHP_EOL,
+                    FILE_APPEND
+                );
+                
+                // Contador para valores true/1 (presentes)
+                $conteoPresentes = 0;
+                
                 foreach ($datosPresentes as $presente) {
                     $clienteId = $presente->getPaciente()->getId();
                     $fechaStr = $presente->getFecha()->format('d/m/Y');
-                    $presentes[$clienteId][$fechaStr] = $presente->getValor();
+                    $valor = $presente->getValor();
+                    $presentes[$clienteId][$fechaStr] = $valor;
+                    
+                    // Contar los valores que indican presencia
+                    if ($valor === true || $valor === 1 || $valor === '1') {
+                        $conteoPresentes++;
+                    }
                 }
+                
+                // Registrar cuántos están marcados como presentes
+                file_put_contents('/tmp/debug_consultas.log', 
+                    "Registros marcados como presente (true/1/'1'): " . $conteoPresentes . PHP_EOL,
+                    FILE_APPEND
+                );
             }
             
             // Cargar todos los clientes involucrados de una sola vez para evitar consultas repetidas
@@ -530,19 +602,9 @@ class ClienteController extends AbstractController
                     }
                     // Si tiene una modalidad ambulatoria (no es internación)
                     else if ($historia->getModalidad() != 2) {
-                        // Para ambulatorios, verificamos la presencia explícitamente
-                        // En caso de 1141 (Liz Marisol Benitez) solo contamos del 1 al 6 de julio
-                        // En caso de 1559 (sin asignar) solo contamos del 1 al 4 de julio
-                        $fechaLimite = new \DateTime('2025-07-31'); // Por defecto, último día del mes
-                        
-                        // Restricciones por paciente
-                        if ($clienteId == '1141') {
-                            $fechaLimite = new \DateTime('2025-07-06'); // Solo hasta el 6 de julio
-                        } else if ($clienteId == '1559') {
-                            $fechaLimite = new \DateTime('2025-07-04'); // Solo hasta el 4 de julio
-                        }
-                        
-                        if ($estaPresenteHoy === true && $fecha <= $fechaLimite) {
+                        // Para ambulatorios: SOLO mostrar si están explícitamente marcados como presentes
+                        // Esto asegura que solo se muestren los días con registros en la tabla presentes
+                        if ($estaPresenteHoy === true || $estaPresenteHoy === 1 || $estaPresenteHoy === '1') {
                             switch ($historia->getModalidad()) {
                                 case 1:
                                     $texto = 'Ambulatorio';
@@ -562,7 +624,7 @@ class ClienteController extends AbstractController
                                     break;
                             }
                         } else {
-                            // Si no hay registro de presencia o está marcado como false, lo saltamos
+                            // Si está explícitamente marcado como ausente o no cumple las condiciones, lo saltamos
                             continue; // Saltamos a la siguiente fecha
                         }
                     }
@@ -680,6 +742,18 @@ class ClienteController extends AbstractController
         foreach ($totales['sinModalidad'] as $data) {
             $sinModalidadCount += count($data);
         }
+        
+        // Debug para verificar los resultados finales
+        file_put_contents('/tmp/debug_resultados.log', 
+            "=== RESULTADOS FINALES ===" . PHP_EOL .
+            "Internados: $internadosCount" . PHP_EOL .
+            "Ambulatorios: $ambulatoriosCount" . PHP_EOL .
+            "Derivados: $derivadosCount" . PHP_EOL .
+            "Egresos: $egresosCount" . PHP_EOL .
+            "Sin modalidad: $sinModalidadCount" . PHP_EOL .
+            "======================" . PHP_EOL,
+            FILE_APPEND
+        );
 
         $docReferentes = $doctorRepository->findByContratos(['Fisiatra', 'Director medico', 'Sub director medico'], false);
         
@@ -888,17 +962,9 @@ class ClienteController extends AbstractController
                         $fechaStrFormato = $fecha->format('d/m/Y');
                         $estaPresenteHoy = isset($presentes[$clienteId][$fechaStrFormato]) ? $presentes[$clienteId][$fechaStrFormato] : null;
                         
-                        // Restricción por paciente - aplicar límites de días
-                        $incluirFecha = true;
-                        if ($pacienteId == '1141' && $fecha > new \DateTime('2025-07-06')) {
-                            $incluirFecha = false; // Para Liz Marisol Benitez, solo hasta el 6 de julio
-                        } else if ($pacienteId == '1559' && $fecha > new \DateTime('2025-07-04')) {
-                            $incluirFecha = false; // Para el paciente sin asignar, solo hasta el 4 de julio
-                        }
-                        
                         // Evitar contar el mismo día más de una vez para el mismo paciente
                         // Y verificar si el paciente está presente (si hay un registro)
-                        if ($incluirFecha && !in_array($fechaStr, $diasAmbulatoriosPorPaciente[$pacienteId])) {
+                        if (!in_array($fechaStr, $diasAmbulatoriosPorPaciente[$pacienteId])) {
                             $diasAmbulatoriosPorPaciente[$pacienteId][] = $fechaStr;
                             $totalDiasAmbulatorio++;
                             $diasPeriodo++;
