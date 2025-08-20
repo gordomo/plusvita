@@ -1515,6 +1515,7 @@ class ClienteController extends AbstractController
                     'fechaIngreso' => $cliente->getFIngreso(),
                     'fechaEngreso' => $cliente->getFEgreso(),
                     'ambulatorio' => $cliente->getAmbulatorio(),
+                    'docReferente' => $cliente->getDocReferente(),
                 ];
 
                 $historial = $this->getHistorialActualizado($cliente, $parametros, $user);
@@ -2526,12 +2527,46 @@ class ClienteController extends AbstractController
         $ambulatorio = (isset($parametros['ambulatorio'])) ? $parametros['ambulatorio'] : (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getAmbulatorio() : null);
         $docReferente = null;
         if ((isset($parametros['docReferente']))) {
-            foreach ($parametros['docReferente'] as $doc) {
-                $docReferente[] = $doc->getId();
+            // Debug para ver el tipo de datos que se recibe
+            file_put_contents('/tmp/debug_doc_referente.log', 
+                "Tipo de docReferente: " . gettype($parametros['docReferente']) . PHP_EOL .
+                "Valor: " . print_r($parametros['docReferente'], true) . PHP_EOL,
+                FILE_APPEND
+            );
+            
+            // Si es un array de objetos Doctor, extraer los IDs
+            if (is_array($parametros['docReferente'])) {
+                foreach ($parametros['docReferente'] as $doc) {
+                    if (is_object($doc) && method_exists($doc, 'getId')) {
+                        $docReferente[] = $doc->getId();
+                    } elseif (is_numeric($doc)) {
+                        // Si ya es un ID numérico
+                        $docReferente[] = $doc;
+                    }
+                }
+            } 
+            // Si es una colección de Doctrine
+            elseif (is_object($parametros['docReferente']) && method_exists($parametros['docReferente'], 'toArray')) {
+                foreach ($parametros['docReferente']->toArray() as $doc) {
+                    $docReferente[] = $doc->getId();
+                }
             }
-            $docReferente = json_encode($docReferente);
+            
+            if ($docReferente !== null) {
+                $docReferente = json_encode($docReferente);
+                // Debug del resultado final
+                file_put_contents('/tmp/debug_doc_referente.log', 
+                    "JSON codificado: " . $docReferente . PHP_EOL . PHP_EOL,
+                    FILE_APPEND
+                );
+            }
         } else if (isset($ultimoHistorial[0])) {
             $docReferente = $ultimoHistorial[0]->getDocReferente();
+            // Debug cuando se usa el historial anterior
+            file_put_contents('/tmp/debug_doc_referente.log', 
+                "Usando valor del historial anterior: " . $docReferente . PHP_EOL . PHP_EOL,
+                FILE_APPEND
+            );
         }
 
         $historial->setCliente($cliente);
