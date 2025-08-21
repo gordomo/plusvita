@@ -417,4 +417,79 @@ class ItemController extends AbstractController
         $this->addFlash('success', 'El ítem ha sido movido correctamente a la ubicación ' . $ubicacion->getNombre());
         return $this->redirectToRoute('app_item_show', ['id' => $item->getId()]);
     }
+
+    /**
+     * @Route("/{id}/duplicate", name="app_item_duplicate", methods={"GET", "POST"})
+     */
+    public function duplicate(Request $request, Item $item, EntityManagerInterface $entityManager, BuilderInterface $qrCodeBuilder): Response
+    {
+        if ($request->isMethod('POST')) {
+            $cantidad = intval($request->request->get('cantidad', 1));
+            
+            if ($cantidad < 1) {
+                $this->addFlash('warning', 'La cantidad debe ser al menos 1.');
+                return $this->redirectToRoute('app_item_show', ['id' => $item->getId()]);
+            }
+            
+            $itemsCreados = 0;
+            
+            for ($i = 0; $i < $cantidad; $i++) {
+                $nuevoItem = new Item();
+                $nuevoItem->setNombre($item->getNombre());
+                $nuevoItem->setTipo($item->getTipo());
+                $nuevoItem->setUbicacionActual($item->getUbicacionActual());
+                
+                // Reusamos la misma imagen si existe
+                if ($item->getImagen()) {
+                    $nuevoItem->setImagen($item->getImagen());
+                }
+                
+                // Generamos un nuevo identificador agregando sufijo si el original tenía uno
+                if ($item->getIdentificador()) {
+                    $nuevoItem->setIdentificador($item->getIdentificador() . '-copia-' . ($i + 1));
+                }
+                
+                $nuevoItem->setCodigoQr('');
+                $entityManager->persist($nuevoItem);
+                
+                // Crear movimiento inicial
+                $movimiento = new Movimiento();
+                $movimiento->setItem($nuevoItem);
+                $movimiento->setFecha(new \DateTime());
+                $movimiento->setUbicacion($nuevoItem->getUbicacionActual());
+                $movimiento->setMotivo('Duplicado a partir del ítem #' . $item->getId());
+                $movimiento->setCantidad(1);
+                $entityManager->persist($movimiento);
+                
+                $itemsCreados++;
+            }
+            
+            $entityManager->flush();
+            
+            // Generar QR para cada nuevo ítem
+            $items = $entityManager->getRepository(Item::class)->findBy(['codigo_qr' => '']);
+            foreach ($items as $nuevoItem) {
+                $qrUrl = $this->generateUrl('app_item_show', ['id' => $nuevoItem->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
+                $qrFilename = 'qr-item-' . $nuevoItem->getId() . '.png';
+                $qrPath = $this->getParameter('items_qr_directory') . '/' . $qrFilename;
+                
+                $result = $qrCodeBuilder->data($qrUrl)
+                    ->size(200)
+                    ->margin(10)
+                    ->build();
+                
+                file_put_contents($qrPath, $result->getString());
+                $nuevoItem->setCodigoQr($qrFilename);
+            }
+            
+            $entityManager->flush();
+            
+            $this->addFlash('success', "Se han creado $itemsCreados copias del ítem correctamente.");
+            return $this->redirectToRoute('app_item_index');
+        }
+        
+        return $this->render('item/duplicate.html.twig', [
+            'item' => $item,
+        ]);
+    }
 }
