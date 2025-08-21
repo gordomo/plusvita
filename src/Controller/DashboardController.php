@@ -80,6 +80,16 @@ class DashboardController extends AbstractController
         $permisosHoy = $historiaPacienteRepository->getPacientesDePermisoPorMes(new \DateTime(), new \DateTime());
         $ReingresadosPermisosHoy = $historiaPacienteRepository->getPacientesReingresoDerivadosPorMes(new \DateTime(), new \DateTime());
         
+        // Calcular Estada Media y Rotación de Camas
+        $estadaMedia = $this->calcularEstadaMedia($clienteRepository, $startDate, $endDate);
+        
+        // Debug temporal - remover después
+        $numeroEgresos = count($egresosEsteMes);
+        $totalCamas = $infoHabitaciones['total']['total_camas'] ?? 0;
+        // Para debugging: puedes agregar un var_dump o error_log aquí si necesitas
+        
+        $rotacionCamas = $this->calcularRotacionCamas($numeroEgresos, $infoHabitaciones);
+        
         return $this->render('dashboard_new.html.twig',
             [
                 'dashboardActive' => 'active',
@@ -102,6 +112,8 @@ class DashboardController extends AbstractController
                 'reingresoPermisosEsteMes' => count($reingresoPermisosEsteMes),
                 'permisosHoy' => count($permisosHoy),
                 'ReingresadosPermisosHoy' => count($ReingresadosPermisosHoy),
+                'estadaMedia' => $estadaMedia,
+                'rotacionCamas' => $rotacionCamas,
             ]);
     }
 
@@ -349,5 +361,64 @@ class DashboardController extends AbstractController
         }
 
         return $osArray;
+    }
+
+    /**
+     * Calcula la estada media (días promedio de internación) para un período
+     */
+    private function calcularEstadaMedia(ClienteRepository $clienteRepository, \DateTime $startDate, \DateTime $endDate): float
+    {
+        // Obtener pacientes egresados en el período con sus fechas de ingreso y egreso
+        $entityManager = $this->getDoctrine()->getManager();
+        
+        try {
+            $sql = "SELECT 
+                        DATEDIFF(f_egreso, f_ingreso) + 1 as dias_estancia
+                    FROM cliente 
+                    WHERE f_egreso IS NOT NULL 
+                      AND f_egreso BETWEEN :start AND :end 
+                      AND f_ingreso IS NOT NULL
+                      AND f_ingreso <= f_egreso";
+            
+            $connection = $entityManager->getConnection();
+            $stmt = $connection->prepare($sql);
+            $stmt->bindValue('start', $startDate->format('Y-m-d H:i:s'));
+            $stmt->bindValue('end', $endDate->format('Y-m-d H:i:s'));
+            
+            $result = $stmt->executeQuery();
+            $estancias = $result->fetchAllAssociative();
+            
+            if (empty($estancias)) {
+                return 0.0;
+            }
+            
+            // Calcular el promedio de días de estancia
+            $totalDias = 0;
+            $totalPacientes = count($estancias);
+            
+            foreach ($estancias as $estancia) {
+                $totalDias += (int) $estancia['dias_estancia'];
+            }
+            
+            return $totalPacientes > 0 ? round($totalDias / $totalPacientes, 1) : 0.0;
+            
+        } catch (\Exception $e) {
+            // En caso de error, retornar 0
+            return 0.0;
+        }
+    }
+
+    /**
+     * Calcula la rotación de camas (número de egresos por cama disponible)
+     */
+    private function calcularRotacionCamas(int $numeroEgresos, array $infoHabitaciones): float
+    {
+        $totalCamas = $infoHabitaciones['total']['total_camas'] ?? 0;
+        
+        if ($totalCamas <= 0) {
+            return 0.0;
+        }
+        
+        return round($numeroEgresos / $totalCamas, 2);
     }
 }

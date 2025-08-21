@@ -56,10 +56,23 @@ class StatsController extends AbstractController
         // Datos para el panel de resumen con manejo de errores
         try {
             $totalHabitaciones = count($em->getRepository(Habitacion::class)->findAll());
-            $totalCamas = $em->createQuery('SELECT SUM(h.camasDisponibles) FROM App\Entity\Habitacion h')->getSingleScalarResult() ?: 0;
+            
+            // Usar capacidad según el año del período consultado
+            $year = (int)$startOfMonth->format('Y');
+            $totalCamas = $this->getCapacidadCamasSegunAno($year);
+            
+            // Para períodos actuales (2025+), verificar datos reales en BD
+            if ($year >= 2025) {
+                $camasActuales = $em->createQuery('SELECT SUM(h.camasDisponibles) FROM App\Entity\Habitacion h')->getSingleScalarResult() ?: 0;
+                if ($camasActuales > 0) {
+                    $totalCamas = $camasActuales;
+                }
+            }
         } catch (\Exception $e) {
             $totalHabitaciones = 0;
-            $totalCamas = 0;
+            // Usar capacidad por defecto según año
+            $year = (int)$startOfMonth->format('Y');
+            $totalCamas = $this->getCapacidadCamasSegunAno($year);
         }
         
         try {
@@ -268,6 +281,12 @@ class StatsController extends AbstractController
         // Obtener el período base desde la request o usar mes actual
         $fechaDesde = $request->query->get('fecha_desde');
         $fechaHasta = $request->query->get('fecha_hasta');
+        $anosComparacion = (int)$request->query->get('anos_comparacion', 3);
+        
+        // Validar que el número de años esté en un rango razonable
+        if ($anosComparacion < 2 || $anosComparacion > 10) {
+            $anosComparacion = 3;
+        }
         
         $currentMonth = (int)date('m');
         $currentYear = (int)date('Y');
@@ -289,11 +308,11 @@ class StatsController extends AbstractController
             $basePeriodEnd->modify('last day of this month 23:59:59');
         }
         
-        // Calcular los mismos períodos para los 3 años consecutivos
+        // Calcular los mismos períodos para los años solicitados
         $periodos = [];
         $year = (int)$basePeriodStart->format('Y');
         
-        for ($i = 0; $i < 3; $i++) {
+        for ($i = 0; $i < $anosComparacion; $i++) {
             $yearToCompare = $year - $i;
             
             // Crear las fechas para este año
@@ -335,7 +354,8 @@ class StatsController extends AbstractController
             'fechaDesde' => $basePeriodStart->format('Y-m-d'),
             'fechaHasta' => $basePeriodEnd->format('Y-m-d'),
             'currentMonth' => $currentMonth,
-            'currentYear' => $currentYear
+            'currentYear' => $currentYear,
+            'anosComparacion' => $anosComparacion
         ]);
     }
     
@@ -504,7 +524,7 @@ class StatsController extends AbstractController
                 $quarterStart = floor(($month - 1) / 3) * 3 + 1;
                 $startDate = new \DateTime("$year-$quarterStart-01");
                 $endDate = clone $startDate;
-                $endDate->modify('+2 months last day of month');
+                $endDate->modify('+2 months')->modify('last day of this month');
                 break;
             case 'anio':
                 $startDate = new \DateTime("$year-01-01");
@@ -715,6 +735,20 @@ class StatsController extends AbstractController
     }
     
     /**
+     * Determina la capacidad de camas según el año histórico
+     */
+    private function getCapacidadCamasSegunAno(int $year): int
+    {
+        if ($year <= 2023) {
+            return 30; // Desde inicio de actividades hasta 2024
+        } elseif ($year == 2024) {
+            return 40; // Entre 2024 y 2025
+        } else {
+            return 52; // Desde 2025 en adelante
+        }
+    }
+    
+    /**
      * Calcula la ocupación de camas por día para un período específico
      */
     private function getOcupacionPorDia(EntityManagerInterface $em, \DateTime $startDate = null, \DateTime $endDate = null): array
@@ -726,28 +760,34 @@ class StatsController extends AbstractController
             $endDate = new \DateTime();
         }
         
-        // Consulta directa SQL para obtener el total de camas disponibles
-        try {
-            $conn = $em->getConnection();
-            $sql = "SELECT SUM(camas_disponibles) as total FROM habitacion";
-            $stmt = $conn->prepare($sql);
-            $result = $stmt->executeQuery();
-            $totalCamas = (int)$result->fetchOne() ?: 0;
-            
-            // Si el resultado es NULL o 0, establecemos un valor predeterminado
-            if (!$totalCamas) {
-                $totalCamas = 52; // Valor predeterminado basado en la consulta previa
+        // Determinar la capacidad de camas según el año del período
+        $year = (int)$startDate->format('Y');
+        $totalCamas = $this->getCapacidadCamasSegunAno($year);
+        
+        // Solo usar la consulta a la BD para períodos actuales (2025+)
+        if ($year >= 2025) {
+            try {
+                $conn = $em->getConnection();
+                $sql = "SELECT SUM(camas_disponibles) as total FROM habitacion";
+                $stmt = $conn->prepare($sql);
+                $result = $stmt->executeQuery();
+                $camasActuales = (int)$result->fetchOne() ?: 0;
+                
+                // Si hay datos actuales válidos, usarlos para períodos actuales
+                if ($camasActuales > 0) {
+                    $totalCamas = $camasActuales;
+                }
+            } catch (\Exception $e) {
+                // Si hay un error, usar la capacidad histórica predeterminada
+                error_log('Error consultando camas actuales: ' . $e->getMessage());
             }
-        } catch (\Exception $e) {
-            // Si hay un error, asignamos un valor predeterminado
-            $totalCamas = 52; // Valor predeterminado
         }
         
         // Consultar el historial de habitaciones para el período usando SQL directo
         $historico = [];
         try {
             $conn = $em->getConnection();
-            $sql = "SELECT DATE(fecha) as fecha, COUNT(id) as ocupadas 
+            $sql = "SELECT DATE(fecha) as fecha, COUNT(DISTINCT cliente_id) as ocupadas 
                    FROM historia_habitaciones 
                    WHERE fecha BETWEEN :start AND :end 
                    GROUP BY DATE(fecha)";

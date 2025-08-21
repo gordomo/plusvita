@@ -493,7 +493,10 @@ class ClienteController extends AbstractController
                 
                 // Crear un rango de días para cada historia
                 $intervalHistoria = new DateInterval("P1D");
-                $rangoHistoria = new DatePeriod($fechaInicio, $intervalHistoria, $fechaFin);
+                // Agregar 1 día a fechaFin para incluir el último día en DatePeriod
+                $fechaFinInclusiva = clone $fechaFin;
+                $fechaFinInclusiva->add(new DateInterval("P1D"));
+                $rangoHistoria = new DatePeriod($fechaInicio, $intervalHistoria, $fechaFinInclusiva);
                 
                 foreach ($rangoHistoria as $fecha) {
                     $fechaStr = $fecha->format('d/m/Y');

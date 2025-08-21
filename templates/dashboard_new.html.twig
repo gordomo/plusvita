@@ -252,6 +252,49 @@
                         {% endif %}
                     </div>
                 {% endfor %}
+                
+                <!-- Indicadores Hospitalarios -->
+                <div class="row mt-4">
+                    <div class="col-12 mb-3">
+                        <h5 class="text-muted">
+                            <i class="fas fa-chart-bar"></i> Indicadores Hospitalarios
+                        </h5>
+                    </div>
+                    
+                               <!-- Estada Media -->
+           <div class="col-md-6 mb-3">
+               <div class="dashboard-card">
+                   <div class="dashboard-card-header bg-info text-white">
+                       <i class="fas fa-calendar-check"></i> Estada Media
+                   </div>
+                   <div class="dashboard-card-body">
+                       <div class="dashboard-value text-info">{{ estadaMedia|number_format(1) }}</div>
+                       <div class="dashboard-label">DÍAS PROMEDIO</div>
+                       <small class="text-muted mt-2 d-block">
+                           <i class="fas fa-info-circle"></i> 
+                           Promedio de días de internación por paciente egresado este mes.
+                       </small>
+                   </div>
+               </div>
+           </div>
+
+           <!-- Rotación de Camas -->
+           <div class="col-md-6 mb-3">
+               <div class="dashboard-card">
+                   <div class="dashboard-card-header bg-warning text-white">
+                       <i class="fas fa-sync-alt"></i> Rotación de Camas
+                   </div>
+                   <div class="dashboard-card-body">
+                       <div class="dashboard-value text-warning">{{ rotacionCamas|number_format(2) }}</div>
+                       <div class="dashboard-label">EGRESOS/CAMA MES</div>
+                       <small class="text-muted mt-2 d-block">
+                           <i class="fas fa-info-circle"></i> 
+                           Número de egresos por cada cama disponible este mes.
+                       </small>
+                   </div>
+               </div>
+           </div>
+                </div>
             </div>
             
             <!-- Sección de Ambulatorios -->
