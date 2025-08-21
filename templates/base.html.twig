@@ -124,7 +124,10 @@
 <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/rrule@5.2.0/main.global.min.js'></script>
 <script src="//cdn.ckeditor.com/4.24.0-lts/basic/ckeditor.js"></script>
 <script type="text/javascript">
-    let timeout = getCookie('timeout');
+    if (typeof timeout === 'undefined' || timeout === null) {
+        var timeout = getCookie('timeout');
+    }
+    
     if (timeout) {
         let text;
         if (window.confirm('La sesión se ha terminado por inactividad. Continuar usando el sistema?') === true) {

@@ -229,7 +229,7 @@
                         </div>
                         <div class="col-md-3 col-sm-6">
                             <label for="modalidad">Estado</label>
-                            <select class="form-control" name="modalidad" id="modalidad">
+                            <select class="form-control" name="modalidad" id="modalidad" autocomplete="off">
                                 <option value="0">Todos</option>
                                 <option value="2" {{ modalidad == 2 ? 'selected' : '' }}>Internados</option>
                                 <option value="1" {{ modalidad == 1 ? 'selected' : '' }}>Ambulatorios</option>
@@ -238,16 +238,16 @@
                         </div>
                         <div class="col-md-3 col-sm-6">
                             <label for="hc">Historia Clínica</label>
-                            <input class="form-control" type="text" id="hc" name="hc" value="{{ hc }}">
+                            <input class="form-control" type="text" id="hc" name="hc" value="{{ hc }}" autocomplete="off">
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-4 col-sm-6">
                             <label for="nombre">Nombre / Apellido</label>
-                            <input class="form-control" type="text" id="nombre" name="nombre" value="{{ nombre }}">
+                            <input class="form-control" type="text" id="nombre" name="nombre" value="{{ nombre }}" autocomplete="off">
                         </div>                        <div class="col-md-4 col-sm-6">
                             <label for="obraSocial">Obra Social <small>(Selección múltiple)</small></label>
-                            <select class="form-control predictivo" name="obraSocial[]" id="obraSocial" multiple>
+                            <select class="form-control predictivo" name="obraSocial[]" id="obraSocial" multiple autocomplete="off">
                                 {% for idObra, obra in obraSociales %}
                                     <option {{ obraSocial is defined and (obraSocial is iterable ? idObra in obraSocial : obraSocial == idObra) ? 'selected' : '' }} value="{{ idObra }}">{{ obra }}</option>
                                 {% endfor %}
@@ -255,7 +255,7 @@
                         </div>
                         <div class="col-md-4 col-sm-6">
                             <label for="prof">Profesional</label>
-                            <select class="form-control" name="prof" id="prof">
+                            <select class="form-control" name="prof" id="prof" autocomplete="off">
                                 <option value="">Seleccione un Profesional</option>
                                 {% for profesional in profesionales %}
                                     <option class="text-uppercase" {{ prof == profesional.id ? 'selected' : '' }} value="{{ profesional.id }}">{{ profesional.apellido }} {{ profesional.nombre }}</option>
@@ -443,7 +443,7 @@
                                             {% elseif 'Egreso' in pacienteData[fecha] %}state-egreso
                                             {% else %}state-sin-modalidad{% endif %}"
                                             data-toggle="tooltip" 
-                                            title="{{ pacienteData[fecha]|striptags }}">
+                                            title="{{ pacienteData[fecha]|replace({'<br>': '\n', '<small>': '', '</small>': '', '<b>': '', '</b>': ''})|striptags }}">
                                             {% set lineas = pacienteData[fecha]|split('<br>') %}
                                             {% set estado = lineas[0] %}
                                             <span class="estado-icon">
@@ -497,7 +497,7 @@
                                             <i class="fas fa-id-card-alt mr-1"></i>{{ clientesData[clienteId].obraSocialNombre|length > 18 ? clientesData[clienteId].obraSocialNombre|slice(0, 18) ~ '...' : clientesData[clienteId].obraSocialNombre }}
                                         </small>
                                         <br>
-                                        <div data-toggle="tooltip" title="{{ pacientes[clienteId][fecha]|striptags }}">
+                                        <div data-toggle="tooltip" title="{{ pacientes[clienteId][fecha]|replace({'<br>': '\n', '<small>': '', '</small>': '', '<b>': '', '</b>': ''})|striptags }}">
                                             {% set lineas = pacientes[clienteId][fecha]|split('<br>') %}
                                             {% set estado = lineas[0] %}
                                             <span class="estado-icon">
@@ -742,7 +742,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
     
     <script>
-        $('.predictivo').chosen();
+        $('.predictivo').chosen({
+            disable_search: true,
+            no_results_text: "No se encontraron resultados para:",
+            placeholder_text_multiple: "Seleccione obras sociales..."
+        });
         
         // Script para manejar el acordeón sin recargar la página
         $(document).ready(function() {
@@ -1159,14 +1163,14 @@ $(document).ready(function () {
     });
     
     // Agregar un botón para limpiar selección de obras sociales
-    if ($('#obraSocial').next('.clear-selection-btn').length === 0) {
+    /*if ($('#obraSocial').next('.clear-selection-btn').length === 0) {
         $('<button type="button" class="btn btn-sm btn-outline-secondary clear-selection-btn mt-1 mb-2">Limpiar selección</button>')
             .insertAfter('#obraSocial')
             .on('click', function() {
                 $('#obraSocial option:selected').prop('selected', false);
                 actualizarFiltrosActivos();
             });
-    }
+    }*/
     
     // Función para mostrar los filtros activos como badges
     function actualizarFiltrosActivos() {

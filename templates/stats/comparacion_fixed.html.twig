@@ -37,7 +37,7 @@
             gap: 1.5rem;
             overflow-x: auto;
             scroll-behavior: smooth;
-            padding: 1rem 1rem;
+            padding: 1rem 0;
             align-items: stretch;
         }
         
@@ -102,18 +102,18 @@
             background: white;
             border-radius: 12px;
             padding: 1.8rem 1.5rem;
-            flex: 1;
-            max-width: 320px;
-            min-height: 280px;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
             border: 3px solid #e9ecef;
             position: relative;
             z-index: 1;
             transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            min-width: 280px;
+            width: 280px;
+            flex-shrink: 0;
             display: flex;
             flex-direction: column;
         }
-        
+
         .timeline-period.current {
             border-color: #60b9b9;
             transform: scale(1.02);
@@ -162,83 +162,74 @@
         }
         
         .period-date {
-            font-size: 0.85rem;
-            color: #6c757d;
-            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: #868e96;
             text-align: center;
-            font-weight: 500;
+            margin-bottom: 1.5rem;
         }
         
         .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.2rem;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
             flex-grow: 1;
         }
         
         .metric-item {
             text-align: center;
-            padding: 0.5rem;
-            border-radius: 8px;
-            background: #f8f9fa;
         }
         
         .metric-value {
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             font-weight: bold;
-            margin-bottom: 0.3rem;
-            line-height: 1.2;
+            margin-bottom: 0.25rem;
         }
         
         .metric-label {
+            font-size: 0.8rem;
             color: #6c757d;
-            font-size: 0.75rem;
-            font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-weight: 500;
         }
         
         .comparison-summary {
-            background: white;
-            border-radius: 10px;
+            background: #f8f9fa;
+            border-radius: 12px;
             padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-top: 2rem;
         }
         
         .summary-title {
-            font-size: 1.3rem;
-            font-weight: bold;
-            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+            font-weight: 600;
             color: #495057;
-            border-bottom: 2px solid #e9ecef;
-            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
         }
         
         .comparison-metric {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1rem;
-            margin-bottom: 0.5rem;
-            background: #f8f9fa;
+            padding: 0.75rem 1rem;
+            background: white;
             border-radius: 8px;
-            border-left: 4px solid #dee2e6;
+            margin-bottom: 0.5rem;
+            border-left: 4px solid #e9ecef;
         }
         
         .comparison-metric.positive {
             border-left-color: #28a745;
-            background: #f8fff9;
+            background: linear-gradient(90deg, rgba(40, 167, 69, 0.1), white);
         }
         
         .comparison-metric.negative {
             border-left-color: #dc3545;
-            background: #fff8f8;
+            background: linear-gradient(90deg, rgba(220, 53, 69, 0.1), white);
         }
         
         .comparison-metric.neutral {
-            border-left-color: #ffc107;
-            background: #fffef8;
+            border-left-color: #6c757d;
         }
         
         .metric-name {
@@ -248,7 +239,9 @@
         
         .metric-change {
             font-weight: bold;
-            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
         }
         
         .metric-change.positive {
@@ -260,33 +253,23 @@
         }
         
         .metric-change.neutral {
-            color: #ffc107;
+            color: #6c757d;
         }
         
         .change-icon {
-            margin-right: 0.5rem;
+            font-size: 0.8rem;
         }
         
-        .btn-stats {
-            background-color: #889cbe;
-            color: white;
-            margin-right: 0.5rem;
-        }
-        
-        .btn-stats:hover {
-            background-color: #60b9b9;
-            color: white;
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .timeline-period {
+                min-width: 240px;
+            }
         }
         
         @media (max-width: 768px) {
-            .period-timeline {
-                flex-direction: column;
-                gap: 1rem;
-                padding: 0;
-            }
-            
-            .period-timeline::before {
-                display: none;
+            .timeline-period.current {
+                transform: none !important;
             }
             
             .timeline-period {
@@ -296,21 +279,21 @@
                 transform: none !important;
             }
             
-            .timeline-period.current {
-                transform: none !important;
+            .period-timeline::before {
+                display: none;
+            }
+            
+            .comparison-hero h2 {
+                font-size: 1.4rem;
             }
             
             .metrics-grid {
-                grid-template-columns: repeat(4, 1fr);
-                gap: 0.8rem;
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
             }
             
             .metric-value {
-                font-size: 1.2rem;
-            }
-            
-            .metric-label {
-                font-size: 0.7rem;
+                font-size: 1.25rem;
             }
         }
     </style>
@@ -318,32 +301,34 @@
 
 {% block body %}
 <div class="container-fluid">
-    <!-- Navegación -->
-    <div class="row mb-4">
-        <div class="col-12 d-flex justify-content-between align-items-center">
-            <div class="btn-group" role="group">
-                <a href="{{ path('app_stats_index', {'fecha_desde': fechaDesde, 'fecha_hasta': fechaHasta}) }}" class="btn btn-stats">
-                    <i class="fas fa-chart-line"></i> Panel General
-                </a>
-                <a href="{{ path('app_stats_ocupacion') }}" class="btn btn-stats">
-                    <i class="fas fa-bed"></i> Ocupación de Camas
-                </a>
-                <a href="{{ path('app_stats_altas') }}" class="btn btn-stats">
-                    <i class="fas fa-procedures"></i> Altas Médicas
-                </a>
-                <a href="{{ path('app_stats_inventario') }}" class="btn btn-stats">
-                    <i class="fas fa-boxes"></i> Inventario
-                </a>
-                <a href="{{ path('app_stats_comparacion', {'fecha_desde': fechaDesde, 'fecha_hasta': fechaHasta}) }}" class="btn btn-primary">
-                    <i class="fas fa-balance-scale"></i> Comparación de Períodos
-                </a>
-            </div>
-            
-            <!-- Botón para cambiar período -->
-            <div>
-                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#cambiarPeriodoModal">
-                    <i class="fas fa-calendar-alt"></i> Cambiar Período
-                </button>
+    <div class="row">
+        <div class="col-12">
+            <!-- Navegación de pestañas -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="btn-group" role="group">
+                    <a href="{{ path('app_stats_index', {'fecha_desde': fechaDesde, 'fecha_hasta': fechaHasta}) }}" class="btn btn-outline-primary">
+                        <i class="fas fa-chart-area"></i> Panel General
+                    </a>
+                    <a href="{{ path('app_stats_ocupacion', {'fecha_desde': fechaDesde, 'fecha_hasta': fechaHasta}) }}" class="btn btn-outline-primary">
+                        <i class="fas fa-bed"></i> Ocupación de Camas
+                    </a>
+                    <a href="#" class="btn btn-outline-primary">
+                        <i class="fas fa-user-md"></i> Altas Médicas
+                    </a>
+                    <a href="#" class="btn btn-outline-primary">
+                        <i class="fas fa-boxes"></i> Inventario
+                    </a>
+                    <a href="{{ path('app_stats_comparacion', {'fecha_desde': fechaDesde, 'fecha_hasta': fechaHasta}) }}" class="btn btn-primary">
+                        <i class="fas fa-balance-scale"></i> Comparación de Períodos
+                    </a>
+                </div>
+                
+                <!-- Botón para cambiar período -->
+                <div>
+                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#cambiarPeriodoModal">
+                        <i class="fas fa-calendar-alt"></i> Cambiar Período
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -466,7 +451,6 @@
                                     </span>
                                 </div>
                             </div>
-                            
                             <div class="col-md-6">
                                 <div class="comparison-metric {{ comp.egresos.change > 0 ? 'positive' : (comp.egresos.change < 0 ? 'negative' : 'neutral') }}">
                                     <span class="metric-name">
@@ -484,13 +468,10 @@
                                     </span>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div class="row">
                             <div class="col-md-6">
                                 <div class="comparison-metric {{ comp.ocupacionPromedio.change > 0 ? 'positive' : (comp.ocupacionPromedio.change < 0 ? 'negative' : 'neutral') }}">
                                     <span class="metric-name">
-                                        <i class="fas fa-bed"></i> Ocupación Promedio
+                                        <i class="fas fa-percentage"></i> Ocupación Promedio
                                     </span>
                                     <span class="metric-change {{ comp.ocupacionPromedio.change > 0 ? 'positive' : (comp.ocupacionPromedio.change < 0 ? 'negative' : 'neutral') }}">
                                         {% if comp.ocupacionPromedio.change > 0 %}
@@ -504,11 +485,10 @@
                                     </span>
                                 </div>
                             </div>
-                            
                             <div class="col-md-6">
                                 <div class="comparison-metric {{ comp.diasInternacionPromedio.change > 0 ? 'positive' : (comp.diasInternacionPromedio.change < 0 ? 'negative' : 'neutral') }}">
                                     <span class="metric-name">
-                                        <i class="fas fa-clock"></i> Días Internación Promedio
+                                        <i class="fas fa-calendar-day"></i> Días Internación Promedio
                                     </span>
                                     <span class="metric-change {{ comp.diasInternacionPromedio.change > 0 ? 'positive' : (comp.diasInternacionPromedio.change < 0 ? 'negative' : 'neutral') }}">
                                         {% if comp.diasInternacionPromedio.change > 0 %}
@@ -523,7 +503,6 @@
                                 </div>
                             </div>
                         </div>
-                        
                         {% if not loop.last %}
                             <hr class="my-4">
                         {% endif %}
@@ -532,12 +511,11 @@
             </div>
         {% endif %}
         
-        <!-- Gráfico Comparativo -->
-
-        
     {% else %}
-        <div class="alert alert-info text-center">
-            <h4><i class="fas fa-info-circle"></i> No hay datos para comparar</h4>
+        <!-- Estado vacío -->
+        <div class="text-center py-5">
+            <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+            <h4>No hay datos para comparar</h4>
             <p>Selecciona un período en el Panel General para ver la comparación histórica.</p>
             <a href="{{ path('app_stats_index') }}" class="btn btn-primary">
                 <i class="fas fa-calendar-alt"></i> Ir al Panel General
@@ -545,225 +523,6 @@
         </div>
     {% endif %}
 </div>
-
-<!-- Modal para cambiar período -->
-<div class="modal fade" id="cambiarPeriodoModal" tabindex="-1" aria-labelledby="cambiarPeriodoModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="cambiarPeriodoModalLabel">
-                    <i class="fas fa-calendar-alt"></i> Seleccionar Período
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form method="GET" action="{{ path('app_stats_comparacion') }}">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <label for="fecha_desde" class="form-label">Fecha Desde:</label>
-                            <input type="date" class="form-control" id="fecha_desde" name="fecha_desde" value="{{ fechaDesde|date('Y-m-d') }}" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="fecha_hasta" class="form-label">Fecha Hasta:</label>
-                            <input type="date" class="form-control" id="fecha_hasta" name="fecha_hasta" value="{{ fechaHasta|date('Y-m-d') }}" required>
-                        </div>
-                    </div>
-                    <div class="row mt-3">
-                        <div class="col-md-12">
-                            <label for="anos_comparacion_modal" class="form-label">Años a comparar:</label>
-                            <select class="form-control" id="anos_comparacion_modal" name="anos_comparacion">
-                                {% for i in 2..10 %}
-                                    <option value="{{ i }}" {% if i == anosComparacion %}selected{% endif %}>{{ i }} años</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-search"></i> Actualizar
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-{% if datosComparacion is empty %}
-    <div class="alert alert-info text-center">
-        <h4><i class="fas fa-info-circle"></i> Sin datos disponibles</h4>
-        <p>No hay información disponible para el período seleccionado.</p>
-        <div class="mt-3">
-            <a href="{{ path('app_dashboard') }}" class="btn btn-primary">
-                <i class="fas fa-calendar-alt"></i> Ir al Panel General
-            </a>
-        </div>
-    {% endif %}
-</div>
-
-{% block javascripts %}
-    {{ parent() }}
-    <!-- Chart.js para visualizaciones -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
-    
-    <script>
-    (function() {
-    'use strict';
-    
-    // Función para navegación del timeline
-    window.scrollTimeline = function(direction) {
-        console.log('scrollTimeline', direction);
-        const container = document.getElementById('timelineContainer');
-        const scrollAmount = 300; // Píxeles a desplazar
-        
-        if (direction === 'left') {
-            container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-        } else {
-            container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-        }
-        
-        // Actualizar estado de los botones después del scroll
-        window.setTimeout(updateNavigationButtons, 300);
-    };
-    
-    // Función para actualizar el estado de los botones de navegación
-    function updateNavigationButtons() {
-        const container = document.getElementById('timelineContainer');
-        const prevBtn = document.querySelector('.timeline-nav.prev');
-        const nextBtn = document.querySelector('.timeline-nav.next');
-        
-        if (!container || !prevBtn || !nextBtn) return;
-        
-        // Verificar si está al inicio
-        if (container.scrollLeft <= 0) {
-            prevBtn.classList.add('disabled');
-        } else {
-            prevBtn.classList.remove('disabled');
-        }
-        
-        // Verificar si está al final
-        const isAtEnd = container.scrollLeft >= (container.scrollWidth - container.clientWidth - 10);
-        if (isAtEnd) {
-            nextBtn.classList.add('disabled');
-        } else {
-            nextBtn.classList.remove('disabled');
-        }
-    }
-    
-    // Inicializar navegación cuando se carga la página
-    document.addEventListener('DOMContentLoaded', function() {
-        updateNavigationButtons();
-        
-        // Agregar listener para scroll manual
-        const container = document.getElementById('timelineContainer');
-        if (container) {
-            container.addEventListener('scroll', updateNavigationButtons);
-        }
-        
-        // También actualizar cuando cambie el tamaño de ventana
-        window.addEventListener('resize', updateNavigationButtons);
-    });
-    
-    {% if datosComparacion is not empty %}
-        // Crear gráfico de comparación de ocupación
-        console.log('Iniciando creación del gráfico...');
-        const chartCanvas = document.getElementById('ocupacion-comparison-chart');
-        console.log('Canvas encontrado:', chartCanvas);
-        if (chartCanvas) {
-            const chartCtx = chartCanvas.getContext('2d');
-            const datasets = [];
-            const colors = ['#60b9b9', '#b088be', '#ffc107', '#dc3545', '#28a745', '#6f42c1', '#fd7e14'];
-            
-            {% for index, datos in datosComparacion %}
-                const ocupacionData{{ index }} = {{ datos.ocupacionPorDia | json_encode | raw }};
-                datasets.push({
-                label: '{{ datos.period.year }}',
-                data: ocupacionData{{ index }}.map(d => d.porcentaje),
-                borderColor: colors[{{ index }}],
-                backgroundColor: colors[{{ index }}] + '20',
-                borderWidth: 3,
-                fill: false,
-                tension: 0.1
-            });
-        {% endfor %}
-        
-        // Crear etiquetas unificadas desde todos los períodos para cubrir todos los días posibles
-        let allLabels = new Set();
-        {% for index, datos in datosComparacion %}
-            const labels{{ index }} = {{ datos.ocupacionPorDia | json_encode | raw }}.map(d => d.fecha);
-            labels{{ index }}.forEach(label => allLabels.add(label));
-        {% endfor %}
-        
-        // Convertir el Set a Array y ordenar las fechas
-        const labels = Array.from(allLabels).sort((a, b) => {
-            const [dayA, monthA] = a.split('/').map(Number);
-            const [dayB, monthB] = b.split('/').map(Number);
-            return monthA !== monthB ? monthA - monthB : dayA - dayB;
-        });
-        
-        // Crear datos ajustados para Chart.js
-        const allDatasets = [];
-        {% for index, datos in datosComparacion %}
-        const data{{ index }} = {{ datos.ocupacionPorDia | json_encode | raw }};
-        const dataMap{{ index }} = {};
-        data{{ index }}.forEach(item => {
-            dataMap{{ index }}[item.fecha] = item.porcentaje;
-        });
-        
-        allDatasets.push({
-            ...datasets[{{ index }}],
-            data: labels.map(label => dataMap{{ index }}[label] || null)
-        });
-        {% endfor %}
-        
-        console.log('Creando Chart con datos:', allDatasets);
-        const chart = new Chart(chartCtx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: allDatasets
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        title: {
-                            display: true,
-                            text: 'Porcentaje de Ocupación (%)'
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Días del Período'
-                        }
-                    }
-                },
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Comparación de Ocupación Diaria por Año'
-                    },
-                    legend: {
-                        display: true,
-                        position: 'top'
-                    }
-                }
-            }
-        });
-        console.log('Gráfico creado exitosamente:', chart);
-        } else {
-            console.error('Canvas no encontrado para el gráfico');
-        }
-    {% endif %}
-    
-    })(); // Fin del IIFE
-</script>
-{% endblock %}
 
 <!-- Modal para cambiar período -->
 <div class="modal fade" id="cambiarPeriodoModal" tabindex="-1" aria-labelledby="cambiarPeriodoModalLabel" aria-hidden="true">
@@ -809,4 +568,121 @@
     </div>
 </div>
 
+{% block javascripts %}
+    {{ parent() }}
+    <!-- Chart.js para visualizaciones -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    
+    <script>
+    // Función para navegación del timeline
+    function scrollTimeline(direction) {
+        const container = document.getElementById('timelineContainer');
+        const scrollAmount = 300; // Píxeles a desplazar
+        
+        if (direction === 'left') {
+            container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+        } else {
+            container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        }
+        
+        // Actualizar estado de los botones después del scroll
+        setTimeout(updateNavigationButtons, 300);
+    }
+    
+    // Función para actualizar el estado de los botones de navegación
+    function updateNavigationButtons() {
+        const container = document.getElementById('timelineContainer');
+        const prevBtn = document.querySelector('.timeline-nav.prev');
+        const nextBtn = document.querySelector('.timeline-nav.next');
+        
+        if (!container || !prevBtn || !nextBtn) return;
+        
+        // Verificar si está al inicio
+        if (container.scrollLeft <= 0) {
+            prevBtn.classList.add('disabled');
+        } else {
+            prevBtn.classList.remove('disabled');
+        }
+        
+        // Verificar si está al final
+        const isAtEnd = container.scrollLeft >= (container.scrollWidth - container.clientWidth - 10);
+        if (isAtEnd) {
+            nextBtn.classList.add('disabled');
+        } else {
+            nextBtn.classList.remove('disabled');
+        }
+    }
+    
+    // Inicializar navegación cuando se carga la página
+    document.addEventListener('DOMContentLoaded', function() {
+        updateNavigationButtons();
+        
+        // Agregar listener para scroll manual
+        const container = document.getElementById('timelineContainer');
+        if (container) {
+            container.addEventListener('scroll', updateNavigationButtons);
+        }
+        
+        // También actualizar cuando cambie el tamaño de ventana
+        window.addEventListener('resize', updateNavigationButtons);
+    });
+    
+    {% if datosComparacion is not empty %}
+        // Crear gráfico de comparación de ocupación
+        const ctx = document.getElementById('ocupacion-comparison-chart');
+        if (ctx) {
+            const chartCtx = ctx.getContext('2d');
+            const datasets = [];
+            const colors = ['#60b9b9', '#b088be', '#ffc107', '#dc3545', '#28a745', '#6f42c1', '#fd7e14'];
+            
+            {% for index, datos in datosComparacion %}
+                const ocupacionData{{ index }} = {{ datos.ocupacionPorDia | json_encode | raw }};
+                datasets.push({
+                    label: '{{ datos.period.year }}',
+                    data: ocupacionData{{ index }}.map(d => d.porcentaje),
+                    borderColor: colors[{{ index }}] || '#6c757d',
+                    backgroundColor: (colors[{{ index }}] || '#6c757d') + '20',
+                    fill: false,
+                    tension: 0.1
+                });
+            {% endfor %}
+            
+            // Crear etiquetas unificadas
+            let allLabels = new Set();
+            {% for index, datos in datosComparacion %}
+                const labels{{ index }} = {{ datos.ocupacionPorDia | json_encode | raw }}.map(d => d.fecha);
+                labels{{ index }}.forEach(label => allLabels.add(label));
+            {% endfor %}
+            
+            const sortedLabels = Array.from(allLabels).sort();
+            
+            new Chart(chartCtx, {
+                type: 'line',
+                data: {
+                    labels: sortedLabels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: '% Ocupación'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+    {% endif %}
+    </script>
+{% endblock %}
 {% endblock %}
