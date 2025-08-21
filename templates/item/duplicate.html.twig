@@ -1,0 +1,92 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Duplicar ítem: {{ item.nombre }}{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <div class="row my-4">
+            <div class="col">
+                <h1>Duplicar ítem: {{ item.nombre }}</h1>
+                <div class="mb-3">
+                    <a href="{{ path('app_item_show', {'id': item.id}) }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver al detalle
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4>Información de duplicación</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-4">
+                            <h5>Información del ítem original</h5>
+                            <table class="table">
+                                <tbody>
+                                    <tr>
+                                        <th width="30%">Nombre</th>
+                                        <td>{{ item.nombre }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Tipo</th>
+                                        <td>{{ item.tipo.nombre }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Ubicación actual</th>
+                                        <td>{{ item.ubicacionActual.nombre }}</td>
+                                    </tr>
+                                    {% if item.identificador %}
+                                    <tr>
+                                        <th>Identificador</th>
+                                        <td>{{ item.identificador }}</td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {% if item.imagen %}
+                            <div class="text-center mb-4">
+                                <p>Imagen que se utilizará:</p>
+                                <img src="{{ asset('uploads/items/imagenes/' ~ item.imagen) }}" alt="{{ item.nombre }}" class="img-fluid mb-3 rounded" style="max-height: 200px;">
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info mb-4">
+                                El ítem original no tiene imagen. Los nuevos ítems tampoco tendrán imagen.
+                            </div>
+                        {% endif %}
+
+                        <form method="post">
+                            <div class="form-group">
+                                <label for="cantidad" class="font-weight-bold">Cantidad de copias a crear:</label>
+                                <input type="number" id="cantidad" name="cantidad" min="1" value="1" class="form-control" required>
+                                <small class="form-text text-muted">
+                                    Cada copia será un ítem independiente con su propio código QR, pero compartirá la misma imagen que el ítem original.
+                                </small>
+                            </div>
+
+                            <div class="alert alert-warning">
+                                <p><i class="fas fa-info-circle"></i> Consideraciones importantes:</p>
+                                <ul class="mb-0">
+                                    <li>Se crearán copias completas del ítem en la misma ubicación.</li>
+                                    <li>Cada ítem tendrá su propio código QR único.</li>
+                                    <li>Si el ítem original tiene un identificador, se le agregará un sufijo a cada copia.</li>
+                                    <li>Todos los nuevos ítems compartirán la misma imagen que el original.</li>
+                                </ul>
+                            </div>
+
+                            <div class="text-center mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-clone"></i> Duplicar ítem
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
