@@ -374,18 +374,6 @@ class ClienteController extends AbstractController
         $fechaDesde = $from ? new \DateTime($from . ' 00:00:00') : null;
         $fechaHasta = $to ? new \DateTime($to . ' 23:59:59') : null;
 
-        // Debug para verificar el rango de fechas y los parámetros recibidos
-        file_put_contents('/tmp/debug_parametros.log', 
-            "Fecha desde: " . ($fechaDesde ? $fechaDesde->format('Y-m-d H:i:s') : 'NULL') . PHP_EOL . 
-            "Fecha hasta: " . ($fechaHasta ? $fechaHasta->format('Y-m-d H:i:s') : 'NULL') . PHP_EOL .
-            "Modalidad: " . $modalidad . PHP_EOL .
-            "Nombre: " . ($nombre ? $nombre : 'NULL') . PHP_EOL .
-            "Profesional: " . ($prof ? $prof : 'NULL') . PHP_EOL .
-            "Obra Social: " . ($obraSocial ? (is_array($obraSocial) ? implode(',', $obraSocial) : $obraSocial) : 'NULL') . PHP_EOL .
-            "HC: " . ($hc ? $hc : 'NULL') . PHP_EOL .
-            PHP_EOL
-        );
-
         // Inicializar arrays para almacenar resultados
         $totalDia = [];
         $internados = [];
@@ -408,13 +396,6 @@ class ClienteController extends AbstractController
                 $fechaHasta = new \DateTime('2025-08-31 23:59:59');
             }
             
-            // Debug fecha
-            file_put_contents('/tmp/debug_fechas_corregidas.log', 
-                "Fechas corregidas - Desde: " . $fechaDesde->format('Y-m-d H:i:s') . 
-                ", Hasta: " . $fechaHasta->format('Y-m-d H:i:s') . PHP_EOL,
-                FILE_APPEND
-            );
-            
             // Limitar fecha hasta a fin de día de hoy si es mayor
             if ($fechaHasta > new \DateTime()) {
                 $fechaHasta = new \DateTime('today 23:59:59');
@@ -433,13 +414,6 @@ class ClienteController extends AbstractController
             // Obtener todas las historias que coincidan con los filtros
             $historias = $historiaPacienteRepository->getHistoricoDesdeHasta($fechaDesde, $fechaHasta, $nombre, $modalidad, $obraSocial, $prof, $hc);
             
-            // Debug para registrar cuántas historias se encontraron
-            file_put_contents('/tmp/debug_consultas.log', 
-                "Total historias encontradas: " . count($historias) . PHP_EOL .
-                "Modalidades de las historias: " . PHP_EOL,
-                FILE_APPEND
-            );
-            
             // Contar modalidades
             $conteoModalidades = [];
             foreach ($historias as $historia) {
@@ -449,14 +423,7 @@ class ClienteController extends AbstractController
                 }
                 $conteoModalidades[$mod]++;
             }
-            
-            // Registrar el conteo de modalidades
-            foreach ($conteoModalidades as $mod => $cantidad) {
-                file_put_contents('/tmp/debug_consultas.log', 
-                    "Modalidad $mod: $cantidad pacientes" . PHP_EOL,
-                    FILE_APPEND
-                );
-            }
+
             
             // Cargar todos los doctores para evitar consultas repetidas
             $todosDoctores = $doctorRepository->findAll();
@@ -510,12 +477,6 @@ class ClienteController extends AbstractController
                 $clientesIds = array_keys($clientesIdsInvolucrados);
                 $datosPresentes = $presentesRepository->getPresentes($clientesIds, $fechaDesde, $fechaHasta);
                 
-                // Debug para ver cuántos registros de presencia se encontraron
-                file_put_contents('/tmp/debug_consultas.log', 
-                    "Total registros de presencia: " . count($datosPresentes) . PHP_EOL,
-                    FILE_APPEND
-                );
-                
                 // Contador para valores true/1 (presentes)
                 $conteoPresentes = 0;
                 
@@ -530,12 +491,6 @@ class ClienteController extends AbstractController
                         $conteoPresentes++;
                     }
                 }
-                
-                // Registrar cuántos están marcados como presentes
-                file_put_contents('/tmp/debug_consultas.log', 
-                    "Registros marcados como presente (true/1/'1'): " . $conteoPresentes . PHP_EOL,
-                    FILE_APPEND
-                );
             }
             
             // Cargar todos los clientes involucrados de una sola vez para evitar consultas repetidas
@@ -746,17 +701,6 @@ class ClienteController extends AbstractController
             $sinModalidadCount += count($data);
         }
         
-        // Debug para verificar los resultados finales
-        file_put_contents('/tmp/debug_resultados.log', 
-            "=== RESULTADOS FINALES ===" . PHP_EOL .
-            "Internados: $internadosCount" . PHP_EOL .
-            "Ambulatorios: $ambulatoriosCount" . PHP_EOL .
-            "Derivados: $derivadosCount" . PHP_EOL .
-            "Egresos: $egresosCount" . PHP_EOL .
-            "Sin modalidad: $sinModalidadCount" . PHP_EOL .
-            "======================" . PHP_EOL,
-            FILE_APPEND
-        );
 
         $docReferentes = $doctorRepository->findByContratos(['Fisiatra', 'Director medico', 'Sub director medico'], false);
         
@@ -932,29 +876,13 @@ class ClienteController extends AbstractController
                     $desdeFecha = \DateTime::createFromFormat('d/m/Y', $periodo['desde']);
                     $hastaFecha = \DateTime::createFromFormat('d/m/Y', $periodo['hasta']);
                     
-                    // Verificar que las fechas sean válidas
-                    if (!$desdeFecha || !$hastaFecha) {
-                        // Registrar error y continuar con el siguiente período
-                        file_put_contents(__DIR__.'/../../var/log/fecha_error.log', 
-                            "Error en fechas: desde=" . $periodo['desde'] . ", hasta=" . $periodo['hasta'] . PHP_EOL, 
-                            FILE_APPEND);
-                        continue;
-                    }
-                    
                     // Crear una copia para evitar modificar $hastaFecha directamente
                     $hastaFechaModificada = clone $hastaFecha;
                     $hastaFechaModificada->modify('+1 day');
                     
                     $interval = new \DateInterval('P1D');
                     $fechasPeriodo = new \DatePeriod($desdeFecha, $interval, $hastaFechaModificada);
-                    
-                    // Log período actual
-                    file_put_contents(__DIR__.'/../../var/log/periodos_debug.log', 
-                        "Paciente: $pacienteId, Estado: {$periodo['estado']}, " . 
-                        "Desde: {$periodo['desde']}, Hasta: {$periodo['hasta']}, " . 
-                        "Profesional: " . (empty($periodo['profesional']) ? 'Sin asignar' : $periodo['profesional']) . PHP_EOL, 
-                        FILE_APPEND);
-                        
+
                     // Contador para este período
                     $diasPeriodo = 0;
                     
@@ -988,35 +916,16 @@ class ClienteController extends AbstractController
                                         $fisiatrasAmbulatorio[$periodo['profesional']]++;
                                     }
                                     
-                                    // Log de contabilización de fisiatra
-                                    file_put_contents(__DIR__.'/../../var/log/ambulatorio_debug_detail.log', 
-                                        "Día $fechaStr: Paciente $pacienteId asignado a {$periodo['profesional']}" . PHP_EOL, 
-                                        FILE_APPEND);
                                 }
                             }
                         }
                     }
                     
-                    // Log resultado de este período
-                    file_put_contents(__DIR__.'/../../var/log/periodos_debug.log', 
-                        "Días contabilizados en este período: $diasPeriodo" . PHP_EOL . 
-                        "------------------------------" . PHP_EOL, 
-                        FILE_APPEND);
                 }
             }
         }
         
-        // Debug de días ambulatorios
-        file_put_contents(__DIR__.'/../../var/log/ambulatorio_debug.log', 
-            "===== DEPURACIÓN AMBULATORIOS =====" . PHP_EOL .
-            "Total días ambulatorio: " . $totalDiasAmbulatorio . PHP_EOL .
-            "Días con fisiatra ambulatorio: " . $diasConFisiatraAmbulatorio . PHP_EOL .
-            "Detalle por fisiatra: " . print_r($fisiatrasAmbulatorio, true) . PHP_EOL .
-            "Pacientes ambulatorios: " . count($pacientesUnicosAmbulatorios) . PHP_EOL .
-            "Detalle días por paciente: " . print_r($diasAmbulatoriosPorPaciente, true) . PHP_EOL .
-            "===============================" . PHP_EOL
-        );
-        
+
         // Calcular días sin fisiatra asignado
         $sinFisiatraCount = $totalDiasCama - $diasConFisiatra;
         $sinFisiatraCountAmbulatorio = $totalDiasAmbulatorio - $diasConFisiatraAmbulatorio;
@@ -1492,14 +1401,30 @@ class ClienteController extends AbstractController
                     $originalFilename = pathinfo($epicrisisIngreso->getClientOriginalName(), PATHINFO_FILENAME);
                     $safeFilename = $slugger->slug($originalFilename);
                     $newFilename = $safeFilename.'-'.uniqid().'.'.$epicrisisIngreso->guessExtension();
-                    $path = $this->getParameter('adjuntos_pacientes_directory')."/".$form->get('dni')->getData();
+                    $baseDir = $this->getParameter('adjuntos_pacientes_directory');
+                    $dniDir = $form->get('dni')->getData();
+                    $path = $baseDir."/".$dniDir;
+                    
                     try {
+                        // Asegurarnos que el directorio base existe
+                        if (!file_exists($baseDir)) {
+                            mkdir($baseDir, 0755, true);
+                        }
+                        
+                        // Asegurarnos que el directorio del DNI existe
+                        if (!file_exists($path)) {
+                            mkdir($path, 0755, true);
+                        }
+                        
+                        // Intentar mover el archivo
                         $epicrisisIngreso->move(
                             $path,
                             $newFilename
                         );
                     } catch (FileException $e) {
-                        // ... handle exception if something happens during file upload
+                        error_log("Error al subir archivo: " . $e->getMessage());
+                        error_log("Path intentado: " . $path);
+                        error_log("Permisos del directorio base: " . substr(sprintf('%o', fileperms($baseDir)), -4));
                         dd($e);
                     }
                     $cliente->setEpicrisisIngreso($path."/".$newFilename);
@@ -2183,7 +2108,7 @@ class ClienteController extends AbstractController
         $notasHistoria = $notasHistoriaClinicaRepository->findBy(['cliente' => $cliente]);
         $historiaEgreso = $historiaEgresoRepository->findBy(['cliente' => $cliente]);
         
-        // Obtener las indicaciones médicas recientes para mostrar en la historia clínica (solo activas)
+        // Obtener las indicaciones médicas actuales para mostrar en la historia clínica (solo activas)
         $indicacionesRecientes = $consumiblesClientesRepository->findIndicacionesParaElCliente($cliente->getId(), null, null, 5, true);
         $ultimaIndicacion = !empty($indicacionesRecientes) ? $indicacionesRecientes[0] : null;
         
@@ -2530,12 +2455,6 @@ class ClienteController extends AbstractController
         $ambulatorio = (isset($parametros['ambulatorio'])) ? $parametros['ambulatorio'] : (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getAmbulatorio() : null);
         $docReferente = null;
         if ((isset($parametros['docReferente']))) {
-            // Debug para ver el tipo de datos que se recibe
-            file_put_contents('/tmp/debug_doc_referente.log', 
-                "Tipo de docReferente: " . gettype($parametros['docReferente']) . PHP_EOL .
-                "Valor: " . print_r($parametros['docReferente'], true) . PHP_EOL,
-                FILE_APPEND
-            );
             
             // Si es un array de objetos Doctor, extraer los IDs
             if (is_array($parametros['docReferente'])) {
@@ -2557,19 +2476,10 @@ class ClienteController extends AbstractController
             
             if ($docReferente !== null) {
                 $docReferente = json_encode($docReferente);
-                // Debug del resultado final
-                file_put_contents('/tmp/debug_doc_referente.log', 
-                    "JSON codificado: " . $docReferente . PHP_EOL . PHP_EOL,
-                    FILE_APPEND
-                );
+
             }
         } else if (isset($ultimoHistorial[0])) {
             $docReferente = $ultimoHistorial[0]->getDocReferente();
-            // Debug cuando se usa el historial anterior
-            file_put_contents('/tmp/debug_doc_referente.log', 
-                "Usando valor del historial anterior: " . $docReferente . PHP_EOL . PHP_EOL,
-                FILE_APPEND
-            );
         }
 
         $historial->setCliente($cliente);

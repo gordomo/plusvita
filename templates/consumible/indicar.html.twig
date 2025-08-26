@@ -54,6 +54,7 @@
                                     <th>Duración</th>
                                     <th>Notas</th>
                                     <th>Estado</th>
+                                    <th width="120px">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -82,13 +83,44 @@
                                             <td>{% if indicacion.duracion %}{{ indicacion.duracion }} días{% elseif indicacion.fechaFin %}Hasta {{ indicacion.fechaFin|date('d/m/Y') }}{% else %}N/D{% endif %}</td>
                                             <td>{{ indicacion.notas }}</td>
                                             <td>
-                                                <span class="badge badge-success">Activa</span>
+                                                {% if indicacion.estadoSuspendido is defined and indicacion.estadoSuspendido %}
+                                                    <span class="badge badge-warning">Suspendida</span>
+                                                {% else %}
+                                                    <span class="badge badge-success">Activa</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    <button type="button" class="btn btn-outline-primary btn-sm" 
+                                                            onclick="editarIndicacion({{ indicacion.id }})" 
+                                                            title="Editar indicación">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    {% if indicacion.estadoSuspendido is defined and indicacion.estadoSuspendido %}
+                                                        <button type="button" class="btn btn-outline-success btn-sm" 
+                                                                onclick="reanudarIndicacion({{ indicacion.id }})" 
+                                                                title="Reanudar indicación">
+                                                            <i class="fas fa-play"></i>
+                                                        </button>
+                                                    {% else %}
+                                                        <button type="button" class="btn btn-outline-warning btn-sm" 
+                                                                onclick="suspenderIndicacion({{ indicacion.id }})" 
+                                                                title="Suspender indicación">
+                                                            <i class="fas fa-pause"></i>
+                                                        </button>
+                                                    {% endif %}
+                                                    <button type="button" class="btn btn-outline-danger btn-sm" 
+                                                            onclick="cancelarIndicacion({{ indicacion.id }})" 
+                                                            title="Cancelar indicación">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     {% endfor %}
                                 {% else %}
                                     <tr>
-                                        <td colspan="8" class="text-center">No hay indicaciones activas</td>
+                                        <td colspan="9" class="text-center">No hay indicaciones activas</td>
                                     </tr>
                                 {% endif %}
                             </tbody>
@@ -147,7 +179,7 @@
                                     {% endfor %}
                                 {% else %}
                                     <tr>
-                                        <td colspan="8" class="text-center">No hay indicaciones próximas a vencer</td>
+                                        <td colspan="9" class="text-center">No hay indicaciones próximas a vencer</td>
                                     </tr>
                                 {% endif %}
                             </tbody>
@@ -206,7 +238,7 @@
                                     {% endfor %}
                                 {% else %}
                                     <tr>
-                                        <td colspan="8" class="text-center">No hay indicaciones históricas</td>
+                                        <td colspan="9" class="text-center">No hay indicaciones históricas</td>
                                     </tr>
                                 {% endif %}
                             </tbody>
@@ -268,6 +300,7 @@
                     <option value="ampollas">Ampollas</option>
                     <option value="tabletas">Tabletas</option>
                     <option value="capsulas">Cápsulas</option>
+                    <option value="comprimidos">Comprimidos</option>
                 </select>
             </div>
             
@@ -284,6 +317,7 @@
                     <option value="diario">Diario</option>
                     <option value="bid">BID (2 veces/día)</option>
                     <option value="tid">TID (3 veces/día)</option>
+                    <option value="sos">SOS (Si es necesario)</option>
                     <option value="semanal">Semanal</option>
                     <option value="otra">Otra</option>
                 </select>
@@ -292,16 +326,23 @@
             </div>
         </div>
         
-        <!-- Segunda fila: Fecha inicio y Duración -->
+        <!-- Segunda fila: Fecha inicio, Hora y Duración -->
         <div class="row mb-3 align-items-end">
             <!-- Fecha de inicio -->
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label for="fechaInicio-nuevo">Fecha de inicio</label>
                 <input type="date" class="form-control" id="fechaInicio-nuevo" value="{{ "now"|date("Y-m-d") }}">
             </div>
             
+            <!-- Horario -->
+            <div class="col-md-2">
+                <label for="horario-nuevo">Horario</label>
+                <input type="time" class="form-control" id="horario-nuevo" placeholder="Ej: 08:00">
+                <small class="form-text text-muted">Definido por médico o primera toma</small>
+            </div>
+            
             <!-- Duración -->
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label for="duracion-nuevo">Duración</label>
                 <select class="form-control" id="duracion-nuevo" onchange="mostrarCamposDuracion('nuevo')">
                     <option value="indefinida">Indefinida</option>
@@ -311,7 +352,7 @@
             </div>
             
             <!-- Campo para duración específica -->
-            <div class="col-md-3" id="duracionValorContainer-nuevo" style="display: none;">
+            <div class="col-md-2" id="duracionValorContainer-nuevo" style="display: none;">
                 <label for="duracionValor-nuevo">Días</label>
                 <div class="input-group">
                     <input type="number" class="form-control" id="duracionValor-nuevo" min="1" value="7">
@@ -322,7 +363,7 @@
             </div>
             
             <!-- Campo para fecha fin específica -->
-            <div class="col-md-3" id="fechaFinContainer-nuevo" style="display: none;">
+            <div class="col-md-2" id="fechaFinContainer-nuevo" style="display: none;">
                 <label for="fechaFin-nuevo">Fecha fin</label>
                 <input type="date" class="form-control" id="fechaFin-nuevo">
             </div>
@@ -459,6 +500,7 @@
                 $("#frecuencia-nuevo").val("");
                 $("#otraFrecuencia-nuevo").val("").hide();
                 $("#fechaInicio-nuevo").val("{{ "now"|date("Y-m-d") }}");
+                $("#horario-nuevo").val("");
                 $("#duracion-nuevo").val("indefinida");
                 $("#duracionValor-nuevo").val("7");
                 $("#duracionValorContainer-nuevo").hide();
@@ -571,6 +613,7 @@
                         duracionValor: $("#duracion-nuevo").val() === "especifica" ? $("#duracionValor-nuevo").val() : null,
                         fechaFin: $("#duracion-nuevo").val() === "fechaFin" ? $("#fechaFin-nuevo").val() : null,
                         notas: $("#notas-nuevo").val(),
+                        horario: $("#horario-nuevo").val(),
                         activo: $("#activo-nuevo").is(":checked") ? 1 : 0
                     };
                     
@@ -611,5 +654,91 @@
             // Exponer las funciones necesarias al ámbito global
             window.mostrarCampoOtraFrecuencia = mostrarCampoOtraFrecuencia;
         });
+        
+        // Funciones para manejar indicaciones
+        function editarIndicacion(indicacionId) {
+            // Por ahora mostrar un modal simple, en el futuro se puede expandir con un formulario completo
+            const nuevasNotas = prompt("Ingrese las nuevas notas para la indicación (o deje vacío para no cambiar):");
+            if (nuevasNotas === null) return; // Usuario canceló
+            
+            $.ajax({
+                url: '{{ path("consumible_editar_indicacion", {"id": "__ID__"}) }}'.replace('__ID__', indicacionId),
+                type: 'POST',
+                data: { 
+                    notas: nuevasNotas 
+                },
+                success: function(response) {
+                    if (response.success) {
+                        alert("Indicación actualizada correctamente");
+                        location.reload();
+                    } else {
+                        alert("Error: " + response.message);
+                    }
+                },
+                error: function() {
+                    alert("Error de comunicación con el servidor");
+                }
+            });
+        }
+        
+        function suspenderIndicacion(indicacionId) {
+            if (confirm("¿Está seguro de que desea suspender esta indicación?")) {
+                $.ajax({
+                    url: '{{ path("consumible_suspender_indicacion", {"id": "__ID__"}) }}'.replace('__ID__', indicacionId),
+                    type: 'POST',
+                    success: function(response) {
+                        if (response.success) {
+                            alert("Indicación suspendida correctamente");
+                            location.reload();
+                        } else {
+                            alert("Error: " + response.message);
+                        }
+                    },
+                    error: function() {
+                        alert("Error de comunicación con el servidor");
+                    }
+                });
+            }
+        }
+        
+        function reanudarIndicacion(indicacionId) {
+            if (confirm("¿Está seguro de que desea reanudar esta indicación?")) {
+                $.ajax({
+                    url: '{{ path("consumible_reanudar_indicacion", {"id": "__ID__"}) }}'.replace('__ID__', indicacionId),
+                    type: 'POST',
+                    success: function(response) {
+                        if (response.success) {
+                            alert("Indicación reanudada correctamente");
+                            location.reload();
+                        } else {
+                            alert("Error: " + response.message);
+                        }
+                    },
+                    error: function() {
+                        alert("Error de comunicación con el servidor");
+                    }
+                });
+            }
+        }
+        
+        function cancelarIndicacion(indicacionId) {
+            if (confirm("¿Está seguro de que desea CANCELAR esta indicación? Esta acción no se puede deshacer.")) {
+                $.ajax({
+                    url: '{{ path("consumible_cancelar_indicacion", {"id": "__ID__"}) }}'.replace('__ID__', indicacionId),
+                    type: 'POST',
+                    success: function(response) {
+                        if (response.success) {
+                            alert("Indicación cancelada correctamente");
+                            location.reload();
+                        } else {
+                            alert("Error: " + response.message);
+                        }
+                    },
+                    error: function() {
+                        alert("Error de comunicación con el servidor");
+                    }
+                });
+            }
+        }
     </script>
 {% endblock %}

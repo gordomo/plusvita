@@ -25,6 +25,7 @@ use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Mime\FileinfoMimeTypeGuesser;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\RouterInterface;
+use App\Service\HorarioTomaCalculatorService;
 
 /**
  * @Route("/consumible")
@@ -676,7 +677,7 @@ class ConsumibleController extends AbstractController
     /**
      * @Route("/guardar-indicaciones/{id}", name="consumible_guardar_indicaciones", methods={"POST"})
      */
-    public function guardarIndicaciones($id, Request $request): Response
+    public function guardarIndicaciones($id, Request $request, HorarioTomaCalculatorService $horarioCalculator): Response
     {
         $entityManager = $this->getDoctrine()->getManager();
         $cliente = $entityManager->getRepository(Cliente::class)->find($id);
@@ -700,6 +701,7 @@ class ConsumibleController extends AbstractController
             $notas = $request->request->get('notas');
             $activo = $request->request->get('activo') ? true : false;
             $historiaPacienteId = $request->request->get('historiaPacienteId');
+            $horario = $request->request->get('horario') ?: null;
             
             // Validar datos básicos
             if ($tipoIndicacion === 'medicamento' && !$consumibleId) {
@@ -814,13 +816,29 @@ class ConsumibleController extends AbstractController
                 // Manejar duración
                 if ($duracion === 'especifica' && $duracionValor) {
                     $nuevaIndicacion->setDuracionValor($duracionValor);
+                    $nuevaIndicacion->setDuracion('especifica');
+                    $nuevaIndicacion->setFechaFin(null);
                 } else if ($duracion === 'fechaFin' && $fechaFin) {
                     $nuevaIndicacion->setFechaFin(new \DateTime($fechaFin));
+                    $nuevaIndicacion->setDuracion('fechaFin');
+                    $nuevaIndicacion->setDuracionValor(null);
+                } else {
+                    $nuevaIndicacion->setDuracion('indefinida');
                 }
                 
                 // Asociar con historia del paciente si está disponible
                 if ($historiaPacienteId) {
                     $nuevaIndicacion->setHistoriaPacienteId($historiaPacienteId);
+                }
+                
+                // Establecer horario si está disponible
+                if ($horario && !empty($horario)) {
+                    try {
+                        $nuevaIndicacion->setHorario(new \DateTime($horario));
+                    } catch (\Exception $e) {
+                        // Ignorar error de formato de horario
+                        error_log('Error en formato de horario: ' . $e->getMessage());
+                    }
                 }
                 
                 // Asegurarse de que todos los campos requeridos en la base de datos estén establecidos
@@ -829,13 +847,171 @@ class ConsumibleController extends AbstractController
                 }
                 
                 $entityManager->persist($nuevaIndicacion);
+                
+                // Generar horarios de toma automáticamente
+                try {
+                    // Hacer flush primero para que la indicación tenga ID
+                    $entityManager->flush();
+                    $horarioCalculator->generarHorariosToma($nuevaIndicacion);
+                } catch (\Exception $e) {
+                    // Log del error detallado pero no interrumpir el proceso
+                    error_log('Error generando horarios para indicación ID ' . $nuevaIndicacion->getId() . ': ' . $e->getMessage());
+                    error_log('Stack trace: ' . $e->getTraceAsString());
+                    // La indicación se guarda aunque fallen los horarios
+                }
             }
             
-            $entityManager->flush();
             return $this->json(['success' => true, 'message' => 'Indicación guardada correctamente']);
             
         } catch (\Exception $e) {
             return $this->json(['success' => false, 'message' => 'Error al guardar la indicación: ' . $e->getMessage()]);
+        }
+    }
+    
+    /**
+     * @Route("/editar-indicacion/{id}", name="consumible_editar_indicacion", methods={"POST"})
+     */
+    public function editarIndicacion($id, Request $request): Response
+    {
+        $entityManager = $this->getDoctrine()->getManager();
+        $indicacion = $entityManager->getRepository(ConsumiblesClientes::class)->find($id);
+        
+        if (!$indicacion) {
+            return $this->json(['success' => false, 'message' => 'Indicación no encontrada']);
+        }
+        
+        try {
+            // Obtener datos del request
+            $tipoIndicacion = $request->request->get('tipoIndicacion');
+            $consumibleId = $request->request->get('consumibleId');
+            $procedimientoPersonalizado = $request->request->get('procedimientoPersonalizado');
+            $cantidad = $request->request->get('cantidad');
+            $unidadMedida = $request->request->get('unidadMedida');
+            $frecuencia = $request->request->get('frecuencia');
+            $fechaInicio = $request->request->get('fechaInicio');
+            $duracion = $request->request->get('duracion');
+            $duracionValor = $request->request->get('duracionValor');
+            $fechaFin = $request->request->get('fechaFin');
+            $notas = $request->request->get('notas');
+            $hora = $request->request->get('hora') ?: null;
+            $horarioPrimeraToma = $request->request->get('horarioPrimeraToma') ?: null;
+            
+            // Actualizar campos
+            if ($tipoIndicacion) $indicacion->setTipoIndicacion($tipoIndicacion);
+            if ($consumibleId) $indicacion->setConsumibleId($consumibleId);
+            if ($procedimientoPersonalizado) $indicacion->setProcedimientoPersonalizado($procedimientoPersonalizado);
+            if ($cantidad) $indicacion->setCantidad($cantidad);
+            if ($unidadMedida) $indicacion->setUnidadMedida($unidadMedida);
+            if ($frecuencia) $indicacion->setFrecuencia($frecuencia);
+            if ($notas !== null) $indicacion->setNotas($notas);
+            
+            // Fechas y horarios
+            if ($fechaInicio) {
+                $indicacion->setFechaInicio(new \DateTime($fechaInicio));
+            }
+            if ($hora && !empty($hora)) {
+                try {
+                    $indicacion->setHora(new \DateTime($hora));
+                } catch (\Exception $e) {
+                    error_log('Error en formato de hora al editar: ' . $e->getMessage());
+                }
+            }
+            if ($horarioPrimeraToma && !empty($horarioPrimeraToma)) {
+                try {
+                    $indicacion->setHorarioPrimeraToma(new \DateTime($horarioPrimeraToma));
+                } catch (\Exception $e) {
+                    error_log('Error en formato de horario primera toma al editar: ' . $e->getMessage());
+                }
+            }
+            
+            // Duración
+            if ($duracion === 'especifica' && $duracionValor) {
+                $indicacion->setDuracionValor($duracionValor);
+                $indicacion->setFechaFin(null);
+            } elseif ($duracion === 'fechaFin' && $fechaFin) {
+                $indicacion->setFechaFin(new \DateTime($fechaFin));
+                $indicacion->setDuracionValor(null);
+            }
+            
+            $entityManager->persist($indicacion);
+            $entityManager->flush();
+            
+            return $this->json(['success' => true, 'message' => 'Indicación actualizada correctamente']);
+            
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => 'Error al editar la indicación: ' . $e->getMessage()]);
+        }
+    }
+    
+    /**
+     * @Route("/suspender-indicacion/{id}", name="consumible_suspender_indicacion", methods={"POST"})
+     */
+    public function suspenderIndicacion($id, Request $request): Response
+    {
+        $entityManager = $this->getDoctrine()->getManager();
+        $indicacion = $entityManager->getRepository(ConsumiblesClientes::class)->find($id);
+        
+        if (!$indicacion) {
+            return $this->json(['success' => false, 'message' => 'Indicación no encontrada']);
+        }
+        
+        try {
+            $indicacion->setEstadoSuspendido(true);
+            $entityManager->persist($indicacion);
+            $entityManager->flush();
+            
+            return $this->json(['success' => true, 'message' => 'Indicación suspendida correctamente']);
+            
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => 'Error al suspender la indicación: ' . $e->getMessage()]);
+        }
+    }
+    
+    /**
+     * @Route("/reanudar-indicacion/{id}", name="consumible_reanudar_indicacion", methods={"POST"})
+     */
+    public function reanudarIndicacion($id, Request $request): Response
+    {
+        $entityManager = $this->getDoctrine()->getManager();
+        $indicacion = $entityManager->getRepository(ConsumiblesClientes::class)->find($id);
+        
+        if (!$indicacion) {
+            return $this->json(['success' => false, 'message' => 'Indicación no encontrada']);
+        }
+        
+        try {
+            $indicacion->setEstadoSuspendido(false);
+            $entityManager->persist($indicacion);
+            $entityManager->flush();
+            
+            return $this->json(['success' => true, 'message' => 'Indicación reanudada correctamente']);
+            
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => 'Error al reanudar la indicación: ' . $e->getMessage()]);
+        }
+    }
+    
+    /**
+     * @Route("/cancelar-indicacion/{id}", name="consumible_cancelar_indicacion", methods={"POST"})
+     */
+    public function cancelarIndicacion($id, Request $request): Response
+    {
+        $entityManager = $this->getDoctrine()->getManager();
+        $indicacion = $entityManager->getRepository(ConsumiblesClientes::class)->find($id);
+        
+        if (!$indicacion) {
+            return $this->json(['success' => false, 'message' => 'Indicación no encontrada']);
+        }
+        
+        try {
+            $indicacion->setActivo(false);
+            $entityManager->persist($indicacion);
+            $entityManager->flush();
+            
+            return $this->json(['success' => true, 'message' => 'Indicación cancelada correctamente']);
+            
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => 'Error al cancelar la indicación: ' . $e->getMessage()]);
         }
     }
     
