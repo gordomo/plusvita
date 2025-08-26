@@ -179,12 +179,21 @@ class InformeMensualController extends AbstractController
         $options->set('isRemoteEnabled', true);
         $options->set('isPhpEnabled', true);
         $options->set('isJavascriptEnabled', true);
-        $options->set('chroot', '/');  // Permitir acceso a todo el sistema de archivos
+        
+        // Configurar el directorio raíz para las imágenes
+        $publicDir = $this->getParameter('kernel.project_dir') . '/public';
+        $options->set('chroot', $publicDir);
+        
         $dompdf = new Dompdf($options);
+        
+        // Obtener el host para las URLs
+        $request = $this->container->get('request_stack')->getCurrentRequest();
+        $baseUrl = $request ? $request->getSchemeAndHttpHost() : '';
         
         // Renderizar la vista que queremos convertir a PDF
         $html = $this->renderView('informe_mensual/pdf.html.twig', [
-            'informeMensual' => $informeMensual
+            'informeMensual' => $informeMensual,
+            'baseUrl' => $baseUrl
         ]);
         
         // Cargar HTML en Dompdf

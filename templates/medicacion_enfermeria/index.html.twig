@@ -1,0 +1,647 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Medicación - {{ cliente.nombre }} {{ cliente.apellido }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .horario-card {
+            border: 1px solid #dee2e6;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .horario-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+        
+        .horario-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 15px 20px;
+            border-bottom: 1px solid #dee2e6;
+            border-radius: 11px 11px 0 0;
+        }
+        
+        .horario-body {
+            padding: 20px;
+        }
+        
+        .horario-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 10px;
+            border-bottom: 1px solid #f1f3f4;
+            transition: all 0.2s ease;
+        }
+        
+        .horario-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .horario-item:last-child {
+            border-bottom: none;
+        }
+        
+        .horario-time {
+            min-width: 100px;
+            font-weight: 600;
+            font-size: 1.2em;
+            text-align: center;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            margin-right: 15px;
+        }
+        
+        .horario-checkbox {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            margin: 0 15px;
+        }
+        
+        .horario-checkbox input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .horario-checkbox input[type="checkbox"]:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        
+        .horario-details {
+            flex-grow: 1;
+        }
+        
+        .horario-status {
+            margin-left: auto;
+            min-width: 120px;
+            text-align: right;
+        }
+        
+        .en-ventana {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .en-ventana .horario-time {
+            background-color: #ffc107;
+            color: #212529;
+            border-color: #ffc107;
+            font-weight: 700;
+        }
+        
+        .administrado {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .administrado .horario-time {
+            background-color: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+        
+        .fuera-ventana {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .fuera-ventana .horario-time {
+            background-color: #e9ecef;
+            color: #6c757d;
+            border-color: #ced4da;
+        }
+        
+        .medicamento-nombre {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .medicamento-dosis {
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+        
+        .resumen-dia {
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,123,255,0.3);
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 8px;
+        }
+        
+        .stat-label {
+            font-size: 0.95rem;
+            opacity: 0.95;
+            font-weight: 500;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+        
+        .btn-revertir {
+            font-size: 0.8em;
+            padding: 2px 8px;
+        }
+        
+        .no-medicacion {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        
+        .alert-info-custom {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            color: #0c5460;
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 25px;
+            border-left: 4px solid #007bff;
+        }
+    </style>
+{% endblock %}
+
+{% block panelTitle %}
+    <div id="head">
+        <h3>
+            <i class="fas fa-syringe mr-2"></i>
+            Kardex
+        </h3>
+        <p class="mb-0">
+            <strong class="text-capitalize">{{ cliente.nombre }} {{ cliente.apellido }}</strong> 
+            - H.C.: {{ cliente.id }} 
+            - Fecha: {{ fechaHoy|date('d/m/Y') }}
+        </p>
+    </div>
+{% endblock %}
+
+{% block titleButtons %}
+    <div class="d-flex">
+        <a href="javascript:history.back()" class="btn btn-outline-secondary mr-2">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+        <a href="{{ path('consumible_indicar_view', {'id': cliente.id}) }}" class="btn btn-outline-primary mr-2">
+            <i class="fas fa-pills"></i> Ver Indicaciones
+        </a>
+        <button class="btn btn-outline-warning mr-2" onclick="regenerarHorarios({{ cliente.id }})">
+            <i class="fas fa-cogs"></i> Regenerar Horarios
+        </button>
+        <button class="btn btn-success" onclick="location.reload()">
+            <i class="fas fa-sync"></i> Actualizar
+        </button>
+    </div>
+{% endblock %}
+
+{% block body %}
+    <!-- Resumen del día -->
+    <div class="resumen-dia">
+        <div class="row" id="resumenDia">
+            <div class="col-md-3 stat-item">
+                <div class="stat-number" id="totalMedicaciones">-</div>
+                <div class="stat-label">Total del día</div>
+            </div>
+            <div class="col-md-3 stat-item">
+                <div class="stat-number text-success" id="administradas">-</div>
+                <div class="stat-label">Administradas</div>
+            </div>
+            <div class="col-md-3 stat-item">
+                <div class="stat-number text-warning" id="pendientes">-</div>
+                <div class="stat-label">Pendientes</div>
+            </div>
+            <div class="col-md-3 stat-item">
+                <div class="stat-number" id="porcentaje">-</div>
+                <div class="stat-label">% Completado</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Información sobre ventana horaria -->
+    <div class="alert-info-custom">
+        <i class="fas fa-info-circle mr-2"></i>
+        <strong>Ventana de administración:</strong> Puede marcar la medicación como administrada desde 2 horas antes hasta 2 horas después del horario programado.
+        Los horarios resaltados en <span class="badge badge-warning">amarillo</span> están en ventana de administración actualmente.
+    </div>
+    
+    {% if horariosPorIndicacion|length > 0 %}
+        <!-- Listado de medicaciones por indicación -->
+        {% for indicacionId, data in horariosPorIndicacion %}
+            <div class="horario-card">
+                <div class="horario-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1">
+                                {% if data.indicacion.tipoIndicacion == 'medicamento' and consumiblesArray[data.indicacion.consumibleId] is defined %}
+                                    <i class="fas fa-pills text-primary mr-2"></i>
+                                    {{ consumiblesArray[data.indicacion.consumibleId] }}
+                                {% elseif data.indicacion.procedimientoPersonalizado %}
+                                    <i class="fas fa-procedures text-success mr-2"></i>
+                                    {{ data.indicacion.procedimientoPersonalizado }}
+                                {% else %}
+                                    <i class="fas fa-question-circle text-secondary mr-2"></i>
+                                    Indicación sin especificar
+                                {% endif %}
+                            </h5>
+                            <small class="text-muted">
+                                {% if data.indicacion.tipoIndicacion == 'medicamento' %}
+                                    Dosis: {{ data.indicacion.cantidad }} {{ data.indicacion.unidadMedida }} - 
+                                {% endif %}
+                                Frecuencia: {{ data.indicacion.frecuencia|default('N/D') }}
+                                {% if data.indicacion.notas %}
+                                    <br><em>{{ data.indicacion.notas }}</em>
+                                {% endif %}
+                            </small>
+                        </div>
+                        <div>
+                            {% if data.indicacion.estadoSuspendido %}
+                                <span class="badge badge-warning">Suspendida</span>
+                            {% else %}
+                                <span class="badge badge-success">Activa</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="horario-body">
+                    {% if data.sin_horarios is defined and data.sin_horarios %}
+                        <!-- Indicación sin horarios -->
+                        {% if data.indicacion.frecuencia == 'sos' %}
+                            <div class="horario-item">
+                                <div class="horario-time">
+                                    <span class="badge badge-info">SOS</span>
+                                </div>
+                                <div class="horario-checkbox">
+                                    <input type="checkbox" 
+                                           class="form-check-input horario-check"
+                                           title="Administrar según necesidad">
+                                </div>
+                                <div class="horario-details">
+                                    <div class="medicamento-nombre">
+                                        {% if data.indicacion.tipoIndicacion == 'medicamento' %}
+                                            {{ data.indicacion.cantidad }} {{ data.indicacion.unidadMedida }}
+                                        {% else %}
+                                            Procedimiento/Control
+                                        {% endif %}
+                                    </div>
+                                    <div class="medicamento-dosis text-muted">
+                                        <i class="fas fa-info-circle"></i>
+                                        Administrar según necesidad
+                                    </div>
+                                </div>
+                                <div class="horario-status">
+                                    <span class="badge badge-info">
+                                        <i class="fas fa-hand-paper"></i>
+                                        Según necesidad
+                                    </span>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="horario-item en-ventana">
+                                <div class="horario-time">
+                                    <input type="time" 
+                                           class="form-control form-control-sm" 
+                                           id="primeraToma_{{ data.indicacion.id }}"
+                                           value="{{ "now"|date("H:i") }}"
+                                           style="width: 100px;">
+                                </div>
+                                <div class="horario-checkbox">
+                                    <input type="checkbox" 
+                                           id="check_primeraToma_{{ data.indicacion.id }}"
+                                           class="form-check-input"
+                                           onclick="registrarPrimeraToma({{ data.indicacion.id }}, {{ cliente.id }})">
+                                </div>
+                                <div class="horario-details">
+                                    <div class="medicamento-nombre">
+                                        {% if data.indicacion.tipoIndicacion == 'medicamento' %}
+                                            {{ data.indicacion.cantidad }} {{ data.indicacion.unidadMedida }}
+                                        {% else %}
+                                            Procedimiento/Control
+                                        {% endif %}
+                                    </div>
+                                    <div class="medicamento-dosis text-muted">
+                                        <i class="fas fa-info-circle"></i>
+                                        Primera toma - Los siguientes horarios se generarán cada {{ data.indicacion.frecuencia }}
+                                    </div>
+                                </div>
+                                <div class="horario-status">
+                                    <span class="badge badge-warning">
+                                        <i class="fas fa-clock"></i>
+                                        Primera toma pendiente
+                                    </span>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        {% for horario in data.horarios %}
+                            <div class="horario-item 
+                                        {% if horario.administrado %}administrado
+                                        {% elseif horario.id in horariosEnVentanaIds %}en-ventana
+                                        {% else %}fuera-ventana{% endif %}">
+                                
+                                <div class="horario-time">
+                                    {{ horario.horario|date('H:i') }}
+                                </div>
+                                
+                                <div class="horario-checkbox">
+                                    {% if horario.administrado %}
+                                        <input type="checkbox" 
+                                               checked 
+                                               disabled
+                                               class="form-check-input">
+                                    {% elseif horario.id in horariosEnVentanaIds %}
+                                        <input type="checkbox" 
+                                               id="horario_{{ horario.id }}"
+                                               class="form-check-input horario-check"
+                                               data-horario-id="{{ horario.id }}">
+                                    {% else %}
+                                        <input type="checkbox" 
+                                               disabled
+                                               class="form-check-input"
+                                               title="Fuera de ventana horaria">
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="horario-details">
+                                    <div class="medicamento-nombre">
+                                        {% if data.indicacion.tipoIndicacion == 'medicamento' %}
+                                            {{ data.indicacion.cantidad }} {{ data.indicacion.unidadMedida }}
+                                        {% else %}
+                                            Procedimiento/Control
+                                        {% endif %}
+                                    </div>
+                                    {% if horario.observaciones %}
+                                        <div class="medicamento-dosis">
+                                            <i class="fas fa-comment text-info"></i>
+                                            {{ horario.observaciones }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="horario-status">
+                                    {% if horario.administrado %}
+                                        <div>
+                                            <span class="badge badge-success">
+                                                <i class="fas fa-check"></i>
+                                                Administrado
+                                            </span>
+                                            <div class="text-muted small">
+                                                {{ horario.fechaAdministracion|date('H:i') }}
+                                            </div>
+                                            <button class="btn btn-outline-secondary btn-revertir mt-1" 
+                                                    onclick="revertirMedicacion({{ horario.id }})"
+                                                    title="Revertir administración">
+                                                <i class="fas fa-undo"></i>
+                                            </button>
+                                        </div>
+                                    {% elseif horario.id in horariosEnVentanaIds %}
+                                        <span class="badge badge-warning">
+                                            <i class="fas fa-clock"></i>
+                                            Disponible hasta {{ ventanasHorarias[horario.id].fin|date('H:i') }}
+                                        </span>
+                                    {% elseif data.indicacion.frecuencia == 'sos' %}
+                                        <span class="badge badge-info">
+                                            <i class="fas fa-hand-paper"></i>
+                                            SOS
+                                        </span>
+                                    {% else %}
+                                        {% set proximo_horario = ventanasHorarias[horario.id].inicio|date('H:i') %}
+                                        <span class="badge badge-secondary">
+                                            <i class="fas fa-lock"></i>
+                                            Bloqueado hasta {{ proximo_horario }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="no-medicacion">
+            <i class="fas fa-pills fa-3x text-muted mb-3"></i>
+            <h4>No hay medicación programada para hoy</h4>
+            <p class="text-muted">
+                Este paciente no tiene horarios de medicación programados para el día {{ fechaHoy|date('d/m/Y') }}.
+            </p>
+            <a href="{{ path('consumible_indicar_view', {'id': cliente.id}) }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Agregar Indicación
+            </a>
+        </div>
+    {% endif %}
+
+    <!-- Input oculto para cliente ID -->
+    <input type="hidden" id="clienteId" value="{{ cliente.id }}">
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        $(document).ready(function() {
+            // Cargar resumen del día
+            cargarResumenDia();
+            
+            // Manejar checkboxes de horarios
+            $('.horario-check').change(function() {
+                const horarioId = $(this).data('horario-id');
+                const isChecked = $(this).is(':checked');
+                
+                if (isChecked) {
+                    administrarMedicacion(horarioId);
+                }
+            });
+        });
+        
+        function cargarResumenDia() {
+            const clienteId = $('#clienteId').val();
+            
+            $.ajax({
+                url: `{{ path('medicacion_resumen_dia', {'id': '__ID__'}) }}`.replace('__ID__', clienteId),
+                method: 'GET',
+                success: function(data) {
+                    $('#totalMedicaciones').text(data.total);
+                    $('#administradas').text(data.administrados);
+                    $('#pendientes').text(data.pendientes);
+                    $('#porcentaje').text(data.porcentaje + '%');
+                },
+                error: function() {
+                    console.error('Error cargando resumen del día');
+                }
+            });
+        }
+        
+        function administrarMedicacion(horarioId) {
+            // Pedir observaciones opcionales
+            const observaciones = prompt("Observaciones (opcional):");
+            if (observaciones === null) {
+                // Usuario canceló, desmarcar checkbox
+                $(`#horario_${horarioId}`).prop('checked', false);
+                return;
+            }
+            
+            $.ajax({
+                url: `{{ path('medicacion_administrar', {'id': '__ID__'}) }}`.replace('__ID__', horarioId),
+                method: 'POST',
+                data: {
+                    observaciones: observaciones
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Mostrar mensaje de éxito
+                        mostrarMensaje('success', response.message);
+                        
+                        // Recargar página para actualizar estado
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        // Mostrar error y desmarcar
+                        mostrarMensaje('error', response.message);
+                        $(`#horario_${horarioId}`).prop('checked', false);
+                    }
+                },
+                error: function() {
+                    mostrarMensaje('error', 'Error de comunicación con el servidor');
+                    $(`#horario_${horarioId}`).prop('checked', false);
+                }
+            });
+        }
+        
+        function revertirMedicacion(horarioId) {
+            if (confirm('¿Está seguro de que desea revertir esta administración?')) {
+                $.ajax({
+                    url: `{{ path('medicacion_revertir', {'id': '__ID__'}) }}`.replace('__ID__', horarioId),
+                    method: 'POST',
+                    success: function(response) {
+                        if (response.success) {
+                            mostrarMensaje('success', response.message);
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            mostrarMensaje('error', response.message);
+                        }
+                    },
+                    error: function() {
+                        mostrarMensaje('error', 'Error de comunicación con el servidor');
+                    }
+                });
+            }
+        }
+        
+        function registrarPrimeraToma(indicacionId, clienteId) {
+            const checkbox = $(`#check_primeraToma_${indicacionId}`);
+            if (!checkbox.is(':checked')) {
+                return;
+            }
+
+            const hora = $(`#primeraToma_${indicacionId}`).val();
+            if (!hora) {
+                mostrarMensaje('error', 'Debe seleccionar una hora para la primera toma');
+                checkbox.prop('checked', false);
+                return;
+            }
+            
+            // Pedir observaciones opcionales
+            const observaciones = prompt("Observaciones (opcional):");
+            if (observaciones === null) {
+                // Usuario canceló, desmarcar checkbox
+                checkbox.prop('checked', false);
+                return;
+            }
+            
+            // Mostrar loading
+            mostrarMensaje('info', '<i class="fas fa-spinner fa-spin mr-2"></i>Registrando primera toma...');
+            
+            $.ajax({
+                url: `{{ path('medicacion_registrar_primera_toma', {'id': '__ID__'}) }}`.replace('__ID__', indicacionId),
+                method: 'POST',
+                data: {
+                    hora: hora,
+                    observaciones: observaciones
+                },
+                success: function(response) {
+                    if (response.success) {
+                        mostrarMensaje('success', response.message);
+                        // Recargar página después de 2 segundos
+                        setTimeout(() => {
+                            location.reload();
+                        }, 2000);
+                    } else {
+                        mostrarMensaje('error', response.message);
+                        checkbox.prop('checked', false);
+                    }
+                },
+                error: function() {
+                    mostrarMensaje('error', 'Error de comunicación con el servidor');
+                    checkbox.prop('checked', false);
+                }
+            });
+        }
+        
+        function mostrarMensaje(tipo, mensaje) {
+            let alertClass, icono;
+            
+            switch(tipo) {
+                case 'success':
+                    alertClass = 'alert-success';
+                    icono = 'fa-check-circle';
+                    break;
+                case 'warning':
+                    alertClass = 'alert-warning';
+                    icono = 'fa-exclamation-triangle';
+                    break;
+                case 'info':
+                    alertClass = 'alert-info';
+                    icono = 'fa-info-circle';
+                    break;
+                default:
+                    alertClass = 'alert-danger';
+                    icono = 'fa-exclamation-circle';
+            }
+            
+            const alert = $(`
+                <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                    <i class="fas ${icono} mr-2"></i>
+                    ${mensaje}
+                    <button type="button" class="close" data-dismiss="alert">
+                        <span>&times;</span>
+                    </button>
+                </div>
+            `);
+            
+            // Remover alertas anteriores del mismo tipo para evitar acumulación
+            $('.alert').remove();
+            
+            // Insertar al inicio del body
+            $('.resumen-dia').after(alert);
+            
+            // Auto-remover después de 8 segundos (más tiempo para leer los mensajes largos)
+            setTimeout(() => {
+                alert.fadeOut();
+            }, 8000);
+        }
+    </script>
+{% endblock %}

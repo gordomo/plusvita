@@ -739,12 +739,14 @@ class StatsController extends AbstractController
      */
     private function getCapacidadCamasSegunAno(int $year): int
     {
-        if ($year <= 2023) {
-            return 30; // Desde inicio de actividades hasta 2024
-        } elseif ($year == 2024) {
-            return 40; // Entre 2024 y 2025
+        if ($year == 2021) {
+            return 24; // Específicamente para 2021
+        } elseif ($year < 2023) {
+            return 30; // Antes de 2023 (excepto 2021)
+        } elseif ($year >= 2023 && $year <= 2024) {
+            return 40; // Entre 2023 y 2024 inclusive
         } else {
-            return 52; // Desde 2025 en adelante
+            return 52; // A partir de 2025
         }
     }
     

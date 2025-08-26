@@ -721,7 +721,7 @@
                     <div id="indicaciones-section" class="collapse {% if section == 'indicaciones' %} show {% endif %}" aria-labelledby="headingOne" data-parent="#accordion">
                         <div class="indicaciones-resumen-container">
                             <!-- Indicaciones Activas -->
-                            <h5 class="mt-3 mb-3">Indicaciones Médicas Vigentes</h5>
+                            <h5 class="mt-3 mb-3">Indicaciones Médicas Actuales</h5>
                             
                             {% if indicacionesRecientes is defined and indicacionesRecientes|length > 0 %}
                                 <div class="table-responsive">
@@ -887,7 +887,7 @@
                             {% else %}
                                 <div class="alert alert-warning">
                                     <i class="fas fa-exclamation-triangle mr-2"></i>
-                                    No hay indicaciones recientes registradas para este paciente. 
+                                    No hay indicaciones actuales registradas para este paciente. 
                                     {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_DOCTOR') %}
                                     <p class="mb-0 mt-2">Puedes agregar una nueva indicación usando el botón "Nueva Indicación".</p>
                                     {% endif %}

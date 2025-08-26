@@ -83,7 +83,7 @@
 </head>
 <body>
     <div class="header clearfix">
-        <img src="http://troxus.cf/assets/images/plusVitaLogo.png" alt="Logo Plus Vita" class="logo">
+        <img src="{{ asset('assets/images/plusVitaLogo.png', absolute: true) }}" alt="Logo Plus Vita" class="logo">
         <div class="header-info">
             <h1>Informe Mensual</h1>
             <p>Fecha: {{ informeMensual.fechaCreacion|date('d/m/Y') }}</p>
@@ -230,7 +230,7 @@
     
     <div class="signature">
         {% if informeMensual.doctor.firma is defined and informeMensual.doctor.firma %}
-            <img src="http://troxus.cf/uploads/firmas/{{ informeMensual.doctor.firma }}" alt="Firma Digital">
+            <img src="{{ asset('uploads/firmas/' ~ informeMensual.doctor.firma, absolute: true) }}" alt="Firma Digital">
         {% endif %}
         <div class="doctor-info">
             <p><strong>{{ informeMensual.doctor.nombre }} {{ informeMensual.doctor.apellido }}</strong></p>

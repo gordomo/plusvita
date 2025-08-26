@@ -498,9 +498,12 @@
                                             <i class="fa fa-info-circle"></i> Evoluciones
                                         </a>
                                         {% endif %}
-                                        <a class="dropdown-item" href="{{ path('consumible_indicar_view', {'id': cliente.id}) }}">
-                                            <i class="fas fa-pills"></i> Indicaciones
-                                        </a>
+                                                                <a class="dropdown-item" href="{{ path('consumible_indicar_view', {'id': cliente.id}) }}">
+                            <i class="fas fa-pills"></i> Indicaciones
+                        </a>
+                        <a class="dropdown-item" href="{{ path('medicacion_enfermeria', {'id': cliente.id}) }}">
+                            <i class="fas fa-syringe"></i> Kardex
+                        </a>
                                         
                                         <div class="dropdown-divider"></div>
                                         <h6 class="dropdown-header">Cambios de estado</h6>

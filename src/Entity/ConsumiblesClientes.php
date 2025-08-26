@@ -101,6 +101,26 @@ class ConsumiblesClientes
      * @ORM\Column(type="text", nullable=true, options={"comment"="Descripción personalizada para procedimientos o controles"})
      */
     private $procedimientoPersonalizado;
+    
+    /**
+     * @ORM\Column(type="time", nullable=true, options={"comment"="Horario de administración (definido por médico o primera toma)"})
+     */
+    private $horario;
+    
+    /**
+     * @ORM\Column(type="boolean", nullable=false, options={"default"=false, "comment"="Indica si la indicación está suspendida temporalmente"})
+     */
+    private $estadoSuspendido = false;
+    
+    /**
+     * @ORM\Column(type="integer", nullable=true, options={"comment"="Valor específico de duración en días"})
+     */
+    private $duracionValor;
+    
+    /**
+     * @ORM\Column(type="integer", nullable=true, options={"comment"="ID de la historia del paciente asociada"})
+     */
+    private $historiaPacienteId;
 
     /**
      * @return mixed
@@ -412,6 +432,82 @@ class ConsumiblesClientes
     public function setProcedimientoPersonalizado(?string $procedimientoPersonalizado): self
     {
         $this->procedimientoPersonalizado = $procedimientoPersonalizado;
+        
+        return $this;
+    }
+    
+    /**
+     * @return \DateTime|null
+     */
+    public function getHorario(): ?\DateTime
+    {
+        return $this->horario;
+    }
+    
+    /**
+     * @param \DateTime|null $horario
+     * @return $this
+     */
+    public function setHorario(?\DateTime $horario): self
+    {
+        $this->horario = $horario;
+        
+        return $this;
+    }
+    
+    /**
+     * @return bool
+     */
+    public function isEstadoSuspendido(): bool
+    {
+        return $this->estadoSuspendido;
+    }
+    
+    /**
+     * @param bool $estadoSuspendido
+     * @return $this
+     */
+    public function setEstadoSuspendido(bool $estadoSuspendido): self
+    {
+        $this->estadoSuspendido = $estadoSuspendido;
+        
+        return $this;
+    }
+    
+    /**
+     * @return int|null
+     */
+    public function getDuracionValor(): ?int
+    {
+        return $this->duracionValor;
+    }
+    
+    /**
+     * @param int|null $duracionValor
+     * @return $this
+     */
+    public function setDuracionValor(?int $duracionValor): self
+    {
+        $this->duracionValor = $duracionValor;
+        
+        return $this;
+    }
+    
+    /**
+     * @return int|null
+     */
+    public function getHistoriaPacienteId(): ?int
+    {
+        return $this->historiaPacienteId;
+    }
+    
+    /**
+     * @param int|null $historiaPacienteId
+     * @return $this
+     */
+    public function setHistoriaPacienteId(?int $historiaPacienteId): self
+    {
+        $this->historiaPacienteId = $historiaPacienteId;
         
         return $this;
     }
