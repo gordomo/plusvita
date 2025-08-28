@@ -93,28 +93,96 @@
                 </div>
                 
                 <div class="card mb-4">
+                    <div class="card-header bg-warning text-dark">
+                        <h4>Notas y novedades</h4>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" action="{{ path('app_item_add_nota', {'id': item.id}) }}" class="mb-4">
+                            <div class="form-group">
+                                <label for="contenido">Nueva nota:</label>
+                                <textarea name="contenido" id="contenido" class="form-control" rows="3" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-plus"></i> Agregar nota
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
                     <div class="card-header bg-secondary text-white">
-                        <h4>Historial de movimientos</h4>
+                        <h4>Historial</h4>
                     </div>
                     <div class="card-body">
                         <table class="table table-striped">
                             <thead>
                                 <tr>
                                     <th>Fecha</th>
-                                    <th>Ubicación</th>
-                                    <th>Motivo</th>
+                                    <th>Tipo</th>
+                                    <th>Detalle</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for movimiento in item.movimientos|sort((a, b) => b.fecha <=> a.fecha) %}
+                                {% set historial = [] %}
+                                
+                                {# Agregar movimientos al historial #}
+                                {% for movimiento in item.movimientos %}
+                                    {% set historial = historial|merge([{
+                                        'fecha': movimiento.fecha,
+                                        'tipo': 'Movimiento',
+                                        'detalle': movimiento.motivo,
+                                        'ubicacion': movimiento.ubicacion.nombre,
+                                        'is_movimiento': true
+                                    }]) %}
+                                {% endfor %}
+                                
+                                {# Agregar notas al historial #}
+                                {% for nota in notas %}
+                                    {% set historial = historial|merge([{
+                                        'fecha': nota.fechaCreacion,
+                                        'tipo': 'Nota',
+                                        'detalle': nota.contenido,
+                                        'usuario': nota.usuario.username,
+                                        'is_nota': true,
+                                        'nota_id': nota.id
+                                    }]) %}
+                                {% endfor %}
+                                
+                                {# Ordenar por fecha descendente #}
+                                {% set historial = historial|sort((a, b) => b.fecha <=> a.fecha) %}
+                                
+                                {% for item_historial in historial %}
                                     <tr>
-                                        <td>{{ movimiento.fecha|date('d/m/Y H:i') }}</td>
-                                        <td>{{ movimiento.ubicacion.nombre }}</td>
-                                        <td>{{ movimiento.motivo }}</td>
+                                        <td>{{ item_historial.fecha|date('d/m/Y H:i') }}</td>
+                                        <td>
+                                            {% if item_historial.tipo == 'Movimiento' %}
+                                                <span class="badge badge-primary">
+                                                    <i class="fas fa-exchange-alt"></i> Movimiento
+                                                </span>
+                                            {% else %}
+                                                <span class="badge badge-warning">
+                                                    <i class="fas fa-sticky-note"></i> Nota
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if item_historial.tipo == 'Movimiento' %}
+                                                <strong>{{ item_historial.detalle }}</strong>
+                                                <br><small class="text-muted">Ubicación: {{ item_historial.ubicacion }}</small>
+                                            {% else %}
+                                                {{ item_historial.detalle }}
+                                                <br><small class="text-muted">Por {{ item_historial.usuario }}</small>
+                                                <form method="post" action="{{ path('app_item_delete_nota', {'id': item.id, 'notaId': item_historial.nota_id}) }}" class="d-inline">
+                                                    <button type="submit" class="btn btn-sm btn-link text-danger" onclick="return confirm('¿Estás seguro de que deseas eliminar esta nota?')">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                        </td>
                                     </tr>
                                 {% else %}
                                     <tr>
-                                        <td colspan="3" class="text-center">No hay registros de movimientos</td>
+                                        <td colspan="3" class="text-center">No hay registros en el historial</td>
                                     </tr>
                                 {% endfor %}
                             </tbody>

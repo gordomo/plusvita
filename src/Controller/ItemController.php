@@ -5,6 +5,7 @@ namespace App\Controller;
 
 use App\Entity\Item;
 use App\Entity\Movimiento;
+use App\Entity\NotaItem;
 use App\Entity\TipoItem;
 use App\Entity\Ubicacion;
 use App\Form\ItemType;
@@ -330,10 +331,17 @@ class ItemController extends AbstractController
     {
         // Obtener todas las ubicaciones para la vista
         $todasUbicaciones = $entityManager->getRepository(Ubicacion::class)->findAll();
+        
+        // Obtener las notas del item ordenadas por fecha de creación descendente
+        $notas = $entityManager->getRepository(NotaItem::class)->findBy(
+            ['item' => $item],
+            ['fecha_creacion' => 'DESC']
+        );
 
         return $this->render('item/show.html.twig', [
             'item' => $item,
             'ubicaciones' => $todasUbicaciones,
+            'notas' => $notas,
         ]);
     }
 
@@ -418,6 +426,54 @@ class ItemController extends AbstractController
         return $this->redirectToRoute('app_item_show', ['id' => $item->getId()]);
     }
 
+    
+    /**
+     * @Route("/{id}/nota/agregar", name="app_item_add_nota", methods={"POST"})
+     */
+    public function addNota(Request $request, Item $item, EntityManagerInterface $entityManager): Response
+    {
+        $contenido = $request->request->get('contenido');
+        
+        if (!$contenido) {
+            $this->addFlash('error', 'El contenido de la nota no puede estar vacío.');
+            return $this->redirectToRoute('app_item_show', ['id' => $item->getId()]);
+        }
+        
+        $nota = new NotaItem();
+        $nota->setItem($item);
+        $nota->setContenido($contenido);
+        $nota->setUsuario($this->getUser());
+        
+        $entityManager->persist($nota);
+        $entityManager->flush();
+        
+        $this->addFlash('success', 'La nota ha sido agregada correctamente.');
+        return $this->redirectToRoute('app_item_show', ['id' => $item->getId()]);
+    }
+
+    /**
+     * @Route("/{id}/nota/{notaId}/eliminar", name="app_item_delete_nota", methods={"POST"})
+     */
+    public function deleteNota(Request $request, Item $item, int $notaId, EntityManagerInterface $entityManager): Response
+    {
+        $nota = $entityManager->getRepository(NotaItem::class)->find($notaId);
+        
+        if (!$nota) {
+            $this->addFlash('error', 'La nota no existe.');
+            return $this->redirectToRoute('app_item_show', ['id' => $item->getId()]);
+        }
+        
+        if ($nota->getItem() !== $item) {
+            $this->addFlash('error', 'La nota no pertenece a este item.');
+            return $this->redirectToRoute('app_item_show', ['id' => $item->getId()]);
+        }
+        
+        $entityManager->remove($nota);
+        $entityManager->flush();
+        
+        $this->addFlash('success', 'La nota ha sido eliminada correctamente.');
+        return $this->redirectToRoute('app_item_show', ['id' => $item->getId()]);
+    }
     /**
      * @Route("/{id}/duplicate", name="app_item_duplicate", methods={"GET", "POST"})
      */
