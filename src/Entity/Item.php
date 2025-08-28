@@ -56,9 +56,15 @@ class Item
      */
     private $identificador;
 
+    /**
+     * @ORM\OneToMany(targetEntity=NotaItem::class, mappedBy="item", orphanRemoval=true)
+     */
+    private $notas;
+
     public function __construct()
     {
         $this->movimientos = new ArrayCollection();
+        $this->notas = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -164,6 +170,36 @@ class Item
     public function setIdentificador(?string $identificador): self
     {
         $this->identificador = $identificador;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, NotaItem>
+     */
+    public function getNotas(): Collection
+    {
+        return $this->notas;
+    }
+
+    public function addNota(NotaItem $nota): self
+    {
+        if (!$this->notas->contains($nota)) {
+            $this->notas[] = $nota;
+            $nota->setItem($this);
+        }
+
+        return $this;
+    }
+
+    public function removeNota(NotaItem $nota): self
+    {
+        if ($this->notas->removeElement($nota)) {
+            // set the owning side to null (unless already changed)
+            if ($nota->getItem() === $this) {
+                $nota->setItem(null);
+            }
+        }
 
         return $this;
     }
