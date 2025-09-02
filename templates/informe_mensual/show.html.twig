@@ -16,8 +16,11 @@
                             <a href="{{ path('informe_mensual_edit', {'id': informeMensual.id}) }}" class="btn btn-sm btn-primary">
                                 <i class="fas fa-edit"></i> Editar
                             </a>
-                            <a href="{{ path('informe_mensual_pdf', {'id': informeMensual.id}) }}" class="btn btn-sm btn-danger" target="_blank">
-                                <i class="fas fa-file-pdf"></i> Generar PDF
+                            <a href="{{ path('informe_mensual_pdf_form', {'id': informeMensual.id}) }}" class="btn btn-sm btn-danger">
+                                <i class="fas fa-file-pdf"></i> Generar PDF con Fecha Personalizada
+                            </a>
+                            <a href="{{ path('informe_mensual_pdf', {'id': informeMensual.id}) }}" class="btn btn-sm btn-warning" target="_blank">
+                                <i class="fas fa-file-pdf"></i> PDF con Fecha Original
                             </a>
                             <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal">
                                 <i class="fas fa-trash"></i> Eliminar

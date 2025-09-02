@@ -173,6 +173,19 @@ class InformeMensualController extends AbstractController
      */
     public function generarPdf(InformeMensual $informeMensual): Response
     {
+        // Obtener la fecha personalizada del request, o usar la fecha de creación por defecto
+        $fechaPersonalizada = $this->get('request_stack')->getCurrentRequest()->query->get('fecha');
+        
+        if ($fechaPersonalizada) {
+            try {
+                $fecha = new \DateTime($fechaPersonalizada);
+            } catch (\Exception $e) {
+                $fecha = $informeMensual->getFechaCreacion();
+            }
+        } else {
+            $fecha = $informeMensual->getFechaCreacion();
+        }
+        
         // Configurar Dompdf
         $options = new Options();
         $options->set('isHtml5ParserEnabled', true);
@@ -193,7 +206,8 @@ class InformeMensualController extends AbstractController
         // Renderizar la vista que queremos convertir a PDF
         $html = $this->renderView('informe_mensual/pdf.html.twig', [
             'informeMensual' => $informeMensual,
-            'baseUrl' => $baseUrl
+            'baseUrl' => $baseUrl,
+            'fechaPersonalizada' => $fecha
         ]);
         
         // Cargar HTML en Dompdf
@@ -207,8 +221,8 @@ class InformeMensualController extends AbstractController
         
         // Generar nombre de archivo
         $cliente = $informeMensual->getCliente();
-        $fecha = $informeMensual->getFechaCreacion()->format('Y-m-d');
-        $filename = 'informe_mensual_' . $cliente->getApellido() . '_' . $fecha . '.pdf';
+        $fechaFormateada = $fecha->format('Y-m-d');
+        $filename = 'informe_mensual_' . $cliente->getApellido() . '_' . $fechaFormateada . '.pdf';
         
         // Descargar el PDF generado
         return new Response(
@@ -219,6 +233,16 @@ class InformeMensualController extends AbstractController
                 'Content-Disposition' => 'attachment; filename="' . $filename . '"'
             ]
         );
+    }
+
+    /**
+     * @Route("/{id}/pdf-form", name="informe_mensual_pdf_form", methods={"GET"})
+     */
+    public function mostrarFormularioPdf(InformeMensual $informeMensual): Response
+    {
+        return $this->render('informe_mensual/pdf_form.html.twig', [
+            'informeMensual' => $informeMensual,
+        ]);
     }
     
     /**
