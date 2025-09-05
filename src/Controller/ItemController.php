@@ -481,28 +481,41 @@ class ItemController extends AbstractController
     {
         if ($request->isMethod('POST')) {
             $cantidad = intval($request->request->get('cantidad', 1));
+            $nombre = $request->request->get('nombre', $item->getNombre());
+            $identificador = $request->request->get('identificador', $item->getIdentificador());
+            $tipoId = $request->request->get('tipo');
+            $ubicacionId = $request->request->get('ubicacion');
             
             if ($cantidad < 1) {
                 $this->addFlash('warning', 'La cantidad debe ser al menos 1.');
                 return $this->redirectToRoute('app_item_show', ['id' => $item->getId()]);
             }
             
+            // Obtener tipo y ubicación seleccionados
+            $tipo = $tipoId ? $entityManager->getRepository(TipoItem::class)->find($tipoId) : $item->getTipo();
+            $ubicacion = $ubicacionId ? $entityManager->getRepository(Ubicacion::class)->find($ubicacionId) : $item->getUbicacionActual();
+            
+            if (!$tipo || !$ubicacion) {
+                $this->addFlash('error', 'Debe seleccionar un tipo y una ubicación válidos.');
+                return $this->redirectToRoute('app_item_duplicate', ['id' => $item->getId()]);
+            }
+            
             $itemsCreados = 0;
             
             for ($i = 0; $i < $cantidad; $i++) {
                 $nuevoItem = new Item();
-                $nuevoItem->setNombre($item->getNombre());
-                $nuevoItem->setTipo($item->getTipo());
-                $nuevoItem->setUbicacionActual($item->getUbicacionActual());
+                $nuevoItem->setNombre($nombre);
+                $nuevoItem->setTipo($tipo);
+                $nuevoItem->setUbicacionActual($ubicacion);
                 
                 // Reusamos la misma imagen si existe
                 if ($item->getImagen()) {
                     $nuevoItem->setImagen($item->getImagen());
                 }
                 
-                // Generamos un nuevo identificador agregando sufijo si el original tenía uno
-                if ($item->getIdentificador()) {
-                    $nuevoItem->setIdentificador($item->getIdentificador() . '-copia-' . ($i + 1));
+                // Usamos el identificador tal como se especificó en el formulario
+                if ($identificador) {
+                    $nuevoItem->setIdentificador($identificador);
                 }
                 
                 $nuevoItem->setCodigoQr('');
@@ -513,7 +526,7 @@ class ItemController extends AbstractController
                 $movimiento->setItem($nuevoItem);
                 $movimiento->setFecha(new \DateTime());
                 $movimiento->setUbicacion($nuevoItem->getUbicacionActual());
-                $movimiento->setMotivo('Duplicado a partir del ítem #' . $item->getId());
+                $movimiento->setMotivo('Clonado a partir del ítem #' . $item->getId());
                 $movimiento->setCantidad(1);
                 $entityManager->persist($movimiento);
                 
@@ -524,28 +537,48 @@ class ItemController extends AbstractController
             
             // Generar QR para cada nuevo ítem
             $items = $entityManager->getRepository(Item::class)->findBy(['codigo_qr' => '']);
+            $qrDirectory = $this->getParameter('items_qr_directory');
+            
+            // Asegurar que el directorio existe
+            if (!is_dir($qrDirectory)) {
+                mkdir($qrDirectory, 0755, true);
+            }
+            
             foreach ($items as $nuevoItem) {
                 $qrUrl = $this->generateUrl('app_item_show', ['id' => $nuevoItem->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
                 $qrFilename = 'qr-item-' . $nuevoItem->getId() . '.png';
-                $qrPath = $this->getParameter('items_qr_directory') . '/' . $qrFilename;
+                $qrPath = $qrDirectory . '/' . $qrFilename;
                 
-                $result = $qrCodeBuilder->data($qrUrl)
-                    ->size(200)
-                    ->margin(10)
-                    ->build();
-                
-                file_put_contents($qrPath, $result->getString());
-                $nuevoItem->setCodigoQr($qrFilename);
+                try {
+                    $result = $qrCodeBuilder->data($qrUrl)
+                        ->size(200)
+                        ->margin(10)
+                        ->build();
+                    
+                    if (file_put_contents($qrPath, $result->getString()) === false) {
+                        $this->addFlash('warning', 'No se pudo generar el código QR para el ítem #' . $nuevoItem->getId());
+                    } else {
+                        $nuevoItem->setCodigoQr($qrFilename);
+                    }
+                } catch (\Exception $e) {
+                    $this->addFlash('warning', 'Error al generar código QR para el ítem #' . $nuevoItem->getId() . ': ' . $e->getMessage());
+                }
             }
             
             $entityManager->flush();
             
-            $this->addFlash('success', "Se han creado $itemsCreados copias del ítem correctamente.");
+            $this->addFlash('success', "Se han creado $itemsCreados clones del ítem correctamente.");
             return $this->redirectToRoute('app_item_index');
         }
         
+        // Obtener ubicaciones y tipos disponibles para los dropdowns
+        $ubicaciones = $entityManager->getRepository(Ubicacion::class)->findAll();
+        $tiposItem = $entityManager->getRepository(TipoItem::class)->findAll();
+        
         return $this->render('item/duplicate.html.twig', [
             'item' => $item,
+            'ubicaciones' => $ubicaciones,
+            'tiposItem' => $tiposItem,
         ]);
     }
 }
