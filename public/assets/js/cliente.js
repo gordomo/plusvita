@@ -169,6 +169,7 @@ $( document ).ready(function () {
 
     $('#cliente_familiarResponsableAcompanante').find('.radio').addClass('form-check form-check-inline');
 
+
 });
 
 $('#cliente_email').on('keyup', function () {

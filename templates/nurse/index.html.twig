@@ -1,0 +1,240 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Enfermeros{% endblock %}
+{% block panelTitle %}Enfermeros{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('assets/css/user-admin.css') }}">
+    <style>
+        /* Estilos mejorados para badges */
+        .badge-lg {
+            font-size: 0.9rem;
+            padding: 0.5rem 0.75rem;
+            font-weight: 600;
+        }
+        
+        .badge-sm {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            font-weight: 500;
+        }
+        
+        /* Espaciado mejorado para roles */
+        .roles .badge {
+            display: inline-block;
+            margin-bottom: 0.25rem;
+        }
+        
+        /* Colores específicos para tipos de usuario */
+        .badge-primary {
+            background-color: #007bff !important;
+            border-color: #007bff !important;
+        }
+        
+        .badge-success {
+            background-color: #28a745 !important;
+            border-color: #28a745 !important;
+        }
+        
+        .badge-info {
+            background-color: #17a2b8 !important;
+            border-color: #17a2b8 !important;
+        }
+        
+        /* Colores específicos para roles */
+        .badge-warning {
+            background-color: #ffc107 !important;
+            color: #212529 !important;
+            border-color: #ffc107 !important;
+        }
+        
+        .badge-light {
+            background-color: #f8f9fa !important;
+            color: #495057 !important;
+            border: 1px solid #dee2e6 !important;
+        }
+        
+        .badge-dark {
+            background-color: #343a40 !important;
+            border-color: #343a40 !important;
+        }
+        
+        .badge-secondary {
+            background-color: #6c757d !important;
+            border-color: #6c757d !important;
+        }
+        
+        /* Hover effects */
+        .badge:hover {
+            opacity: 0.8;
+            transform: translateY(-1px);
+            transition: all 0.2s ease;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-user-nurse mr-2"></i>Listado de Enfermeros
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive printiable">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th class="id">ID</th>
+                                    <th class="user">Usuario</th>
+                                    <th class="roles">Roles</th>
+                                    <th class="email">Email</th>
+                                    <th class="telefono">Teléfono</th>
+                                    <th class="legajo">Legajo</th>
+                                    <th class="acciones">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for nurse in nurses %}
+                                <tr class="{% if nurse.habilitado %}enabled-user{% else %}disabled-user{% endif %}">
+                                    <td class="id">{{ nurse.id }}</td>
+                                    <td class="user">
+                                        <div class="d-flex align-items-center">
+                                            <span class="status-indicator {% if nurse.habilitado %}status-active{% else %}status-inactive{% endif %}"></span>
+                                            <strong>{{ nurse.nombre }} {{ nurse.apellido }}</strong>
+                                        </div>
+                                    </td>
+                                    <td class="roles">
+                                        {% for role in nurse.roleEntities %}
+                                            <span class="badge badge-secondary badge-sm mr-1 mb-1">
+                                                <i class="fas fa-tag mr-1"></i>{{ role.displayName }}
+                                            </span>
+                                        {% endfor %}
+                                        {% if nurse.legacyRoles %}
+                                            {% for role in nurse.legacyRoles %}
+                                                {% if role == "ROLE_ADMIN" %}
+                                                    <span class="badge badge-warning badge-sm mr-1 mb-1">
+                                                        <i class="fas fa-crown mr-1"></i>Administrador
+                                                    </span>
+                                                {% elseif role == "ROLE_USER" %}
+                                                    <span class="badge badge-light badge-sm mr-1 mb-1">
+                                                        <i class="fas fa-user mr-1"></i>Operador
+                                                    </span>
+                                                {% elseif role == "ROLE_EDIT_HC" %}
+                                                    <span class="badge badge-dark badge-sm mr-1 mb-1">
+                                                        <i class="fas fa-edit mr-1"></i>Editar HC
+                                                    </span>
+                                                {% elseif role == "ROLE_DOCTOR" %}
+                                                    <span class="badge badge-success badge-sm mr-1 mb-1">
+                                                        <i class="fas fa-stethoscope mr-1"></i>Doctor
+                                                    </span>
+                                                {% elseif role == "ROLE_NURSE" %}
+                                                    <span class="badge badge-info badge-sm mr-1 mb-1">
+                                                        <i class="fas fa-heartbeat mr-1"></i>Enfermero
+                                                    </span>
+                                                {% elseif role == "ROLE_STAFF" %}
+                                                    <span class="badge badge-secondary badge-sm mr-1 mb-1">
+                                                        <i class="fas fa-briefcase mr-1"></i>Staff
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge badge-outline-secondary badge-sm mr-1 mb-1">
+                                                        <i class="fas fa-circle mr-1"></i>{{ role|replace({'ROLE_': ''}) }}
+                                                    </span>
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endif %}
+                                    </td>
+                                    <td class="lowercase email">{{ nurse.email }}</td>
+                                    <td class="telefono">{{ nurse.telefono|default('--') }}</td>
+                                    <td class="legajo">{{ nurse.legajo|default('--') }}</td>
+                                    <td class="text-center">
+                                        <div class="btn-group">
+                                            <a class="btn btn-sm btn-primary btn-action" href="{{ path('nurse_edit', {'id': nurse.id}) }}" data-toggle="tooltip" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a class="btn btn-sm btn-info btn-action" href="{{ path('nurse_show', {'id': nurse.id}) }}" data-toggle="tooltip" title="Ver">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-4">
+                                        <div class="alert alert-info mb-0">
+                                            <i class="fas fa-info-circle mr-2"></i>No se encontraron enfermeros
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="text-center">
+            <a href="{{ path('nurse_new') }}" class="btn btn-primary btn-create-user">
+                <i class="fas fa-user-plus mr-2"></i>Crear nuevo Enfermero
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block modalImprimir %}
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="id" id="id">
+        <label class="form-check-label" for="id">
+            Id
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="user" id="user">
+        <label class="form-check-label" for="user">
+            Usuario
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="roles" id="roles">
+        <label class="form-check-label" for="roles">
+            Roles
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="email" id="email">
+        <label class="form-check-label" for="email">
+            Email
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="telefono" id="telefono">
+        <label class="form-check-label" for="telefono">
+            Teléfono
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="legajo" id="legajo">
+        <label class="form-check-label" for="legajo">
+            Legajo
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="todos" id="todos">
+        <label class="form-check-label" for="todos">
+            Todos
+        </label>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('assets/js/dashboard.js') }}"></script>
+    <script src="{{ asset('assets/js/user-admin.js') }}"></script>
+    <script>
+        var tituloExcel = 'enfermeros.xlsx';
+        let printUrl = "{{ path('imprimir') }}";
+    </script>
+{% endblock %}

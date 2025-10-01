@@ -21,6 +21,33 @@ use Symfony\Component\Routing\Annotation\Route;
 class MedicacionEnfermeriaController extends AbstractController
 {
     /**
+     * @Route("/", name="medicacion_enfermeria_index", methods={"GET"})
+     */
+    public function indexGeneral(HorarioTomaRepository $horarioTomaRepository, EntityManagerInterface $entityManager): Response
+    {
+        if (!$this->isGranted('patient.cardex') && !$this->isGranted('ROLE_NURSE')) {
+            throw $this->createAccessDeniedException('No tienes permisos para acceder al Kardex');
+        }
+        
+        $fechaHoy = new \DateTime();
+        $fechaHoy->setTime(0, 0, 0);
+        
+        // Obtener los IDs de clientes que tienen medicación programada para hoy
+        $clienteIds = $horarioTomaRepository->findClienteIdsConMedicacionHoy($fechaHoy);
+        
+        // Obtener los datos completos de los clientes
+        $pacientes = [];
+        if (!empty($clienteIds)) {
+            $pacientes = $entityManager->getRepository(Cliente::class)->findBy(['id' => $clienteIds]);
+        }
+        
+        return $this->render('medicacion_enfermeria/lista_pacientes.html.twig', [
+            'pacientes' => $pacientes,
+            'fecha' => $fechaHoy,
+        ]);
+    }
+
+    /**
      * @Route("/{id}", name="medicacion_enfermeria", methods={"GET"})
      */
     public function index(Cliente $cliente, HorarioTomaRepository $horarioTomaRepository, ConsumiblesClientesRepository $consumiblesRepository, ConsumibleRepository $consumibleRepository): Response

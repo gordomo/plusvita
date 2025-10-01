@@ -77,7 +77,7 @@ class ClienteController extends AbstractController
         $user = $this->getUser();
         if (!$user) {
             return $this->redirectToRoute('app_login');
-        } else if (!in_array('ROLE_ADMIN', $user->getRoles())) {
+        } else if (!$this->isGranted('patient.view')) {
             return $this->redirectToRoute('doctor_historia');
         }
 
@@ -171,7 +171,7 @@ class ClienteController extends AbstractController
             'currentPage' => $currentPage,
             'limit' => $limit,
             'all_items' => $query,
-            'puedenEditarEvoluciones' => in_array('ROLE_EDIT_HC', $this->getUser()->getRoles()),
+            'puedenEditarEvoluciones' => $this->isGranted('patient.evolve'),
             'sortField' => $sortField,
             'sortDirection' => $sortDirection
         ]);
@@ -185,7 +185,7 @@ class ClienteController extends AbstractController
         $user = $this->getUser();
         if (!$user) {
             return $this->redirectToRoute('app_login');
-        } else if (!in_array('ROLE_ADMIN', $user->getRoles())) {
+        } else if (!$this->isGranted('patient.view')) {
             return $this->redirectToRoute('doctor_historia');
         }
 
@@ -340,7 +340,7 @@ class ClienteController extends AbstractController
         $user = $this->getUser();
         if (!$user) {
             return $this->redirectToRoute('app_login');
-        } else if (!in_array('ROLE_ADMIN', $user->getRoles())) {
+        } else if (!$this->isGranted('patient.history')) {
             return $this->redirectToRoute('doctor_historia');
         }
 
@@ -981,7 +981,7 @@ class ClienteController extends AbstractController
         $user = $this->getUser();
         if (!$user) {
             return $this->redirectToRoute('app_login');
-        } else if (!in_array('ROLE_ADMIN', $user->getRoles())) {
+        } else if (!$this->isGranted('patient.view')) {
             return $this->redirectToRoute('doctor_historia');
         }
 
@@ -1186,18 +1186,22 @@ class ClienteController extends AbstractController
             if (!empty($cliente->getHabitacion()) && (empty($cliente->getFEgreso()) || $cliente->getFEgreso() > $now)) {
                 $habitacion = $habitacionRepository->find($cliente->getHabitacion());
                 $cliente->setNCama($form->getExtraData()['nCama']);
-                $camasOcupadas = $habitacion->getCamasOcupadas();
                 $habPrivada = $form->getExtraData()['habPrivada'] ?? 0;
+                
                 if ($habPrivada) {
                     $cliente->setHabPrivada(1);
+                    // Para habitación privada, ocupar todas las camas
+                    $camasOcupadas = [];
                     for ($i=1; $i <= $habitacion->getCamasDisponibles(); $i++) {
                         $camasOcupadas[$i] = $i;
                     }
+                    $habitacion->setCamasOcupadas($camasOcupadas);
+                    $entityManager->persist($habitacion);
                 } else {
-                    $camasOcupadas[$cliente->getNCama()] = $cliente->getNCama();
+                    // Para habitación normal, usar el servicio para actualizar correctamente
+                    $habitacionService = new \App\Service\HabitacionService($entityManager, $clienteRepository, $habitacionRepository);
+                    $habitacionService->actualizarCamasOcupadas($habitacion);
                 }
-                $habitacion->setCamasOcupadas($camasOcupadas);
-                $entityManager->persist($habitacion);
             }
 
             $parametros = [
@@ -1231,6 +1235,56 @@ class ClienteController extends AbstractController
             'form' => $form->createView(),
             'error' => null,
         ]);
+    }
+
+    /**
+     * @Route("/{id}/show", name="cliente_show", methods={"GET"})
+     */
+    public function show(Cliente $cliente, ObraSocialRepository $obraSocialRepository, FamiliarExtraRepository $familiarExtraRepository, HabitacionRepository $habitacionRepository, DoctorRepository $doctorRepository): Response
+    {
+        $user = $this->security->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        // Obtener datos relacionados para mostrar
+        $familiarExtraActuales = $familiarExtraRepository->findBy(['cliente_id' => $cliente->getId()]);
+        
+        // Obtener información de la habitación si existe
+        $habitacion = null;
+        if ($cliente->getHabitacion()) {
+            $habitacion = $habitacionRepository->find($cliente->getHabitacion());
+        }
+        
+        // Obtener información de los doctores referentes si existen
+        $doctoresReferentes = $cliente->getDocReferente();
+        
+        // Obtener el texto del motivo de ingreso
+        $motivoIngresoTexto = $this->getMotivoIngresoTexto($cliente->getMotivoIng());
+
+        return $this->render('cliente/show.html.twig', [
+            'cliente' => $cliente,
+            'familiarExtraActuales' => $familiarExtraActuales,
+            'habitacion' => $habitacion,
+            'doctoresReferentes' => $doctoresReferentes,
+            'motivoIngresoTexto' => $motivoIngresoTexto,
+        ]);
+    }
+
+    /**
+     * Obtiene el texto del motivo de ingreso basado en el número
+     */
+    private function getMotivoIngresoTexto(?int $motivoIng): string
+    {
+        $motivos = [
+            1 => 'Neurológicas',
+            2 => 'Traumatológicas', 
+            3 => 'Respiratorias',
+            4 => 'Paliativos',
+            5 => 'Otros'
+        ];
+        
+        return $motivos[$motivoIng] ?? 'No especificado';
     }
 
     /**
@@ -1612,18 +1666,21 @@ class ClienteController extends AbstractController
                 $habitacion = $form->get('habitacion')->getData() ? $habitacionRepository->find($form->get('habitacion')->getData()) : null;
 
                 if($habitacion) {
-                    $camasOcupadas = $habitacion->getCamasOcupadas();
                     $habPrivada = $request->request->get('cliente')['habPrivada'] ?? null;
 
                     if ($habPrivada) {
                         $cliente->setHabPrivada(1);
+                        // Para habitación privada, ocupar todas las camas
+                        $camasOcupadas = [];
                         for ($i=1; $i <= $habitacion->getCamasDisponibles(); $i++) {
                             $camasOcupadas[$i] = $i;
                         }
+                        $habitacion->setCamasOcupadas($camasOcupadas);
                     } else {
-                        $camasOcupadas[$ncama] = $ncama;
+                        // Para habitación normal, usar el servicio para actualizar correctamente
+                        $habitacionService = new \App\Service\HabitacionService($entityManager, $clienteRepository, $habitacionRepository);
+                        $habitacionService->actualizarCamasOcupadas($habitacion);
                     }
-                    $habitacion->setCamasOcupadas($camasOcupadas);
                     $parametros['habitacion'] = $habitacion->getId();
                     $parametros['modalidad'] = 2;
                 } else {
@@ -1867,20 +1924,23 @@ class ClienteController extends AbstractController
 
 
             if($habitacion) {
-                $camasOcupadas = $habitacion->getCamasOcupadas();
                 $habPrivada = $request->request->get('cliente')['habPrivada'] ?? null;
 
                 if ($habPrivada) {
                     $cliente->setHabPrivada(1);
+                    // Para habitación privada, ocupar todas las camas
+                    $camasOcupadas = [];
                     for ($i=1; $i <= $habitacion->getCamasDisponibles(); $i++) {
                         $camasOcupadas[$i] = $i;
                     }
+                    $habitacion->setCamasOcupadas($camasOcupadas);
+                    $entityManager->persist($habitacion);
                 } else {
-                    $camasOcupadas[$ncama] = $ncama;
+                    // Para habitación normal, usar el servicio para actualizar correctamente
+                    $habitacionService = new \App\Service\HabitacionService($entityManager, $this->getDoctrine()->getRepository(\App\Entity\Cliente::class), $this->getDoctrine()->getRepository(\App\Entity\Habitacion::class));
+                    $habitacionService->actualizarCamasOcupadas($habitacion);
                 }
-                $habitacion->setCamasOcupadas($camasOcupadas);
                 $historial->setHabitacion($habitacion->getId());
-                $entityManager->persist($habitacion);
             }
 
             $cliente->setDerivado(false);
@@ -1966,7 +2026,7 @@ class ClienteController extends AbstractController
      */
     public function historia(Cliente $cliente, HistoriaPacienteRepository $historiaPacienteRepository, ObraSocialRepository $obraSocialRepository, NotasTurnoRepository $notasTurnoRepository, BookingRepository $bookingRepository, NotasHistoriaClinicaRepository $notasHistoriaClinicaRepository, EvolucionRepository $evolucionRepository, HistoriaEgresoRepository $historiaEgresoRepository, Request $request, DoctorRepository $doctorRepository, UserRepository $userRepository, HabitacionRepository $habitacionRepository, ConsumiblesClientesRepository $consumiblesClientesRepository): Response
     {
-        $puedenEditarEvoluciones = in_array('ROLE_EDIT_HC', $this->getUser()->getRoles());
+        $puedenEditarEvoluciones = $this->isGranted('patient.evolve');
 
         $tipos = [
             'Nutricionista',
@@ -2146,7 +2206,7 @@ class ClienteController extends AbstractController
         $isDoctor = false;
         if ($user && $this->isGranted('ROLE_DOCTOR')) {
             $isDoctor = true;
-        } elseif ($user && $this->isGranted('ROLE_STAFF') && $user->getDoctor() !== null) {
+        } elseif ($user && $this->isGranted('ROLE_STAFF') && $user->hasRole('doctor')) {
             $isDoctor = true;
         }
         
@@ -2259,50 +2319,76 @@ class ClienteController extends AbstractController
     }
 
     /**
+     * Build an array of form errors for debugging
+     */
+    private function buildErrorArray(FormInterface $form): array
+    {
+        $errors = [];
+        
+        foreach ($form->getErrors(true) as $error) {
+            $errors[] = $error->getMessage();
+        }
+        
+        foreach ($form->all() as $child) {
+            if ($child->getErrors()->count() > 0) {
+                $fieldName = $child->getName();
+                $fieldErrors = [];
+                foreach ($child->getErrors() as $error) {
+                    $fieldErrors[] = $error->getMessage();
+                }
+                $errors[$fieldName] = $fieldErrors;
+            }
+        }
+        
+        return $errors;
+    }
+
+    /**
      * @Route("/patologia-select", name="patologia_select", methods={"GET"})
      */
     public function patologiaSelect(Request $request): Response
     {
         $motivoIng = $request->query->get('motivoIng');
         
-        // Options for specific pathologies based on selected admission reason
+        // Use the same options as the form
         $options = [];
         switch ($motivoIng) {
             case 1: // Neurologicas
                 $options = [
-                    'ACV' => 'ACV',
-                    'TCE' => 'TCE',
-                    'TRM' => 'TRM',
-                    'Enfermedad neurodegenerativa' => 'Enfermedad neurodegenerativa',
-                    'Otro' => 'Otro',
+                    'pop' => 'pop',
+                    'acv izquemico' => 'acv izquemico',
+                    'acv hemorragico' => 'acv hemorragico',
+                    'tec' => 'tec',
+                    'em' => 'em',
+                    'ela' => 'ela',
+                    'guillain barre' => 'guillain barre',
+                    'trauma medular' => 'trauma medular',
+                    'otras' => 'otras'
                 ];
                 break;
             case 2: // Traumatológicas
                 $options = [
-                    'Fractura de cadera' => 'Fractura de cadera',
-                    'Fractura de miembro inferior' => 'Fractura de miembro inferior',
-                    'Fractura de miembro superior' => 'Fractura de miembro superior',
-                    'Amputación' => 'Amputación',
-                    'Otro' => 'Otro',
+                    'pop' => 'pop',
+                    'politrauma' => 'politrauma',
+                    'amputaciones' => 'amputaciones',
+                    'otras' => 'otras'
                 ];
                 break;
             case 3: // Respiratorias
                 $options = [
-                    'EPOC' => 'EPOC',
-                    'Neumonía' => 'Neumonía',
-                    'Otro' => 'Otro',
+                    'rehabilitacion respiratoria' => 'rehabilitacion respiratoria',
+                    'pop' => 'pop'
                 ];
                 break;
             case 4: // Paliativos
                 $options = [
-                    'Oncológico' => 'Oncológico',
-                    'No oncológico' => 'No oncológico',
+                    'ca' => 'ca',
+                    'otros' => 'otros'
                 ];
                 break;
-            case 5: // Patologías laborales
+            case 5: // Otros
                 $options = [
-                    'Accidente laboral' => 'Accidente laboral',
-                    'Otro' => 'Otro',
+                    'otros' => 'otros'
                 ];
                 break;
         }
@@ -2329,42 +2415,28 @@ class ClienteController extends AbstractController
      */
     public function acomodarHabitacion($habitacionNueva, int $nuevaCamaId, $habVieja, int $camaActualId, int $habPrivada, int $habPrivadaNueva, EntityManager $entityManager)
     {
+        // Usar el servicio de habitaciones para manejar las camas ocupadas de forma consistente
+        $habitacionService = new \App\Service\HabitacionService($entityManager, $this->getDoctrine()->getRepository(\App\Entity\Cliente::class), $this->getDoctrine()->getRepository(\App\Entity\Habitacion::class));
+        
         // Liberar camas en la habitación anterior
         if (!empty($habVieja)) {
-            $camasOcupadasViejaHab = $habVieja->getCamasOcupadas();
-            
-            // Si tenía habitación privada, liberar todas las camas
-            if ($habPrivada) {
-                $camasOcupadasViejaHab = [];
-            } 
-            // Si no, liberar solo la cama que ocupaba
-            else if ($camaActualId > 0) {
-                unset($camasOcupadasViejaHab[$camaActualId]);
-            }
-            
-            $habVieja->setCamasOcupadas($camasOcupadasViejaHab);
-            $entityManager->persist($habVieja);
-            $entityManager->flush();
+            $habitacionService->actualizarCamasOcupadas($habVieja);
         }
 
         // Asignar camas en la nueva habitación
         if (!empty($habitacionNueva)) {
-            $camasOcupadasNuevaHab = $habitacionNueva->getCamasOcupadas();
-            
-            // Si será habitación privada, ocupar todas las camas
             if ($habPrivadaNueva) {
+                // Si será habitación privada, ocupar todas las camas
+                $camasOcupadas = [];
                 for ($i=1; $i <= $habitacionNueva->getCamasDisponibles(); $i++) {
-                    $camasOcupadasNuevaHab[$i] = $i;
+                    $camasOcupadas[$i] = $i;
                 }
-            } 
-            // Si no, ocupar solo la cama asignada (si es > 0)
-            else if ($nuevaCamaId > 0) {
-                $camasOcupadasNuevaHab[$nuevaCamaId] = $nuevaCamaId;
+                $habitacionNueva->setCamasOcupadas($camasOcupadas);
+                $entityManager->persist($habitacionNueva);
+            } else {
+                // Si no, actualizar basándose en los pacientes reales
+                $habitacionService->actualizarCamasOcupadas($habitacionNueva);
             }
-            
-            $habitacionNueva->setCamasOcupadas($camasOcupadasNuevaHab);
-            $entityManager->persist($habitacionNueva);
-            $entityManager->flush();
         }
     }
 

@@ -34,9 +34,15 @@ class Ubicacion
      */
     private $items;
 
+    /**
+     * @ORM\OneToMany(targetEntity=NovedadUbicacion::class, mappedBy="ubicacion", orphanRemoval=true)
+     */
+    private $novedades;
+
     public function __construct()
     {
         $this->items = new ArrayCollection();
+        $this->novedades = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -92,6 +98,36 @@ class Ubicacion
             // set the owning side to null (unless already changed)
             if ($item->getUbicacionActual() === $this) {
                 $item->setUbicacionActual(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, NovedadUbicacion>
+     */
+    public function getNovedades(): Collection
+    {
+        return $this->novedades;
+    }
+
+    public function addNovedade(NovedadUbicacion $novedade): self
+    {
+        if (!$this->novedades->contains($novedade)) {
+            $this->novedades[] = $novedade;
+            $novedade->setUbicacion($this);
+        }
+
+        return $this;
+    }
+
+    public function removeNovedade(NovedadUbicacion $novedade): self
+    {
+        if ($this->novedades->removeElement($novedade)) {
+            // set the owning side to null (unless already changed)
+            if ($novedade->getUbicacion() === $this) {
+                $novedade->setUbicacion(null);
             }
         }
 

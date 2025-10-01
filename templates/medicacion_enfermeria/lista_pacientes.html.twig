@@ -1,0 +1,106 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Kardex - Lista de Pacientes{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="fas fa-pills mr-2"></i>Kardex - Pacientes con Medicación
+                        <span class="badge badge-light ml-2">{{ pacientes|length }} pacientes</span>
+                    </div>
+                    <div>
+                        <span class="badge badge-light">
+                            <i class="fas fa-calendar mr-1"></i>{{ fecha|date('d/m/Y') }}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% if pacientes is not empty %}
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped mb-0">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Paciente</th>
+                                        <th>H.C.</th>
+                                        <th>Habitación</th>
+                                        <th>Obra Social</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for paciente in pacientes %}
+                                        <tr>
+                                            <td>{{ paciente.id }}</td>
+                                            <td>
+                                                <strong>{{ paciente.apellido }}, {{ paciente.nombre }}</strong>
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-info">{{ paciente.hClinica }}</span>
+                                            </td>
+                                            <td>
+                                                {% if paciente.habitacion %}
+                                                    <span class="badge badge-secondary">{{ paciente.habitacion }}</span>
+                                                {% else %}
+                                                    <span class="text-muted">Sin asignar</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if paciente.obraSocial %}
+                                                    <span class="badge badge-success">{{ paciente.obraSocial.nombre }}</span>
+                                                {% else %}
+                                                    <span class="text-muted">Sin obra social</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="{{ path('medicacion_enfermeria', {'id': paciente.id}) }}" 
+                                                   class="btn btn-primary btn-sm" 
+                                                   title="Ver Kardex">
+                                                    <i class="fas fa-pills"></i> Ver Kardex
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <div class="mb-4">
+                                <i class="fas fa-pills fa-4x text-muted"></i>
+                            </div>
+                            <h4 class="text-muted">No hay pacientes con medicación programada</h4>
+                            <p class="text-muted">No se encontraron pacientes con medicación programada para el día {{ fecha|date('d/m/Y') }}.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.badge {
+    font-size: 0.8em;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0,0,0,.125);
+}
+</style>
+{% endblock %}

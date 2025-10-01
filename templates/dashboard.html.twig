@@ -89,7 +89,14 @@
 {% block panelTitle %}
 <div class="d-flex justify-content-between align-items-center">
     <div>
-        Dashboard <br><span class="text-muted" style="font-size: 15px;">{{ modalidad }}</span>
+        Dashboard <br>
+        <span class="text-muted" style="font-size: 15px;">{{ modalidad }}</span>
+        {% if app.user %}
+            <br><small class="text-info">
+                <i class="fas fa-user-shield"></i> 
+                Nivel de acceso: {{ get_user_access_level() }}
+            </small>
+        {% endif %}
     </div>
     {% if (hayContratosVencidos or hayVencenEsteMes) and is_granted('ROLE_ADMIN') %}
         <div class="notification-bell">
@@ -237,6 +244,62 @@
                         </a>
                     </div>
                 {% endif %}
+            </div>
+        </div>
+    {% endif %}
+    
+    {# Sección de información de permisos para usuarios autenticados #}
+    {% if app.user %}
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="fas fa-shield-alt"></i> 
+                            Información de Permisos
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Permisos Disponibles:</h6>
+                                <ul class="list-unstyled">
+                                    {% set permissions = get_user_permissions() %}
+                                    <li><i class="fas fa-{{ permissions.manage_users ? 'check text-success' : 'times text-muted' }}"></i> Gestionar usuarios</li>
+                                    <li><i class="fas fa-{{ permissions.access_medical_records ? 'check text-success' : 'times text-muted' }}"></i> Acceder a registros médicos</li>
+                                    <li><i class="fas fa-{{ permissions.edit_medical_records ? 'check text-success' : 'times text-muted' }}"></i> Editar registros médicos</li>
+                                    <li><i class="fas fa-{{ permissions.manage_inventory ? 'check text-success' : 'times text-muted' }}"></i> Gestionar inventario</li>
+                                    <li><i class="fas fa-{{ permissions.view_reports ? 'check text-success' : 'times text-muted' }}"></i> Ver reportes</li>
+                                    <li><i class="fas fa-{{ permissions.manage_bookings ? 'check text-success' : 'times text-muted' }}"></i> Gestionar turnos</li>
+                                    <li><i class="fas fa-{{ permissions.view_patient_info ? 'check text-success' : 'times text-muted' }}"></i> Ver información de pacientes</li>
+                                    <li><i class="fas fa-{{ permissions.manage_system_config ? 'check text-success' : 'times text-muted' }}"></i> Configuración del sistema</li>
+                                    <li><i class="fas fa-{{ permissions.access_admin_panel ? 'check text-success' : 'times text-muted' }}"></i> Panel de administración</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Roles Asignados:</h6>
+                                <div class="mb-3">
+                                    {% for role in app.user.getRoles() %}
+                                        {% if role != 'ROLE_USER' %}
+                                            <span class="badge badge-primary mr-1">{{ role }}</span>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                
+                                <h6>Información del Usuario:</h6>
+                                <ul class="list-unstyled">
+                                    <li><strong>Usuario:</strong> {{ app.user.username }}</li>
+                                    <li><strong>Email:</strong> {{ app.user.email }}</li>
+                                    <li><strong>Estado:</strong> 
+                                        <span class="badge badge-{{ app.user.habilitado ? 'success' : 'danger' }}">
+                                            {{ app.user.habilitado ? 'Habilitado' : 'Deshabilitado' }}
+                                        </span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     {% endif %}

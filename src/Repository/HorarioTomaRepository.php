@@ -20,6 +20,22 @@ class HorarioTomaRepository extends ServiceEntityRepository
     }
 
     /**
+     * Obtiene los IDs de clientes que tienen medicación programada para una fecha específica
+     */
+    public function findClienteIdsConMedicacionHoy(\DateTime $fecha): array
+    {
+        $result = $this->createQueryBuilder('h')
+            ->select('DISTINCT i.clienteId')
+            ->join('h.indicacion', 'i')
+            ->where('h.fecha = :fecha')
+            ->setParameter('fecha', $fecha)
+            ->getQuery()
+            ->getScalarResult();
+        
+        return array_column($result, 'clienteId');
+    }
+
+    /**
      * Obtiene los horarios de toma para un paciente en una fecha específica
      */
     public function findHorariosPorClienteYFecha($clienteId, \DateTime $fecha): array

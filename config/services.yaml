@@ -37,3 +37,7 @@ services:
         class: App\Security\SessionIdleHandler
         arguments: ['%session_max_idle_time%']
         tags: [{ name: kernel.event_listener, event: kernel.request }]
+    
+    # Permission voter for custom permissions
+    App\Security\Voter\PermissionVoter:
+        tags: ['security.voter']

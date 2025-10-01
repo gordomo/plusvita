@@ -1,0 +1,56 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Editar Enfermero{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-user-nurse"></i> Editar Enfermero
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form) }}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Información Personal</h5>
+                            {{ form_row(form.nombre) }}
+                            {{ form_row(form.apellido) }}
+                            {{ form_row(form.email) }}
+                            {{ form_row(form.telefono) }}
+                            {{ form_row(form.fechaNacimiento) }}
+                            {{ form_row(form.direccion) }}
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Información Profesional</h5>
+                            {{ form_row(form.username) }}
+                            {{ form_row(form.password) }}
+                            {{ form_row(form.legajo) }}
+                            {{ form_row(form.matricula) }}
+                            {{ form_row(form.habilitado) }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <h5>Roles y Permisos</h5>
+                            {{ form_row(form.roleEntities) }}
+                        </div>
+                    </div>
+                    <div class="form-group mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Guardar Cambios
+                        </button>
+                        <a href="{{ path('nurse_index') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Volver
+                        </a>
+                    </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

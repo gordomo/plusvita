@@ -1,0 +1,266 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Novedades - {{ ubicacion.nombre }}{% endblock %}
+{% block panelTitle %}Gestión de Novedades - {{ ubicacion.nombre }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .novedad-card {
+            border-left: 4px solid #007bff;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .novedad-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .novedad-card.pendiente {
+            border-left-color: #ffc107;
+        }
+        
+        .novedad-card.en_proceso {
+            border-left-color: #17a2b8;
+        }
+        
+        .novedad-card.resuelto {
+            border-left-color: #28a745;
+        }
+        
+        .novedad-card.cancelado {
+            border-left-color: #dc3545;
+        }
+        
+        .prioridad-badge {
+            font-size: 0.75rem;
+            padding: 2px 6px;
+        }
+        
+        .prioridad-baja {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .prioridad-media {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        
+        .prioridad-alta {
+            background-color: #fd7e14;
+            color: white;
+        }
+        
+        .prioridad-critica {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .estado-badge {
+            font-size: 0.8rem;
+            padding: 4px 8px;
+        }
+        
+        .estado-pendiente {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        
+        .estado-en_proceso {
+            background-color: #17a2b8;
+            color: white;
+        }
+        
+        .estado-resuelto {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .estado-cancelado {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="stats-card">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="stat-item">
+                            <div class="stat-number">{{ novedades|length }}</div>
+                            <div class="stat-label">Total Novedades</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-item">
+                            <div class="stat-number">{{ novedades|filter(n => n.estado == 'pendiente')|length }}</div>
+                            <div class="stat-label">Pendientes</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-item">
+                            <div class="stat-number">{{ novedades|filter(n => n.estado == 'en_proceso')|length }}</div>
+                            <div class="stat-label">En Proceso</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-item">
+                            <div class="stat-number">{{ novedades|filter(n => n.estado == 'resuelto')|length }}</div>
+                            <div class="stat-label">Resueltas</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4>Novedades de {{ ubicacion.nombre }}</h4>
+                <div>
+                    <a href="{{ path('app_novedad_ubicacion_new', {'ubicacionId': ubicacion.id}) }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Nueva Novedad
+                    </a>
+                    <a href="{{ path('app_ubicacion_show', {'id': ubicacion.id}) }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver a Ubicación
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de novedades -->
+    <div class="row">
+        <div class="col-12">
+            {% if novedades|length > 0 %}
+                {% for novedad in novedades %}
+                    <div class="card novedad-card {{ novedad.estado }}">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h5 class="card-title">
+                                        <a href="{{ path('app_novedad_ubicacion_show', {'ubicacionId': ubicacion.id, 'id': novedad.id}) }}" class="text-decoration-none">
+                                            {{ novedad.titulo }}
+                                        </a>
+                                    </h5>
+                                    <p class="card-text">{{ novedad.descripcion|slice(0, 150) }}{% if novedad.descripcion|length > 150 %}...{% endif %}</p>
+                                    <div class="d-flex align-items-center">
+                                        <small class="text-muted me-3">
+                                            <i class="fas fa-calendar"></i> {{ novedad.fechaCreacion|date('d/m/Y H:i') }}
+                                        </small>
+                                        {% if novedad.usuarioAsignado %}
+                                            <small class="text-muted me-3">
+                                                <i class="fas fa-user"></i> {{ novedad.usuarioAsignado.nombreApellido }}
+                                            </small>
+                                        {% endif %}
+                                        {% if novedad.fechaResolucion %}
+                                            <small class="text-muted">
+                                                <i class="fas fa-check"></i> Resuelto: {{ novedad.fechaResolucion|date('d/m/Y') }}
+                                            </small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-right">
+                                    <div class="mb-2">
+                                        <span class="badge estado-badge estado-{{ novedad.estado }}">
+                                            {{ novedad.estado|title }}
+                                        </span>
+                                    </div>
+                                    <div class="mb-2">
+                                        <span class="badge prioridad-badge prioridad-{{ novedad.prioridad }}">
+                                            {{ novedad.prioridad|title }}
+                                        </span>
+                                    </div>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ path('app_novedad_ubicacion_show', {'ubicacionId': ubicacion.id, 'id': novedad.id}) }}" class="btn btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ path('app_novedad_ubicacion_edit', {'ubicacionId': ubicacion.id, 'id': novedad.id}) }}" class="btn btn-outline-warning">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-outline-danger" onclick="confirmDelete({{ novedad.id }})">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No hay novedades registradas</h5>
+                    <p class="text-muted">Comienza creando la primera novedad para esta ubicación.</p>
+                    <a href="{{ path('app_novedad_ubicacion_new', {'ubicacionId': ubicacion.id}) }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Crear Primera Novedad
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmación para eliminar -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                ¿Estás seguro de que deseas eliminar esta novedad? Esta acción no se puede deshacer.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete') }}">
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDelete(novedadId) {
+    const deleteForm = document.getElementById('deleteForm');
+    deleteForm.action = '{{ path('app_novedad_ubicacion_delete', {'ubicacionId': ubicacion.id, 'id': 'PLACEHOLDER'}) }}'.replace('PLACEHOLDER', novedadId);
+    
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+</script>
+{% endblock %}

@@ -205,7 +205,7 @@ class ConsumibleController extends AbstractController
         $isDoctor = false;
         if ($user && $this->isGranted('ROLE_DOCTOR')) {
             $isDoctor = true;
-        } elseif ($user && $this->isGranted('ROLE_STAFF') && $user->getDoctor() !== null) {
+        } elseif ($user && $this->isGranted('ROLE_STAFF') && $user->hasRole('doctor')) {
             $isDoctor = true;
         }
         
@@ -287,7 +287,7 @@ class ConsumibleController extends AbstractController
         $isDoctor = false;
         if ($user && $this->isGranted('ROLE_DOCTOR')) {
             $isDoctor = true;
-        } elseif ($user && $this->isGranted('ROLE_STAFF') && $user->getDoctor() !== null) {
+        } elseif ($user && $this->isGranted('ROLE_STAFF') && $user->hasRole('doctor')) {
             $isDoctor = true;
         }
        

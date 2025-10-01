@@ -4,18 +4,14 @@ security:
             algorithm: auto
         App\Entity\Doctor:
             algorithm: auto
+        App\Entity\Nurse:
+            algorithm: auto
 
     # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
     providers:
         # used to reload user from session & other features (e.g. switch_user)
         app_user_provider:
-            entity:
-                class: App\Entity\User
-                property: username
-        users:
-            entity:
-                class: App\Entity\Doctor
-                property: username
+            id: App\Security\MultiEntityUserProvider
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
@@ -47,28 +43,16 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
-        - { path: ^/dashboard, roles: IS_AUTHENTICATED_FULLY }
-        - { path: ^/estadisticas, roles: [ROLE_ADMIN] }
-        - { path: ^/app/stats, roles: [ROLE_ADMIN] }
-        - { path: ^/user, roles: [ROLE_ADMIN] }
-        - { path: ^/doctor, roles: [ROLE_ADMIN] }
-        - { path: ^/qr, roles: [ROLE_ADMIN] }
+        # Rutas públicas
         - { path: ^/reclamo/new, roles: PUBLIC_ACCESS }
         - { path: ^/reclamo/gracias, roles: PUBLIC_ACCESS }
-        - { path: ^/reclamo, roles: [ROLE_ADMIN] }
-        #- { path: ^/pacientes, roles: [ROLE_ADMIN] }
-        - { path: ^/obras-sociales, roles: [ROLE_ADMIN] }
-        - { path: ^/habitacion, roles: [ROLE_ADMIN] }
-        - { path: ^/booking, roles: [ROLE_ADMIN] }
-        - { path: ^/consumible, roles: [IS_AUTHENTICATED_FULLY] }
-        - { path: ^/staff/doctor/agenda/dia/, roles: [IS_AUTHENTICATED_FULLY] }
-        - { path: ^/staff/doctor/agenda/semana/, roles: [IS_AUTHENTICATED_FULLY] }
-        - { path: ^/staff/doctor/agenda/mes/, roles: [IS_AUTHENTICATED_FULLY] }
-        - { path: ^/staff/doctor/agenda/anteriores/, roles: [IS_AUTHENTICATED_FULLY] }
-        - { path: ^/staff/doctor/historia/, roles: [ROLE_STAFF] }
+        - { path: ^/login, roles: PUBLIC_ACCESS }
+        
+        # Rutas que requieren autenticación básica
+        - { path: ^/dashboard, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/consumible, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/pacientes, roles: IS_AUTHENTICATED_FULLY }
-        - { path: ^/staff, roles: [ROLE_ADMIN] }
-        - { path: ^/item, roles: [ROLE_ADMIN] }
-        - { path: ^/liquidaciones/profesionales, roles: [ROLE_ADMIN] }
-        - { path: ^/liquidaciones/profesional, roles: [IS_AUTHENTICATED_FULLY] }
-        # - { path: ^/profile, roles: ROLE_USER }
+        - { path: ^/liquidaciones/profesional, roles: IS_AUTHENTICATED_FULLY }
+        
+        # Otras rutas - se manejarán con permisos específicos en los controladores
+        - { path: ^/, roles: IS_AUTHENTICATED_FULLY }

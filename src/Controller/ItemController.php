@@ -34,7 +34,15 @@ class ItemController extends AbstractController
     public function index(EntityManagerInterface $em, Request $request): Response
     {
         $ubicacionId = $request->query->get('ubicacion');
-        $items = $em->getRepository(Item::class)->findAll();
+        $searchTerm = $request->query->get('search', '');
+        
+        // Obtener items con búsqueda si se proporciona
+        if (!empty($searchTerm)) {
+            $items = $em->getRepository(Item::class)->searchItems($searchTerm);
+        } else {
+            $items = $em->getRepository(Item::class)->findAll();
+        }
+        
         $ubicaciones = $em->getRepository(Ubicacion::class)->findAll();
         $tiposItem = $em->getRepository(TipoItem::class)->findAll();
 
@@ -86,6 +94,7 @@ class ItemController extends AbstractController
             'paginaImprimible' => true,
             'itemsAgrupados' => $agrupados,
             'ubicacion' => $ubicacion,
+            'searchTerm' => $searchTerm,
         ]);
     }
 
@@ -324,26 +333,6 @@ class ItemController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/{id}", name="app_item_show")
-     */
-    public function show(Item $item, EntityManagerInterface $entityManager): Response
-    {
-        // Obtener todas las ubicaciones para la vista
-        $todasUbicaciones = $entityManager->getRepository(Ubicacion::class)->findAll();
-        
-        // Obtener las notas del item ordenadas por fecha de creación descendente
-        $notas = $entityManager->getRepository(NotaItem::class)->findBy(
-            ['item' => $item],
-            ['fecha_creacion' => 'DESC']
-        );
-
-        return $this->render('item/show.html.twig', [
-            'item' => $item,
-            'ubicaciones' => $todasUbicaciones,
-            'notas' => $notas,
-        ]);
-    }
 
     /**
      * @Route("/{id}/delete", name="app_item_delete", methods={"POST"})
@@ -387,6 +376,112 @@ class ItemController extends AbstractController
         $response = new QrCodeResponse($result);
         
         return $response;
+    }
+
+    /**
+     * @Route("/reporte-ubicaciones", name="app_item_report_selector", methods={"GET"})
+     */
+    public function reportSelector(EntityManagerInterface $em): Response
+    {
+        $ubicaciones = $em->getRepository(Ubicacion::class)->findAll();
+        
+        return $this->render('item/report_selector.html.twig', [
+            'ubicaciones' => $ubicaciones,
+        ]);
+    }
+
+    /**
+     * @Route("/print", name="app_item_print", methods={"GET", "POST"})
+     */
+    public function print(Request $request, EntityManagerInterface $em): Response
+    {
+        $tipoId = $request->query->get('tipo');
+        $ubicacionId = $request->query->get('ubicacion');
+        $ubicacionesIds = $request->query->get('ubicaciones', []);
+        $searchTerm = $request->query->get('search', '');
+        $reportType = $request->query->get('report_type', 'items'); // 'items' o 'maintenance'
+        
+        // Obtener items con filtros
+        $items = $em->getRepository(Item::class)->findAll();
+        
+        // Aplicar filtros
+        if (!empty($searchTerm)) {
+            $items = $em->getRepository(Item::class)->searchItems($searchTerm);
+        }
+        
+        if ($tipoId) {
+            $items = array_filter($items, function($item) use ($tipoId) {
+                return $item->getTipo() && $item->getTipo()->getId() == $tipoId;
+            });
+        }
+        
+        if ($ubicacionId) {
+            $items = array_filter($items, function($item) use ($ubicacionId) {
+                return $item->getUbicacionActual() && $item->getUbicacionActual()->getId() == $ubicacionId;
+            });
+        }
+        
+        // Obtener datos para filtros
+        $ubicaciones = $em->getRepository(Ubicacion::class)->findAll();
+        $tiposItem = $em->getRepository(TipoItem::class)->findAll();
+        
+        if ($reportType === 'maintenance') {
+            // Reporte de mantenimiento por ubicaciones seleccionadas
+            $ubicacionesSeleccionadas = [];
+            if (!empty($ubicacionesIds)) {
+                $ubicacionesSeleccionadas = $em->getRepository(Ubicacion::class)->findBy(['id' => $ubicacionesIds]);
+            } elseif ($ubicacionId) {
+                // Mantener compatibilidad con el sistema anterior
+                $ubicacionesSeleccionadas = [$em->getRepository(Ubicacion::class)->find($ubicacionId)];
+            }
+            
+            // Obtener todos los movimientos de las ubicaciones seleccionadas (últimos 6 meses)
+            $fechaDesde = new \DateTime('-6 months');
+            $movimientos = $em->getRepository(Movimiento::class)->createQueryBuilder('m')
+                ->leftJoin('m.item', 'i')
+                ->where('m.fecha >= :fechaDesde')
+                ->setParameter('fechaDesde', $fechaDesde);
+                
+            if (!empty($ubicacionesSeleccionadas)) {
+                $ubicacionIds = array_map(function($u) { return $u->getId(); }, $ubicacionesSeleccionadas);
+                $movimientos->andWhere('i.ubicacion_actual IN (:ubicaciones)')
+                           ->setParameter('ubicaciones', $ubicacionIds);
+            }
+            
+            $movimientos = $movimientos->orderBy('m.fecha', 'DESC')
+                                     ->getQuery()
+                                     ->getResult();
+            
+            return $this->render('item/maintenance_report.html.twig', [
+                'movimientos' => $movimientos,
+                'ubicaciones' => $ubicaciones,
+                'tiposItem' => $tiposItem,
+                'ubicacionesSeleccionadas' => $ubicacionesSeleccionadas,
+                'ubicacionId' => $ubicacionId,
+                'searchTerm' => $searchTerm,
+                'fechaDesde' => $fechaDesde,
+            ]);
+        } else {
+            // Reporte normal de items
+            // Obtener últimos 3 movimientos para cada item
+            foreach ($items as $item) {
+                $movimientos = $em->getRepository(Movimiento::class)->findBy(
+                    ['item' => $item],
+                    ['fecha' => 'DESC'],
+                    3
+                );
+                $item->ultimosMovimientos = $movimientos;
+            }
+            
+            return $this->render('item/print.html.twig', [
+                'items' => $items,
+                'ubicaciones' => $ubicaciones,
+                'tiposItem' => $tiposItem,
+                'tipoId' => $tipoId,
+                'ubicacionId' => $ubicacionId,
+                'searchTerm' => $searchTerm,
+            ]);
+        }
     }
 
     /**
@@ -579,6 +674,27 @@ class ItemController extends AbstractController
             'item' => $item,
             'ubicaciones' => $ubicaciones,
             'tiposItem' => $tiposItem,
+        ]);
+    }
+
+    /**
+     * @Route("/{id}", name="app_item_show", methods={"GET"})
+     */
+    public function show(Item $item, EntityManagerInterface $entityManager): Response
+    {
+        // Obtener todas las ubicaciones para la vista
+        $todasUbicaciones = $entityManager->getRepository(Ubicacion::class)->findAll();
+        
+        // Obtener las notas del item ordenadas por fecha de creación descendente
+        $notas = $entityManager->getRepository(NotaItem::class)->findBy(
+            ['item' => $item],
+            ['fecha_creacion' => 'DESC']
+        );
+
+        return $this->render('item/show.html.twig', [
+            'item' => $item,
+            'ubicaciones' => $todasUbicaciones,
+            'notas' => $notas,
         ]);
     }
 }

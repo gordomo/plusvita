@@ -3,152 +3,197 @@
     <div class="sidebar-heading">Plus Vita </div>
     <div class="list-group list-group-flush">
         {% if app.user %}
-            {% if not (is_granted('ROLE_DOCTOR') or (isDoctor is defined and isDoctor)) %}
-                <a class="list-group-item list-group-item-action bg-light " href="{{ path('dashboard_index') }}">
-                    <i class="fas fa-chart-line"></i>
-                    Dashboard
-                </a>
-                
+            {# Dashboard - Acceso básico para todos los usuarios autenticados #}
+            <a class="list-group-item list-group-item-action bg-light " href="{{ path('dashboard_index') }}">
+                <i class="fas fa-chart-line"></i>
+                Dashboard
+            </a>
+            
+            {# Estadísticas - Basado en permisos #}
+            {% if is_granted('stats.view') %}
                 <a class="list-group-item list-group-item-action bg-light " href="{{ path('app_stats_index') }}">
                     <i class="fas fa-chart-pie"></i>
                     Estadísticas
                 </a>
             {% endif %}
-        {% endif %}
-        {% if app.user and 'ROLE_ADMIN' in app.user.roles %}
-            <a class="list-group-item list-group-item-action bg-light " href="{{ path('user_index') }}">
-                <i class="fas fa-users"></i>
-                Administradores
-            </a>
-            <a class="list-group-item list-group-item-action bg-light " href="{{ path('doctor_index') }}">
-                <i class="fas fa-user-md"></i>
-                Staff
-            </a>
-            <div class="dropdown show dropright ">
-                <a class="list-group-item list-group-item-action bg-light" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <i class="fas fa-user-injured"></i>
-                    Paciente <span class="float-right"> > </span>
-                </a>
-
-                <div class="dropdown-menu " aria-labelledby="dropdownMenuLink">
-                    <a class="text-white dropdown-item" href="{{ path('cliente_index') }}">
-                        Listado
-                    </a>
-                    {# <a class="text-white dropdown-item" href="{{ path('cliente_historicos')}}">
-                        Historico
-                    </a> #}
-                    <a class="text-white dropdown-item" href="{{ path('cliente_historicos_habitaciones')}}">
-                        Historico
-                    </a>
-                </div>
-            </div>
-            <a class="list-group-item list-group-item-action bg-light " href="{{ path('booking_calendar') }}">
-                <i class="far fa-calendar-alt"></i>
-                Turnos
-            </a>
-            <a class="list-group-item list-group-item-action bg-light " href="{{ path('habitacion_index') }}">
-                <i class="fas fa-bed"></i>
-                Habitaciones
-            </a>
-            <a class="list-group-item list-group-item-action bg-light " href="{{ path('informe_mensual_index') }}">
-                <i class="fas fa-file-medical-alt"></i>
-                Informes Mensuales
-            </a>
-        {% endif %}
-        
-        {% if app.user and ('ROLE_ADMIN' in app.user.roles or 'ROLE_DOCTOR' in app.user.roles) %}
-            <div class="dropdown show dropright">
-                <div class="dropdown-menu" aria-labelledby="dropdownCardexLink">
-                    {% if app.request.get('_route') == 'cliente_historia' and app.request.get('id') %}
-                        <a class="text-white dropdown-item" href="{{ path('cardex_paciente', {'id': app.request.get('id')}) }}">
-                            Cardex del paciente actual
-                        </a>
-                    {% endif %}
-                    <a class="text-white dropdown-item" href="{{ path('cliente_index') }}">
-                        Seleccionar paciente
-                    </a>
-                </div>
-            </div>
-            <a class="list-group-item list-group-item-action bg-light " href="{{ path('obra_social_index') }}">
-                <i class="fas fa-first-aid"></i>
-                Obras Sociales
-            </a>
-            <a class="list-group-item list-group-item-action bg-light " href="{{ path('liquidaciones_index') }}">
-                <i class="fas fa-money-check-alt"></i>
-                Liquidaciones
-            </a>
-            <a class="list-group-item list-group-item-action bg-light " href="{{ path('consumible_index') }}">
-                <i class="fas fa-band-aid"></i>
-                Consumibles
-            </a>
-
-            <div class="dropdown show dropright ">
-                <a class="list-group-item list-group-item-action bg-light" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    Reclamos <span class="float-right"> > </span>
-                </a>
-
-                <div class="dropdown-menu " aria-labelledby="dropdownMenuLink">
-                    <a class="text-white dropdown-item" href="{{ path('app_reclamo_index') }}">
-                        Listado
-                    </a>
-                    <a class="text-white dropdown-item" target="_blank" href="{{ path('make_qr_reclamo', {'area': '1'})}}">
-                        QR área Médica
-                    </a>
-                    <a class="text-white dropdown-item" target="_blank" href="{{ path('make_qr_reclamo', {'area': '2'})}}">
-                        QR área Enfermería
-                    </a>
-                    <a class="text-white dropdown-item" target="_blank" href="{{ path('make_qr_reclamo', {'area': '3'})}}">
-                        QR área General
-                    </a>
-                </div>
-            </div>
-            <div class="dropdown show dropright ">
-                <a class="list-group-item list-group-item-action bg-light" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <i class="fas fa-chair"></i>
-                    Inventario <span class="float-right"> > </span>
-                </a>
-
-                <div class="dropdown-menu " aria-labelledby="dropdownMenuLink">
-                    <a class="text-white dropdown-item" href="{{ path('app_item_index') }}">
-                        Listado
-                    </a>
-                    <a class="text-white dropdown-item" href="{{ path('app_ubicacion_index') }}">
-                        Ubicaciones
-                    </a>
-                    <a class="text-white dropdown-item" href="{{ path('app_tipo_item_index') }}">
-                        Tipos
-                    </a>
-                </div>
-            </div>
             
-        
-        {% elseif  is_granted('ROLE_STAFF')%}
-            {% if is_granted('ROLE_DOCTOR') or (isDoctor is defined and isDoctor) %}
-                <a class="list-group-item list-group-item-action bg-light " href="{{ path('dashboard_index') }}">
-                    <i class="fas fa-chart-line"></i>
-                    Dashboard
-                </a>
-                <a class="list-group-item list-group-item-action bg-light " href="{{ path('doctor_historia') }}">
-                    <i class="fas fa-user-injured"></i>
-                    Pacientes
-                </a>
-                <a class="list-group-item list-group-item-action bg-light " href="{{ path('liquidar', {'id': app.user.id}) }}">
-                    <i class="fas fa-money-check-alt"></i>
-                    Liquidaciones
-                </a>
-                <a class="list-group-item list-group-item-action bg-light " href="{{ path('doctor_agenda', {'periodo': 'dia'}) }}">
-                    <i class="far fa-calendar-alt"></i>
-                    Agenda
-                </a>
-            {% elseif isEnfermero is defined and isEnfermero %}
-                {# <a class="list-group-item list-group-item-action bg-light " href="{{ path('prescripcion_index', {'id': app.user.id}) }}">
-                    <i class="fas fa-user-nurse"></i>
-                    Prescripciones Médicas
-                </a> #}
+            {# Gestión de Usuarios - Basado en permisos de usuarios #}
+            {% if is_granted('user.read') or is_granted('user.create') or is_granted('user.update') or is_granted('user.delete') %}
+                <div class="dropdown show dropright">
+                    <a class="list-group-item list-group-item-action bg-light" href="#" role="button" id="dropdownUsersLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-users-cog"></i>
+                        Gestión de Usuarios <span class="float-right"> > </span>
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="dropdownUsersLink">
+                        <a class="text-white dropdown-item" href="{{ path('user_management_index') }}">
+                            <i class="fas fa-users"></i> Gestión de Usuarios
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="text-white dropdown-item" href="{{ path('role_index') }}">
+                            <i class="fas fa-user-tag"></i> Roles y Permisos
+                        </a>
+                    </div>
+                </div>
             {% endif %}
-        {% endif %}
-        {% if app.user %}
+            
+            
+            {# Pacientes - Basado en permisos de pacientes #}
+            {% if is_granted('patient.view') %}
+                <div class="dropdown show dropright">
+                    <a class="list-group-item list-group-item-action bg-light" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-user-injured"></i>
+                        Paciente <span class="float-right"> > </span>
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                        <a class="text-white dropdown-item" href="{{ path('cliente_index') }}">
+                            Listado
+                        </a>
+                        {% if is_granted('patient.history') %}
+                            <a class="text-white dropdown-item" href="{{ path('cliente_historicos_habitaciones') }}">
+                                Historico
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            {# Agenda - Basado en permisos de agenda #}
+            {% if is_granted('agenda.view') %}
+                <div class="dropdown show dropright">
+                    <a class="list-group-item list-group-item-action bg-light" href="#" role="button" id="dropdownAgendaLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="far fa-calendar-alt"></i>
+                        Agenda <span class="float-right"> > </span>
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="dropdownAgendaLink">
+                        <a class="text-white dropdown-item" href="{{ path('booking_calendar') }}">
+                            <i class="fas fa-calendar"></i> Calendario General
+                        </a>
+                        <a class="text-white dropdown-item" href="{{ path('doctor_agenda', {'periodo': 'dia'}) }}">
+                            <i class="fas fa-user-md"></i> Mi Agenda
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+            
+            {# Habitaciones - Basado en permisos de configuración #}
+            {% if is_granted('config.rooms') %}
+                <a class="list-group-item list-group-item-action bg-light " href="{{ path('habitacion_index') }}">
+                    <i class="fas fa-bed"></i>
+                    Habitaciones
+                </a>
+            {% endif %}
+            
+            {# Informes Mensuales - Basado en permisos de reportes #}
+            {% if is_granted('reports.view') %}
+                <a class="list-group-item list-group-item-action bg-light " href="{{ path('informe_mensual_index') }}">
+                    <i class="fas fa-file-medical-alt"></i>
+                    Informes Mensuales
+                </a>
+            {% endif %}
+            
+            {# Obras Sociales - Basado en permisos de configuración #}
+            {% if is_granted('config.works') %}
+                <a class="list-group-item list-group-item-action bg-light " href="{{ path('obra_social_index') }}">
+                    <i class="fas fa-first-aid"></i>
+                    Obras Sociales
+                </a>
+            {% endif %}
+            
+            {# Liquidaciones - Basado en permisos de liquidaciones #}
+            {% if is_granted('liquidations.view') %}
+                <div class="dropdown show dropright">
+                    <a class="list-group-item list-group-item-action bg-light" href="#" role="button" id="dropdownLiquidacionesLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-money-check-alt"></i>
+                        Liquidaciones <span class="float-right"> > </span>
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="dropdownLiquidacionesLink">
+                        <a class="text-white dropdown-item" href="{{ path('liquidaciones_index') }}">
+                            <i class="fas fa-list"></i> Listado General
+                        </a>
+                        {% if app.user.id is defined %}
+                            <a class="text-white dropdown-item" href="{{ path('liquidar', {'id': app.user.id}) }}">
+                                <i class="fas fa-user-md"></i> Mis Liquidaciones
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            {# Consumibles - Basado en permisos de consumibles #}
+            {% if is_granted('consumables.view') %}
+                <a class="list-group-item list-group-item-action bg-light " href="{{ path('consumible_index') }}">
+                    <i class="fas fa-band-aid"></i>
+                    Consumibles
+                </a>
+            {% endif %}
+            
+            {# Reclamos - Basado en permisos de reclamos #}
+            {% if is_granted('claims.view') %}
+                <div class="dropdown show dropright">
+                    <a class="list-group-item list-group-item-action bg-light" href="#" role="button" id="dropdownReclamosLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Reclamos <span class="float-right"> > </span>
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="dropdownReclamosLink">
+                        <a class="text-white dropdown-item" href="{{ path('app_reclamo_index') }}">
+                            Listado
+                        </a>
+                        {% if is_granted('qr.generate') %}
+                            <a class="text-white dropdown-item" target="_blank" href="{{ path('make_qr_reclamo', {'area': '1'}) }}">
+                                QR área Médica
+                            </a>
+                            <a class="text-white dropdown-item" target="_blank" href="{{ path('make_qr_reclamo', {'area': '2'}) }}">
+                                QR área Enfermería
+                            </a>
+                            <a class="text-white dropdown-item" target="_blank" href="{{ path('make_qr_reclamo', {'area': '3'}) }}">
+                                QR área General
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            {# Inventario - Basado en permisos de inventario #}
+            {% if is_granted('inventory.view') %}
+                <div class="dropdown show dropright">
+                    <a class="list-group-item list-group-item-action bg-light" href="#" role="button" id="dropdownInventarioLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-chair"></i>
+                        Inventario <span class="float-right"> > </span>
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="dropdownInventarioLink">
+                        <a class="text-white dropdown-item" href="{{ path('app_item_index') }}">
+                            Listado
+                        </a>
+                        <a class="text-white dropdown-item" href="{{ path('app_ubicacion_index') }}">
+                            Ubicaciones
+                        </a>
+                        <a class="text-white dropdown-item" href="{{ path('app_tipo_item_index') }}">
+                            Tipos
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+            
+            {# Cardex - Basado en permisos de cardex #}
+            {% if is_granted('patient.cardex') %}
+                <div class="dropdown show dropright">
+                    <div class="dropdown-menu" aria-labelledby="dropdownCardexLink">
+                        {% if app.request.get('_route') == 'cliente_historia' and app.request.get('id') %}
+                            <a class="text-white dropdown-item" href="{{ path('cardex_paciente', {'id': app.request.get('id')}) }}">
+                                Cardex del paciente actual
+                            </a>
+                        {% endif %}
+                        <a class="text-white dropdown-item" href="{{ path('cliente_index') }}">
+                            Seleccionar paciente
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+            
+            
+            
+            
+            {# Salir - Para todos los usuarios autenticados #}
             <a class="list-group-item list-group-item-action bg-light " href="{{ path('app_logout') }}">
                 <i class="fas fa-chevron-circle-left"></i>
                 Salir

@@ -28,7 +28,7 @@ class User implements UserInterface
     /**
      * @ORM\Column(type="json")
      */
-    private $roles = [];
+    private $legacyRoles = [];
 
     /**
      * @var string The hashed password
@@ -52,6 +52,21 @@ class User implements UserInterface
     private $legajo;
 
     /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $nombre;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $apellido;
+
+    /**
+     * @ORM\Column(type="json", nullable=true)
+     */
+    private $modalidad = [];
+
+    /**
      * @ORM\OneToMany(targetEntity=Booking::class, mappedBy="user")
      */
     private $bookings;
@@ -61,9 +76,17 @@ class User implements UserInterface
      */
     private $habilitado;
 
+    /**
+     * @ORM\ManyToMany(targetEntity=Role::class, inversedBy="users")
+     * @ORM\JoinTable(name="user_roles")
+     */
+    private $roles;
+
     public function __construct()
     {
         $this->bookings = new ArrayCollection();
+        $this->roles = new ArrayCollection();
+        $this->habilitado = true;
     }
 
     public function getId(): ?int
@@ -71,11 +94,6 @@ class User implements UserInterface
         return $this->id;
     }
 
-    /**
-     * A visual identifier that represents this user.
-     *
-     * @see UserInterface
-     */
     public function getUsername(): string
     {
         return (string) $this->username;
@@ -84,31 +102,97 @@ class User implements UserInterface
     public function setUsername(string $username): self
     {
         $this->username = $username;
-
         return $this;
     }
 
-    /**
-     * @see UserInterface
-     */
     public function getRoles(): array
     {
-        $roles = $this->roles;
-
-
-        return array_unique($roles);
+        // Para compatibilidad con el sistema existente, mantener el campo JSON
+        $legacyRoles = $this->legacyRoles ?? [];
+        
+        // Agregar roles del nuevo sistema
+        $newRoles = [];
+        foreach ($this->roles as $role) {
+            if ($role->getIsActive()) {
+                $newRoles[] = 'ROLE_' . strtoupper($role->getName());
+            }
+        }
+        
+        // Combinar roles legacy y nuevos
+        $allRoles = array_merge($legacyRoles, $newRoles);
+        $allRoles[] = 'ROLE_USER'; // Siempre incluir ROLE_USER
+        
+        return array_unique($allRoles);
     }
 
     public function setRoles(array $roles): self
     {
-        $this->roles = $roles;
+        // Mantener compatibilidad con el sistema existente
+        $this->legacyRoles = $roles;
+        return $this;
+    }
+
+    public function getLegacyRoles(): array
+    {
+        return $this->legacyRoles ?? [];
+    }
+
+    /**
+     * Get Role entities (new system)
+     */
+    public function getRoleEntities(): Collection
+    {
+        return $this->roles;
+    }
+
+    /**
+     * Add a role entity
+     */
+    public function addRole(Role $role): self
+    {
+        if (!$this->roles->contains($role)) {
+            $this->roles[] = $role;
+        }
 
         return $this;
     }
 
     /**
-     * @see UserInterface
+     * Remove a role entity
      */
+    public function removeRole(Role $role): self
+    {
+        $this->roles->removeElement($role);
+
+        return $this;
+    }
+
+    /**
+     * Check if user has a specific role
+     */
+    public function hasRole(string $roleName): bool
+    {
+        foreach ($this->roles as $role) {
+            if ($role->getName() === $roleName && $role->getIsActive()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Check if user has a specific permission
+     */
+    public function hasPermission(string $permissionName): bool
+    {
+        foreach ($this->roles as $role) {
+            if ($role->getIsActive() && $role->hasPermission($permissionName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public function getPassword(): string
     {
         return (string) $this->password;
@@ -117,25 +201,17 @@ class User implements UserInterface
     public function setPassword(string $password): self
     {
         $this->password = $password;
-
         return $this;
     }
 
-    /**
-     * @see UserInterface
-     */
     public function getSalt()
     {
-        // not needed when using the "bcrypt" algorithm in security.yaml
+        // No se necesita con bcrypt
     }
 
-    /**
-     * @see UserInterface
-     */
     public function eraseCredentials()
     {
-        // If you store any temporary, sensitive data on the user, clear it here
-        // $this->plainPassword = null;
+        // Si almacenas datos temporales sensibles, límpialos aquí
     }
 
     public function getEmail(): ?string
@@ -146,7 +222,6 @@ class User implements UserInterface
     public function setEmail(string $email): self
     {
         $this->email = $email;
-
         return $this;
     }
 
@@ -158,7 +233,6 @@ class User implements UserInterface
     public function setTelefono(string $telefono): self
     {
         $this->telefono = $telefono;
-
         return $this;
     }
 
@@ -170,7 +244,50 @@ class User implements UserInterface
     public function setLegajo(?string $legajo): self
     {
         $this->legajo = $legajo;
+        return $this;
+    }
 
+    public function getNombre(): ?string
+    {
+        return $this->nombre;
+    }
+
+    public function setNombre(?string $nombre): self
+    {
+        $this->nombre = $nombre;
+        return $this;
+    }
+
+    public function getApellido(): ?string
+    {
+        return $this->apellido;
+    }
+
+    public function setApellido(?string $apellido): self
+    {
+        $this->apellido = $apellido;
+        return $this;
+    }
+
+    public function getNombreApellido(): ?string
+    {
+        return $this->getNombre() . ' ' . $this->getApellido();
+    }
+
+    public function setModalidad(?array $modalidad): self
+    {
+        $this->modalidad = $modalidad;
+        return $this;
+    }
+
+    public function getHabilitado(): ?bool
+    {
+        return $this->habilitado;
+    }
+
+    public function setHabilitado(bool $habilitado): self
+    {
+        $this->habilitado = $habilitado;
         return $this;
     }
 
@@ -205,20 +322,21 @@ class User implements UserInterface
         return $this;
     }
 
+    /**
+     * Método para compatibilidad con el sistema existente
+     * Retorna la modalidad del usuario o array vacío si no tiene
+     */
     public function getModalidad(): ?array
     {
-        return [];
+        return $this->modalidad ?? [];
     }
 
-    public function getHabilitado(): ?bool
+    /**
+     * Método para compatibilidad con el sistema existente
+     * Los usuarios administrativos no tienen presente
+     */
+    public function getPresente(): ?bool
     {
-        return $this->habilitado;
-    }
-
-    public function setHabilitado(bool $habilitado): self
-    {
-        $this->habilitado = $habilitado;
-
-        return $this;
+        return false;
     }
 }

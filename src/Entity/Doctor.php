@@ -7,7 +7,6 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
-
 /**
  * @ORM\Entity(repositoryClass=DoctorRepository::class)
  */
@@ -41,14 +40,35 @@ class Doctor implements UserInterface
     private $firma;
 
     /**
-     * @ORM\Column(type="json")
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $roles = [];
+    private $matricula;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $email;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $matricula;
+    private $telefono;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $legajo;
+
+    /**
+     * @ORM\Column(type="json")
+     */
+    private $legacyRoles = [];
+
+    /**
+     * @ORM\ManyToMany(targetEntity=Role::class, inversedBy="users")
+     * @ORM\JoinTable(name="doctor_roles")
+     */
+    private $roles;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
@@ -59,6 +79,11 @@ class Doctor implements UserInterface
      * @ORM\Column(type="string", length=255)
      */
     private $password;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $habilitado;
 
     /**
      * @ORM\ManyToMany(targetEntity=Cliente::class, inversedBy="docReferente")
@@ -95,15 +120,7 @@ class Doctor implements UserInterface
      */
     private $vtoMatricula;
 
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private $email;
 
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private $legajo;
 
     /**
      * @ORM\Column(type="date", nullable=true)
@@ -120,10 +137,7 @@ class Doctor implements UserInterface
      */
     private $concepto;
 
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private $telefono;
+
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
@@ -180,10 +194,7 @@ class Doctor implements UserInterface
      */
     private $doctor;
 
-    /**
-     * @ORM\Column(type="boolean")
-     */
-    private $habilitado;
+
 
     /**
      * @ORM\Column(type="boolean")
@@ -202,6 +213,9 @@ class Doctor implements UserInterface
         $this->bookings             = new ArrayCollection();
         $this->doctor               = new ArrayCollection();
         $this->presentes            = new ArrayCollection();
+        $this->roles                = new ArrayCollection(); // Initialize new roles collection
+        $this->legacyRoles          = ['ROLE_STAFF']; // Keep legacy roles for compatibility
+        $this->habilitado = true;
     }
 
     public function getNombreApellido(): ?string
@@ -262,22 +276,6 @@ class Doctor implements UserInterface
         return $this;
     }
 
-    public function getRoles(): ?array
-    {
-        $roles = $this->roles;
-
-        //$roles[] = 'ROLE_STAFF';
-        return array_unique($roles);
-    }
-
-    public function setRoles(array $roles): self
-    {
-        $roles = ['ROLE_STAFF'];
-        $this->roles = $roles;
-
-        return $this;
-    }
-
     public function getMatricula(): ?string
     {
         return $this->matricula;
@@ -290,42 +288,7 @@ class Doctor implements UserInterface
         return $this;
     }
 
-    public function getUsername(): ?string
-    {
-        return $this->username;
-    }
 
-    public function setUsername(string $username): self
-    {
-        $this->username = $username;
-
-        return $this;
-    }
-
-    public function getPassword(): ?string
-    {
-        return $this->password;
-    }
-
-    public function setPassword(string $password): self
-    {
-        global $kernel;
-        if (method_exists($kernel, 'getKernel'))
-            $kernel = $kernel->getKernel();
-
-        $this->password = $kernel->getContainer()->get('security.password_encoder')->encodePassword($this, $password);
-        return $this;
-    }
-
-    public function getSalt()
-    {
-        // TODO: Implement getSalt() method.
-    }
-
-    public function eraseCredentials()
-    {
-        // TODO: Implement eraseCredentials() method.
-    }
 
 
 
@@ -684,17 +647,7 @@ class Doctor implements UserInterface
         return $this;
     }
 
-    public function getHabilitado(): ?bool
-    {
-        return $this->habilitado;
-    }
 
-    public function setHabilitado(bool $habilitado): self
-    {
-        $this->habilitado = $habilitado;
-
-        return $this;
-    }
 
     public function getPresente(): ?bool
     {
@@ -735,6 +688,125 @@ class Doctor implements UserInterface
             }
         }
 
+        return $this;
+    }
+
+    // Métodos requeridos por UserInterface
+    public function getRoles(): array
+    {
+        $legacyRoles = $this->legacyRoles ?? [];
+        $newRoles = [];
+        foreach ($this->roles as $role) {
+            if ($role->getIsActive()) {
+                $newRoles[] = 'ROLE_' . strtoupper($role->getName());
+            }
+        }
+        $allRoles = array_merge($legacyRoles, $newRoles);
+        $allRoles[] = 'ROLE_USER';
+        return array_unique($allRoles);
+    }
+
+    public function setRoles(array $roles): self
+    {
+        $this->legacyRoles = $roles;
+        return $this;
+    }
+
+    public function getLegacyRoles(): array
+    {
+        return $this->legacyRoles ?? [];
+    }
+
+    /**
+     * @return Collection|Role[]
+     */
+    public function getRoleEntities(): Collection
+    {
+        return $this->roles;
+    }
+
+    public function addRole(Role $role): self
+    {
+        if (!$this->roles->contains($role)) {
+            $this->roles[] = $role;
+        }
+        return $this;
+    }
+
+    public function removeRole(Role $role): self
+    {
+        $this->roles->removeElement($role);
+        return $this;
+    }
+
+    public function hasRole(string $roleName): bool
+    {
+        foreach ($this->roles as $role) {
+            if ($role->getName() === $roleName && $role->getIsActive()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function hasPermission(string $permissionName): bool
+    {
+        foreach ($this->roles as $role) {
+            if ($role->getIsActive()) {
+                foreach ($role->getPermissions() as $permission) {
+                    if ($permission->getName() === $permissionName && $permission->getIsActive()) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public function getUsername(): string
+    {
+        return (string) $this->username;
+    }
+
+    public function setUsername(?string $username): self
+    {
+        $this->username = $username;
+        return $this;
+    }
+
+    public function getPassword(): string
+    {
+        return (string) $this->password;
+    }
+
+    public function setPassword(string $password): self
+    {
+        global $kernel;
+        if (method_exists($kernel, 'getKernel'))
+            $kernel = $kernel->getKernel();
+
+        $this->password = $kernel->getContainer()->get('security.password_encoder')->encodePassword($this, $password);
+        return $this;
+    }
+
+    public function getSalt()
+    {
+        // No se necesita con bcrypt
+    }
+
+    public function eraseCredentials()
+    {
+        // Si almacenas datos temporales sensibles, límpialos aquí
+    }
+
+    public function getHabilitado(): bool
+    {
+        return $this->habilitado;
+    }
+
+    public function setHabilitado(bool $habilitado): self
+    {
+        $this->habilitado = $habilitado;
         return $this;
     }
 }

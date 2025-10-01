@@ -5,6 +5,8 @@
 namespace App\Controller;
 
 use App\Entity\Ubicacion;
+use App\Entity\Movimiento;
+use App\Entity\Item;
 use App\Form\UbicacionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,9 +21,16 @@ class UbicacionController extends AbstractController
     /**
      * @Route("/ubicacion", name="app_ubicacion_index")
      */
-    public function index(EntityManagerInterface $em): Response
+    public function index(EntityManagerInterface $em, Request $request): Response
     {
-        $ubicaciones = $em->getRepository(Ubicacion::class)->findAll();
+        $searchTerm = $request->query->get('search', '');
+        
+        // Obtener ubicaciones con búsqueda si se proporciona
+        if (!empty($searchTerm)) {
+            $ubicaciones = $em->getRepository(Ubicacion::class)->searchUbicaciones($searchTerm);
+        } else {
+            $ubicaciones = $em->getRepository(Ubicacion::class)->findAll();
+        }
         
         // Para cada ubicación, contar cuántos items tiene y agruparlos por tipo
         foreach ($ubicaciones as $ubicacion) {
@@ -43,6 +52,7 @@ class UbicacionController extends AbstractController
 
         return $this->render('ubicacion/index.html.twig', [
             'ubicaciones' => $ubicaciones,
+            'searchTerm' => $searchTerm,
         ]);
     }
 
@@ -118,10 +128,39 @@ class UbicacionController extends AbstractController
     /**
      * @Route("/ubicacion/{id}", name="app_ubicacion_show")
      */
-    public function show(Ubicacion $ubicacion): Response
+    public function show(Ubicacion $ubicacion, EntityManagerInterface $em): Response
     {
+        // Obtener todos los movimientos relacionados con esta ubicación
+        $movimientos = $em->getRepository(Movimiento::class)->createQueryBuilder('m')
+            ->leftJoin('m.item', 'i')
+            ->where('m.ubicacion = :ubicacion')
+            ->setParameter('ubicacion', $ubicacion)
+            ->orderBy('m.fecha', 'DESC')
+            ->getQuery()
+            ->getResult();
+
+        // Obtener todos los items que están actualmente en esta ubicación
+        $itemsEnUbicacion = $em->getRepository(Item::class)->findBy(['ubicacion_actual' => $ubicacion]);
+
+        // Obtener estadísticas de la ubicación
+        $totalItems = count($itemsEnUbicacion);
+        $tiposUnicos = [];
+        foreach ($itemsEnUbicacion as $item) {
+            if ($item->getTipo()) {
+                $tipoNombre = $item->getTipo()->getNombre();
+                if (!isset($tiposUnicos[$tipoNombre])) {
+                    $tiposUnicos[$tipoNombre] = 0;
+                }
+                $tiposUnicos[$tipoNombre]++;
+            }
+        }
+
         return $this->render('ubicacion/show.html.twig', [
             'ubicacion' => $ubicacion,
+            'movimientos' => $movimientos,
+            'itemsEnUbicacion' => $itemsEnUbicacion,
+            'totalItems' => $totalItems,
+            'tiposUnicos' => $tiposUnicos,
         ]);
     }
 

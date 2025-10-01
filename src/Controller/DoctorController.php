@@ -628,6 +628,12 @@ class DoctorController extends AbstractController
      */
     public function agenda(Request $request, BookingRepository $bookingRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, $periodo)
     {
+        // Verificar permisos para acceder a la agenda
+        // Permitir acceso a usuarios con permisos de agenda
+        if (!$this->isGranted('agenda.view') && !$this->isGranted('ROLE_ADMIN')) {
+            throw $this->createAccessDeniedException('No tienes permisos para acceder a la agenda');
+        }
+        
         $user = $this->getUser();
         if (!$user) {
            return $this->redirectToRoute('app_login');
@@ -672,7 +678,7 @@ class DoctorController extends AbstractController
             'obraSocialSelected' => $obraSocialSelected,
             'obrasSociales' => $obrasSocialesArray,
             'paginaImprimible' => true,
-            'isDoctor' => $this->isGranted('ROLE_STAFF') && $user->getDoctor() !== null,
+            'isDoctor' => $this->isGranted('ROLE_STAFF') && $user->hasRole('doctor'),
         ]);
 
     }
@@ -698,7 +704,7 @@ class DoctorController extends AbstractController
 
         if (!$user) {
             return $this->redirectToRoute('app_login');
-        } else if (!in_array('ROLE_STAFF', $user->getRoles())) {
+        } else if (!$this->isGranted('doctor.read')) {
             return $this->redirectToRoute('dashboard_index');
         }
 
@@ -751,7 +757,9 @@ class DoctorController extends AbstractController
             'obrasSociales' => $obrasSocialesArray,
             'habitacionesArray' => $habitacionesArray,
             'puedeEvolucionar' => $DoctorService->puedeEvolucionar(),
-            'isDoctor' => true
+            'isDoctor' => true,
+            'idObraSelected' => $request->query->get('idObra'),
+            'hab' => $request->query->get('hab')
         ]);
 
     }

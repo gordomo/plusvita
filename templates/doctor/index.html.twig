@@ -1,441 +1,249 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Staff index{% endblock %}
+{% block title %}Doctores{% endblock %}
+{% block panelTitle %}Doctores{% endblock %}
+
 {% block stylesheets %}
     {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('assets/css/user-admin.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/doctor.css') }}">
     <style>
-        /* Estilos adicionales para mejorar la interfaz */
-        .filter-panel {
-            background-color: #f8f9fa;
-            border-radius: 0.25rem;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        /* Estilos mejorados para badges */
+        .badge-lg {
+            font-size: 0.9rem;
+            padding: 0.5rem 0.75rem;
+            font-weight: 600;
         }
         
-        .table th {
-            position: sticky;
-            top: 0;
-            background-color: #fff;
-            z-index: 10;
+        .badge-sm {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            font-weight: 500;
         }
         
-        tr.editarStaff {
-            cursor: pointer;
-        }
-        
-        /* Estilos para staff presente/ausente */
-        .ambulatorio-presente {
-            background-color: rgba(40, 167, 69, 0.15) !important;
-        }
-        
-        /* Estilos para elementos de la leyenda de colores */
-        .color-legend {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            padding: 0.5rem;
-            border-radius: 0.25rem;
-            background-color: #fff;
-            border: 1px solid #e9ecef;
-        }
-        
-        .color-legend-item {
-            display: flex;
-            align-items: center;
-            font-size: 0.875rem;
-        }
-        
-        .color-legend-box {
-            width: 1.25rem;
-            height: 1.25rem;
-            margin-right: 0.5rem;
-            border-radius: 0.25rem;
-            border: 1px solid rgba(0,0,0,0.1);
-        }
-        
-        .dropdown-item i {
-            width: 1.25rem;
-            text-align: center;
-            margin-right: 0.5rem;
-        }
-        
-        .btn-action {
-            white-space: nowrap;
-        }
-        
-        .card-staff {
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            margin-bottom: 1.5rem;
-        }
-        
-        .form-check-label {
-            margin-bottom: 0;
-        }
-        
-        .contract-filter-group {
-            margin-bottom: 1rem;
-        }
-        
-        .contract-filter-group .form-check {
-            margin-right: 1.5rem;
+        /* Espaciado mejorado para roles */
+        .roles .badge {
             display: inline-block;
+            margin-bottom: 0.25rem;
+        }
+        
+        /* Colores específicos para tipos de usuario */
+        .badge-primary {
+            background-color: #007bff !important;
+            border-color: #007bff !important;
+        }
+        
+        .badge-success {
+            background-color: #28a745 !important;
+            border-color: #28a745 !important;
+        }
+        
+        .badge-info {
+            background-color: #17a2b8 !important;
+            border-color: #17a2b8 !important;
+        }
+        
+        /* Colores específicos para roles */
+        .badge-warning {
+            background-color: #ffc107 !important;
+            color: #212529 !important;
+            border-color: #ffc107 !important;
+        }
+        
+        .badge-light {
+            background-color: #f8f9fa !important;
+            color: #495057 !important;
+            border: 1px solid #dee2e6 !important;
+        }
+        
+        .badge-dark {
+            background-color: #343a40 !important;
+            border-color: #343a40 !important;
+        }
+        
+        .badge-secondary {
+            background-color: #6c757d !important;
+            border-color: #6c757d !important;
+        }
+        
+        /* Hover effects */
+        .badge:hover {
+            opacity: 0.8;
+            transform: translateY(-1px);
+            transition: all 0.2s ease;
         }
     </style>
 {% endblock %}
-{% block panelTitle %}
-    <div class="d-flex justify-content-between align-items-center">
-        <span>Staff</span>
-        <a href="{{ path('doctor_new') }}" class="btn btn-success btn-sm">
-            <i class="fas fa-plus-circle"></i> Nuevo Staff
-        </a>
-    </div>
-{% endblock %}
 {% block body %}
-    <!-- Panel de filtros mejorado -->
-    <div class="card mb-4">
-        <div class="card-body filter-panel">
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="contrato"><i class="fas fa-file-signature mr-1"></i> Filtrar por Tipo de Contrato</label>
-                        <select class="form-control predictivo" id="contrato" multiple data-placeholder="Filtrar por Tipo de contrato">
-                            <option value="0">Todos</option>
-                            <optgroup label="Empleado">
-                                {% for contratoEmpleado in contratos['empleado'] %}
-                                    <option id='{{ contratoEmpleado|replace({' ': ''}) }}' value="{{ contratoEmpleado }}" {% if contratoEmpleado in ctrsArray %} selected {% endif %}>{{ contratoEmpleado }}</option>
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-user-md mr-2"></i>Listado de Doctores
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive printiable">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th class="id">ID</th>
+                                    <th class="user">Usuario</th>
+                                    <th class="roles">Roles</th>
+                                    <th class="email">Email</th>
+                                    <th class="telefono">Teléfono</th>
+                                    <th class="legajo">Legajo</th>
+                                    <th class="matricula">Matrícula</th>
+                                    <th class="acciones">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for doctor in doctors %}
+                                <tr class="{% if doctor.habilitado %}enabled-user{% else %}disabled-user{% endif %}">
+                                    <td class="id">{{ doctor.id }}</td>
+                                    <td class="user">
+                                        <div class="d-flex align-items-center">
+                                            <span class="status-indicator {% if doctor.habilitado %}status-active{% else %}status-inactive{% endif %}"></span>
+                                            <strong>{{ doctor.nombre }} {{ doctor.apellido }}</strong>
+                                        </div>
+                                    </td>
+                                    <td class="roles">
+                                        {% for role in doctor.roleEntities %}
+                                            <span class="badge badge-secondary badge-sm mr-1 mb-1">
+                                                <i class="fas fa-tag mr-1"></i>{{ role.displayName }}
+                                            </span>
+                                        {% endfor %}
+                                        {% if doctor.legacyRoles %}
+                                            {% for role in doctor.legacyRoles %}
+                                                {% if role == "ROLE_ADMIN" %}
+                                                    <span class="badge badge-warning badge-sm mr-1 mb-1">
+                                                        <i class="fas fa-crown mr-1"></i>Administrador
+                                                    </span>
+                                                {% elseif role == "ROLE_USER" %}
+                                                    <span class="badge badge-light badge-sm mr-1 mb-1">
+                                                        <i class="fas fa-user mr-1"></i>Operador
+                                                    </span>
+                                                {% elseif role == "ROLE_EDIT_HC" %}
+                                                    <span class="badge badge-dark badge-sm mr-1 mb-1">
+                                                        <i class="fas fa-edit mr-1"></i>Editar HC
+                                                    </span>
+                                                {% elseif role == "ROLE_DOCTOR" %}
+                                                    <span class="badge badge-success badge-sm mr-1 mb-1">
+                                                        <i class="fas fa-stethoscope mr-1"></i>Doctor
+                                                    </span>
+                                                {% elseif role == "ROLE_NURSE" %}
+                                                    <span class="badge badge-info badge-sm mr-1 mb-1">
+                                                        <i class="fas fa-heartbeat mr-1"></i>Enfermero
+                                                    </span>
+                                                {% elseif role == "ROLE_STAFF" %}
+                                                    <span class="badge badge-secondary badge-sm mr-1 mb-1">
+                                                        <i class="fas fa-briefcase mr-1"></i>Staff
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge badge-outline-secondary badge-sm mr-1 mb-1">
+                                                        <i class="fas fa-circle mr-1"></i>{{ role|replace({'ROLE_': ''}) }}
+                                                    </span>
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endif %}
+                                    </td>
+                                    <td class="lowercase email">{{ doctor.email }}</td>
+                                    <td class="telefono">{{ doctor.telefono|default('--') }}</td>
+                                    <td class="legajo">{{ doctor.legajo|default('--') }}</td>
+                                    <td class="matricula">{{ doctor.matricula|default('--') }}</td>
+                                    <td class="text-center">
+                                        <div class="btn-group">
+                                            <a class="btn btn-sm btn-primary btn-action" href="{{ path('doctor_edit', {'id': doctor.id}) }}" data-toggle="tooltip" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a class="btn btn-sm btn-info btn-action" href="{{ path('doctor_show', {'id': doctor.id}) }}" data-toggle="tooltip" title="Ver">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="8" class="text-center py-4">
+                                        <div class="alert alert-info mb-0">
+                                            <i class="fas fa-info-circle mr-2"></i>No se encontraron doctores
+                                        </div>
+                                    </td>
+                                </tr>
                                 {% endfor %}
-                            </optgroup>
-                            <optgroup label="Directo">
-                                {% for contratoDirecto in contratos['directo'] %}
-                                    <option id='{{ contratoDirecto|replace({' ': ''}) }}' value="{{ contratoDirecto }}" {% if contratoDirecto in ctrsArray %} selected {% endif %}>{{ contratoDirecto }}</option>
-                                {% endfor %}
-                            </optgroup>
-                            <optgroup label="Prestacion">
-                                {% for contratoPrestacion in contratos['prestacion'] %}
-                                    <option id='{{ contratoPrestacion|replace({' ': ''}) }}' value="{{ contratoPrestacion }}" {% if contratoPrestacion in ctrsArray %} selected {% endif %}>{{ contratoPrestacion }}</option>
-                                {% endfor %}
-                            </optgroup>
-                            <optgroup label="Sin Contrato">
-                                {% for contratoSinContrato in contratos['sinContrato'] %}
-                                    <option id='{{ contratoSinContrato|replace({' ': ''}) }}' value="{{ contratoSinContrato }}" {% if contratoSinContrato in ctrsArray %} selected {% endif %}>{{ contratoSinContrato }}</option>
-                                {% endfor %}
-                            </optgroup>
-                        </select>
-                    </div>
-                    <div class="d-flex mt-2">
-                        <button class="btn btn-primary mr-2" id="buscarContrato">
-                            <i class="fas fa-search" aria-hidden="true"></i> Buscar
-                        </button>
-                        <button class="btn btn-outline-secondary" id="limpiarContratos">
-                            <i class="fas fa-eraser"></i> Limpiar
-                        </button>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <label><i class="far fa-calendar-alt mr-1"></i> Estado de contratos</label>
-                    <div class="contract-filter-group mt-2">
-                        <div class="form-check">
-                            <input type="radio" name="vtos" value="1" id="conVencidos" {{ (conContratosVencidos == 1) ? 'checked' : '' }} class="form-check-input checkContratos">
-                            <label class="form-check-label" for="conVencidos">Con Contratos Vencidos</label>
-                        </div>
-                        <div class="form-check">
-                            <input type="radio" name="vtos" value="2" id="vencenMes" {{ (conContratosVencidos == 2) ? 'checked' : '' }} class="form-check-input checkContratos">
-                            <label class="form-check-label" for="vencenMes">Vencen este Mes</label>
-                        </div>
-                        <div class="form-check">
-                            <input type="radio" name="vtos" value="0" id="todosContratos" {{ (conContratosVencidos == 0) ? 'checked' : '' }} class="form-check-input checkContratos">
-                            <label class="form-check-label" for="todosContratos">Todos</label>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="d-flex flex-column h-100 justify-content-center">
-                        <div class="d-flex">
-                            <button class="btn btn-outline-secondary flex-grow-1 mr-2" data-toggle="modal" data-target="#camposExtras">
-                                <i class="fas fa-columns"></i> Columnas
-                            </button>
-                            <button class="btn btn-outline-secondary" id="printButton">
-                                <i class="fas fa-print"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Leyenda de colores para clarificar el significado -->
-            <div class="color-legend mt-3">
-                <div class="color-legend-item">
-                    <div class="color-legend-box" style="background-color: rgba(40, 167, 69, 0.15);"></div>
-                    <span>Staff Presente</span>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="card card-staff">
-        <div class="card-body p-0">
-            <div class="table-responsive printiable">
-                <table class="table table-hover table-striped">
-                <thead class="thead-light">
-                    <tr>
-                        <th scope="col" class="nombre">Nombre</th>
-                        <th scope="col" class="apellido">Apellido</th>
-                        <th scope="col" class="dni">Dni</th>
-                        <th scope="col" class="fnac">Fecha de Nacimiento</th>
-                        <th scope="col" class="modalidad">Tipo</th>
-                        <th scope="col" class="legajo">Legajo</th>
-                        <th scope="col" class="matricula">Matricula</th>
-                        <th scope="col" class="vtoMatricula">Vto Matricula</th>
-                        <th scope="col" class="libretaSanitaria">Libreta Sanitaria</th>
-                        <th scope="col" class="emisionLibretaSanitaria">Fecha de emición de Libreta</th>
-                        <th scope="col" class="vtoLibretaSanitaria">Vto Libreta Sanitaria</th>
-                        <th scope="col" class="posicionEnArchivo">Pos. Archivo</th>
-                        <th scope="col" class="Email">Email</th>
-                        <th scope="col" class="inicioContrato">Inicio Contrato</th>
-                        <th scope="col" class="vtoContrato">Vto Contrato</th>
-                        <th scope="col" class="CBU">CBU</th>
-                        <th scope="col" class="Horarios">Horarios</th>
-                        <th scope="col" class="acciones text-right">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% for doctor in doctors %}
-                    <tr class="editarStaff {{ doctor.presente ? 'ambulatorio-presente' : '' }}" data-url="{{ path('doctor_edit', {'id': doctor.id}) }}">
-                        <td class="nombre">{{ doctor.nombre }}</td>
-                        <td class="apellido">{{ doctor.apellido }}</td>
-                        <td class="dni">{{ doctor.dni }}</td>
-                        <td class="fnac">{{ doctor.fnac ? doctor.fnac | date('d/m/Y') : '' }}</td>
-                        <td class="modalidad">
-                            {{ doctor.modalidad | json_encode(constant('JSON_PRETTY_PRINT')) | replace({'[': '', ']': '', '\\': ''})}}
-                        </td>
-                        <td class="legajo">{{ doctor.legajo }}</td>
-                        <td class="matricula">{{ doctor.matricula }}</td>
-                        <td class="vtoMatricula">{{ doctor.vtoMatricula | date('d/m/Y')}}</td>
-                        <td class="libretaSanitaria">{{ doctor.libretaSanitaria }}</td>
-                        <td class="emisionLibretaSanitaria">{{ doctor.emisionLibretaSanitaria | date('d/m/Y')}}</td>
-                        <td class="vtoLibretaSanitaria">{{ doctor.vtoLibretaSanitaria | date('d/m/Y') }}</td>
-                        <td class="posicionEnArchivo">{{ doctor.posicionEnArchivo }}</td>
-                        <td class="lowercase email">{{ doctor.email }}</td>
-                        <td class="inicioContrato">{{ doctor.inicioContrato | date('d/m/Y') }}</td>
-                        <td class="vtoContrato">{{ doctor.vtoContrato | date('d/m/Y') }}</td>
-                        <td class="cbu">{{ doctor.cbu }}</td>
-                        <td class="lowercase Horarios">
-                            {% for horario in doctor.businessHours %}
-                                {% if (loop.index == 1) %}
-                                    <span class="badge badge-info">Lunes</span>
-                                {% endif %}
-                                {% if (loop.index == 2) %}
-                                    <span class="badge badge-info">Martes</span>
-                                {% endif %}
-                                {% if (loop.index == 3) %}
-                                    <span class="badge badge-info">Miércoles</span>
-                                {% endif %}
-                                {% if (loop.index == 4) %}
-                                    <span class="badge badge-info">Jueves</span>
-                                {% endif %}
-                                {% if (loop.index == 5) %}
-                                    <span class="badge badge-info">Viernes</span>
-                                {% endif %}
-                                {% if (loop.index == 6) %}
-                                    <span class="badge badge-info">Sábado</span>
-                                {% endif %}
-                                {{ horario.desde }} a
-                                {{ horario.hasta }}
-                                {% if (horario.desde != horario.ydesde) %}
-                                y {{ horario.ydesde }} a {{ horario.yhasta }}
-                                {% endif %}
-                                <br>
-                            {% endfor %}
-                        </td>
-                        <td class="acciones text-right">
-                            <div class="btn-group">
-                                <button type="button" class="btn btn-sm btn-primary dropdown-toggle btn-action" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    Acciones
-                                </button>
-                                <div class="dropdown-menu dropdown-menu-right">
-                                    <h6 class="dropdown-header">Información</h6>
-                                    <a class="dropdown-item" href="{{ path('doctor_edit', {'id': doctor.id}) }}">
-                                        <i class="fas fa-pencil-alt"></i> Editar datos
-                                    </a>
-                                    <a class="dropdown-item" href="{{ path('adjuntos_staff_new', {'id': doctor.id}) }}">
-                                        <i class="fas fa-paperclip"></i> Nuevo adjunto
-                                    </a>
-                                    <div class="dropdown-divider"></div>
-                                    <h6 class="dropdown-header">Cambios de estado</h6>
-                                    <a class="dropdown-item" href="{{ path('staff_egreso', {'id': doctor.id}) }}">
-                                        <i class="far fa-calendar-times"></i> Registrar egreso
-                                    </a>
-                                    {% if not doctor.presente %}
-                                        <a class="dropdown-item" href="{{ path('dar_presente_doctor', {'id': doctor.id}) }}">
-                                            <i class="fa fa-check-square"></i> Dar presente
-                                        </a>
-                                    {% endif %}
-                                    {% if doctor.presente %}
-                                        <a class="dropdown-item" href="{{ path('dar_ausente_doctor', {'id': doctor.id}) }}">
-                                            <i class="fa fa-window-close"></i> Dar ausente
-                                        </a>                               
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                {% else %}
-                    <tr>
-                        <td colspan="18" class="text-center py-4">
-                            <div class="empty-state">
-                                <i class="fas fa-user-md fa-3x text-muted mb-3"></i>
-                                <p class="lead">No existen registros de staff</p>
-                            </div>
-                        </td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-    </div>
-
-    <!-- Modal de columnas mejorado -->
-    <div class="modal fade bd-example-modal-lg camposExtras" id="camposExtras" tabindex="-1" role="dialog" aria-labelledby="camposExtras" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Seleccione los campos a mostrar</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-
-                <div class="modal-body">
-                    <div class="form-group columnas-de-dos" id="checkboxesForView">
-                        {% for fiel in ['nombre', 'apellido', 'dni', 'fnac', 'modalidad', 'legajo','matricula',
-                            'vtoMatricula','libretaSanitaria', 'emisionLibretaSanitaria',
-                            'vtoLibretaSanitaria', 'Email',
-                            'inicioContrato', 'posicionEnArchivo',
-                            'vtoContrato',
-                            'CBU', 'Horarios'] %}
-                            <div class="form-check">
-                                <input class="form-check-input checkForView"
-                                        {% if fiel == 'nombre' %} checked {% endif %}
-                                        {% if fiel == 'apellido' %} checked {% endif %}
-                                        {% if fiel == 'Email' %} checked {% endif %}
-                                        {% if fiel == 'vtoContrato' %} checked {% endif %}
-                                       type="checkbox" value="{{ fiel }}" id="{{ fiel }}"
-                                >
-                                <label class="form-check-label" for="{{ fiel }}" style="text-transform: capitalize">
-                                    {{ fiel }}
-                                </label>
-                            </div>
-                        {% endfor %}
-                        <div class="form-check mt-3">
-                            <input class="form-check-input" type="checkbox" value="todos" id="todosForView">
-                            <label class="form-check-label" for="todosForView">
-                                <strong>Seleccionar todos</strong>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                        <button type="button" class="btn btn-primary" id="updateCamposForView">Aplicar</button>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
+        <div class="text-center">
+            <a href="{{ path('doctor_new') }}" class="btn btn-primary btn-create-user">
+                <i class="fas fa-user-plus mr-2"></i>Crear nuevo Doctor
+            </a>
+        </div>
     </div>
-
+</div>
 {% endblock %}
 
 {% block modalImprimir %}
-    <div class="form-row">
-        {% for fiel in ['nombre', 'apellido', 'dni', 'fnac', 'modalidad', 'legajo','matricula',
-            'vtoMatricula','libretaSanitaria', 'emisionLibretaSanitaria',
-            'vtoLibretaSanitaria', 'Email',
-            'inicioContrato', 'posicionEnArchivo', 'vtoContrato',
-            'CBU', 'Horarios'] %}
-            <div class="col-md-4 mb-2">
-                <div class="form-check">
-                    <input class="form-check-input check" type="checkbox" value="{{ fiel }}" id="{{ fiel }}"
-                            {% if fiel == 'nombre' %} checked {% endif %}
-                            {% if fiel == 'apellido' %} checked {% endif %}
-                            {% if fiel == 'Email' %} checked {% endif %}
-                            {% if fiel == 'vtoContrato' %} checked {% endif %}
-                    >
-                    <label class="form-check-label" for="{{ fiel }}" style="text-transform: capitalize">
-                        {{ fiel }}
-                    </label>
-                </div>
-            </div>
-        {% endfor %}
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="id" id="id">
+        <label class="form-check-label" for="id">
+            Id
+        </label>
     </div>
-    <div class="form-check mt-3">
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="user" id="user">
+        <label class="form-check-label" for="user">
+            Usuario
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="roles" id="roles">
+        <label class="form-check-label" for="roles">
+            Roles
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="email" id="email">
+        <label class="form-check-label" for="email">
+            Email
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="telefono" id="telefono">
+        <label class="form-check-label" for="telefono">
+            Teléfono
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="legajo" id="legajo">
+        <label class="form-check-label" for="legajo">
+            Legajo
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="matricula" id="matricula">
+        <label class="form-check-label" for="matricula">
+            Matrícula
+        </label>
+    </div>
+    <div class="form-check">
         <input class="form-check-input" type="checkbox" value="todos" id="todos">
         <label class="form-check-label" for="todos">
-            <strong>Seleccionar todos</strong>
+            Todos
         </label>
     </div>
 {% endblock %}
+
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('assets/js/staff.js') }}"></script>
+    <script src="{{ asset('assets/js/dashboard.js') }}"></script>
+    <script src="{{ asset('assets/js/user-admin.js') }}"></script>
     <script>
-        var tituloExcel = 'staff.xlsx';
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            // Botón para imprimir
-            const printButton = document.getElementById('printButton');
-            if (printButton) {
-                printButton.addEventListener('click', function() {
-                    window.print();
-                });
-            }
-            
-            // Gestión de campos visibles
-            const updateCamposBtn = document.getElementById('updateCamposForView');
-            if (updateCamposBtn) {
-                updateCamposBtn.addEventListener('click', function() {
-                    const checkboxes = document.querySelectorAll('.checkForView:checked');
-                    const camposAMostrar = Array.from(checkboxes).map(cb => cb.value);
-                    
-                    // Ocultar todas las columnas
-                    document.querySelectorAll('th, td').forEach(cell => {
-                        if (!cell.classList.contains('acciones')) {
-                            cell.style.display = 'none';
-                        }
-                    });
-                    
-                    // Mostrar columnas seleccionadas
-                    camposAMostrar.forEach(campo => {
-                        document.querySelectorAll('.' + campo).forEach(cell => {
-                            cell.style.display = '';
-                        });
-                    });
-                    
-                    // Cerrar modal
-                    $('#camposExtras').modal('hide');
-                });
-            }
-            
-            // Selector "Todos"
-            const todosForViewCheckbox = document.getElementById('todosForView');
-            if (todosForViewCheckbox) {
-                todosForViewCheckbox.addEventListener('change', function() {
-                    const checkboxes = document.querySelectorAll('.checkForView');
-                    checkboxes.forEach(cb => {
-                        cb.checked = this.checked;
-                    });
-                });
-            }
-            
-            // Inicializar tooltips de Bootstrap
-            $(function () {
-                $('[data-toggle="tooltip"]').tooltip();
-            });
-            
-            // Inicializar dropdowns de Bootstrap (configuración estándar)
-            $('.dropdown-toggle').dropdown();
-        });
+        var tituloExcel = 'doctores.xlsx';
+        let printUrl = "{{ path('imprimir') }}";
     </script>
 {% endblock %}
 

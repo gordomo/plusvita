@@ -1,0 +1,105 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Editar Novedad - {{ ubicacion.nombre }}{% endblock %}
+{% block panelTitle %}Editar Novedad{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-edit"></i> Editar Novedad</h5>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form) }}
+                        <div class="row">
+                            <div class="col-md-12">
+                                {{ form_row(form.titulo) }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                {{ form_row(form.descripcion) }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form_row(form.prioridad) }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_row(form.estado) }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                {{ form_row(form.usuario_asignado) }}
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Guardar Cambios
+                            </button>
+                            <a href="{{ path('app_novedad_ubicacion_show', {'ubicacionId': ubicacion.id, 'id': novedad.id}) }}" class="btn btn-secondary">
+                                <i class="fas fa-eye"></i> Ver Novedad
+                            </a>
+                            <a href="{{ path('app_novedad_ubicacion_index', {'ubicacionId': ubicacion.id}) }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Volver al Listado
+                            </a>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6><i class="fas fa-info-circle"></i> Información Actual</h6>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <th>Ubicación:</th>
+                            <td>{{ ubicacion.nombre }}</td>
+                        </tr>
+                        <tr>
+                            <th>Creado por:</th>
+                            <td>{{ novedad.usuarioCreador.nombreApellido }}</td>
+                        </tr>
+                        <tr>
+                            <th>Fecha creación:</th>
+                            <td>{{ novedad.fechaCreacion|date('d/m/Y H:i') }}</td>
+                        </tr>
+                        {% if novedad.usuarioAsignado %}
+                        <tr>
+                            <th>Asignado actualmente a:</th>
+                            <td>{{ novedad.usuarioAsignado.nombreApellido }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if novedad.fechaResolucion %}
+                        <tr>
+                            <th>Fecha resolución:</th>
+                            <td>{{ novedad.fechaResolucion|date('d/m/Y H:i') }}</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                    
+                    <hr>
+                    
+                    <div class="alert alert-info">
+                        <small>
+                            <i class="fas fa-lightbulb"></i> 
+                            <strong>Tip:</strong> Si cambias el estado a "Resuelto", se establecerá automáticamente la fecha de resolución.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

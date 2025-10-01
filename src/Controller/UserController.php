@@ -39,7 +39,7 @@ class UserController extends AbstractController
         return $this->render('user/index.html.twig', [
             'users' => $allUsers,
             'paginaImprimible' => true,
-            'isDoctor' => in_array('ROLE_DOCTOR', $user->getRoles()),
+            'isDoctor' => $this->isGranted('doctor.read'),
             'currentUser' => $user
         ]);
     }
@@ -51,21 +51,53 @@ class UserController extends AbstractController
     {
         $user = new User();
         $user->setHabilitado(true);
+        
         $form = $this->createForm(UserType::class, $user);
+        
+        // Populate the unmapped roleEntities field with current user roles
+        $form->get('roleEntities')->setData($user->getRoleEntities());
 
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $roles = $form->get('roles')->getData() ?? ['ROLE_USER'];
-            $password = $form->get('password')->getData() ?? '';
-            $user->setRoles($roles);
-            $encodePass = $passwordEncoder->encodePassword($user, $password);
-            $user->setPassword($encodePass);
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->persist($user);
-            $entityManager->flush();
-
-            return $this->redirectToRoute('user_index');
+            
+            try {
+                $password = $form->get('password')->getData() ?? '';
+                $encodePass = $passwordEncoder->encodePassword($user, $password);
+                $user->setPassword($encodePass);
+                
+                // Handle the unmapped roleEntities field
+                $selectedRoles = $form->get('roleEntities')->getData();
+                
+                
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($user);
+                $entityManager->flush();
+                
+                // Limpiar relaciones existentes y guardar las nuevas
+                $connection = $entityManager->getConnection();
+                
+                // Eliminar todas las relaciones existentes para este usuario
+                $connection->executeStatement(
+                    'DELETE FROM user_roles WHERE user_id = ?',
+                    [$user->getId()]
+                );
+                
+                // Agregar las nuevas relaciones
+                foreach ($selectedRoles as $role) {
+                    $connection->executeStatement(
+                        'INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)',
+                        [$user->getId(), $role->getId()]
+                    );
+                }
+                
+                $this->addFlash('success', 'Usuario creado correctamente.');
+                return $this->redirectToRoute('user_management_index');
+            } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $e) {
+                $this->addFlash('error', $e->getMessage());
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'Error al crear el usuario: ' . $e->getMessage());
+            }
         }
 
         return $this->render('user/new.html.twig', [
@@ -94,13 +126,13 @@ class UserController extends AbstractController
         $oldPassword = $user->getPassword();
 
         $form = $this->createForm(UserType::class, $user);
+        
+        // Populate the unmapped roleEntities field with current user roles
+        $form->get('roleEntities')->setData($user->getRoleEntities());
 
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $roles = $form->get('roles')->getData() ?? ['ROLE_USER'];
-            $user->setRoles($roles);
-
             if ($form->get('password')->getData() == 'noPass') {
                 $user->setPassword($oldPassword);
             } else {
@@ -112,8 +144,26 @@ class UserController extends AbstractController
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($user);
             $entityManager->flush();
+            
+            // Handle the unmapped roleEntities field - Limpiar y guardar relaciones manualmente
+            $selectedRoles = $form->get('roleEntities')->getData();
+            $connection = $entityManager->getConnection();
+            
+            // Eliminar todas las relaciones existentes para este usuario
+            $connection->executeStatement(
+                'DELETE FROM user_roles WHERE user_id = ?',
+                [$user->getId()]
+            );
+            
+            // Agregar las nuevas relaciones
+            foreach ($selectedRoles as $role) {
+                $connection->executeStatement(
+                    'INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)',
+                    [$user->getId(), $role->getId()]
+                );
+            }
 
-            return $this->redirectToRoute('user_index');
+            return $this->redirectToRoute('user_management_index');
         }
 
         return $this->render('user/edit.html.twig', [
@@ -129,7 +179,7 @@ class UserController extends AbstractController
     public function delete(Request $request, User $user_to_delete, BookingRepository $bookingRepository): Response
     {
         $user = $this->getUser();
-        if($user && in_array('ROLE_ADMIN', $user->getRoles())) {
+        if($user && $this->isGranted('user.delete')) {
             if ($this->isCsrfTokenValid('delete'.$user_to_delete->getId(), $request->request->get('_token'))) {
                 $entityManager = $this->getDoctrine()->getManager();
                 

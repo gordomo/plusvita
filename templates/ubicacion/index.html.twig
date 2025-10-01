@@ -81,6 +81,21 @@
             padding: 0.5rem;
             font-style: italic;
         }
+        
+        /* Estilos para la barra de búsqueda */
+        #searchInput {
+            border-radius: 0.375rem 0 0 0.375rem;
+        }
+        
+        #searchInput:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        
+        .input-group-text {
+            background-color: #f8f9fa;
+            border-color: #ced4da;
+        }
     </style>
 {% endblock %}
 
@@ -96,6 +111,55 @@
             </div>
         {% endfor %}
     {% endfor %}
+
+    <!-- Barra de búsqueda -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <form method="GET" class="form-inline" id="searchForm">
+                <div class="input-group w-100">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">
+                            <i class="fas fa-search"></i>
+                        </span>
+                    </div>
+                    <input type="text" 
+                           class="form-control" 
+                           name="search" 
+                           id="searchInput"
+                           placeholder="Buscar por nombre o descripción de ubicación..." 
+                           value="{{ searchTerm|default('') }}"
+                           autocomplete="off">
+                    <div class="input-group-append">
+                        {% if searchTerm %}
+                            <a href="{{ path('app_ubicacion_index') }}" class="btn btn-outline-secondary" title="Limpiar búsqueda">
+                                <i class="fas fa-times"></i>
+                            </a>
+                        {% endif %}
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Buscar
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if searchTerm %}
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="alert alert-info d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="fas fa-search mr-2"></i>
+                        <strong>Resultados de búsqueda para:</strong> "{{ searchTerm }}"
+                        <span class="badge badge-primary ml-2">{{ ubicaciones|length }} resultado(s)</span>
+                    </div>
+                    <a href="{{ path('app_ubicacion_index') }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-times"></i> Limpiar búsqueda
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
 
     <div class="row mb-4">
         <div class="col">
@@ -147,7 +211,10 @@
                     
                     <div class="action-buttons d-flex justify-content-between">
                         <a href="{{ path('app_item_index_ubicacion', { ubicacion: ubicacion.id }) }}" class="btn btn-info">
-                            <i class="fas fa-search"></i> Ver ítems
+                            <i class="fas fa-search"></i> ítems
+                        </a>
+                        <a href="{{ path('app_novedad_ubicacion_index', { ubicacionId: ubicacion.id }) }}" class="btn btn-info btn-sm">
+                            <i class="fas fa-clipboard-list"></i> Novedades
                         </a>
                         <div>
                             <a href="{{ path('app_ubicacion_edit', { id: ubicacion.id }) }}" class="btn btn-warning" data-toggle="tooltip" title="Editar ubicación">
@@ -181,6 +248,27 @@
 <script>
     $(document).ready(function() {
         $('[data-toggle="tooltip"]').tooltip();
+        
+        // Búsqueda en tiempo real
+        let searchTimeout;
+        $('#searchInput').on('input', function() {
+            const searchTerm = $(this).val();
+            
+            // Limpiar timeout anterior
+            clearTimeout(searchTimeout);
+            
+            // Si el campo está vacío, no hacer búsqueda
+            if (searchTerm.length === 0) {
+                return;
+            }
+            
+            // Hacer búsqueda después de 500ms de inactividad
+            searchTimeout = setTimeout(function() {
+                if (searchTerm.length >= 2) {
+                    $('#searchForm').submit();
+                }
+            }, 500);
+        });
     });
 </script>
 {% endblock %}

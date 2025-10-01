@@ -3,6 +3,7 @@
 namespace App\Security;
 
 use App\Entity\Doctor;
+use App\Entity\Nurse;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -69,13 +70,28 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator implements P
         }
 
         $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $credentials['username']]);
-        //dd($user);
-        //dd($credentials['username']);
 
         if (!$user) {
             $user = $this->entityManager->getRepository(Doctor::class)->findOneBy(['email' => $credentials['username']]);
-            /*dd($user);
-            throw new CustomUserMessageAuthenticationException('Username could not be found.');*/
+        }
+
+        if (!$user) {
+            $user = $this->entityManager->getRepository(Nurse::class)->findOneBy(['email' => $credentials['username']]);
+        }
+
+        if (!$user) {
+            // Debug: buscar también por username
+            $user = $this->entityManager->getRepository(User::class)->findOneBy(['username' => $credentials['username']]);
+            if (!$user) {
+                $user = $this->entityManager->getRepository(Doctor::class)->findOneBy(['username' => $credentials['username']]);
+            }
+            if (!$user) {
+                $user = $this->entityManager->getRepository(Nurse::class)->findOneBy(['username' => $credentials['username']]);
+            }
+        }
+
+        if (!$user) {
+            throw new CustomUserMessageAuthenticationException('Usuario no encontrado. Verifica el email/username y contraseña.');
         }
 
         return $user;

@@ -1,0 +1,362 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Seleccionar Ubicaciones para Reporte{% endblock %}
+{% block panelTitle %}Reporte de Mantenimiento por Ubicaciones{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .location-card {
+            transition: all 0.2s ease;
+            border: 1px solid #dee2e6;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+        
+        .location-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+        
+        .location-card.selected {
+            border-color: #007bff;
+            background-color: #e3f2fd;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+        
+        .location-checkbox {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            transform: scale(1.2);
+        }
+        
+        .location-info {
+            padding: 20px;
+        }
+        
+        .location-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .location-description {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        
+        .location-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-weight: bold;
+            color: #007bff;
+            font-size: 1.1rem;
+        }
+        
+        .selection-summary {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .selected-locations {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        
+        .selected-tag {
+            background-color: #007bff;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+        }
+        
+        .actions {
+            position: sticky;
+            bottom: 0;
+            background-color: white;
+            padding: 20px 0;
+            border-top: 1px solid #dee2e6;
+            margin-top: 30px;
+        }
+        
+        /* Estilos para el buscador */
+        .search-container {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .search-results {
+            text-align: center;
+        }
+        
+        .location-card.hidden {
+            display: none !important;
+        }
+        
+        /* Ocultar el contenedor completo de la columna */
+        .col-md-4.hidden {
+            display: none !important;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    image.png<!-- Buscador de ubicaciones -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="search-container">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">
+                            <i class="fas fa-search"></i>
+                        </span>
+                    </div>
+                    <input type="text" 
+                           class="form-control" 
+                           id="locationSearch"
+                           placeholder="Buscar ubicaciones por nombre o descripción..." 
+                           autocomplete="off">
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-outline-secondary" id="clearSearch" title="Limpiar búsqueda">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="searchResults" class="search-results mt-2" style="display: none;">
+                    <small class="text-muted">Mostrando <span id="visibleCount">0</span> de <span id="totalCount">0</span> ubicaciones</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form id="reportForm" method="GET" action="{{ path('app_item_print') }}">
+        <input type="hidden" name="report_type" value="maintenance">
+        
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="selection-summary">
+                    <h5>Ubicaciones Seleccionadas: <span id="selectedCount">0</span></h5>
+                    <div id="selectedLocations" class="selected-locations">
+                        <span class="text-muted">Ninguna ubicación seleccionada</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            {% for ubicacion in ubicaciones %}
+                <div class="col-md-4 mb-3">
+                    <div class="card location-card" data-ubicacion-id="{{ ubicacion.id }}">
+                        <div class="location-info">
+                            <input type="checkbox" 
+                                   class="location-checkbox" 
+                                   name="ubicaciones[]" 
+                                   value="{{ ubicacion.id }}" 
+                                   id="ubicacion_{{ ubicacion.id }}">
+                            <label for="ubicacion_{{ ubicacion.id }}" class="location-name">
+                                {{ ubicacion.nombre }}
+                            </label>
+                            {% if ubicacion.descripcion %}
+                                <div class="location-description">{{ ubicacion.descripcion }}</div>
+                            {% endif %}
+                            <div class="location-stats">
+                                <div class="stat-item">
+                                    <div class="stat-number">{{ ubicacion.items|length }}</div>
+                                    <div>Items</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">
+                                        {% set tiposUnicos = [] %}
+                                        {% for item in ubicacion.items %}
+                                            {% if item.tipo and item.tipo.nombre not in tiposUnicos %}
+                                                {% set tiposUnicos = tiposUnicos|merge([item.tipo.nombre]) %}
+                                            {% endif %}
+                                        {% endfor %}
+                                        {{ tiposUnicos|length }}
+                                    </div>
+                                    <div>Tipos</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="actions">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <button type="button" class="btn btn-secondary mr-2" onclick="selectAll()">
+                        <i class="fas fa-check-square"></i> Seleccionar Todas
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary mr-2" onclick="deselectAll()">
+                        <i class="fas fa-square"></i> Deseleccionar Todas
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="generateReport" disabled>
+                        <i class="fas fa-file-alt"></i> Generar Reporte
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Función para actualizar la selección
+    function updateSelection() {
+        const selectedCheckboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+        const selectedCount = selectedCheckboxes.length;
+        
+        // Actualizar contador
+        document.getElementById('selectedCount').textContent = selectedCount;
+        
+        // Actualizar botón de generar reporte
+        const generateBtn = document.getElementById('generateReport');
+        generateBtn.disabled = selectedCount === 0;
+        
+        // Actualizar tarjetas seleccionadas
+        document.querySelectorAll('.location-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        
+        selectedCheckboxes.forEach(checkbox => {
+            checkbox.closest('.location-card').classList.add('selected');
+        });
+        
+        // Actualizar lista de ubicaciones seleccionadas
+        const selectedLocations = [];
+        selectedCheckboxes.forEach(checkbox => {
+            const ubicacionName = checkbox.closest('.location-card').querySelector('.location-name').textContent;
+            selectedLocations.push(ubicacionName);
+        });
+        
+        const selectedLocationsDiv = document.getElementById('selectedLocations');
+        if (selectedLocations.length > 0) {
+            selectedLocationsDiv.innerHTML = '';
+            selectedLocations.forEach(name => {
+                const tag = document.createElement('span');
+                tag.className = 'selected-tag';
+                tag.textContent = name;
+                selectedLocationsDiv.appendChild(tag);
+            });
+        } else {
+            selectedLocationsDiv.innerHTML = '<span class="text-muted">Ninguna ubicación seleccionada</span>';
+        }
+    }
+    
+    // Manejar clic en las tarjetas
+    document.querySelectorAll('.location-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            if (e.target.type !== 'checkbox') {
+                const checkbox = this.querySelector('input[type="checkbox"]');
+                checkbox.checked = !checkbox.checked;
+                updateSelection();
+            }
+        });
+    });
+    
+    // Manejar cambio en checkboxes
+    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', updateSelection);
+    });
+    
+    // Funciones para seleccionar/deseleccionar todas
+    window.selectAll = function() {
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.checked = true;
+        });
+        updateSelection();
+    };
+    
+    window.deselectAll = function() {
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        updateSelection();
+    };
+    
+    // Inicializar estado
+    updateSelection();
+    
+    // Funcionalidad de búsqueda
+    const searchInput = document.getElementById('locationSearch');
+    const clearSearchBtn = document.getElementById('clearSearch');
+    const searchResults = document.getElementById('searchResults');
+    const visibleCountSpan = document.getElementById('visibleCount');
+    const totalCountSpan = document.getElementById('totalCount');
+    const locationCards = document.querySelectorAll('.location-card');
+    
+    // Contar total de ubicaciones
+    const totalLocations = locationCards.length;
+    totalCountSpan.textContent = totalLocations;
+    
+    function performSearch() {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        let visibleCount = 0;
+        
+        locationCards.forEach(card => {
+            const locationName = card.querySelector('.location-name').textContent.toLowerCase();
+            const locationDescription = card.querySelector('.location-description');
+            const description = locationDescription ? locationDescription.textContent.toLowerCase() : '';
+            
+            const matches = locationName.includes(searchTerm) || description.includes(searchTerm);
+            
+            // Obtener el contenedor padre (.col-md-4)
+            const columnContainer = card.closest('.col-md-4');
+            
+            if (matches) {
+                columnContainer.classList.remove('hidden');
+                visibleCount++;
+            } else {
+                columnContainer.classList.add('hidden');
+            }
+        });
+        
+        // Actualizar contador
+        visibleCountSpan.textContent = visibleCount;
+        
+        // Mostrar/ocultar resultados
+        if (searchTerm) {
+            searchResults.style.display = 'block';
+        } else {
+            searchResults.style.display = 'none';
+        }
+    }
+    
+    // Event listeners para búsqueda
+    searchInput.addEventListener('input', performSearch);
+    
+    clearSearchBtn.addEventListener('click', function() {
+        searchInput.value = '';
+        performSearch();
+        searchInput.focus();
+    });
+    
+    // Inicializar búsqueda
+    performSearch();
+});
+</script>
+{% endblock %}
+

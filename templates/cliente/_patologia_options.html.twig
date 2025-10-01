@@ -1,5 +1,9 @@
-{{ form_label(form.motivoIngEspecifico, 'Patología específica') }}
-{{ form_widget(form.motivoIngEspecifico, {
-    'choices': options,
-    'placeholder': 'Seleccione una patología específica'
-}) }}
+<div class="form-group">
+    <label for="cliente_motivoIngEspecifico" class="form-control-label">Patología específica</label>
+    <select id="cliente_motivoIngEspecifico" name="cliente[motivoIngEspecifico]" class="form-control">
+        <option value="">Seleccione una patología específica</option>
+        {% for value, label in options %}
+            <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+    </select>
+</div>

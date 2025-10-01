@@ -1,0 +1,126 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ver Enfermero{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">
+                        <i class="fas fa-user-nurse"></i> {{ nurse.nombre }} {{ nurse.apellido }}
+                    </h3>
+                    <div class="btn-group">
+                        <a href="{{ path('nurse_edit', {'id': nurse.id}) }}" class="btn btn-primary">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                        <a href="{{ path('nurse_index') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Volver
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Información Personal</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Nombre:</strong></td>
+                                    <td>{{ nurse.nombre }} {{ nurse.apellido }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Email:</strong></td>
+                                    <td>{{ nurse.email }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Teléfono:</strong></td>
+                                    <td>{{ nurse.telefono ?? '--' }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Fecha de Nacimiento:</strong></td>
+                                    <td>{{ nurse.fechaNacimiento ? nurse.fechaNacimiento|date('d/m/Y') : '--' }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Dirección:</strong></td>
+                                    <td>{{ nurse.direccion ?? '--' }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Información Profesional</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Usuario:</strong></td>
+                                    <td>{{ nurse.username }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Legajo:</strong></td>
+                                    <td>{{ nurse.legajo ?? '--' }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Matrícula:</strong></td>
+                                    <td>{{ nurse.matricula ?? '--' }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Estado:</strong></td>
+                                    <td>
+                                        {% if nurse.habilitado %}
+                                            <span class="badge badge-success">Activo</span>
+                                        {% else %}
+                                            <span class="badge badge-danger">Inactivo</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Fecha de Creación:</strong></td>
+                                    <td>{{ nurse.createdAt ? nurse.createdAt|date('d/m/Y H:i') : '--' }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <h5>Roles y Permisos</h5>
+                            <div class="mb-3">
+                                {% for role in nurse.roleEntities %}
+                                    <div class="card mb-2">
+                                        <div class="card-body">
+                                            <h6 class="card-title">{{ role.displayName }}</h6>
+                                            <p class="card-text text-muted">{{ role.description }}</p>
+                                            <div>
+                                                <strong>Permisos:</strong>
+                                                {% for permission in role.permissions %}
+                                                    {% if permission.isActive %}
+                                                        <span class="badge badge-light">{{ permission.displayName }}</span>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                                {% if nurse.legacyRoles %}
+                                    <div class="alert alert-warning">
+                                        <strong>Roles Legacy:</strong>
+                                        {% for role in nurse.legacyRoles %}
+                                            <span class="badge badge-warning">{{ role }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                {% if nurse.roleEntities is empty and (nurse.legacyRoles is empty or not nurse.legacyRoles) %}
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle"></i> Este usuario no tiene roles asignados.
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -18,7 +18,7 @@ class PresentesDoctores
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Doctor::class, inversedBy="presentesDoctores")
+     * @ORM\ManyToOne(targetEntity=Doctor::class, inversedBy="presentes")
      */
     private $doctor;
 

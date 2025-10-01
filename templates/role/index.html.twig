@@ -1,0 +1,134 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Roles y Permisos{% endblock %}
+{% block panelTitle %}Roles y Permisos{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('assets/css/user-admin.css') }}">
+    <style>
+        .badge-lg {
+            font-size: 0.9rem;
+            padding: 0.5rem 0.75rem;
+            font-weight: 600;
+        }
+        
+        .badge-sm {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            font-weight: 500;
+        }
+        
+        .permission-badge {
+            display: inline-block;
+            margin: 0.125rem;
+            font-size: 0.7rem;
+        }
+        
+        .role-card {
+            transition: transform 0.2s ease;
+        }
+        
+        .role-card:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="mb-0">Gestión de Roles y Permisos</h2>
+                <a href="{{ path('role_new') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Nuevo Rol
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for role in roles %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card role-card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-tag mr-2"></i>
+                        {{ role.displayName }}
+                    </h5>
+                    <div class="d-flex">
+                        <a href="{{ path('role_show', {'id': role.id}) }}" class="btn btn-sm btn-outline-info mr-1" title="Ver detalles">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="{{ path('role_permissions', {'id': role.id}) }}" class="btn btn-sm btn-outline-warning mr-1" title="Gestionar permisos">
+                            <i class="fas fa-key"></i>
+                        </a>
+                        <a href="{{ path('role_edit', {'id': role.id}) }}" class="btn btn-sm btn-outline-primary mr-1" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        {% if not role.isSystem %}
+                        <a href="{{ path('role_delete', {'id': role.id}) }}" class="btn btn-sm btn-outline-danger" title="Eliminar" 
+                           onclick="return confirm('¿Estás seguro de que quieres eliminar este rol?')">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">{{ role.description }}</p>
+                    
+                    <div class="mb-3">
+                        <strong>Permisos:</strong>
+                        <div class="mt-2">
+                            {% for permission in role.permissions %}
+                                <span class="badge badge-secondary permission-badge">
+                                    {{ permission.displayName }}
+                                </span>
+                            {% else %}
+                                <span class="text-muted">Sin permisos asignados</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            {% if role.isSystem %}
+                                <span class="badge badge-warning badge-sm">
+                                    <i class="fas fa-cog"></i> Sistema
+                                </span>
+                            {% endif %}
+                            {% if role.isActive %}
+                                <span class="badge badge-success badge-sm">
+                                    <i class="fas fa-check"></i> Activo
+                                </span>
+                            {% else %}
+                                <span class="badge badge-danger badge-sm">
+                                    <i class="fas fa-times"></i> Inactivo
+                                </span>
+                            {% endif %}
+                        </div>
+                        <small class="text-muted">
+                            {{ role.createdAt|date('d/m/Y') }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-user-tag fa-3x text-muted mb-3"></i>
+                    <h4>No hay roles configurados</h4>
+                    <p class="text-muted">Comienza creando tu primer rol del sistema.</p>
+                    <a href="{{ path('role_new') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Crear Primer Rol
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

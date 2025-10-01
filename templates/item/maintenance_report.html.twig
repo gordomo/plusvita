@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte de Mantenimiento - {{ ubicacionesSeleccionadas|length > 0 ? 'Ubicaciones Seleccionadas' : (ubicacion ? ubicacion.nombre : 'Todas las Ubicaciones') }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.4;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 20px;
+        }
+        
+        .header h1 {
+            margin: 0;
+            color: #007bff;
+            font-size: 24px;
+        }
+        
+        .header .subtitle {
+            margin: 10px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .location-info {
+            background-color: #e3f2fd;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: 1px solid #bbdefb;
+        }
+        
+        .location-info h2 {
+            margin: 0 0 10px 0;
+            color: #1976d2;
+            font-size: 18px;
+        }
+        
+        .location-description {
+            color: #666;
+            font-style: italic;
+        }
+        
+        .selected-locations-list {
+            margin-top: 10px;
+        }
+        
+        .location-tag {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            margin: 2px;
+            font-size: 12px;
+        }
+        
+        .summary {
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .summary h3 {
+            margin: 0 0 10px 0;
+            color: #495057;
+            font-size: 16px;
+        }
+        
+        .summary-stats {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+        
+        .stat {
+            text-align: center;
+            margin: 5px;
+        }
+        
+        .stat-number {
+            font-size: 18px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        /* Estilos unificados para secciones de información */
+        .info-sections {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .info-section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            flex: 1;
+        }
+        
+        .info-section h3 {
+            color: #007bff;
+            margin: 0 0 10px 0;
+            font-size: 16px;
+        }
+        
+        .location-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .period-dates {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+        
+        .date-from, .date-to {
+            background-color: #e3f2fd;
+            color: #007bff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        
+        .date-separator {
+            color: #666;
+            font-weight: bold;
+        }
+        
+        .period-duration {
+            color: #666;
+            font-size: 12px;
+            font-style: italic;
+        }
+        
+        .stat-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            text-align: center;
+            flex: 1;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .stat-icon {
+            background-color: #007bff;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .stat-content {
+            flex: 1;
+        }
+        
+        /* Botón de imprimir */
+        .print-controls {
+            text-align: right;
+            margin-bottom: 20px;
+            padding: 10px 0;
+        }
+        
+        .print-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+        }
+        
+        .print-btn:hover {
+            background-color: #0056b3;
+        }
+        
+        .print-btn i {
+            margin-right: 8px;
+        }
+        
+        /* Ocultar controles de impresión en la impresión */
+        @media print {
+            .print-controls {
+                display: none;
+            }
+        }
+        
+        .movimientos-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            font-size: 13px;
+        }
+        
+        .movimientos-table th {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: bold;
+            border: 1px solid #0056b3;
+        }
+        
+        .movimientos-table td {
+            padding: 10px 8px;
+            border: 1px solid #dee2e6;
+            vertical-align: top;
+        }
+        
+        .movimientos-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .movimientos-table tr:hover {
+            background-color: #e3f2fd;
+        }
+        
+        .movimiento-fecha {
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .movimiento-item {
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .movimiento-motivo {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .movimiento-ubicacion {
+            color: #6c757d;
+            font-size: 11px;
+        }
+        
+        .movimiento-cantidad {
+            background-color: #17a2b8;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .no-movimientos {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .no-movimientos h3 {
+            margin: 0 0 10px 0;
+            color: #495057;
+        }
+        
+        .periodo-info {
+            background-color: #fff3cd;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ffeaa7;
+            margin-bottom: 20px;
+            color: #856404;
+        }
+        
+        .periodo-info strong {
+            color: #495057;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #666;
+            font-size: 10px;
+            border-top: 1px solid #dee2e6;
+            padding-top: 10px;
+        }
+        
+        @media print {
+            body {
+                margin: 0;
+                padding: 15px;
+            }
+            
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="info-sections">
+        {% if ubicacionesSeleccionadas|length > 0 %}
+            <div class="info-section">
+                <h3><i class="fas fa-map-marker-alt"></i> Ubicaciones Analizadas</h3>
+                <div class="location-tags">
+                    {% for ubicacion in ubicacionesSeleccionadas %}
+                        <span class="location-tag">{{ ubicacion.nombre }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        {% elseif ubicacion %}
+            <div class="info-section">
+                <h3><i class="fas fa-map-marker-alt"></i> {{ ubicacion.nombre }}</h3>
+                {% if ubicacion.descripcion %}
+                    <div class="location-description">{{ ubicacion.descripcion }}</div>
+                {% endif %}
+            </div>
+        {% endif %}
+        
+        <div class="info-section">
+            <h3><i class="fas fa-calendar-alt"></i> Período de Análisis</h3>
+            <div class="period-dates">
+                <span class="date-from">{{ fechaDesde|date("d/m/Y") }}</span>
+                <span class="date-separator">→</span>
+                <span class="date-to">{{ "now"|date("d/m/Y") }}</span>
+            </div>
+            <div class="period-duration">Últimos 6 meses</div>
+        </div>
+
+        <div class="print-controls">
+            <button onclick="window.print()" class="print-btn">
+                <i class="fas fa-print"></i> Imprimir
+            </button>
+        </div>
+    </div>
+    
+    <div class="summary">
+        <h3><i class="fas fa-chart-bar"></i> Resumen de Actividad</h3>
+        <div class="summary-stats">
+            <div class="stat">
+                <div class="stat-number">{{ movimientos|length }}</div>
+                <div class="stat-label">Movimientos Totales</div>
+            </div>
+            <div class="stat">
+                {% set itemsUnicos = [] %}
+                {% for movimiento in movimientos %}
+                    {% if movimiento.item and movimiento.item.nombre not in itemsUnicos %}
+                        {% set itemsUnicos = itemsUnicos|merge([movimiento.item.nombre]) %}
+                    {% endif %}
+                {% endfor %}
+                <div class="stat-number">{{ itemsUnicos|length }}</div>
+                <div class="stat-label">Items Diferentes</div>
+            </div>
+            <div class="stat">
+                {% set motivosUnicos = [] %}
+                {% for movimiento in movimientos %}
+                    {% if movimiento.motivo and movimiento.motivo not in motivosUnicos %}
+                        {% set motivosUnicos = motivosUnicos|merge([movimiento.motivo]) %}
+                    {% endif %}
+                {% endfor %}
+                <div class="stat-number">{{ motivosUnicos|length }}</div>
+                <div class="stat-label">Tipos de Actividad</div>
+            </div>
+        </div>
+    </div>
+    
+    {% if movimientos|length > 0 %}
+        <table class="movimientos-table">
+            <thead>
+                <tr>
+                    <th style="width: 15%">Fecha</th>
+                    <th style="width: 25%">Item</th>
+                    <th style="width: 20%">Motivo/Actividad</th>
+                    <th style="width: 10%">Cantidad</th>
+                    <th style="width: 15%">Ubicación</th>
+                    <th style="width: 15%">Tipo de Item</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for movimiento in movimientos %}
+                    <tr>
+                        <td>
+                            <div class="movimiento-fecha">{{ movimiento.fecha|date("d/m/Y") }}</div>
+                            <div style="font-size: 10px; color: #666;">{{ movimiento.fecha|date("H:i") }}</div>
+                        </td>
+                        <td>
+                            <div class="movimiento-item">{{ movimiento.item.nombre }}</div>
+                            {% if movimiento.item.identificador %}
+                                <div style="font-size: 10px; color: #666;">
+                                    <code>{{ movimiento.item.identificador }}</code>
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if movimiento.motivo %}
+                                <div class="movimiento-motivo">{{ movimiento.motivo }}</div>
+                            {% else %}
+                                <div style="color: #999; font-style: italic;">Sin motivo especificado</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if movimiento.cantidad %}
+                                <span class="movimiento-cantidad">{{ movimiento.cantidad }}</span>
+                            {% else %}
+                                <span style="color: #999;">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if movimiento.ubicacion %}
+                                <div class="movimiento-ubicacion">{{ movimiento.ubicacion.nombre }}</div>
+                            {% else %}
+                                <div style="color: #999;">Sin ubicación</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if movimiento.item.tipo %}
+                                <span style="background-color: #e9ecef; padding: 2px 6px; border-radius: 3px; font-size: 10px; color: #495057;">
+                                    {{ movimiento.item.tipo.nombre }}
+                                </span>
+                            {% else %}
+                                <span style="color: #999; font-size: 10px;">Sin tipo</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="no-movimientos">
+            <h3>No se encontraron movimientos</h3>
+            <p>
+                {% if ubicacion %}
+                    No hay registros de mantenimiento para {{ ubicacion.nombre }} en los últimos 6 meses.
+                {% else %}
+                    No hay registros de mantenimiento en los últimos 6 meses.
+                {% endif %}
+            </p>
+        </div>
+    {% endif %}
+    
+    <div class="footer">
+        <p>Reporte de Mantenimiento - Plus Vita Sistema de Gestión de Inventario</p>
+        <p>Página 1 de 1</p>
+    </div>
+</body>
+</html>

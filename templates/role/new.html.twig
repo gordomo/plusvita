@@ -1,0 +1,125 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nuevo Rol{% endblock %}
+{% block panelTitle %}Crear Nuevo Rol{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .permissions-checkboxes {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            padding: 1rem;
+            background-color: #f8f9fa;
+        }
+        
+        .permissions-checkboxes .form-check {
+            margin-bottom: 0.5rem;
+        }
+        
+        .permissions-checkboxes .form-check-label {
+            font-size: 0.9rem;
+        }
+        
+        .permissions-checkboxes .form-check-input:checked + .form-check-label {
+            font-weight: 600;
+            color: #007bff;
+        }
+        
+        .permission-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .permission-group-title {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.25rem;
+            border-bottom: 2px solid #007bff;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-tag mr-2"></i>
+                        Información del Rol
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form) }}
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form_row(form.name) }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_row(form.displayName) }}
+                            </div>
+                        </div>
+                        
+                        {{ form_row(form.description) }}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form_row(form.isActive) }}
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <div class="form-group">
+                            <h5>
+                                <i class="fas fa-key mr-2"></i>
+                                Permisos del Rol
+                            </h5>
+                            <p class="text-muted">Selecciona los permisos que tendrá este rol:</p>
+                            {{ form_row(form.permissions) }}
+                        </div>
+                        
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Crear Rol
+                            </button>
+                            <a href="{{ path('role_index') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Cancelar
+                            </a>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        Información
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        <strong>Nombre del rol:</strong> Debe ser único y usar solo letras minúsculas, números y guiones bajos.
+                    </p>
+                    <p class="text-muted">
+                        <strong>Nombre para mostrar:</strong> Es el nombre que verán los usuarios en la interfaz.
+                    </p>
+                    <p class="text-muted">
+                        <strong>Descripción:</strong> Explica las responsabilidades y permisos de este rol.
+                    </p>
+                    <p class="text-muted">
+                        <strong>Activo:</strong> Solo los roles activos pueden ser asignados a usuarios.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

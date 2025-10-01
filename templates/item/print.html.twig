@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listado de Items - Inventario</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.4;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 20px;
+        }
+        
+        .header h1 {
+            margin: 0;
+            color: #007bff;
+            font-size: 24px;
+        }
+        
+        .header .subtitle {
+            margin: 10px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .filters {
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .filters h3 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            color: #495057;
+        }
+        
+        .filter-item {
+            display: inline-block;
+            margin-right: 20px;
+            margin-bottom: 5px;
+        }
+        
+        .filter-label {
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .filter-value {
+            color: #007bff;
+        }
+        
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        
+        .items-table th {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: bold;
+            border: 1px solid #0056b3;
+        }
+        
+        .items-table td {
+            padding: 10px 8px;
+            border: 1px solid #dee2e6;
+            vertical-align: top;
+        }
+        
+        .items-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .items-table tr:hover {
+            background-color: #e3f2fd;
+        }
+        
+        .item-name {
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .item-type {
+            background-color: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            color: #495057;
+        }
+        
+        .item-location {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .item-quantity {
+            background-color: #28a745;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .movimientos {
+            margin-top: 10px;
+        }
+        
+        .movimientos h4 {
+            margin: 0 0 5px 0;
+            font-size: 11px;
+            color: #495057;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 2px;
+        }
+        
+        .movimiento {
+            font-size: 10px;
+            margin-bottom: 3px;
+            padding: 2px 5px;
+            background-color: #f8f9fa;
+            border-left: 3px solid #007bff;
+        }
+        
+        .movimiento-fecha {
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .movimiento-tipo {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .movimiento-descripcion {
+            color: #666;
+        }
+        
+        .no-movimientos {
+            font-size: 10px;
+            color: #999;
+            font-style: italic;
+        }
+        
+        .summary {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #bbdefb;
+        }
+        
+        .summary h3 {
+            margin: 0 0 10px 0;
+            color: #1976d2;
+            font-size: 16px;
+        }
+        
+        .summary-stats {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+        
+        .stat {
+            text-align: center;
+            margin: 5px;
+        }
+        
+        .stat-number {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1976d2;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #666;
+            font-size: 10px;
+            border-top: 1px solid #dee2e6;
+            padding-top: 10px;
+        }
+        
+        @media print {
+            body {
+                margin: 0;
+                padding: 15px;
+            }
+            
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Listado de Items - Inventario</h1>
+        <div class="subtitle">
+            Generado el {{ "now"|date("d/m/Y H:i") }}
+        </div>
+    </div>
+    
+    {% if tipoId or ubicacionId or searchTerm %}
+        <div class="filters">
+            <h3>Filtros Aplicados:</h3>
+            {% if searchTerm %}
+                <div class="filter-item">
+                    <span class="filter-label">Búsqueda:</span>
+                    <span class="filter-value">"{{ searchTerm }}"</span>
+                </div>
+            {% endif %}
+            {% if tipoId %}
+                {% for tipo in tiposItem %}
+                    {% if tipo.id == tipoId %}
+                        <div class="filter-item">
+                            <span class="filter-label">Tipo:</span>
+                            <span class="filter-value">{{ tipo.nombre }}</span>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+            {% if ubicacionId %}
+                {% for ubicacion in ubicaciones %}
+                    {% if ubicacion.id == ubicacionId %}
+                        <div class="filter-item">
+                            <span class="filter-label">Ubicación:</span>
+                            <span class="filter-value">{{ ubicacion.nombre }}</span>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        </div>
+    {% endif %}
+    
+    <div class="summary">
+        <h3>Resumen</h3>
+        <div class="summary-stats">
+            <div class="stat">
+                <div class="stat-number">{{ items|length }}</div>
+                <div class="stat-label">Items Totales</div>
+            </div>
+            {% set tiposUnicos = [] %}
+            {% for item in items %}
+                {% if item.tipo and item.tipo.nombre not in tiposUnicos %}
+                    {% set tiposUnicos = tiposUnicos|merge([item.tipo.nombre]) %}
+                {% endif %}
+            {% endfor %}
+            <div class="stat">
+                <div class="stat-number">{{ tiposUnicos|length }}</div>
+                <div class="stat-label">Tipos Diferentes</div>
+            </div>
+            {% set ubicacionesUnicas = [] %}
+            {% for item in items %}
+                {% if item.ubicacionActual and item.ubicacionActual.nombre not in ubicacionesUnicas %}
+                    {% set ubicacionesUnicas = ubicacionesUnicas|merge([item.ubicacionActual.nombre]) %}
+                {% endif %}
+            {% endfor %}
+            <div class="stat">
+                <div class="stat-number">{{ ubicacionesUnicas|length }}</div>
+                <div class="stat-label">Ubicaciones</div>
+            </div>
+        </div>
+    </div>
+    
+    {% if items|length > 0 %}
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th style="width: 20%">Nombre</th>
+                    <th style="width: 15%">Tipo</th>
+                    <th style="width: 15%">Ubicación</th>
+                    <th style="width: 10%">Cantidad</th>
+                    <th style="width: 15%">Identificador</th>
+                    <th style="width: 25%">Últimos Movimientos</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                    <tr>
+                        <td>
+                            <div class="item-name">{{ item.nombre }}</div>
+                        </td>
+                        <td>
+                            {% if item.tipo %}
+                                <span class="item-type">{{ item.tipo.nombre }}</span>
+                            {% else %}
+                                <span style="color: #999;">Sin tipo</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.ubicacionActual %}
+                                <span class="item-location">{{ item.ubicacionActual.nombre }}</span>
+                            {% else %}
+                                <span style="color: #999;">Sin ubicación</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="item-quantity">{{ item.cantidad ?? 1 }}</span>
+                        </td>
+                        <td>
+                            {% if item.identificador %}
+                                <code>{{ item.identificador }}</code>
+                            {% else %}
+                                <span style="color: #999;">Sin identificador</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="movimientos">
+                                {% if item.ultimosMovimientos|length > 0 %}
+                                    <h4>Últimos 3 movimientos:</h4>
+                                    {% for movimiento in item.ultimosMovimientos %}
+                                        <div class="movimiento">
+                                            <span class="movimiento-fecha">{{ movimiento.fecha|date("d/m/Y") }}</span>
+                                            <span class="movimiento-tipo">{{ movimiento.tipo }}</span>
+                                            {% if movimiento.descripcion %}
+                                                <div class="movimiento-descripcion">{{ movimiento.descripcion }}</div>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="no-movimientos">Sin movimientos registrados</div>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div style="text-align: center; padding: 40px; color: #666;">
+            <h3>No se encontraron items</h3>
+            <p>No hay items que coincidan con los filtros aplicados.</p>
+        </div>
+    {% endif %}
+    
+    <div class="footer">
+        <p>Reporte generado por Plus Vita - Sistema de Gestión de Inventario</p>
+        <p>Página 1 de 1</p>
+    </div>
+</body>
+</html>

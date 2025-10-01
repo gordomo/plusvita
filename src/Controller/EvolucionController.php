@@ -85,7 +85,7 @@ class EvolucionController extends AbstractController
     public function new(SluggerInterface $slugger, ValidatorInterface $validator, Request $request, ClienteRepository $clienteRepository, EvolucionRepository $evolucionRepository, DoctorRepository $doctorRepository): Response
     {
         $user = $this->getUser();
-        $puedenEditarEvoluciones = in_array('ROLE_EDIT_HC', $user->getRoles());
+        $puedenEditarEvoluciones = $this->isGranted('patient.evolve');
         $doctores = $doctorRepository->findEmails();
         $docArr = [];
         foreach ( $doctores as $doc ) {
@@ -208,7 +208,7 @@ class EvolucionController extends AbstractController
 
         $redirect = $request->get('redirect', '');
 
-        $puedenEditarEvoluciones = in_array('ROLE_EDIT_HC', $user->getRoles());
+        $puedenEditarEvoluciones = $this->isGranted('patient.evolve');
 
         if ( $puedenEditarEvoluciones ) {
             $form = $this->createForm(EvolucionType::class, $evolucion, ['usuarioActual'=>$usuarioActual, 'modalidad' => $modalidad, 'doctores' => $docArr, 'puedenEditarEvoluciones' => $puedenEditarEvoluciones]);
@@ -243,7 +243,7 @@ class EvolucionController extends AbstractController
         $clienteId = $evolucion->getPaciente()->getId();
         $redirect = $request->get('redirect', '');
 
-        $puedenEditarEvoluciones = in_array('ROLE_EDIT_HC', $this->getUser()->getRoles());
+        $puedenEditarEvoluciones = $this->isGranted('patient.evolve');
 
         if( $puedenEditarEvoluciones ) {
             if ($this->isCsrfTokenValid('delete'.$evolucion->getId(), $request->request->get('_token'))) {

@@ -23,7 +23,7 @@ class Prescripcion
     private $descripcion;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Cliente::class, inversedBy="cliente")
+     * @ORM\ManyToOne(targetEntity=Cliente::class, inversedBy="prescripcion")
      */
     private $cliente;
 

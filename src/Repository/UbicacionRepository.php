@@ -57,6 +57,20 @@ class UbicacionRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * Busca ubicaciones por nombre y descripción
+     */
+    public function searchUbicaciones(string $searchTerm): array
+    {
+        return $this->createQueryBuilder('u')
+            ->where('u.nombre LIKE :searchTerm')
+            ->orWhere('u.descripcion LIKE :searchTerm')
+            ->setParameter('searchTerm', '%' . $searchTerm . '%')
+            ->orderBy('u.nombre', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
 
     // /**
     //  * @return Ubicacion[] Returns an array of Ubicacion objects

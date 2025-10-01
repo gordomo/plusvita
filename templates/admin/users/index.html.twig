@@ -1,0 +1,393 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestión de Usuarios{% endblock %}
+{% block panelTitle %}Gestión de Usuarios{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('assets/css/user-admin.css') }}">
+    <style>
+        /* Estilos mejorados para badges */
+        .badge-lg {
+            font-size: 0.9rem;
+            padding: 0.5rem 0.75rem;
+            font-weight: 600;
+        }
+        
+        .badge-sm {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            font-weight: 500;
+        }
+        
+        /* Espaciado mejorado para roles */
+        .roles .badge {
+            display: inline-block;
+            margin-bottom: 0.25rem;
+        }
+        
+        /* Colores específicos para tipos de usuario */
+        .badge-primary {
+            background-color: #007bff !important;
+            border-color: #007bff !important;
+        }
+        
+        .badge-success {
+            background-color: #28a745 !important;
+            border-color: #28a745 !important;
+        }
+        
+        .badge-info {
+            background-color: #17a2b8 !important;
+            border-color: #17a2b8 !important;
+        }
+        
+        /* Colores específicos para roles */
+        .badge-warning {
+            background-color: #ffc107 !important;
+            color: #212529 !important;
+            border-color: #ffc107 !important;
+        }
+        
+        .badge-light {
+            background-color: #f8f9fa !important;
+            color: #495057 !important;
+            border: 1px solid #dee2e6 !important;
+        }
+        
+        .badge-dark {
+            background-color: #343a40 !important;
+            border-color: #343a40 !important;
+        }
+        
+        .badge-secondary {
+            background-color: #6c757d !important;
+            border-color: #6c757d !important;
+        }
+        
+        /* Hover effects */
+        .badge:hover {
+            opacity: 0.8;
+            transform: translateY(-1px);
+            transition: all 0.2s ease;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <!-- Panel de filtros -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="GET" action="{{ path('user_management_index') }}" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="type" class="form-label">Tipo de Usuario</label>
+                            <select class="form-control" id="type" name="type">
+                                <option value="all" {{ filters.type == 'all' ? 'selected' : '' }}>Todos</option>
+                                <option value="admin" {{ filters.type == 'admin' ? 'selected' : '' }}>Administradores</option>
+                                <option value="doctor" {{ filters.type == 'doctor' ? 'selected' : '' }}>Doctores</option>
+                                <option value="nurse" {{ filters.type == 'nurse' ? 'selected' : '' }}>Enfermeros</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="search" class="form-label">Buscar</label>
+                            <input type="text" class="form-control" id="search" name="search" 
+                                   value="{{ filters.search }}" placeholder="Nombre o email...">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="role" class="form-label">Rol</label>
+                            <select class="form-control" id="role" name="role">
+                                <option value="all" {{ filters.role == 'all' ? 'selected' : '' }}>Todos</option>
+                                <option value="ROLE_ADMIN" {{ filters.role == 'ROLE_ADMIN' ? 'selected' : '' }}>Administrador</option>
+                                <option value="ROLE_USER" {{ filters.role == 'ROLE_USER' ? 'selected' : '' }}>Operador</option>
+                                <option value="ROLE_STAFF" {{ filters.role == 'ROLE_STAFF' ? 'selected' : '' }}>Staff</option>
+                                <option value="ROLE_DOCTOR" {{ filters.role == 'ROLE_DOCTOR' ? 'selected' : '' }}>Doctor</option>
+                                <option value="ROLE_NURSE" {{ filters.role == 'ROLE_NURSE' ? 'selected' : '' }}>Enfermero</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="status" class="form-label">Estado</label>
+                            <select class="form-control" id="status" name="status">
+                                <option value="all" {{ filters.status == 'all' ? 'selected' : '' }}>Todos</option>
+                                <option value="active" {{ filters.status == 'active' ? 'selected' : '' }}>Activos</option>
+                                <option value="inactive" {{ filters.status == 'inactive' ? 'selected' : '' }}>Inactivos</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search"></i> Filtrar
+                                </button>
+                                <a href="{{ path('user_management_index') }}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times"></i> Limpiar
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="fas fa-users-cog mr-2"></i>Listado de Usuarios
+                        <span class="badge badge-light ml-2">{{ totalUsers }} usuarios</span>
+                    </div>
+                    <div class="btn-group">
+                        <a href="{{ path('user_new') }}" class="btn btn-light btn-sm">
+                            <i class="fas fa-user-plus"></i> Nuevo Admin
+                        </a>
+                        <a href="{{ path('doctor_new') }}" class="btn btn-light btn-sm">
+                            <i class="fas fa-user-md"></i> Nuevo Doctor
+                        </a>
+                        <a href="{{ path('nurse_new') }}" class="btn btn-light btn-sm">
+                            <i class="fas fa-user-nurse"></i> Nuevo Enfermero
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive printiable">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th class="id">ID</th>
+                                    <th class="tipo">Tipo</th>
+                                    <th class="user">Usuario</th>
+                                    <th class="roles">Roles</th>
+                                    <th class="email">Email</th>
+                                    <th class="telefono">Teléfono</th>
+                                    <th class="acciones">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr class="{% if user.habilitado %}enabled-user{% else %}disabled-user{% endif %}">
+                                    <td class="id">{{ user.id }}</td>
+                                    <td class="tipo">
+                                        {% if user.userType == 'admin' %}
+                                            <span class="badge badge-primary badge-lg">
+                                                <i class="fas fa-user-shield mr-1"></i>Administrador
+                                            </span>
+                                        {% elseif user.userType == 'doctor' %}
+                                            <span class="badge badge-success badge-lg">
+                                                <i class="fas fa-user-md mr-1"></i>Doctor
+                                            </span>
+                                        {% elseif user.userType == 'nurse' %}
+                                            <span class="badge badge-info badge-lg">
+                                                <i class="fas fa-user-nurse mr-1"></i>Enfermero
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="user">
+                                        <div class="d-flex align-items-center">
+                                            <span class="status-indicator {% if user.habilitado %}status-active{% else %}status-inactive{% endif %}"></span>
+                                            {% if user.userType == 'admin' %}
+                                                <strong>{{ user.username }}</strong>
+                                            {% elseif user.userType == 'doctor' %}
+                                                <strong>{{ user.nombre }} {{ user.apellido }}</strong>
+                                            {% elseif user.userType == 'nurse' %}
+                                                <strong>{{ user.nombre }} {{ user.apellido }}</strong>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td class="roles">
+                                        {% for role in user.roleEntities %}
+                                            {% if role.displayName is defined %}
+                                                <span class="badge badge-primary badge-sm mr-1 mb-1">
+                                                    <i class="fas fa-tag mr-1"></i>{{ role.displayName }}
+                                                </span>
+                                            {% elseif role.name is defined %}
+                                                <span class="badge badge-primary badge-sm mr-1 mb-1">
+                                                    <i class="fas fa-tag mr-1"></i>{{ role.name }}
+                                                </span>
+                                            {% else %}
+                                                <span class="badge badge-secondary badge-sm mr-1 mb-1">
+                                                    <i class="fas fa-tag mr-1"></i>{{ role|replace({'ROLE_': ''}) }}
+                                                </span>
+                                            {% endif %}
+                                        {% endfor %}
+                                        {% if user.roleEntities is empty %}
+                                            <span class="badge badge-light badge-sm mr-1 mb-1">
+                                                <i class="fas fa-user mr-1"></i>Sin roles asignados
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="lowercase email">{{ user.email }}</td>
+                                    <td class="telefono">
+                                        {% if user.telefono is defined %}
+                                            {{ user.telefono|default('--') }}
+                                        {% else %}
+                                            --
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group">
+                                            {% if user.userType == 'admin' %}
+                                                <a class="btn btn-sm btn-primary btn-action" href="{{ path('user_edit', {'id': user.id}) }}" data-toggle="tooltip" title="Editar Usuario">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            {% elseif user.userType == 'doctor' %}
+                                                <a class="btn btn-sm btn-primary btn-action" href="{{ path('user_management_edit_roles', {'type': 'doctor', 'id': user.id}) }}" data-toggle="tooltip" title="Editar Usuario">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            {% elseif user.userType == 'nurse' %}
+                                                <a class="btn btn-sm btn-primary btn-action" href="{{ path('user_management_edit_roles', {'type': 'nurse', 'id': user.id}) }}" data-toggle="tooltip" title="Editar Usuario">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-4">
+                                        <div class="alert alert-info mb-0">
+                                            <i class="fas fa-info-circle mr-2"></i>No se encontraron usuarios
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Paginación -->
+    {% if totalPages > 1 %}
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="Paginación de usuarios">
+                <ul class="pagination justify-content-center">
+                    <!-- Botón Anterior -->
+                    {% if currentPage > 1 %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ path('user_management_index', {page: currentPage - 1, type: filters.type, search: filters.search, role: filters.role, status: filters.status}) }}">
+                                <i class="fas fa-chevron-left"></i> Anterior
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">
+                                <i class="fas fa-chevron-left"></i> Anterior
+                            </span>
+                        </li>
+                    {% endif %}
+
+                    <!-- Números de página -->
+                    {% set startPage = max(1, currentPage - 2) %}
+                    {% set endPage = min(totalPages, currentPage + 2) %}
+
+                    {% if startPage > 1 %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ path('user_management_index', {page: 1, type: filters.type, search: filters.search, role: filters.role, status: filters.status}) }}">1</a>
+                        </li>
+                        {% if startPage > 2 %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endif %}
+
+                    {% for page in startPage..endPage %}
+                        <li class="page-item {{ page == currentPage ? 'active' : '' }}">
+                            <a class="page-link" href="{{ path('user_management_index', {page: page, type: filters.type, search: filters.search, role: filters.role, status: filters.status}) }}">{{ page }}</a>
+                        </li>
+                    {% endfor %}
+
+                    {% if endPage < totalPages %}
+                        {% if endPage < totalPages - 1 %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ path('user_management_index', {page: totalPages, type: filters.type, search: filters.search, role: filters.role, status: filters.status}) }}">{{ totalPages }}</a>
+                        </li>
+                    {% endif %}
+
+                    <!-- Botón Siguiente -->
+                    {% if currentPage < totalPages %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ path('user_management_index', {page: currentPage + 1, type: filters.type, search: filters.search, role: filters.role, status: filters.status}) }}">
+                                Siguiente <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">
+                                Siguiente <i class="fas fa-chevron-right"></i>
+                            </span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block modalImprimir %}
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="id" id="id">
+        <label class="form-check-label" for="id">
+            Id
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="tipo" id="tipo">
+        <label class="form-check-label" for="tipo">
+            Tipo
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="user" id="user">
+        <label class="form-check-label" for="user">
+            Usuario
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="roles" id="roles">
+        <label class="form-check-label" for="roles">
+            Roles
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="email" id="email">
+        <label class="form-check-label" for="email">
+            Email
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input check" type="checkbox" value="telefono" id="telefono">
+        <label class="form-check-label" for="telefono">
+            Teléfono
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="todos" id="todos">
+        <label class="form-check-label" for="todos">
+            Todos
+        </label>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('assets/js/dashboard.js') }}"></script>
+    <script src="{{ asset('assets/js/user-admin.js') }}"></script>
+    <script>
+        var tituloExcel = 'usuarios.xlsx';
+        let printUrl = "{{ path('imprimir') }}";
+    </script>
+{% endblock %}

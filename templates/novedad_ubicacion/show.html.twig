@@ -1,0 +1,137 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ novedad.titulo }} - {{ ubicacion.nombre }}{% endblock %}
+{% block panelTitle %}{{ novedad.titulo }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .novedad-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .info-badge {
+            font-size: 0.9rem;
+            padding: 6px 12px;
+            margin: 2px;
+        }
+        
+        .prioridad-baja { background-color: #6c757d; color: white; }
+        .prioridad-media { background-color: #ffc107; color: #212529; }
+        .prioridad-alta { background-color: #fd7e14; color: white; }
+        .prioridad-critica { background-color: #dc3545; color: white; }
+        
+        .estado-pendiente { background-color: #ffc107; color: #212529; }
+        .estado-en_proceso { background-color: #17a2b8; color: white; }
+        .estado-resuelto { background-color: #28a745; color: white; }
+        .estado-cancelado { background-color: #dc3545; color: white; }
+        
+        .timeline-item {
+            border-left: 3px solid #007bff;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #f8f9fa;
+            border-radius: 0 5px 5px 0;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <!-- Header de la novedad -->
+    <div class="novedad-header">
+        <div class="row">
+            <div class="col-md-8">
+                <h3>{{ novedad.titulo }}</h3>
+                <p class="mb-0">{{ ubicacion.nombre }}</p>
+            </div>
+            <div class="col-md-4 text-right">
+                <div class="mb-2">
+                    <span class="badge info-badge estado-{{ novedad.estado }}">
+                        {{ novedad.estado|title }}
+                    </span>
+                </div>
+                <div class="mb-2">
+                    <span class="badge info-badge prioridad-{{ novedad.prioridad }}">
+                        {{ novedad.prioridad|title }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Información principal -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle"></i> Descripción</h5>
+                </div>
+                <div class="card-body">
+                    <p>{{ novedad.descripcion|nl2br }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Información adicional -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6><i class="fas fa-calendar"></i> Información</h6>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <th>Ubicación:</th>
+                            <td>{{ ubicacion.nombre }}</td>
+                        </tr>
+                        <tr>
+                            <th>Creado por:</th>
+                            <td>{{ novedad.usuarioCreador.nombreApellido }}</td>
+                        </tr>
+                        <tr>
+                            <th>Fecha creación:</th>
+                            <td>{{ novedad.fechaCreacion|date('d/m/Y H:i') }}</td>
+                        </tr>
+                        {% if novedad.usuarioAsignado %}
+                        <tr>
+                            <th>Asignado a:</th>
+                            <td>{{ novedad.usuarioAsignado.nombreApellido }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if novedad.fechaResolucion %}
+                        <tr>
+                            <th>Fecha resolución:</th>
+                            <td>{{ novedad.fechaResolucion|date('d/m/Y H:i') }}</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6><i class="fas fa-cogs"></i> Acciones</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ path('app_novedad_ubicacion_edit', {'ubicacionId': ubicacion.id, 'id': novedad.id}) }}" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Editar Novedad
+                        </a>
+                        <a href="{{ path('app_novedad_ubicacion_index', {'ubicacionId': ubicacion.id}) }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Volver al Listado
+                        </a>
+                        <a href="{{ path('app_ubicacion_show', {'id': ubicacion.id}) }}" class="btn btn-info">
+                            <i class="fas fa-map-marker-alt"></i> Ver Ubicación
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

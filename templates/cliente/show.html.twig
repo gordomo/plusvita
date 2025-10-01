@@ -1,173 +1,272 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Cliente{% endblock %}
-{% block panelTitle %}
-    Datos del Paciente <a href="{{path('cliente_edit', {id: cliente.id})}}" class="btn btn-default">Editar</a> <a href="{{path('evolucion_index', {cliente: cliente.id})}}" class="btn btn-default">H. C.</a>
-{% endblock %}
+{% block title %}Ver Paciente - {{ cliente.nombre }} {{ cliente.apellido }}{% endblock %}
+{% block panelTitle %}Datos del Paciente{% endblock %}
+
 {% block body %}
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>Número de Historia Clínica</th>
-                <td>{{ cliente.hClinica }}</td>
-            </tr>
-            <tr>
-                <th>Nombre</th>
-                <td>{{ cliente.nombre }}</td>
-            </tr>
-            <tr>
-                <th>Apellido</th>
-                <td>{{ cliente.apellido }}</td>
-            </tr>
-            <tr>
-                <th>Número de Documento</th>
-                <td>{{ cliente.dni }}</td>
-            </tr>
-            <tr>
-                <th>Email</th>
-                <td class="lowercase">{{ cliente.email }}</td>
-            </tr>
-            <tr>
-                <th>Teléfono</th>
-                <td>{{ cliente.telefono }}</td>
-            </tr>
-            <tr>
-                <th>Fecha de Ingreso</th>
-                <td>{{ cliente.fIngreso ? cliente.fIngreso|date('d/m/Y') : '' }}</td>
-            </tr>
-            <tr>
-                <th>Fecha de Egreso</th>
-                <td>{{ cliente.fEgreso ? cliente.fEgreso|date('d/m/Y') : '' }}</td>
-            </tr>
-            <tr>
-                <th>Motivo de Ingreso</th>
-                <td>
-                    {% if(cliente.motivoIng == 1) %}
-                        Neurologicas
-                    {% elseif(cliente.motivoIng == 2) %}
-                        Traumatológicas
-                    {% elseif(cliente.motivoIng == 3) %}
-                        Respiratorias
-                    {% elseif(cliente.motivoIng == 4) %}
-                        Paliativos
-                    {% elseif(cliente.motivoIng == 5) %}
-                        Patologías laborales
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Información Personal -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user"></i> Información Personal
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Nombre:</label>
+                                <p class="form-control-plaintext">{{ cliente.nombre }}</p>
+                            </div>
+                            <div class="form-group">
+                                <label class="font-weight-bold">Apellido:</label>
+                                <p class="form-control-plaintext">{{ cliente.apellido }}</p>
+                            </div>
+                            <div class="form-group">
+                                <label class="font-weight-bold">DNI:</label>
+                                <p class="form-control-plaintext">{{ cliente.dni }}</p>
+                            </div>
+                            <div class="form-group">
+                                <label class="font-weight-bold">Fecha de Nacimiento:</label>
+                                <p class="form-control-plaintext">{{ cliente.fNacimiento ? cliente.fNacimiento|date('d/m/Y') : 'No especificada' }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Teléfono:</label>
+                                <p class="form-control-plaintext">{{ cliente.telefono ?: 'No especificado' }}</p>
+                            </div>
+                            <div class="form-group">
+                                <label class="font-weight-bold">Email:</label>
+                                <p class="form-control-plaintext">{{ cliente.email ?: 'No especificado' }}</p>
+                            </div>
+                            <div class="form-group">
+                                <label class="font-weight-bold">Dirección:</label>
+                                <p class="form-control-plaintext">No especificada</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información Médica -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-stethoscope"></i> Información Médica
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Historia Clínica:</label>
+                                <p class="form-control-plaintext">{{ cliente.hClinica }}</p>
+                            </div>
+                            <div class="form-group">
+                                <label class="font-weight-bold">Modalidad:</label>
+                                <p class="form-control-plaintext">
+                                    {% if cliente.modalidad == 1 %}
+                                        <span class="badge badge-success">Ambulatorio</span>
+                                    {% elseif cliente.modalidad == 2 %}
+                                        <span class="badge badge-primary">Internado</span>
+                                    {% elseif cliente.modalidad == 3 %}
+                                        <span class="badge badge-info">Kinesiología</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">No especificada</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="form-group">
+                                <label class="font-weight-bold">Doctores Referentes:</label>
+                                <p class="form-control-plaintext">
+                                    {% if doctoresReferentes is not empty %}
+                                        {% for doctor in doctoresReferentes %}
+                                            {{ doctor.nombre }} {{ doctor.apellido }}{% if not loop.last %}, {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        No asignados
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Motivo de Ingreso:</label>
+                                <p class="form-control-plaintext">{{ motivoIngresoTexto }}</p>
+                            </div>
+                            <div class="form-group">
+                                <label class="font-weight-bold">Motivo Específico:</label>
+                                <p class="form-control-plaintext">{{ cliente.motivoIngEspecifico ?: 'No especificado' }}</p>
+                            </div>
+                            <div class="form-group">
+                                <label class="font-weight-bold">Dieta:</label>
+                                <p class="form-control-plaintext">{{ cliente.dieta ?: 'No especificada' }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de Habitación -->
+            {% if habitacion %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bed"></i> Información de Habitación
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Habitación:</label>
+                                <p class="form-control-plaintext">{{ habitacion.nombre }}</p>
+                            </div>
+                            <div class="form-group">
+                                <label class="font-weight-bold">Cama:</label>
+                                <p class="form-control-plaintext">{{ cliente.nCama }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Habitación Privada:</label>
+                                <p class="form-control-plaintext">
+                                    {% if cliente.habPrivada %}
+                                        <span class="badge badge-success">Sí</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">No</span>
                     {% endif %}
-                </td>
-            </tr>
-            <tr>
-                <th>Motivo Especifico</th>
-                <td class="motivoIngEspecifico">{{ cliente.motivoIngEspecifico }}</td>
-            </tr>
-            <tr>
-                <th>Motivo de Egreso</th>
-                <td>
-                    {% if(cliente.motivoEgr == 1) %}
-                        Alta médica
-                    {% elseif(cliente.motivoEgr == 2) %}
-                        Alta voluntaria
-                    {% elseif(cliente.motivoEgr == 3) %}
-                        Obito
-                    {% elseif(cliente.motivoEgr == 4) %}
-                        Traslado
-                    {% elseif(cliente.motivoEgr == 5) %}
-                        Tratamiento inconcluso (no renovado)
-                    {% elseif(cliente.motivoEgr == 6) %}
-                        Tratamiento inconcluso (abandonado)
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
                     {% endif %}
-                </td>
-            </tr>
-            <tr>
-                <th>Activo</th>
-                <td>{{ cliente.activo ? 'Si' : 'No' }}</td>
-            </tr>
-            <tr>
-                <th>Viene De</th>
-                <td>{{ cliente.vieneDe }}</td>
-            </tr>
-            <tr>
-                <th>Profesional Derivante</th>
-                <td>{{ cliente.docDerivante }}</td>
-            </tr>
-            <tr>
-                <th>Profesional Referente</th>
-                <td>
-                    {% for responsable in cliente.docReferente %}
-                        {{ responsable.nombre | lower | capitalize }} {{ responsable.apellido | lower | capitalize }} <br>
+
+            <!-- Información de Obra Social -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-hospital"></i> Información de Obra Social
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Obra Social:</label>
+                                <p class="form-control-plaintext">{{ cliente.obraSocial ? cliente.obraSocial.nombre : 'No especificada' }}</p>
+                            </div>
+                            <div class="form-group">
+                                <label class="font-weight-bold">Número de Afiliado:</label>
+                                <p class="form-control-plaintext">{{ cliente.obraSocialAfiliado ?: 'No especificado' }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Sistema de Emergencia:</label>
+                                <p class="form-control-plaintext">{{ cliente.sistemaDeEmergenciaNombre ?: 'No especificado' }}</p>
+                            </div>
+                            <div class="form-group">
+                                <label class="font-weight-bold">Número de Afiliado Emergencia:</label>
+                                <p class="form-control-plaintext">{{ cliente.sistemaDeEmergenciaAfiliado ?: 'No especificado' }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fechas Importantes -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calendar"></i> Fechas Importantes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Fecha de Ingreso:</label>
+                                <p class="form-control-plaintext">{{ cliente.fIngreso ? cliente.fIngreso|date('d/m/Y H:i') : 'No especificada' }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Fecha de Egreso:</label>
+                                <p class="form-control-plaintext">{{ cliente.fEgreso ? cliente.fEgreso|date('d/m/Y H:i') : 'No especificada' }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Familiares Responsables -->
+            {% if familiarExtraActuales is not empty %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-users"></i> Familiares Responsables
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for familiar in familiarExtraActuales %}
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Nombre:</label>
+                                <p class="form-control-plaintext">{{ familiar.nombre }}</p>
+                            </div>
+                            <div class="form-group">
+                                <label class="font-weight-bold">Teléfono:</label>
+                                <p class="form-control-plaintext">{{ familiar.telefono }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Email:</label>
+                                <p class="form-control-plaintext">{{ familiar.email ?: 'No especificado' }}</p>
+                            </div>
+                            <div class="form-group">
+                                <label class="font-weight-bold">Vínculo:</label>
+                                <p class="form-control-plaintext">{{ familiar.vinculo ?: 'No especificado' }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% if not loop.last %}<hr>{% endif %}
                     {% endfor %}
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <br><br>
-    <hr>
-    <h2>Familares Responsables</h2>
-    <table class="table table-responsive">
-        <thead>
-             <tr>
-                 <td>Nombre</td>
-                 <td>Teléfono</td>
-                 <td>Email</td>
-                 <td>Vinculo</td>
-                 <td>Acompañante</td>
-             </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>{{ cliente.familiarResponsableNombre }}</td>
-                <td>{{ cliente.familiarResponsableTel }}</td>
-                <td>{{ cliente.familiarResponsableMail }}</td>
-                <td>{{ cliente.vinculoResponsable }}</td>
-                <td>{% if (cliente.familiarResponsableAcompanante) %} Si {% else %} No {% endif %}</td>
-            </tr>
-            {% for familiarExtra in familiaresExtra%}
-                <tr>
-                    <td>{{ familiarExtra.nombre }}</td>
-                    <td>{{ familiarExtra.tel }}</td>
-                    <td>{{ familiarExtra.mail }}</td>
-                    <td>{{ familiarExtra.vinculo }}</td>
-                    <td>{% if (familiarExtra.acompanante) %} Si {% else %} No {% endif %}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-
-    </table>
-    <br><br>
-    <table class="table table-responsive">
-        <thead>
-        <th style="width: 100%;">Adjuntos</th>
-        </thead>
-        {% for adjunto in adjuntosActuales %}
-            <tr>
-                <td>
-                    {% if (adjunto[0].tipo == 1) %}
-                        Documentación
-                    {% elseif (adjunto[0].tipo == 2) %}
-                        Fotos Médicas
-                    {% elseif (adjunto[0].tipo == 3) %}
-                        Administración
-                    {% elseif (adjunto[0].tipo == 4) %}
-                        Informes y Recetas
-                    {% elseif (adjunto[0].tipo == 5) %}
-                        Estudios
-                    {% elseif (adjunto[0].tipo == 6) %}
-                        Otros
+                </div>
+            </div>
                     {% endif %}
-                </td>
-            </tr>
-            <tr>
-                {% for adjuntoInner in adjunto %}
-                    <td>
-                        <a target="_blank" href="{{ asset('uploads/adjuntos/pacientes/') }}{{ cliente.id }}/{{  adjuntoInner.tipo }}/{{  adjuntoInner.url }}" >{{  adjuntoInner.nombre }}</a>
-                    </td>
-                {% endfor %}
-            </tr>
-        {% endfor %}
-    </table>
 
-    <a class="btn btn-default" href="javascript:history.back();">Volver</a>
-    {% if epicrisis is not defined %}
-        <a class="btn btn-success" href="{{ path('cliente_edit', {'id': cliente.id}) }}">Editar</a>
-    {% endif %}
-    <br><br><br><br><br><br>
+            <!-- Botones de Acción -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <a href="{{ path('cliente_edit', {'id': cliente.id}) }}" class="btn btn-primary">
+                                <i class="fas fa-edit"></i> Editar Paciente
+                            </a>
+                            <a href="{{ path('cliente_historial', {'id': cliente.id}) }}" class="btn btn-info">
+                                <i class="far fa-calendar-alt"></i> Historia Clínica
+                            </a>
+                            <a href="{{ path('cliente_index') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Volver a la Lista
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
 {% endblock %}

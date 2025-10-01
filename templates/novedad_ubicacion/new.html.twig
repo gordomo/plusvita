@@ -1,0 +1,88 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nueva Novedad - {{ ubicacion.nombre }}{% endblock %}
+{% block panelTitle %}Nueva Novedad - {{ ubicacion.nombre }}{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-plus"></i> Crear Nueva Novedad</h5>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form) }}
+                        <div class="row">
+                            <div class="col-md-12">
+                                {{ form_row(form.titulo) }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                {{ form_row(form.descripcion) }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form_row(form.prioridad) }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_row(form.estado) }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                {{ form_row(form.usuario_asignado) }}
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Crear Novedad
+                            </button>
+                            <a href="{{ path('app_novedad_ubicacion_index', {'ubicacionId': ubicacion.id}) }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Cancelar
+                            </a>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6><i class="fas fa-info-circle"></i> Información</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>Ubicación:</strong> {{ ubicacion.nombre }}</p>
+                    <p><strong>Creado por:</strong> {{ app.user.nombreApellido }}</p>
+                    <p><strong>Fecha:</strong> {{ "now"|date('d/m/Y H:i') }}</p>
+                    
+                    <hr>
+                    
+                    <h6>Estados disponibles:</h6>
+                    <ul class="list-unstyled">
+                        <li><span class="badge bg-warning text-dark">Pendiente</span> - Recién creada</li>
+                        <li><span class="badge bg-info">En Proceso</span> - Siendo trabajada</li>
+                        <li><span class="badge bg-success">Resuelto</span> - Completada</li>
+                        <li><span class="badge bg-danger">Cancelado</span> - Descartada</li>
+                    </ul>
+                    
+                    <h6>Prioridades:</h6>
+                    <ul class="list-unstyled">
+                        <li><span class="badge bg-secondary">Baja</span> - Sin urgencia</li>
+                        <li><span class="badge bg-warning text-dark">Media</span> - Normal</li>
+                        <li><span class="badge bg-warning">Alta</span> - Importante</li>
+                        <li><span class="badge bg-danger">Crítica</span> - Urgente</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

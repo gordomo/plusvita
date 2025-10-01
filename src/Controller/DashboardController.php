@@ -47,6 +47,11 @@ class DashboardController extends AbstractController
      */
     public function index(HabitacionRepository $habitacionRepository, HistoriaPacienteRepository $historiaPacienteRepository, PresentesRepository $presentesRepository, ClienteRepository $clienteRepository): Response
     {
+        // Verificar permisos para acceder al dashboard
+        // Permitir acceso a usuarios autenticados con roles básicos
+        if (!$this->isGranted('ROLE_USER')) {
+            throw $this->createAccessDeniedException('No tienes permisos para acceder al dashboard');
+        }
         $isDoctor = $this->isDoctor();
         $isEnfermero = $this->isEnfermero();
 
@@ -122,6 +127,11 @@ class DashboardController extends AbstractController
      */
     public function old(Request $request, HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, DoctorRepository $doctorRepository): Response
     {
+        // Verificar permisos para acceder al dashboard
+        // Permitir acceso a usuarios autenticados con roles básicos
+        if (!$this->isGranted('ROLE_USER')) {
+            throw $this->createAccessDeniedException('No tienes permisos para acceder al dashboard');
+        }
         $isDoctor = $this->isDoctor();
         $isEnfermero = $this->isEnfermero();
 

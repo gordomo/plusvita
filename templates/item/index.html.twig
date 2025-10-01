@@ -37,7 +37,7 @@
         
         /* Estilos para los grupos de items */
         .tipo-card {
-            border: 1px solid #007bff;
+            /*border: 1px solid #007bff;*/
             border-radius: 0.25rem;
             box-shadow: 0 2px 4px rgba(0, 123, 255, 0.1);
             transition: all 0.2s ease;
@@ -54,7 +54,7 @@
         
         .card-header.text-primary h5 {
             font-weight: 400;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             color: #007bff;
         }
         
@@ -95,6 +95,26 @@
             padding: 0.5rem;
             vertical-align: middle;
         }
+        
+        /* Estilos para la barra de búsqueda */
+        #searchInput {
+            border-radius: 0.375rem 0 0 0.375rem;
+        }
+        
+        #searchInput:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        
+        .input-group-text {
+            background-color: #f8f9fa;
+            border-color: #ced4da;
+        }
+        
+        .search-results-info {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
     </style>
 {% endblock %}
 
@@ -113,6 +133,55 @@
     {% endfor %}
 {% endfor %}
 
+<!-- Barra de búsqueda -->
+<div class="row mb-3">
+    <div class="col-12">
+        <form method="GET" class="form-inline" id="searchForm">
+            <div class="input-group w-100">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">
+                        <i class="fas fa-search"></i>
+                    </span>
+                </div>
+                <input type="text" 
+                       class="form-control" 
+                       name="search" 
+                       id="searchInput"
+                       placeholder="Buscar por nombre, identificador, tipo o ubicación..." 
+                       value="{{ searchTerm|default('') }}"
+                       autocomplete="off">
+                <div class="input-group-append">
+                    {% if searchTerm %}
+                        <a href="{{ path('app_item_index') }}" class="btn btn-outline-secondary" title="Limpiar búsqueda">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    {% endif %}
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Buscar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if searchTerm %}
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="alert alert-info d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="fas fa-search mr-2"></i>
+                    <strong>Resultados de búsqueda para:</strong> "{{ searchTerm }}"
+                    <span class="badge badge-primary ml-2">{{ items|length }} resultado(s)</span>
+                </div>
+                <a href="{{ path('app_item_index') }}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-times"></i> Limpiar búsqueda
+                </a>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
 <div class="row mb-3">
     <div class="col">
         <!-- Botones de acción -->
@@ -122,9 +191,29 @@
         <a href="{{ path('app_item_new') }}" class="btn btn-primary">
             <i class="fas fa-plus"></i> Crear Nuevo Ítem
         </a>
+        
+        <!-- Botones de reportes -->
+        <div class="btn-group ml-2" role="group">
+            <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-file-alt"></i> Reportes
+            </button>
+            <div class="dropdown-menu">
+                <a class="dropdown-item" href="{{ path('app_item_print') }}" target="_blank">
+                    <i class="fas fa-list"></i> Listado de Items
+                </a>
+                <div class="dropdown-divider"></div>
+                <h6 class="dropdown-header">Reportes de Mantenimiento</h6>
+                <a class="dropdown-item" href="{{ path('app_item_report_selector') }}">
+                    <i class="fas fa-check-square"></i> Seleccionar Ubicaciones
+                </a>
+                <a class="dropdown-item" href="{{ path('app_item_print', {'report_type': 'maintenance'}) }}" target="_blank">
+                    <i class="fas fa-tools"></i> Todas las Ubicaciones
+                </a>
+            </div>
+        </div>
     </div>
     
-    {% set hayFiltros = (ubicacion is defined and ubicacion) or (tipoItem is defined and tipoItem) %}
+    {% set hayFiltros = (ubicacion is defined and ubicacion) or (tipoItem is defined and tipoItem) or searchTerm %}
     <div class="col text-right">
         <!-- Filtros -->
         <div class="dropdown d-inline-block mr-2">
@@ -418,6 +507,27 @@
     {{ parent() }}
     <script>
         var tituloExcel = 'Inventario_Items.xlsx';
+        
+        // Búsqueda en tiempo real
+        let searchTimeout;
+        $('#searchInput').on('input', function() {
+            const searchTerm = $(this).val();
+            
+            // Limpiar timeout anterior
+            clearTimeout(searchTimeout);
+            
+            // Si el campo está vacío, no hacer búsqueda
+            if (searchTerm.length === 0) {
+                return;
+            }
+            
+            // Hacer búsqueda después de 500ms de inactividad
+            searchTimeout = setTimeout(function() {
+                if (searchTerm.length >= 2) {
+                    $('#searchForm').submit();
+                }
+            }, 500);
+        });
         
         // Manejar el cambio de ícono al colapsar/expandir grupos
         $(document).ready(function() {

@@ -239,6 +239,7 @@ class ClienteType extends AbstractType
                     );
                 }
                 );
+
             }
             if(!$options['is_new']) {
                 $builder->add("no_nuevo", HiddenType::class, array("mapped" => false, "label" => false));

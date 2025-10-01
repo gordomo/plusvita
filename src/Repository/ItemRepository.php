@@ -75,4 +75,22 @@ class ItemRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    /**
+     * Busca items por nombre, identificador, tipo o ubicación
+     */
+    public function searchItems(string $searchTerm): array
+    {
+        return $this->createQueryBuilder('i')
+            ->leftJoin('i.tipo', 't')
+            ->leftJoin('i.ubicacion_actual', 'u')
+            ->where('i.nombre LIKE :searchTerm')
+            ->orWhere('i.identificador LIKE :searchTerm')
+            ->orWhere('t.nombre LIKE :searchTerm')
+            ->orWhere('u.nombre LIKE :searchTerm')
+            ->setParameter('searchTerm', '%' . $searchTerm . '%')
+            ->orderBy('i.nombre', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

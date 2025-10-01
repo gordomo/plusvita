@@ -1,0 +1,126 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Editar Roles - {{ user.nombre ?? user.username }}{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-user-cog"></i> Editar Roles
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Información del Usuario</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Tipo:</strong></td>
+                                    <td>
+                                        {% if userType == 'admin' %}
+                                            <span class="badge badge-primary">Administrador</span>
+                                        {% elseif userType == 'doctor' %}
+                                            <span class="badge badge-success">Doctor</span>
+                                        {% elseif userType == 'nurse' %}
+                                            <span class="badge badge-info">Enfermero</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Nombre:</strong></td>
+                                    <td>
+                                        {% if user.nombre is defined %}
+                                            {{ user.nombre }} {{ user.apellido }}
+                                        {% else %}
+                                            {{ user.username }}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Email:</strong></td>
+                                    <td>{{ user.email }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Estado:</strong></td>
+                                    <td>
+                                        {% if user.habilitado %}
+                                            <span class="badge badge-success">Activo</span>
+                                        {% else %}
+                                            <span class="badge badge-danger">Inactivo</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Roles Actuales</h5>
+                            <div class="mb-3">
+                                {% for role in user.roleEntities %}
+                                    <span class="badge badge-primary mr-1">{{ role.displayName }}</span>
+                                {% endfor %}
+                                {% if user.legacyRoles is defined and user.legacyRoles %}
+                                    {% for role in user.legacyRoles %}
+                                        <span class="badge badge-warning mr-1">{{ role }}</span>
+                                    {% endfor %}
+                                {% endif %}
+                                {% if user.roleEntities is empty and (user.legacyRoles is not defined or user.legacyRoles is empty) %}
+                                    <span class="text-muted">Sin roles asignados</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <form method="post">
+                        <h5>Asignar Roles</h5>
+                        <div class="row">
+                            {% for role in availableRoles %}
+                            <div class="col-md-4 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" 
+                                                   name="roles[]" value="{{ role.id }}" 
+                                                   id="role_{{ role.id }}"
+                                                   {% if user.roleEntities.contains(role) %}checked{% endif %}>
+                                            <label class="form-check-label" for="role_{{ role.id }}">
+                                                <strong>{{ role.displayName }}</strong>
+                                                <br>
+                                                <small class="text-muted">{{ role.description }}</small>
+                                            </label>
+                                        </div>
+                                        <div class="mt-2">
+                                            <small class="text-muted">
+                                                <strong>Permisos:</strong>
+                                                {% for permission in role.permissions %}
+                                                    {% if permission.isActive %}
+                                                        <span class="badge badge-light badge-sm">{{ permission.displayName }}</span>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Guardar Cambios
+                            </button>
+                            <a href="{{ path('user_management_index') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Volver
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
