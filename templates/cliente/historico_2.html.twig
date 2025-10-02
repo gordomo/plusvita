@@ -5,6 +5,18 @@
     {{ parent() }}
     <link rel="stylesheet" href="{{ asset('assets/css/cliente.css') }}">
     <style>
+        /* Estilos para tooltips */
+        .tooltip {
+            max-width: 300px !important;
+        }
+        .tooltip-inner {
+            max-width: 300px !important;
+            text-align: left !important;
+            padding: 8px !important;
+            word-wrap: break-word !important;
+            white-space: pre-wrap !important;
+        }
+        
         /* Estilos para el histórico mejorado */
         .filters-section {
             background-color: #f8f9fa;
@@ -760,13 +772,33 @@
         function initTooltips() {
             $('[data-toggle="tooltip"]').tooltip('dispose').tooltip({
                 trigger: 'hover focus',
-                placement: 'auto',
+                placement: function(tip, element) {
+                    // Para los elementos en la columna de pacientes (primera columna)
+                    if ($(element).closest('td.sticky-first-col').length > 0) {
+                        return 'right';
+                    }
+                    // Para los iconos de estado
+                    if ($(element).closest('.patient-state').length > 0) {
+                        // Si está cerca del borde derecho, mostrar a la izquierda
+                        const $element = $(element);
+                        const offset = $element.offset();
+                        const windowWidth = $(window).width();
+                        if (offset && windowWidth - offset.left < 200) {
+                            return 'left';
+                        }
+                        return 'top';
+                    }
+                    // Para otros elementos
+                    return 'top';
+                },
                 html: true,
                 container: 'body',
-                boundary: 'window',
-                delay: {show: 50, hide: 100},
-                animation: true,
-                sanitize: false
+                boundary: 'viewport',
+                delay: {show: 200, hide: 0},
+                animation: false,
+                sanitize: false,
+                offset: '0,5',
+                template: '<div class="tooltip" role="tooltip" style="max-width: 300px;"><div class="arrow"></div><div class="tooltip-inner" style="max-width: 300px; word-wrap: break-word;"></div></div>'
             });
         }
         
@@ -791,14 +823,7 @@
                 summaryViewBtn.classList.remove('active');
                 
                 // Reinicializar tooltips con opciones mejoradas
-                $('[data-toggle="tooltip"]').tooltip('dispose').tooltip({
-                    trigger: 'hover',
-                    placement: 'auto',
-                    html: true,
-                    container: 'body',
-                    boundary: 'window',
-                    delay: {show: 50, hide: 50}
-                });
+                initTooltips();
             });                calendarViewBtn.addEventListener('click', function() {
                 tableViewContent.style.display = 'none';
                 calendarViewContent.style.display = 'block';
@@ -809,14 +834,7 @@
                 summaryViewBtn.classList.remove('active');
                 
                 // Reinicializar tooltips con opciones mejoradas
-                $('[data-toggle="tooltip"]').tooltip('dispose').tooltip({
-                    trigger: 'hover',
-                    placement: 'auto',
-                    html: true,
-                    container: 'body',
-                    boundary: 'window',
-                    delay: {show: 50, hide: 50}
-                });
+                initTooltips();
             });
               summaryViewBtn.addEventListener('click', function() {
                 tableViewContent.style.display = 'none';
@@ -828,14 +846,7 @@
                 summaryViewBtn.classList.add('active');
                 
                 // Reinicializar tooltips con opciones mejoradas
-                $('[data-toggle="tooltip"]').tooltip('dispose').tooltip({
-                    trigger: 'hover',
-                    placement: 'auto',
-                    html: true,
-                    container: 'body',
-                    boundary: 'window',
-                    delay: {show: 50, hide: 50}
-                });
+                initTooltips();
                 
                 // Cargar gráficos solo cuando se muestra esta vista
                 loadCharts();
@@ -1075,7 +1086,10 @@ function createCompactTableForPrint(checkboxes) {
         pacientes.forEach(function(paciente) {
             if (paciente.periodos && paciente.periodos.length > 0) {
                 paciente.periodos.forEach(function(periodo) {
-                    totalDiasCama += periodo.dias ? parseInt(periodo.dias) : 0;
+                    // Solo contar días cama para pacientes internados
+                    if (periodo.estado === 'Internado') {
+                        totalDiasCama += periodo.dias ? parseInt(periodo.dias) : 0;
+                    }
                 });
             }
         });
@@ -1093,25 +1107,71 @@ function createCompactTableForPrint(checkboxes) {
     if (pacientes && pacientes.length > 0) {
         pacientes.forEach(function(paciente) {
             if (!paciente.periodos || paciente.periodos.length === 0) return;
+            // Calcular total de días para este paciente
+            let totalDiasPaciente = 0;
+            paciente.periodos.forEach(function(p) {
+                totalDiasPaciente += parseInt(p.dias || 0);
+            });
+
             paciente.periodos.forEach(function(periodo, idx) {
                 html += '<tr>';
                 if (idx === 0) {
-                    html += '<td rowspan="' + paciente.periodos.length + '">' + (paciente.nombre || '') + '</td>';
-                    html += '<td rowspan="' + paciente.periodos.length + '">' + (paciente.hc || '') + '</td>';
+                    html += '<td rowspan="' + (paciente.periodos.length + 1) + '">' + (paciente.nombre || '') + '</td>';
+                    html += '<td rowspan="' + (paciente.periodos.length + 1) + '">' + (paciente.hc || '') + '</td>';
+                }
+                
+                // Si es el último período, agregar una fila de resumen
+                if (idx === paciente.periodos.length - 1) {
+                    html += '</tr><tr>';
+                    html += '<td colspan="4" style="border-top: 1px solid #999; padding-top: 5px;">';
+                    html += '<strong>Total: ' + totalDiasPaciente + ' días</strong>';
+                    
+                    // Agregar el profesional si todos los períodos tienen el mismo
+                    let profesionalComun = null;
+                    let todosMismoProfesional = true;
+                    
+                    paciente.periodos.forEach(function(p) {
+                        if (!profesionalComun && p.profesional && p.profesional !== 'sin profesional asignado') {
+                            profesionalComun = p.profesional;
+                        } else if (profesionalComun !== p.profesional) {
+                            todosMismoProfesional = false;
+                        }
+                    });
+                    
+                    if (todosMismoProfesional && profesionalComun) {
+                        html += ' | <strong>Profesional:</strong> ' + profesionalComun;
+                    }
+                    
+                    html += '</td>';
                 }
                 // Estado y detalles
                 let estado = periodo.estado || '';
-                if (periodo.habitacion) {
-                    estado += '<br>H:' + periodo.habitacion;
-                    if (periodo.cama) estado += ' C:' + periodo.cama;
-                }
-                if (periodo.profesional) {
-                    estado += '<br>' + periodo.profesional;
-                }
+                let detalles = [];
+                
+                // Agregar obra social
                 if (periodo.obra_social) {
-                    estado += '<br>' + periodo.obra_social;
+                    detalles.push(periodo.obra_social);
                 }
-                html += '<td>' + estado + '</td>';
+                
+                // Agregar habitación y cama si existen
+                if (periodo.habitacion) {
+                    let habCama = 'H:' + periodo.habitacion;
+                    if (periodo.cama) habCama += ' C:' + periodo.cama;
+                    detalles.push(habCama);
+                }
+                
+                // Agregar profesional si existe
+                if (periodo.profesional && periodo.profesional !== 'sin profesional asignado') {
+                    detalles.push(periodo.profesional);
+                }
+                
+                // Construir el HTML
+                let estadoHtml = estado;
+                if (detalles.length > 0) {
+                    estadoHtml += '<br>' + detalles.join('<br>');
+                }
+                
+                html += '<td>' + estadoHtml + '</td>';
                 // Periodo
                 let desde = periodo.desde ? periodo.desde : '';
                 let hasta = periodo.hasta ? periodo.hasta : '';
@@ -1216,10 +1276,29 @@ $(document).ready(function () {
     // Inicializar filtros activos al cargar la página
     actualizarFiltrosActivos();
 
-    // Inicializar el cálculo cuando la página se carga
-    setTimeout(function() {
-        calcularTotalDiasCama();
-    }, 500);
+    // Actualizar los valores del dashboard
+    if (window.totalPacientesUnicos !== null) {
+        $('#totalPacientesDisplay').text(window.totalPacientesUnicos);
+    }
+    
+    if (window.totalDiasCama !== null) {
+        $('#totalDiasCamaDisplay').text(window.totalDiasCama);
+        
+        // Calcular y mostrar la ocupación promedio (días/paciente)
+        const totalPacientes = (window.totalPacientesUnicos || 0) + (window.totalPacientesAmbulatorios || 0);
+        if (totalPacientes > 0) {
+            const totalDias = (window.totalDiasCama || 0) + (window.totalDiasAmbulatorio || 0);
+            const ocupacionPromedio = (totalDias / totalPacientes).toFixed(2);
+            $('#ocupacionPromedioDisplay').text(ocupacionPromedio);
+        } else {
+            $('#ocupacionPromedioDisplay').text('0');
+        }
+    }
+    
+    // Actualizar estadísticas de ambulatorios
+    if (window.totalPacientesAmbulatorios !== null) {
+        $('#totalPacientesAmbulatoriosDisplay').text(window.totalPacientesAmbulatorios);
+    }
 });
 </script>
 {% endblock %}
@@ -1265,7 +1344,6 @@ $(document).ready(function () {
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary" id="updateLocal">Imprimir</button>
-                    <button type="button" class="btn btn-success" id="descargarExcelLocal">Descargar Excel</button>
                 </div>
             </div>
         </div>

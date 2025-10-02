@@ -1,6 +1,6 @@
 <!-- Sidebar -->
 <div class="bg-light border-right" id="sidebar-wrapper">
-    <div class="sidebar-heading">Plus Vita </div>
+    <div class="sidebar-heading">Plus Vita {% if app.user %}<small>{{ app.user.email }}</small>{% endif %}</div>
     <div class="list-group list-group-flush">
         {% if app.user %}
             {# Dashboard - Acceso básico para todos los usuarios autenticados #}
@@ -83,8 +83,8 @@
                 </a>
             {% endif %}
             
-            {# Informes Mensuales - Basado en permisos de reportes #}
-            {% if is_granted('reports.view') %}
+            {# Informes Mensuales - Basado en permisos específicos #}
+            {% if is_granted('monthly_report.view') or is_granted('monthly_report.manage') %}
                 <a class="list-group-item list-group-item-action bg-light " href="{{ path('informe_mensual_index') }}">
                     <i class="fas fa-file-medical-alt"></i>
                     Informes Mensuales
@@ -107,10 +107,12 @@
                         Liquidaciones <span class="float-right"> > </span>
                     </a>
                     <div class="dropdown-menu" aria-labelledby="dropdownLiquidacionesLink">
-                        <a class="text-white dropdown-item" href="{{ path('liquidaciones_index') }}">
-                            <i class="fas fa-list"></i> Listado General
-                        </a>
-                        {% if app.user.id is defined %}
+                        {% if is_granted('liquidations.manage') %}
+                            <a class="text-white dropdown-item" href="{{ path('liquidaciones_index') }}">
+                                <i class="fas fa-list"></i> Listado General
+                            </a>
+                        {% endif %}
+                        {% if is_granted('liquidations.view') %}
                             <a class="text-white dropdown-item" href="{{ path('liquidar', {'id': app.user.id}) }}">
                                 <i class="fas fa-user-md"></i> Mis Liquidaciones
                             </a>

@@ -86,26 +86,15 @@
                             <label for="type" class="form-label">Tipo de Usuario</label>
                             <select class="form-control" id="type" name="type">
                                 <option value="all" {{ filters.type == 'all' ? 'selected' : '' }}>Todos</option>
-                                <option value="admin" {{ filters.type == 'admin' ? 'selected' : '' }}>Administradores</option>
-                                <option value="doctor" {{ filters.type == 'doctor' ? 'selected' : '' }}>Doctores</option>
-                                <option value="nurse" {{ filters.type == 'nurse' ? 'selected' : '' }}>Enfermeros</option>
+                                {% for label, id in availableRoles %}
+                                    <option value="{{ id }}" {{ filters.type == id ? 'selected' : '' }}>{{ label }}s</option>
+                                {% endfor %}
                             </select>
                         </div>
                         <div class="col-md-3">
                             <label for="search" class="form-label">Buscar</label>
                             <input type="text" class="form-control" id="search" name="search" 
                                    value="{{ filters.search }}" placeholder="Nombre o email...">
-                        </div>
-                        <div class="col-md-2">
-                            <label for="role" class="form-label">Rol</label>
-                            <select class="form-control" id="role" name="role">
-                                <option value="all" {{ filters.role == 'all' ? 'selected' : '' }}>Todos</option>
-                                <option value="ROLE_ADMIN" {{ filters.role == 'ROLE_ADMIN' ? 'selected' : '' }}>Administrador</option>
-                                <option value="ROLE_USER" {{ filters.role == 'ROLE_USER' ? 'selected' : '' }}>Operador</option>
-                                <option value="ROLE_STAFF" {{ filters.role == 'ROLE_STAFF' ? 'selected' : '' }}>Staff</option>
-                                <option value="ROLE_DOCTOR" {{ filters.role == 'ROLE_DOCTOR' ? 'selected' : '' }}>Doctor</option>
-                                <option value="ROLE_NURSE" {{ filters.role == 'ROLE_NURSE' ? 'selected' : '' }}>Enfermero</option>
-                            </select>
                         </div>
                         <div class="col-md-2">
                             <label for="status" class="form-label">Estado</label>
@@ -142,13 +131,7 @@
                     </div>
                     <div class="btn-group">
                         <a href="{{ path('user_new') }}" class="btn btn-light btn-sm">
-                            <i class="fas fa-user-plus"></i> Nuevo Admin
-                        </a>
-                        <a href="{{ path('doctor_new') }}" class="btn btn-light btn-sm">
-                            <i class="fas fa-user-md"></i> Nuevo Doctor
-                        </a>
-                        <a href="{{ path('nurse_new') }}" class="btn btn-light btn-sm">
-                            <i class="fas fa-user-nurse"></i> Nuevo Enfermero
+                            <i class="fas fa-user-plus"></i> Nuevo Usuario
                         </a>
                     </div>
                 </div>
@@ -171,30 +154,30 @@
                                 <tr class="{% if user.habilitado %}enabled-user{% else %}disabled-user{% endif %}">
                                     <td class="id">{{ user.id }}</td>
                                     <td class="tipo">
-                                        {% if user.userType == 'admin' %}
-                                            <span class="badge badge-primary badge-lg">
-                                                <i class="fas fa-user-shield mr-1"></i>Administrador
-                                            </span>
-                                        {% elseif user.userType == 'doctor' %}
-                                            <span class="badge badge-success badge-lg">
-                                                <i class="fas fa-user-md mr-1"></i>Doctor
-                                            </span>
-                                        {% elseif user.userType == 'nurse' %}
-                                            <span class="badge badge-info badge-lg">
-                                                <i class="fas fa-user-nurse mr-1"></i>Enfermero
-                                            </span>
-                                        {% endif %}
+                                        {% for role in user.roleEntities %}
+                                            {% if role.name == 'ROLE_ADMIN' %}
+                                                <span class="badge badge-primary badge-lg">
+                                                    <i class="fas fa-user-shield mr-1"></i>{{ role.displayName }}
+                                                </span>
+                                            {% elseif role.name == 'ROLE_DOCTOR' %}
+                                                <span class="badge badge-success badge-lg">
+                                                    <i class="fas fa-user-md mr-1"></i>{{ role.displayName }}
+                                                </span>
+                                            {% elseif role.name == 'ROLE_NURSE' %}
+                                                <span class="badge badge-info badge-lg">
+                                                    <i class="fas fa-user-nurse mr-1"></i>{{ role.displayName }}
+                                                </span>
+                                            {% else %}
+                                                <span class="badge badge-secondary badge-lg">
+                                                    <i class="fas fa-user mr-1"></i>{{ role.displayName }}
+                                                </span>
+                                            {% endif %}
+                                        {% endfor %}
                                     </td>
                                     <td class="user">
                                         <div class="d-flex align-items-center">
                                             <span class="status-indicator {% if user.habilitado %}status-active{% else %}status-inactive{% endif %}"></span>
-                                            {% if user.userType == 'admin' %}
-                                                <strong>{{ user.username }}</strong>
-                                            {% elseif user.userType == 'doctor' %}
-                                                <strong>{{ user.nombre }} {{ user.apellido }}</strong>
-                                            {% elseif user.userType == 'nurse' %}
-                                                <strong>{{ user.nombre }} {{ user.apellido }}</strong>
-                                            {% endif %}
+                                            <strong>{{ user.nombre }} {{ user.apellido }}</strong>
                                         </div>
                                     </td>
                                     <td class="roles">
@@ -229,19 +212,9 @@
                                     </td>
                                     <td class="text-center">
                                         <div class="btn-group">
-                                            {% if user.userType == 'admin' %}
-                                                <a class="btn btn-sm btn-primary btn-action" href="{{ path('user_edit', {'id': user.id}) }}" data-toggle="tooltip" title="Editar Usuario">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                            {% elseif user.userType == 'doctor' %}
-                                                <a class="btn btn-sm btn-primary btn-action" href="{{ path('user_management_edit_roles', {'type': 'doctor', 'id': user.id}) }}" data-toggle="tooltip" title="Editar Usuario">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                            {% elseif user.userType == 'nurse' %}
-                                                <a class="btn btn-sm btn-primary btn-action" href="{{ path('user_management_edit_roles', {'type': 'nurse', 'id': user.id}) }}" data-toggle="tooltip" title="Editar Usuario">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                            {% endif %}
+                                            <a class="btn btn-sm btn-primary btn-action" href="{{ path('user_edit', {'id': user.id}) }}" data-toggle="tooltip" title="Editar Usuario">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
                                         </div>
                                     </td>
                                 </tr>
@@ -271,7 +244,7 @@
                     <!-- Botón Anterior -->
                     {% if currentPage > 1 %}
                         <li class="page-item">
-                            <a class="page-link" href="{{ path('user_management_index', {page: currentPage - 1, type: filters.type, search: filters.search, role: filters.role, status: filters.status}) }}">
+                            <a class="page-link" href="{{ path('user_management_index', {page: currentPage - 1, type: filters.type, search: filters.search, status: filters.status}) }}">
                                 <i class="fas fa-chevron-left"></i> Anterior
                             </a>
                         </li>
@@ -289,7 +262,7 @@
 
                     {% if startPage > 1 %}
                         <li class="page-item">
-                            <a class="page-link" href="{{ path('user_management_index', {page: 1, type: filters.type, search: filters.search, role: filters.role, status: filters.status}) }}">1</a>
+                            <a class="page-link" href="{{ path('user_management_index', {page: 1, type: filters.type, search: filters.search, status: filters.status}) }}">1</a>
                         </li>
                         {% if startPage > 2 %}
                             <li class="page-item disabled">
@@ -300,7 +273,7 @@
 
                     {% for page in startPage..endPage %}
                         <li class="page-item {{ page == currentPage ? 'active' : '' }}">
-                            <a class="page-link" href="{{ path('user_management_index', {page: page, type: filters.type, search: filters.search, role: filters.role, status: filters.status}) }}">{{ page }}</a>
+                            <a class="page-link" href="{{ path('user_management_index', {page: page, type: filters.type, search: filters.search, status: filters.status}) }}">{{ page }}</a>
                         </li>
                     {% endfor %}
 
@@ -311,14 +284,14 @@
                             </li>
                         {% endif %}
                         <li class="page-item">
-                            <a class="page-link" href="{{ path('user_management_index', {page: totalPages, type: filters.type, search: filters.search, role: filters.role, status: filters.status}) }}">{{ totalPages }}</a>
+                            <a class="page-link" href="{{ path('user_management_index', {page: totalPages, type: filters.type, search: filters.search, status: filters.status}) }}">{{ totalPages }}</a>
                         </li>
                     {% endif %}
 
                     <!-- Botón Siguiente -->
                     {% if currentPage < totalPages %}
                         <li class="page-item">
-                            <a class="page-link" href="{{ path('user_management_index', {page: currentPage + 1, type: filters.type, search: filters.search, role: filters.role, status: filters.status}) }}">
+                            <a class="page-link" href="{{ path('user_management_index', {page: currentPage + 1, type: filters.type, search: filters.search, status: filters.status}) }}">
                                 Siguiente <i class="fas fa-chevron-right"></i>
                             </a>
                         </li>

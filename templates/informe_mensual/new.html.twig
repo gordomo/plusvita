@@ -50,10 +50,25 @@
     </div>
 {% endblock %}
 
+{% block stylesheets %}
+{{ parent() }}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+{% endblock %}
+
 {% block javascripts %}
 {{ parent() }}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     $(document).ready(function() {
+        // Inicializar Select2 para el campo de doctor
+        if ($('.select2').length > 0) {
+            $('.select2').select2({
+                theme: 'bootstrap4',
+                language: 'es',
+                width: '100%',
+                placeholder: 'Seleccione un doctor'
+            });
+        }
         // Si hay campos de fecha, inicializar datepicker
         if ($('.js-datepicker').length > 0) {
             $('.js-datepicker').datepicker({

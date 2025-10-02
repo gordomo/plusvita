@@ -50,10 +50,17 @@ class InformeMensualRepository extends ServiceEntityRepository
     /**
      * Encuentra informes mensuales según varios criterios de filtrado
      */
-    public function findByFilters($pacienteId = null, $doctorId = null, \DateTime $fechaDesde = null, \DateTime $fechaHasta = null)
+    public function findByFilters($pacienteId = null, $doctorId = null, \DateTime $fechaDesde = null, \DateTime $fechaHasta = null, $userEmail = null, $canManage = false)
     {
         $qb = $this->createQueryBuilder('i')
+            ->leftJoin('i.doctor', 'd')
             ->orderBy('i.fechaCreacion', 'DESC');
+
+        // Si el usuario no puede gestionar todos los informes, filtrar por su email
+        if (!$canManage && $userEmail) {
+            $qb->andWhere('d.email = :userEmail')
+               ->setParameter('userEmail', $userEmail);
+        }
         
         if ($pacienteId) {
             $qb->andWhere('i.cliente = :paciente')

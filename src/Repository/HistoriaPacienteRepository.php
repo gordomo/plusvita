@@ -164,8 +164,9 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
     }
 
     public function getHistoricoDesdeHasta($desde, $hasta, $nombre = null, $modalidad = 0, $obraSocial = null, $prof = null, $hc = null) {
-        $query = $this->createQueryBuilder('h')->where('h.fecha <= :hasta');
-        $query->andWhere($query->expr()->orX('h.fechaFin >= :desde or h.fechaFin is null'));
+        
+        $query = $this->createQueryBuilder('h')->where('h.fechaIngreso <= :hasta');
+        $query->andWhere($query->expr()->orX('h.fechaIngreso >= :desde or h.fechaIngreso is not null'));
         
         $query->leftJoin('h.cliente', 'c');
 
@@ -186,7 +187,8 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
         }
 
         if ( $modalidad || $prof || $obraSocial) {
-            $newQuery = "Select DISTINCT historia_paciente.cliente_id from historia_paciente where fecha <= '" . $hasta->format('Y-m-d') . "' and ( fecha_fin >= '". $desde->format('Y-m-d') . "' or fecha_fin is null )";
+            $newQuery = "Select DISTINCT historia_paciente.cliente_id from historia_paciente where fecha_ingreso <= '" . $hasta->format('Y-m-d') . "' and ( fecha_ingreso >= '". $desde->format('Y-m-d') . "' or fecha_ingreso is not null )";
+            
             
             if ( $modalidad ) { 
                 if ( $modalidad == 1 ) { 

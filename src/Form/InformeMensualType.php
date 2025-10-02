@@ -10,11 +10,30 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use App\Entity\User;
 
 class InformeMensualType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        // Solo agregar el campo doctor si el usuario tiene el permiso monthly_report.manage
+        if ($options['show_doctor_field']) {
+            $builder->add('doctor', EntityType::class, [
+                'class' => User::class,
+                'choice_label' => function ($user) {
+                    return $user->getApellido() . ', ' . $user->getNombre();
+                },
+                'label' => 'Doctor responsable',
+                'required' => true,
+                'placeholder' => 'Seleccione un doctor',
+                'attr' => [
+                    'class' => 'select2',
+                    'data-live-search' => 'true'
+                ]
+            ]);
+        }
+
         $builder
             ->add('lugar', TextType::class, [
                 'label' => 'Lugar',
@@ -100,6 +119,7 @@ class InformeMensualType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => InformeMensual::class,
+            'show_doctor_field' => false,
         ]);
     }
 }

@@ -26,6 +26,11 @@ class InformeMensualController extends AbstractController
      */
     public function index(Request $request, InformeMensualRepository $informeMensualRepository, ClienteRepository $clienteRepository): Response
     {
+        // Verificar permisos
+        if (!$this->isGranted('monthly_report.view') && !$this->isGranted('monthly_report.manage')) {
+            throw $this->createAccessDeniedException('No tienes permiso para ver informes mensuales.');
+        }
+
         // Obtener parámetros de filtrado de la URL
         $pacienteId = $request->query->get('paciente');
         $doctorId = $request->query->get('doctor');
@@ -58,7 +63,16 @@ class InformeMensualController extends AbstractController
         }
         
         // Obtener los informes filtrados
-        $informes = $informeMensualRepository->findByFilters($pacienteId, $doctorId, $fechaDesde, $fechaHasta);
+        $canManage = $this->isGranted('monthly_report.manage');
+        $userEmail = $this->getUser()->getEmail();
+        $informes = $informeMensualRepository->findByFilters(
+            $pacienteId, 
+            $doctorId, 
+            $fechaDesde, 
+            $fechaHasta,
+            $userEmail,
+            $canManage
+        );
         
         // Obtener la lista de pacientes para el filtro
         $pacientes = $clienteRepository->findBy([], ['apellido' => 'ASC']);
@@ -91,23 +105,27 @@ class InformeMensualController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
         
-        $entityManager = $this->getDoctrine()->getManager();
-        $doctor = $entityManager->getRepository(Doctor::class)->findOneBy(['email' => $user->getEmail()]);
         
-        if (!$doctor) {
-            $this->addFlash('error', 'No se encontró el doctor asociado al usuario actual.');
-            return $this->redirectToRoute('doctor_historia');
+        
+        if (!$this->isGranted('monthly_report.manage') && !$this->isGranted('monthly_report.edit')) {
+            $this->addFlash('error', 'No tienes permiso para generar informes mensuales.');
+            return $this->redirectToRoute('cliente_index');
         }
         
         $informeMensual = new InformeMensual();
         $informeMensual->setCliente($cliente);
-        $informeMensual->setDoctor($doctor);
+        // Solo asignar el doctor automáticamente si no tiene permiso de gestión
+        if (!$this->isGranted('monthly_report.manage')) {
+            $informeMensual->setDoctor($user);
+        }
         
         // Generar información automática del estado actual del paciente
         $estadoActualSugerido = $this->generarEstadoActualPaciente($cliente);
         $informeMensual->setEstadoActual($estadoActualSugerido);
         
-        $form = $this->createForm(InformeMensualType::class, $informeMensual);
+        $form = $this->createForm(InformeMensualType::class, $informeMensual, [
+            'show_doctor_field' => $this->isGranted('monthly_report.manage')
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -119,7 +137,7 @@ class InformeMensualController extends AbstractController
 
         return $this->render('informe_mensual/new.html.twig', [
             'informe_mensual' => $informeMensual,
-            'doctor' => $doctor,
+            'doctor' => $user,
             'cliente' => $cliente,
             'form' => $form->createView(),
         ]);
@@ -130,6 +148,15 @@ class InformeMensualController extends AbstractController
      */
     public function show(InformeMensual $informeMensual): Response
     {
+        // Verificar permisos
+        if (!$this->isGranted('monthly_report.manage')) {
+            // Si no tiene permiso de gestión, verificar si es el autor y tiene permiso de vista
+            if (!$this->isGranted('monthly_report.view') || 
+                $informeMensual->getDoctor()->getEmail() !== $this->getUser()->getEmail()) {
+                throw $this->createAccessDeniedException('No tienes permiso para ver este informe.');
+            }
+        }
+
         return $this->render('informe_mensual/show.html.twig', [
             'informeMensual' => $informeMensual,
         ]);
@@ -140,7 +167,18 @@ class InformeMensualController extends AbstractController
      */
     public function edit(Request $request, InformeMensual $informeMensual, InformeMensualRepository $informeMensualRepository): Response
     {
-        $form = $this->createForm(InformeMensualType::class, $informeMensual);
+        // Verificar permisos
+        if (!$this->isGranted('monthly_report.manage')) {
+            // Si no tiene permiso de gestión, verificar si es el autor y tiene permiso de edición
+            if (!$this->isGranted('monthly_report.edit') || 
+                $informeMensual->getDoctor()->getEmail() !== $this->getUser()->getEmail()) {
+                throw $this->createAccessDeniedException('No tienes permiso para editar este informe.');
+            }
+        }
+
+        $form = $this->createForm(InformeMensualType::class, $informeMensual, [
+            'show_doctor_field' => $this->isGranted('monthly_report.manage')
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -161,6 +199,15 @@ class InformeMensualController extends AbstractController
      */
     public function delete(Request $request, InformeMensual $informeMensual, InformeMensualRepository $informeMensualRepository): Response
     {
+        // Verificar permisos
+        if (!$this->isGranted('monthly_report.manage')) {
+            // Si no tiene permiso de gestión, verificar si es el autor y tiene permiso de edición
+            if (!$this->isGranted('monthly_report.edit') || 
+                $informeMensual->getDoctor()->getEmail() !== $this->getUser()->getEmail()) {
+                throw $this->createAccessDeniedException('No tienes permiso para eliminar este informe.');
+            }
+        }
+
         // Eliminamos el informe mensual directamente
         $informeMensualRepository->remove($informeMensual, true);
         $this->addFlash('success', 'Informe mensual eliminado correctamente.');
@@ -173,6 +220,15 @@ class InformeMensualController extends AbstractController
      */
     public function generarPdf(InformeMensual $informeMensual): Response
     {
+        // Verificar permisos
+        if (!$this->isGranted('monthly_report.manage')) {
+            // Si no tiene permiso de gestión, verificar si es el autor y tiene permiso de vista
+            if (!$this->isGranted('monthly_report.view') || 
+                $informeMensual->getDoctor()->getEmail() !== $this->getUser()->getEmail()) {
+                throw $this->createAccessDeniedException('No tienes permiso para generar el PDF de este informe.');
+            }
+        }
+
         // Obtener la fecha personalizada del request, o usar la fecha de creación por defecto
         $fechaPersonalizada = $this->get('request_stack')->getCurrentRequest()->query->get('fecha');
         

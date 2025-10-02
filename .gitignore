@@ -10,3 +10,14 @@
 /migrations/
 ###< symfony/framework-bundle ###
 /public/uploads/*
+
+# Docker files and backups
+docker-compose.yml
+Dockerfile
+www.back/
+mysql/
+*.sql
+dump/
+
+# Windows metadata files
+*:Zone.Identifier

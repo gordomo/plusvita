@@ -74,27 +74,6 @@
                         
                         <hr class="my-4">
                         
-                        <div class="form-group">
-                            <h5>
-                                <i class="fas fa-key mr-2"></i>
-                                Permisos del Rol
-                            </h5>
-                            <p class="text-muted">Selecciona los permisos que tendrá este rol:</p>
-                            {{ form_row(form.permissions) }}
-                        </div>
-                        
-                        <div class="form-group mt-4">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Guardar Cambios
-                            </button>
-                            <a href="{{ path('role_show', {'id': role.id}) }}" class="btn btn-secondary">
-                                <i class="fas fa-eye"></i> Ver Detalles
-                            </a>
-                            <a href="{{ path('role_index') }}" class="btn btn-outline-secondary">
-                                <i class="fas fa-arrow-left"></i> Cancelar
-                            </a>
-                        </div>
-                    {{ form_end(form) }}
                 </div>
             </div>
         </div>
@@ -142,26 +121,6 @@
                 </div>
             </div>
             
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h6 class="mb-0">
-                        <i class="fas fa-key mr-2"></i>
-                        Permisos Actuales
-                    </h6>
-                </div>
-                <div class="card-body">
-                    {% if role.permissions|length > 0 %}
-                        {% for permission in role.permissions %}
-                            <span class="badge badge-secondary d-block mb-1">
-                                <i class="fas fa-shield-alt mr-1"></i>
-                                {{ permission.displayName }}
-                            </span>
-                        {% endfor %}
-                    {% else %}
-                        <p class="text-muted mb-0">Sin permisos asignados</p>
-                    {% endif %}
-                </div>
-            </div>
         </div>
     </div>
 </div>

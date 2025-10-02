@@ -8,6 +8,7 @@ use App\Repository\DoctorRepository;
 use App\Repository\EvolucionRepository;
 use App\Repository\ObraSocialRepository;
 use App\Repository\HistoriaPacienteRepository;
+use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -148,18 +149,28 @@ class LiquidacionesController extends AbstractController
     /**
      * @Route("/profesional/{id}", name="liquidar", methods={"GET"})
      * @param $id
-     * @param DoctorRepository $doctorRepository
+     * @param UserRepository $UserRepository
      * @param BookingRepository $bookingRepository
      * @param ObraSocialRepository $obraSocialRepository
      * @param Request $request
      * @return Response
      * @throws \Exception
      */
-    public function liquidar($id, DoctorRepository $doctorRepository, BookingRepository $bookingRepository, ObraSocialRepository $obraSocialRepository, ClienteRepository $clienteRepository, Request $request, EvolucionRepository $evolucionRepository, HistoriaPacienteRepository $historiaRepository): Response
+    public function liquidar($id, UserRepository $userRepository, BookingRepository $bookingRepository, ObraSocialRepository $obraSocialRepository, ClienteRepository $clienteRepository, Request $request, EvolucionRepository $evolucionRepository, HistoriaPacienteRepository $historiaRepository): Response
     {
         $user = $this->getUser();
         if (!$user) {
             return $this->redirectToRoute('app_login');
+        }
+
+        // Si no tiene ningún permiso de liquidaciones, denegar acceso
+        if (!$this->isGranted('liquidations.view') && !$this->isGranted('liquidations.manage')) {
+            throw $this->createAccessDeniedException('No tienes permiso para ver liquidaciones.');
+        }
+
+        // Si solo tiene liquidations.view, verificar que sea su propia liquidación
+        if (!$this->isGranted('liquidations.manage') && $user->getId() != $id) {
+            throw $this->createAccessDeniedException('Solo puedes ver tus propias liquidaciones.');
         }
 
         $obraSocialSelected = $request->query->get('obraSocial') ?? '';
@@ -174,7 +185,7 @@ class LiquidacionesController extends AbstractController
         $fechaDesde = $from ? new \DateTime($from. '0:0:0') : $from;
         $fechaHasta = $to   ? new \DateTime($to. '23:59:59'): $to;
 
-        $doctor = $doctorRepository->find($id);
+        $doctor = $userRepository->find($id);
 
         $evolucionesPivotOs = [];
         $evolucionesPivotOsActivos = [];

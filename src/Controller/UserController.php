@@ -62,13 +62,24 @@ class UserController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             
             try {
+                // Verificar si el email ya existe
+                $existingUser = $this->getDoctrine()->getRepository(User::class)
+                    ->findOneBy(['email' => $user->getEmail()]);
+                
+                if ($existingUser) {
+                    $this->addFlash('error', 'Ya existe un usuario registrado con este email.');
+                    return $this->render('user/new.html.twig', [
+                        'user' => $user,
+                        'form' => $form->createView(),
+                    ]);
+                }
+
                 $password = $form->get('password')->getData() ?? '';
                 $encodePass = $passwordEncoder->encodePassword($user, $password);
                 $user->setPassword($encodePass);
                 
                 // Handle the unmapped roleEntities field
                 $selectedRoles = $form->get('roleEntities')->getData();
-                
                 
                 $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->persist($user);
@@ -94,9 +105,17 @@ class UserController extends AbstractController
                 $this->addFlash('success', 'Usuario creado correctamente.');
                 return $this->redirectToRoute('user_management_index');
             } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $e) {
-                $this->addFlash('error', $e->getMessage());
+                $this->addFlash('error', 'Ya existe un usuario registrado con este email.');
+                return $this->render('user/new.html.twig', [
+                    'user' => $user,
+                    'form' => $form->createView(),
+                ]);
             } catch (\Exception $e) {
-                $this->addFlash('error', 'Error al crear el usuario: ' . $e->getMessage());
+                $this->addFlash('error', 'Error al crear el usuario. Por favor, verifica los datos e intenta nuevamente.');
+                return $this->render('user/new.html.twig', [
+                    'user' => $user,
+                    'form' => $form->createView(),
+                ]);
             }
         }
 
@@ -123,7 +142,12 @@ class UserController extends AbstractController
      */
     public function edit(Request $request, User $user, UserPasswordEncoderInterface $passwordEncoder): Response
     {
+        if (!$this->isGranted('user.update')) {
+            throw $this->createAccessDeniedException('No tienes permisos para editar usuarios');
+        }
+
         $oldPassword = $user->getPassword();
+        $oldEmail = $user->getEmail();
 
         $form = $this->createForm(UserType::class, $user);
         
@@ -133,43 +157,74 @@ class UserController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            if ($form->get('password')->getData() == 'noPass') {
-                $user->setPassword($oldPassword);
-            } else {
-                $password = $form->get('password')->getData() ?? '';
-                $encodePass = $passwordEncoder->encodePassword($user, $password);
-                $user->setPassword($encodePass);
-            }
+            try {
+                // Verificar si el email ya existe (solo si cambió el email)
+                if ($oldEmail !== $user->getEmail()) {
+                    $existingUser = $this->getDoctrine()->getRepository(User::class)
+                        ->findOneBy(['email' => $user->getEmail()]);
+                    
+                    if ($existingUser && $existingUser->getId() !== $user->getId()) {
+                        $this->addFlash('error', 'Ya existe un usuario registrado con este email.');
+                        return $this->render('user/edit.html.twig', [
+                            'user' => $user,
+                            'form' => $form->createView(),
+                        ]);
+                    }
+                }
 
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->persist($user);
-            $entityManager->flush();
-            
-            // Handle the unmapped roleEntities field - Limpiar y guardar relaciones manualmente
-            $selectedRoles = $form->get('roleEntities')->getData();
-            $connection = $entityManager->getConnection();
-            
-            // Eliminar todas las relaciones existentes para este usuario
-            $connection->executeStatement(
-                'DELETE FROM user_roles WHERE user_id = ?',
-                [$user->getId()]
-            );
-            
-            // Agregar las nuevas relaciones
-            foreach ($selectedRoles as $role) {
+                // Manejar la contraseña
+                if ($form->get('password')->getData() == 'noPass') {
+                    $user->setPassword($oldPassword);
+                } else {
+                    $password = $form->get('password')->getData() ?? '';
+                    $encodePass = $passwordEncoder->encodePassword($user, $password);
+                    $user->setPassword($encodePass);
+                }
+
+                $entityManager = $this->getDoctrine()->getManager();
+                
+                // Handle the unmapped roleEntities field - Limpiar y guardar relaciones manualmente
+                $selectedRoles = $form->get('roleEntities')->getData();
+                $connection = $entityManager->getConnection();
+                
+                // Eliminar todas las relaciones existentes para este usuario
                 $connection->executeStatement(
-                    'INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)',
-                    [$user->getId(), $role->getId()]
+                    'DELETE FROM user_roles WHERE user_id = ?',
+                    [$user->getId()]
                 );
-            }
+                
+                // Agregar las nuevas relaciones
+                foreach ($selectedRoles as $role) {
+                    $connection->executeStatement(
+                        'INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)',
+                        [$user->getId(), $role->getId()]
+                    );
+                }
 
-            return $this->redirectToRoute('user_management_index');
+                $entityManager->persist($user);
+                $entityManager->flush();
+
+                $this->addFlash('success', 'Usuario actualizado correctamente.');
+                return $this->redirectToRoute('user_management_index');
+
+            } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $e) {
+                $this->addFlash('error', 'Ya existe un usuario registrado con este email.');
+                return $this->render('user/edit.html.twig', [
+                    'user' => $user,
+                    'form' => $form->createView(),
+                ]);
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'Error al actualizar el usuario. Por favor, verifica los datos e intenta nuevamente.');
+                return $this->render('user/edit.html.twig', [
+                    'user' => $user,
+                    'form' => $form->createView(),
+                ]);
+            }
         }
 
         return $this->render('user/edit.html.twig', [
             'user' => $user,
             'form' => $form->createView(),
-            
         ]);
     }
 

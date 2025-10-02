@@ -40,6 +40,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Annotation\Route;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Validator\Constraints\DateTime;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -450,7 +451,7 @@ class ClienteController extends AbstractController
                 $clienteId = $cliente->getId();
                 $clientesIdsInvolucrados[$clienteId] = true; // Marcar este ID para cargarlo después
                 
-                $fechaInicio = max($historia->getFecha(), $fechaDesde);
+                $fechaInicio = max($historia->getFechaIngreso(), $fechaDesde);
                 $fechaFin = $historia->getFechaFin() ?: $fechaHasta;
                 
                 // Si el paciente tiene fecha de egreso, no mostrar después de esa fecha
@@ -493,6 +494,7 @@ class ClienteController extends AbstractController
                 }
             }
             
+            
             // Cargar todos los clientes involucrados de una sola vez para evitar consultas repetidas
             $todosClientesInvolucrados = $clienteRepository->findBy(['id' => array_keys($clientesIdsInvolucrados)]);
             foreach ($todosClientesInvolucrados as $cliente) {
@@ -519,14 +521,17 @@ class ClienteController extends AbstractController
                 ];
             }
             
+            
             // Procesar cada paciente y cada día
             foreach ($historiasPorPaciente as $clienteId => $historiasPorFecha) {
                 if (!isset($clientesData[$clienteId])) continue; // Verificar que tenemos los datos del cliente
+                
                 
                 foreach ($historiasPorFecha as $fechaStr => $historia) {
                     $fecha = \DateTime::createFromFormat('d/m/Y', $fechaStr);
                     $texto = '';
                     $cliente = null;
+                    
                     
                     // Buscar cliente en la lista ya cargada
                     foreach ($todosClientesInvolucrados as $posibleCliente) {
@@ -540,6 +545,7 @@ class ClienteController extends AbstractController
                     
                     // Verificar si hay registro de presentes para esta fecha y cliente
                     $estaPresenteHoy = isset($presentes[$clienteId][$fechaStr]) ? $presentes[$clienteId][$fechaStr] : null;
+                    
                     
                     // Si está marcado explícitamente como ausente, no lo mostramos
                     if ($estaPresenteHoy === false) {
@@ -744,85 +750,133 @@ class ClienteController extends AbstractController
         // Construir pacientesPeriodos agrupando por períodos consecutivos
         $pacientesPeriodos = [];
         foreach ($clientesData as $clienteId => $cliente) {
+            // Saltar si no hay datos para este cliente
             if (!isset($arrayParaLaVista[$clienteId])) continue;
-
+            
             $periodos = [];
             $periodoActual = null;
+            $estadoAnterior = null;
             
             // Ordenar las fechas cronológicamente
             $fechas = array_keys($arrayParaLaVista[$clienteId]);
             sort($fechas);
             
+            // Filtrar fechas que estén dentro del rango seleccionado
+            $fechasEnRango = [];
+            
+            // Convertir las fechas string a objetos DateTime
+            $fromObj = \DateTime::createFromFormat('Y-m-d', $from);
+            $toObj = \DateTime::createFromFormat('Y-m-d', $to);
+            
+            if (!$fromObj || !$toObj) {
+                continue; // Si hay error en las fechas, saltar este paciente
+            }
+            
+            $fromStart = clone $fromObj;
+            $fromStart->setTime(0, 0, 0);
+            $toEnd = clone $toObj;
+            $toEnd->setTime(23, 59, 59);
+            
+            foreach ($fechas as $fecha) {
+                $fechaObj = \DateTime::createFromFormat('d/m/Y', $fecha);
+                if ($fechaObj && $fechaObj >= $fromStart && $fechaObj <= $toEnd) {
+                    $fechasEnRango[] = $fecha;
+                }
+            }
+            
+            // Si no hay fechas en el rango, saltar este paciente
+            if (empty($fechasEnRango)) continue;
+            
+            // Usar las fechas filtradas
+            $fechas = $fechasEnRango;
+            
             foreach ($fechas as $fecha) {
                 $texto = $arrayParaLaVista[$clienteId][$fecha];
                 $lineas = explode('<br>', $texto);
-                $estado = $lineas[0];
+                $estado = trim($lineas[0]);
+                
+                // Para ambulatorios, cada día es un período separado
+                // Para otros estados, agrupamos días consecutivos
+                $esAmbulatorio = (strpos($estado, 'Ambulatorio') !== false);
+                
+                if ($periodoActual !== null) {
+                    if ($esAmbulatorio) {
+                        // Para ambulatorios, siempre guardamos el período anterior
+                        $periodos[] = $periodoActual;
+                    } else if ($estado === $estadoAnterior) {
+                        // Para otros estados, continuamos el período si es el mismo estado
+                        $periodoActual['hasta'] = $fecha;
+                        // Actualizar los días del período
+                        $desde = \DateTime::createFromFormat('d/m/Y', $periodoActual['desde']);
+                        $hasta = \DateTime::createFromFormat('d/m/Y', $periodoActual['hasta']);
+                        $periodoActual['dias'] = $hasta->diff($desde)->days + 1;
+                        continue;
+                    } else {
+                        // Si cambió el estado, guardamos el período anterior
+                        $periodos[] = $periodoActual;
+                    }
+                }
                 $habitacion = '';
                 $cama = '';
                 $profesional = '';
                 $obra_social = '';
                 
-                // Extraer información del texto
+                // Extraer información de las líneas
                 foreach ($lineas as $linea) {
-                    if (strpos($linea, 'H:') !== false) {
-                        preg_match('/H:([^ ]+) C:([^ ]+)/', $linea, $matches);
-                        if (isset($matches[1])) $habitacion = $matches[1];
-                        if (isset($matches[2])) $cama = $matches[2];
-                    } elseif (strpos($linea, '<small><b>') !== false) {
-                        $obra_social = strip_tags($linea);
-                    } elseif (!empty($linea) && strpos($linea, 'H:') === false && strpos($linea, '<small>') === false) {
-                        $profesional = $linea != $estado ? $linea : '';
+                    $linea = trim($linea);
+                    if (strpos($linea, 'H:') === 0) {
+                        $habitacionCama = explode(' C:', $linea);
+                        $habitacion = trim(str_replace('H:', '', $habitacionCama[0]));
+                        if (count($habitacionCama) > 1) {
+                            $cama = trim($habitacionCama[1]);
+                        }
+                    } elseif (strpos($linea, 'sin profesional asignado') === false && 
+                             strpos($linea, 'H:') === false && 
+                             strpos($linea, 'sin obra social') === false &&
+                             !in_array($linea, ['Internado', 'Derivado', 'Egreso'])) {
+                        $profesional = $linea;
+                    } elseif (strpos($linea, 'sin obra social') === false) {
+                        $obra_social = $linea;
                     }
                 }
+                // Crear nuevo período
+                // Calcular los días del período
+                $desde = \DateTime::createFromFormat('d/m/Y', $fecha);
+                $hasta = \DateTime::createFromFormat('d/m/Y', $fecha);
+                $dias = $desde->diff($hasta)->days + 1;
+
+                $periodoActual = [
+                    'estado' => $estado,
+                    'desde' => $fecha,
+                    'hasta' => $fecha,
+                    'habitacion' => $habitacion,
+                    'cama' => $cama,
+                    'profesional' => $profesional,
+                    'obra_social' => $obra_social,
+                    'dias' => $dias
+                ];
                 
-                // Si el período actual está vacío o las condiciones cambiaron, crear uno nuevo
-                if ($periodoActual === null || 
-                    $periodoActual['estado'] !== $estado ||
-                    $periodoActual['habitacion'] !== $habitacion ||
-                    $periodoActual['cama'] !== $cama ||
-                    $periodoActual['profesional'] !== $profesional ||
-                    $periodoActual['obra_social'] !== $obra_social) {
-                    
-                    // Si hay un período anterior, guardarlo
-                    if ($periodoActual !== null) {
-                        $periodoActual['hasta'] = date('d/m/Y', strtotime('-1 day', strtotime(str_replace('/', '-', $fecha))));
-                        $periodoActual['dias'] = ceil((strtotime(str_replace('/', '-', $periodoActual['hasta'])) - 
-                                                     strtotime(str_replace('/', '-', $periodoActual['desde']))) / 86400) + 1;
-                        $periodos[] = $periodoActual;
-                    }
-                    
-                    // Crear nuevo período
-                    $periodoActual = [
-                        'desde' => $fecha,
-                        'hasta' => $fecha,
-                        'estado' => $estado,
-                        'habitacion' => $habitacion,
-                        'cama' => $cama,
-                        'profesional' => $profesional,
-                        'obra_social' => $obra_social,
-                        'dias' => 1
-                    ];
-                } else {
-                    // Actualizar la fecha final del período actual
-                    $periodoActual['hasta'] = $fecha;
-                    $periodoActual['dias'] = ceil((strtotime(str_replace('/', '-', $fecha)) - 
-                                                 strtotime(str_replace('/', '-', $periodoActual['desde']))) / 86400) + 1;
-                }
+                $estadoAnterior = $estado;
             }
             
             // Agregar el último período
             if ($periodoActual !== null) {
                 $periodos[] = $periodoActual;
             }
-            
             // Agregar paciente con sus períodos al array final
-            $pacientesPeriodos[] = [
-                'nombre' => $cliente['apellido'] . ' ' . $cliente['nombre'],
-                'hc' => $cliente['hClinica'],
-                'periodos' => $periodos
-            ];
+            if (!empty($periodos)) {
+                $pacientesPeriodos[] = [
+                    'nombre' => $cliente['apellido'] . ' ' . $cliente['nombre'],
+                    'hc' => $cliente['hClinica'],
+                    'periodos' => $periodos
+                ];
+            }
         }
         
+        // Ordenar pacientes por apellido y nombre
+        usort($pacientesPeriodos, function($a, $b) {
+            return $a['nombre'] <=> $b['nombre'];
+        });
         // Ordenar pacientes por apellido y nombre
         usort($pacientesPeriodos, function($a, $b) {
             return $a['nombre'] <=> $b['nombre'];
@@ -863,10 +917,11 @@ class ClienteController extends AbstractController
                         $diasConFisiatra += $periodo['dias'];
                         
                         // Sumar días por cada fisiatra
-                        if (!isset($fisiatrasDiasCama[$periodo['profesional']])) {
-                            $fisiatrasDiasCama[$periodo['profesional']] = $periodo['dias'];
+                        $nombreProfesional = strip_tags($periodo['profesional']);
+                        if (!isset($fisiatrasDiasCama[$nombreProfesional])) {
+                            $fisiatrasDiasCama[$nombreProfesional] = $periodo['dias'];
                         } else {
-                            $fisiatrasDiasCama[$periodo['profesional']] += $periodo['dias'];
+                            $fisiatrasDiasCama[$nombreProfesional] += $periodo['dias'];
                         }
                     }
                 }
@@ -910,10 +965,11 @@ class ClienteController extends AbstractController
                                     $diasConFisiatraAmbulatorio++;
                                     
                                     // Sumar días por cada fisiatra para ambulatorios
-                                    if (!isset($fisiatrasAmbulatorio[$periodo['profesional']])) {
-                                        $fisiatrasAmbulatorio[$periodo['profesional']] = 1;
+                                    $nombreProfesional = strip_tags($periodo['profesional']);
+                                    if (!isset($fisiatrasAmbulatorio[$nombreProfesional])) {
+                                        $fisiatrasAmbulatorio[$nombreProfesional] = 1;
                                     } else {
-                                        $fisiatrasAmbulatorio[$periodo['profesional']]++;
+                                        $fisiatrasAmbulatorio[$nombreProfesional]++;
                                     }
                                     
                                 }
@@ -1204,6 +1260,14 @@ class ClienteController extends AbstractController
                 }
             }
 
+            $docReferenteIds = [];
+            foreach ($cliente->getDocReferente() as $doc) {
+                if (is_object($doc) && method_exists($doc, 'getId')) {
+                    $docReferenteIds[] = $doc->getId();
+                } elseif (is_numeric($doc)) {
+                    $docReferenteIds[] = $doc;
+                }
+            }
             $parametros = [
                 'cama' => $cliente->getNCama(),
                 'habitacion' => $cliente->getHabitacion(),
@@ -1217,6 +1281,7 @@ class ClienteController extends AbstractController
                 'fechaIngreso' => $cliente->getFIngreso(),
                 'fechaEngreso' => $cliente->getFEgreso(),
                 'ambulatorio' => $cliente->getAmbulatorio(),
+                'docReferente' => $docReferenteIds,
             ];
 
             $entityManager->persist($cliente);
@@ -1484,6 +1549,14 @@ class ClienteController extends AbstractController
                     $cliente->setEpicrisisIngreso($path."/".$newFilename);
                 }
 
+                $docReferenteIds = [];
+                foreach ($cliente->getDocReferente() as $doc) {
+                    if (is_object($doc) && method_exists($doc, 'getId')) {
+                        $docReferenteIds[] = $doc->getId();
+                    } elseif (is_numeric($doc)) {
+                        $docReferenteIds[] = $doc;
+                    }
+                }
                 $parametros = [
                     'cama' => $cliente->getNCama(),
                     'habitacion' => $cliente->getHabitacion(),
@@ -1497,7 +1570,7 @@ class ClienteController extends AbstractController
                     'fechaIngreso' => $cliente->getFIngreso(),
                     'fechaEngreso' => $cliente->getFEgreso(),
                     'ambulatorio' => $cliente->getAmbulatorio(),
-                    'docReferente' => $cliente->getDocReferente(),
+                    'docReferente' => $docReferenteIds,
                 ];
 
                 $historial = $this->getHistorialActualizado($cliente, $parametros, $user);
@@ -2294,6 +2367,73 @@ class ClienteController extends AbstractController
         return $response;
     }
 
+    
+    /**
+     * @Route("/actualizar/doc-referente", name="actualizar_doc_referente", methods={"GET"})
+     */
+    public function actualizarDocReferente(Request $request, EntityManagerInterface $em, HistoriaPacienteRepository $historiaPacienteRepository, ClienteRepository $clienteRepository)
+    {
+        // Calcular fecha de hace 3 meses
+        $fechaDesde = new \DateTime();
+        $fechaDesde->modify('-3 months');
+        $fechaDesde->setTime(0, 0, 0);
+
+        // Obtener registros de los últimos 3 meses
+        $historias = $historiaPacienteRepository->createQueryBuilder('h')
+            ->where('h.fecha >= :fechaDesde')
+            ->setParameter('fechaDesde', $fechaDesde)
+            ->getQuery()
+            ->getResult();
+        
+        $actualizados = 0;
+        $errores = 0;
+        
+        foreach ($historias as $historia) {
+            try {
+                // Obtener el cliente
+                $cliente = $historia->getCliente();
+                if (!$cliente) {
+                    $errores++;
+                    continue;
+                }
+                
+                // Obtener los doctores referentes del cliente
+                $docReferentes = $cliente->getDocReferente();
+                if ($docReferentes->isEmpty()) {
+                    continue; // No tiene doctores referentes
+                }
+                
+                // Convertir los doctores a array de IDs
+                $docReferenteIds = [];
+                foreach ($docReferentes as $doc) {
+                    $docReferenteIds[] = $doc->getId();
+                }
+                
+                // Actualizar el registro
+                $historia->setDocReferente(json_encode($docReferenteIds));
+                $em->persist($historia);
+                $actualizados++;
+                
+                // Hacer flush cada 100 registros para no sobrecargar la memoria
+                if ($actualizados % 100 === 0) {
+                    $em->flush();
+                }
+            } catch (\Exception $e) {
+                $errores++;
+            }
+        }
+        
+        // Flush final
+        $em->flush();
+        
+        return new JsonResponse([
+            'mensaje' => 'Proceso completado',
+            'fecha_desde' => $fechaDesde->format('Y-m-d'),
+            'actualizados' => $actualizados,
+            'errores' => $errores
+        ]);
+    }
+    
     /**
      * @Route("/actualizar/db", name="actualizar_db")
      **/

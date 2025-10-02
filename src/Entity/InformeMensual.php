@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\InformeMensualRepository;
+use App\Entity\User;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -24,7 +25,7 @@ class InformeMensual
     private $cliente;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Doctor::class)
+     * @ORM\ManyToOne(targetEntity=User::class)
      * @ORM\JoinColumn(nullable=false)
      */
     private $doctor;
@@ -198,12 +199,12 @@ class InformeMensual
         return $this;
     }
 
-    public function getDoctor(): ?Doctor
+    public function getDoctor(): ?User
     {
         return $this->doctor;
     }
 
-    public function setDoctor(?Doctor $doctor): self
+    public function setDoctor(?User $doctor): self
     {
         $this->doctor = $doctor;
 

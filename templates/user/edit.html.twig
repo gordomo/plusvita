@@ -1,9 +1,20 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Edit Administrador{% endblock %}
+{% block title %}Editar Administrador{% endblock %}
 {% block panelTitle %}Editar Administrador{% endblock %}
 {% block body %}
-    {{ include('user/_form-edit.html.twig', {'button_label': 'Update'}) }}
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    {{ include('user/_form-edit.html.twig', {'button_label': 'Actualizar'}) }}
     {{ include('user/_delete_form.html.twig') }}
 {% endblock %}
 {% block javascripts %}

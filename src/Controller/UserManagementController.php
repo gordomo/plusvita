@@ -46,47 +46,27 @@ class UserManagementController extends AbstractController
         // Obtener parámetros de filtro
         $userType = $request->query->get('type', 'all');
         $search = $request->query->get('search', '');
-        $role = $request->query->get('role', 'all');
         $status = $request->query->get('status', 'all');
         $page = max(1, (int) $request->query->get('page', 1));
         $limit = 20; // Usuarios por página
 
-        // Obtener usuarios según el filtro de tipo
-        $users = [];
-        $doctors = [];
-        $nurses = [];
+        // Obtener usuarios
+        $queryBuilder = $this->entityManager->getRepository(User::class)
+            ->createQueryBuilder('u')
+            ->leftJoin('u.roles', 'r')
+            ->addSelect('r');
 
-        if ($userType === 'all' || $userType === 'admin') {
-            $users = $this->entityManager->getRepository(User::class)
-                ->createQueryBuilder('u')
-                ->leftJoin('u.roles', 'r')
-                ->addSelect('r')
-                ->getQuery()
-                ->getResult();
-        }
-        if ($userType === 'all' || $userType === 'doctor') {
-            $doctors = $this->entityManager->getRepository(Doctor::class)->findAll();
-        }
-        if ($userType === 'all' || $userType === 'nurse') {
-            $nurses = $this->entityManager->getRepository(Nurse::class)->findAll();
+        // Filtrar por tipo de usuario si no es 'all'
+        if ($userType !== 'all') {
+            $queryBuilder
+                ->andWhere('r.id = :roleId')
+                ->setParameter('roleId', $userType);
         }
 
-        // Agregar información de tipo a cada usuario
-        foreach ($users as $user) {
-            $user->userType = 'admin';
-        }
-        foreach ($doctors as $doctor) {
-            $doctor->userType = 'doctor';
-        }
-        foreach ($nurses as $nurse) {
-            $nurse->userType = 'nurse';
-        }
-
-        // Combinar todos los usuarios
-        $allUsers = array_merge($users, $doctors, $nurses);
+        $allUsers = $queryBuilder->getQuery()->getResult();
 
         // Aplicar filtros
-        $filteredUsers = $this->applyFilters($allUsers, $search, $role, $status);
+        $filteredUsers = $this->applyFilters($allUsers, $search, $status);
 
         // Paginación
         $totalUsers = count($filteredUsers);
@@ -103,18 +83,18 @@ class UserManagementController extends AbstractController
             'currentPage' => $page,
             'totalPages' => $totalPages,
             'totalUsers' => $totalUsers,
+            'availableRoles' => $this->authorizationService->getRoles(),
             'filters' => [
                 'type' => $userType,
                 'search' => $search,
-                'role' => $role,
                 'status' => $status,
             ],
         ]);
     }
 
-    private function applyFilters(array $users, string $search, string $role, string $status): array
+    private function applyFilters(array $users, string $search, string $status): array
     {
-        return array_filter($users, function ($user) use ($search, $role, $status) {
+        return array_filter($users, function ($user) use ($search, $status) {
             // Filtro de búsqueda
             if ($search) {
                 $searchLower = strtolower($search);
@@ -140,22 +120,6 @@ class UserManagementController extends AbstractController
                         strpos(strtolower($email), $searchLower) === false) {
                         return false;
                     }
-                }
-            }
-
-            // Filtro de rol
-            if ($role !== 'all') {
-                $hasRole = false;
-                if ($user->legacyRoles) {
-                    foreach ($user->legacyRoles as $userRole) {
-                        if (strtolower($userRole) === strtolower($role)) {
-                            $hasRole = true;
-                            break;
-                        }
-                    }
-                }
-                if (!$hasRole) {
-                    return false;
                 }
             }
 
@@ -234,24 +198,48 @@ class UserManagementController extends AbstractController
         $user = $this->createUserByType($type);
 
         if ($request->isMethod('POST')) {
-            $user->setEmail($request->request->get('email'));
-            $user->setUsername($request->request->get('username'));
-            $user->setPassword($request->request->get('password'));
-
-            // Agregar roles seleccionados
-            $selectedRoles = $request->request->get('roles', []);
-            foreach ($selectedRoles as $roleId) {
-                $role = $this->entityManager->getRepository(Role::class)->find($roleId);
-                if ($role) {
-                    $user->addRole($role);
+            try {
+                $email = $request->request->get('email');
+                
+                // Verificar si el email ya existe
+                $existingUser = $this->entityManager->getRepository(User::class)
+                    ->findOneBy(['email' => $email]);
+                
+                if ($existingUser) {
+                    $this->addFlash('error', 'Ya existe un usuario registrado con este email.');
+                    return $this->render('admin/users/create.html.twig', [
+                        'userType' => $type,
+                        'availableRoles' => $this->entityManager->getRepository(Role::class)->findBy(['isActive' => true]),
+                        'lastData' => $request->request->all() // Para mantener los datos del formulario
+                    ]);
                 }
+
+                $user->setEmail($email);
+                $user->setUsername($request->request->get('username'));
+                $user->setPassword($request->request->get('password'));
+
+                // Agregar roles seleccionados
+                $selectedRoles = $request->request->get('roles', []);
+                foreach ($selectedRoles as $roleId) {
+                    $role = $this->entityManager->getRepository(Role::class)->find($roleId);
+                    if ($role) {
+                        $user->addRole($role);
+                    }
+                }
+
+                $this->entityManager->persist($user);
+                $this->entityManager->flush();
+
+                $this->addFlash('success', 'Usuario creado correctamente');
+                return $this->redirectToRoute('user_management_index');
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'Ha ocurrido un error al crear el usuario. Por favor, verifica los datos e intenta nuevamente.');
+                return $this->render('admin/users/create.html.twig', [
+                    'userType' => $type,
+                    'availableRoles' => $this->entityManager->getRepository(Role::class)->findBy(['isActive' => true]),
+                    'lastData' => $request->request->all() // Para mantener los datos del formulario
+                ]);
             }
-
-            $this->entityManager->persist($user);
-            $this->entityManager->flush();
-
-            $this->addFlash('success', 'Usuario creado correctamente');
-            return $this->redirectToRoute('user_management_index');
         }
 
         $availableRoles = $this->entityManager->getRepository(Role::class)->findBy(['isActive' => true]);
