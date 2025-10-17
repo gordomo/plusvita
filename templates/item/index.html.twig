@@ -198,16 +198,13 @@
                 <i class="fas fa-file-alt"></i> Reportes
             </button>
             <div class="dropdown-menu">
+                <h6 class="dropdown-header">Reportes de Mantenimiento</h6>
                 <a class="dropdown-item" href="{{ path('app_item_print') }}" target="_blank">
                     <i class="fas fa-list"></i> Listado de Items
                 </a>
                 <div class="dropdown-divider"></div>
-                <h6 class="dropdown-header">Reportes de Mantenimiento</h6>
                 <a class="dropdown-item" href="{{ path('app_item_report_selector') }}">
                     <i class="fas fa-check-square"></i> Seleccionar Ubicaciones
-                </a>
-                <a class="dropdown-item" href="{{ path('app_item_print', {'report_type': 'maintenance'}) }}" target="_blank">
-                    <i class="fas fa-tools"></i> Todas las Ubicaciones
                 </a>
             </div>
         </div>

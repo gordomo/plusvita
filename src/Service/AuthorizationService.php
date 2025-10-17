@@ -312,9 +312,11 @@ class AuthorizationService
             ['liquidations.manage', 'Gestionar Liquidaciones', 'Liquidaciones', 'Permite gestionar liquidaciones'],
             
             // ===== INFORMES MENSUALES =====
-            ['monthly_report.view', 'Ver Informes Mensuales Propios', 'Informes Mensuales', 'Permite ver sus propios informes mensuales'],
-            ['monthly_report.edit', 'Editar Informes Mensuales Propios', 'Informes Mensuales', 'Permite editar sus propios informes mensuales'],
-            ['monthly_report.manage', 'Gestionar Informes Mensuales', 'Informes Mensuales', 'Permite ver y gestionar todos los informes mensuales'],
+            ['informe_mensual.view', 'Ver Informes Mensuales', 'Informes Mensuales', 'Permite ver los informes mensuales'],
+            ['informe_mensual.create', 'Crear Informe Mensual', 'Informes Mensuales', 'Permite crear un nuevo informe mensual'],
+            ['informe_mensual.edit', 'Editar Informe Mensual', 'Informes Mensuales', 'Permite editar un informe mensual'],
+            ['informe_mensual.delete', 'Eliminar Informe Mensual', 'Informes Mensuales', 'Permite eliminar un informe mensual'],
+            
             ['stats.view', 'Ver Estadísticas', 'Estadísticas', 'Permite ver estadísticas del sistema'],
             
             // ===== CONFIGURACIÓN =====
@@ -376,7 +378,7 @@ class AuthorizationService
                 'permissions' => [
                     'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription',
                     'patient.discharge', 'patient.refer', 'patient.outpatient',
-                    'agenda.view', 'liquidations.view', 'monthly_report.view', 'stats.view'
+                    'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view'
                 ]
             ],
             [

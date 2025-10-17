@@ -525,6 +525,20 @@
                                         {% endif %}
                                         
                                         <div class="dropdown-divider"></div>
+                                        <h6 class="dropdown-header">Informes</h6>
+                                        
+                                        {% if is_granted('informe_mensual.create') %}
+                                        <a class="dropdown-item" href="{{ path('informe_mensual_new', {'cliente': cliente.id}) }}">
+                                            <i class="fas fa-file-medical-alt"></i> Generar Informe Mensual
+                                        </a>
+                                        {% endif %}
+                                        {% if is_granted('informe_mensual.view') %}
+                                        <a class="dropdown-item" href="{{ path('informe_mensual_index') }}?paciente={{ cliente.id }}">
+                                            <i class="fas fa-history"></i> Ver Informes Mensuales
+                                        </a>
+                                        {% endif %}
+                                        
+                                        <div class="dropdown-divider"></div>
                                         <h6 class="dropdown-header">Cambios de estado</h6>
                                         
                                         {% if pestana == 'inactivos' %}

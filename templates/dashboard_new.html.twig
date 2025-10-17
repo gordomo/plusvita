@@ -636,29 +636,38 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('assets/js/chartist.min.js')}}"></script>
+    {% if infoHabitacionesTotalyPorPiso is defined and infoHabitacionesTotalyPorPiso['total'] is defined %}
+        <script src="{{ asset('assets/js/chartist.min.js')}}"></script>
+    {% endif %}
     <script>
         $(document).ready(function() {
             // Activar tooltips
             $('[data-toggle="tooltip"]').tooltip();
             
-            // Gráfico de camas
-            var data = {
-                series: [
-                    {{ infoHabitacionesTotalyPorPiso['total'].total_camas_disponibles }}, 
-                    {{ infoHabitacionesTotalyPorPiso['total'].total_camas_ocupadas }}
-                ]
-            };
+            // Gráfico de camas - solo renderizar si el elemento existe y hay datos
+            var ctChart = document.querySelector('.ct-chart');
+            if (ctChart && typeof Chartist !== 'undefined') {
+                var data = {
+                    series: [
+                        {{ infoHabitacionesTotalyPorPiso['total'].total_camas_disponibles }}, 
+                        {{ infoHabitacionesTotalyPorPiso['total'].total_camas_ocupadas }}
+                    ]
+                };
 
-            // Opciones para personalizar el gráfico de torta
-            var options = {
-                labelInterpolationFnc: function(value) {
-                    return Math.round(value / data.series.reduce((a, b) => a + b) * 100) + '%';
+                // Opciones para personalizar el gráfico de torta
+                var options = {
+                    labelInterpolationFnc: function(value) {
+                        return Math.round(value / data.series.reduce((a, b) => a + b) * 100) + '%';
+                    }
+                };
+
+                // Renderiza el gráfico de torta
+                try {
+                    new Chartist.Pie('.ct-chart', data, options);
+                } catch (e) {
+                    console.error('Error al inicializar gráfico Chartist:', e);
                 }
-            };
-
-            // Renderiza el gráfico de torta
-            new Chartist.Pie('.ct-chart', data, options);
+            }
         });
     </script>
 {% endblock %}

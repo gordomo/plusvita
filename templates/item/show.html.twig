@@ -94,16 +94,16 @@
                 
                 <div class="card mb-4">
                     <div class="card-header bg-warning text-dark">
-                        <h4>Notas y novedades</h4>
+                        <h4>Novedades</h4>
                     </div>
                     <div class="card-body">
                         <form method="post" action="{{ path('app_item_add_nota', {'id': item.id}) }}" class="mb-4">
                             <div class="form-group">
-                                <label for="contenido">Nueva nota:</label>
+                                <label for="contenido">Nueva novedad:</label>
                                 <textarea name="contenido" id="contenido" class="form-control" rows="3" required></textarea>
                             </div>
                             <button type="submit" class="btn btn-warning">
-                                <i class="fas fa-plus"></i> Agregar nota
+                                <i class="fas fa-plus"></i> Agregar
                             </button>
                         </form>
                     </div>
@@ -161,7 +161,7 @@
                                                 </span>
                                             {% else %}
                                                 <span class="badge badge-warning">
-                                                    <i class="fas fa-sticky-note"></i> Nota
+                                                    <i class="fas fa-sticky-note"></i> Novedad
                                                 </span>
                                             {% endif %}
                                         </td>

@@ -61,6 +61,11 @@
                                                 <a class="btn btn-sm btn-primary btn-action" href="{{ path('user_edit', {'id': user.id}) }}" data-toggle="tooltip" title="Editar">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
+                                                {% if app.user.hasPermission('firma.view') and (app.user.id == user.id or app.user.hasPermission('firma.manage_others')) %}
+                                                <a class="btn btn-sm btn-info btn-action" href="{{ path('user_firma_index', {'userId': user.id}) }}" data-toggle="tooltip" title="Gestionar Firma">
+                                                    <i class="fas fa-pen-fancy"></i>
+                                                </a>
+                                                {% endif %}
                                                 {% if not user.id == app.user.id %}
                                                 <form method="post" action="{{ path('user_delete', {'id': user.id}) }}" style="display: inline-block;" onsubmit="return confirm('¿Está seguro que desea eliminar este usuario?');">
                                                     <input type="hidden" name="_method" value="DELETE">

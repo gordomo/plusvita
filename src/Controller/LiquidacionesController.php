@@ -25,6 +25,10 @@ class LiquidacionesController extends AbstractController
      */
     public function index(): Response
     {
+        if (!$this->isGranted('liquidations.manage')) {
+            $this->addFlash('error', 'No tienes permiso para acceder a esta página. Solo administradores pueden ver el listado general de liquidaciones.');
+            return $this->redirectToRoute('liquidaciones_mis');
+        }
         return $this->render('liquidaciones/index.html.twig');
     }
     /**
@@ -32,6 +36,11 @@ class LiquidacionesController extends AbstractController
      */
     public function profesionales(Request $request, DoctorRepository $doctorRepository): Response
     {
+        if (!$this->isGranted('liquidations.manage')) {
+            $this->addFlash('error', 'No tienes permiso para acceder a esta página. Solo administradores pueden ver el listado de profesionales.');
+            return $this->redirectToRoute('liquidaciones_mis');
+        }
+        
         $directo = [
             'Nutricionista',
             'Director medico',
@@ -99,6 +108,11 @@ class LiquidacionesController extends AbstractController
      */
     public function liquidarVarios(DoctorRepository $doctorRepository, BookingRepository $bookingRepository, ObraSocialRepository $obraSocialRepository, ClienteRepository $clienteRepository, Request $request, EvolucionRepository $evolucionRepository): Response
     {
+        if (!$this->isGranted('liquidations.manage')) {
+            $this->addFlash('error', 'No tienes permiso para liquidar múltiples profesionales. Solo administradores pueden realizar esta acción.');
+            return $this->redirectToRoute('liquidaciones_mis');
+        }
+        
         $user = $this->getUser();
         if (!$user) {
             return $this->redirectToRoute('app_login');
@@ -147,6 +161,30 @@ class LiquidacionesController extends AbstractController
     }
 
     /**
+     * @Route("/mis", name="liquidaciones_mis", methods={"GET"})
+     */
+    public function mis(DoctorRepository $doctorRepository, EvolucionRepository $evolucionRepository, HistoriaPacienteRepository $historiaRepository): Response
+    {
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        // Solo doctores pueden ver sus propias liquidaciones
+        $this->denyAccessUnlessGranted('liquidations.view');
+        
+        // Obtener el doctor asociado al usuario actual (por email)
+        $userDoctor = $doctorRepository->findOneBy(['email' => $user->getEmail()]);
+        if (!$userDoctor) {
+            $this->addFlash('error', 'No se encontró un doctor asociado a tu usuario.');
+            return $this->redirectToRoute('dashboard');
+        }
+        
+        // Redirigir a la liquidación del doctor actual
+        return $this->redirectToRoute('liquidar', ['id' => $userDoctor->getId()]);
+    }
+
+    /**
      * @Route("/profesional/{id}", name="liquidar", methods={"GET"})
      * @param $id
      * @param UserRepository $UserRepository
@@ -163,14 +201,19 @@ class LiquidacionesController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        // Si no tiene ningún permiso de liquidaciones, denegar acceso
-        if (!$this->isGranted('liquidations.view') && !$this->isGranted('liquidations.manage')) {
-            throw $this->createAccessDeniedException('No tienes permiso para ver liquidaciones.');
-        }
-
-        // Si solo tiene liquidations.view, verificar que sea su propia liquidación
-        if (!$this->isGranted('liquidations.manage') && $user->getId() != $id) {
-            throw $this->createAccessDeniedException('Solo puedes ver tus propias liquidaciones.');
+        // Verify permission: if user doesn't have liquidations.manage (admin), they can only see their own
+        if (!$this->isGranted('liquidations.manage')) {
+            if (!$this->isGranted('liquidations.view')) {
+                $this->addFlash('error', 'No tienes permiso para ver liquidaciones.');
+                return $this->redirectToRoute('app_login');
+            }
+            
+            // Regular users (doctors) can only access their own liquidations (by email)
+            $userDoctor = $doctorRepository->findOneBy(['email' => $user->getEmail()]);
+            if (!$userDoctor || $userDoctor->getId() != $id) {
+                $this->addFlash('error', 'No tienes permiso para ver las liquidaciones de otro doctor.');
+                return $this->redirectToRoute('liquidaciones_mis');
+            }
         }
 
         $obraSocialSelected = $request->query->get('obraSocial') ?? '';
@@ -184,8 +227,6 @@ class LiquidacionesController extends AbstractController
         $to         = $request->get('to', $l->format('Y-m-d'));
         $fechaDesde = $from ? new \DateTime($from. '0:0:0') : $from;
         $fechaHasta = $to   ? new \DateTime($to. '23:59:59'): $to;
-
-        $doctor = $userRepository->find($id);
 
         $evolucionesPivotOs = [];
         $evolucionesPivotOsActivos = [];

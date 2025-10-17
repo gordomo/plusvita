@@ -64,4 +64,20 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         ;
     }
     */
+
+    /**
+     * Obtener usuarios con un rol específico
+     */
+    public function findByRole(string $roleName)
+    {
+        return $this->createQueryBuilder('u')
+            ->join('u.roles', 'r')
+            ->where('r.name = :roleName')
+            ->setParameter('roleName', $roleName)
+            ->orderBy('u.apellido', 'ASC')
+            ->addOrderBy('u.nombre', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
 }

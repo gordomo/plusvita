@@ -34,6 +34,32 @@
                     {% endfor %}
                 </td>
             </tr>
+            <tr>
+                <th>Firma del Doctor</th>
+                <td>
+                    {% if firmaData and firmaData.firma_path %}
+                        <div class="firma-container" style="border: 1px solid #ddd; padding: 15px; max-width: 300px; text-align: center;">
+                            <img src="{{ asset('uploads/firmas/' ~ firmaData.firma_path) }}" alt="Firma" style="max-width: 200px; max-height: 100px; margin-bottom: 10px;">
+                            <div style="border-top: 1px solid #000; padding-top: 10px; font-size: 12px;">
+                                <strong>{{ firmaData.nombre }} {{ firmaData.apellido }}</strong>
+                                <br>
+                                MAT: {{ firmaData.matricula|default('N/A') }}
+                            </div>
+                        </div>
+                    {% elseif evolucion.firmaDoctorPath %}
+                        <div class="firma-container" style="border: 1px solid #ddd; padding: 15px; max-width: 300px; text-align: center;">
+                            <img src="{{ asset('uploads/firmas/' ~ evolucion.firmaDoctorPath) }}" alt="Firma" style="max-width: 200px; max-height: 100px; margin-bottom: 10px;">
+                            <div style="border-top: 1px solid #000; padding-top: 10px; font-size: 12px;">
+                                <strong>{{ evolucion.firmaDoctorNombre }} {{ evolucion.firmaDoctorApellido }}</strong>
+                                <br>
+                                MAT: {{ evolucion.firmaDoctorMatricula|default('N/A') }}
+                            </div>
+                        </div>
+                    {% else %}
+                        <em>Sin firma registrada</em>
+                    {% endif %}
+                </td>
+            </tr>
         </tbody>
         <tfoot>
             <tr>

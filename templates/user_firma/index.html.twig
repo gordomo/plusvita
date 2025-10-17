@@ -1,0 +1,390 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestionar Firma - {{ user.nombreApellido }}{% endblock %}
+{% block panelTitle %}Gestionar Firma - {{ user.nombreApellido }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        #signaturePad {
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            cursor: crosshair;
+            display: block;
+            margin-bottom: 10px;
+            background-color: #fff;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fas fa-pen-fancy"></i> Firmas de {{ user.nombreApellido }}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {% if app.flashes %}
+                        {% for type, messages in app.flashes %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ type == 'error' ? 'danger' : type }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endfor %}
+                    {% endif %}
+
+                    <!-- Sección de firma digitalizada -->
+                    {% if is_granted('firma.create') and (app.user.id == user.id or is_granted('firma.manage_others')) %}
+                    <div class="mb-4">
+                        <h5 class="mb-3">Crear Nueva Firma</h5>
+                        
+                        <!-- Tabs para seleccionar método -->
+                        <ul class="nav nav-tabs mb-3" id="signatureMethod" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="draw-tab" data-bs-toggle="tab" data-bs-target="#draw-pane" type="button" role="tab" aria-controls="draw-pane" aria-selected="true">
+                                    <i class="fas fa-pen"></i> Dibujar
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload-pane" type="button" role="tab" aria-controls="upload-pane" aria-selected="false">
+                                    <i class="fas fa-upload"></i> Subir Imagen
+                                </button>
+                            </li>
+                        </ul>
+
+                        <!-- Contenido de las tabs -->
+                        <div class="tab-content" id="signatureMethodContent">
+                            <!-- Tab: Dibujar -->
+                            <div class="tab-pane fade show active" id="draw-pane" role="tabpanel" aria-labelledby="draw-tab">
+                                <form id="signatureDrawForm" method="POST" action="{{ path('user_firma_upload', {'userId': user.id}) }}">
+                                    <div class="form-group mb-3">
+                                        <label>Dibuja tu firma aquí:</label>
+                                        <canvas id="signaturePad" width="500" height="200"></canvas>
+                                    </div>
+                                    <div class="d-flex gap-2 mb-3">
+                                        <button type="button" class="btn btn-warning btn-sm" id="clearSignature">
+                                            <i class="fas fa-eraser"></i> Limpiar
+                                        </button>
+                                        <button type="button" class="btn btn-info btn-sm" id="undoSignature">
+                                            <i class="fas fa-undo"></i> Deshacer
+                                        </button>
+                                    </div>
+                                    <input type="hidden" id="signatureData" name="signature_data">
+                                    <button type="submit" class="btn btn-primary" id="submitSignatureDraw">
+                                        <i class="fas fa-save"></i> Guardar Firma
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Tab: Subir Imagen -->
+                            <div class="tab-pane fade" id="upload-pane" role="tabpanel" aria-labelledby="upload-tab">
+                                <form id="signatureUploadForm" method="POST" action="{{ path('user_firma_upload', {'userId': user.id}) }}" enctype="multipart/form-data">
+                                    <div class="form-group mb-3">
+                                        <label for="signature_file" class="form-label">Seleccionar archivo de imagen</label>
+                                        <input type="file" class="form-control" id="signature_file" name="signature_file" accept="image/*">
+                                        <small class="form-text text-muted">Formatos permitidos: PNG, JPG, GIF. Tamaño máximo: 5MB</small>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-upload"></i> Cargar Firma
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    {% endif %}
+
+                    <!-- Listado de firmas -->
+                    <h5 class="mb-3">Mis Firmas</h5>
+                    {% if firmas|length > 0 %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Fecha de Carga</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for firma in firmas %}
+                                    <tr>
+                                        <td>
+                                            <i class="fas fa-image"></i> {{ firma.fileName }}
+                                        </td>
+                                        <td>{{ firma.createdAt|date('d/m/Y H:i') }}</td>
+                                        <td>
+                                            {% if firma.isActive %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check-circle"></i> Activa
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">
+                                                    <i class="fas fa-times-circle"></i> Inactiva
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if not firma.isActive and is_granted('firma.update') and (app.user.id == user.id or is_granted('firma.manage_others')) %}
+                                            <form method="POST" action="{{ path('user_firma_activate', {'firmaId': firma.id}) }}" style="display: inline;">
+                                                <button type="submit" class="btn btn-sm btn-success" title="Activar esta firma">
+                                                    <i class="fas fa-check"></i> Activar
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                            
+                                            {% if is_granted('firma.delete') and (app.user.id == user.id or is_granted('firma.manage_others')) %}
+                                            <form method="POST" action="{{ path('user_firma_delete', {'firmaId': firma.id}) }}" style="display: inline;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta firma?');">
+                                                <button type="submit" class="btn btn-sm btn-danger" title="Eliminar esta firma">
+                                                    <i class="fas fa-trash"></i> Eliminar
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> Este usuario no tiene firmas cargadas aún.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel lateral con información -->
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Información</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Usuario:</strong> {{ user.nombreApellido }}</p>
+                    <p><strong>Email:</strong> {{ user.email }}</p>
+                    {% if user.activeFirma %}
+                    <div class="alert alert-success">
+                        <strong>Firma Activa:</strong> {{ user.activeFirma.fileName }}
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning">
+                        <strong>Sin firma activa</strong>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Acciones</h5>
+                </div>
+                <div class="card-body">
+                    {% if is_granted('user.read') %}
+                    <a href="{{ path('user_index') }}" class="btn btn-secondary btn-sm w-100 mb-2">
+                        <i class="fas fa-arrow-left"></i> Volver a Usuarios
+                    </a>
+                    {% else %}
+                    <a href="{{ path('dashboard_index') }}" class="btn btn-secondary btn-sm w-100 mb-2">
+                        <i class="fas fa-arrow-left"></i> Volver al Dashboard
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-sm {
+        margin-right: 3px;
+    }
+    
+    form {
+        margin: 0;
+    }
+    
+    #signaturePad {
+        border: 2px solid #ccc;
+        border-radius: 4px;
+        cursor: crosshair;
+        display: block;
+        margin-bottom: 10px;
+        background-color: #fff;
+        max-width: 100%;
+    }
+    
+    .gap-2 {
+        gap: 0.5rem;
+    }
+</style>
+
+<script>
+    // SignaturePad - Librería simple para dibujar firmas
+    (function() {
+        const canvas = document.getElementById('signaturePad');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        const form = document.getElementById('signatureDrawForm');
+        const signatureDataInput = document.getElementById('signatureData');
+        let isDrawing = false;
+        const lineWidth = 2;
+        const strokeColor = '#000';
+        let drawingHistory = [];
+
+        // Configurar canvas
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = Math.max(rect.width - 20, 400);
+            canvas.height = 250;
+        }
+        
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Mouse events
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // Touch events (para tablets)
+        canvas.addEventListener('touchstart', handleTouchStart, false);
+        canvas.addEventListener('touchmove', handleTouchMove, false);
+        canvas.addEventListener('touchend', stopDrawing, false);
+
+        function startDrawing(e) {
+            isDrawing = true;
+            saveDrawingState();
+            const rect = canvas.getBoundingClientRect();
+            ctx.beginPath();
+            ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const rect = canvas.getBoundingClientRect();
+            ctx.lineWidth = lineWidth;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.strokeStyle = strokeColor;
+            ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+            ctx.stroke();
+        }
+
+        function stopDrawing() {
+            if (isDrawing) {
+                isDrawing = false;
+                ctx.closePath();
+            }
+        }
+
+        function handleTouchStart(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousedown', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        }
+
+        function saveDrawingState() {
+            drawingHistory.push(canvas.toDataURL());
+        }
+
+        // Botón para limpiar
+        document.getElementById('clearSignature').addEventListener('click', function() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawingHistory = [];
+        });
+
+        // Botón para deshacer
+        document.getElementById('undoSignature').addEventListener('click', function() {
+            if (drawingHistory.length > 0) {
+                drawingHistory.pop();
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                if (drawingHistory.length > 0) {
+                    const img = new Image();
+                    img.src = drawingHistory[drawingHistory.length - 1];
+                    img.onload = function() {
+                        ctx.drawImage(img, 0, 0);
+                    };
+                }
+            }
+        });
+
+        // Antes de enviar el formulario, convertir el canvas a imagen
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Verificar que haya algo dibujado
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            let hasDrawing = false;
+            
+            for (let i = 3; i < data.length; i += 4) {
+                if (data[i] > 128) {
+                    hasDrawing = true;
+                    break;
+                }
+            }
+            
+            if (!hasDrawing) {
+                alert('Por favor, dibuja tu firma primero');
+                return;
+            }
+            
+            // Convertir canvas a blob y crear un archivo
+            canvas.toBlob(function(blob) {
+                // Crear un formulario de envío con FormData
+                const formData = new FormData();
+                formData.append('signature_file', blob, 'firma.png');
+                
+                // Enviar con XMLHttpRequest
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', form.action, true);
+                
+                xhr.onload = function() {
+                    console.log('Response status:', xhr.status);
+                    // Tanto 200 como 302 (redirección) son exitosas
+                    if (xhr.status === 200 || xhr.status === 302 || (xhr.status >= 300 && xhr.status < 400)) {
+                        // Recargar la página para ver la firma guardada
+                        window.location.reload();
+                    } else {
+                        console.error('Error response:', xhr.responseText);
+                        alert('Error al guardar la firma. Código: ' + xhr.status);
+                    }
+                };
+                
+                xhr.onerror = function() {
+                    console.error('XHR Error');
+                    alert('Error al enviar la firma');
+                };
+                
+                xhr.send(formData);
+            }, 'image/png');
+        });
+    })();
+</script>
+{% endblock %}

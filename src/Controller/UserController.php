@@ -32,6 +32,11 @@ class UserController extends AbstractController
         if (!$user) {
             return $this->redirectToRoute('app_login');
         }
+
+        // Verificar permisos - solo administradores pueden ver la lista de usuarios
+        if (!$this->isGranted('user.read')) {
+            throw $this->createAccessDeniedException('No tienes permiso para acceder a este recurso');
+        }
         
         // Make sure we get all users, sorted by username for better organization
         $allUsers = $userRepository->findBy([], ['username' => 'ASC']);

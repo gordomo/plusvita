@@ -55,6 +55,26 @@ class Evolucion
      */
     private $adjunto_url;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $firma_doctor_nombre;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $firma_doctor_apellido;
+
+    /**
+     * @ORM\Column(type="string", length=50, nullable=true)
+     */
+    private $firma_doctor_matricula;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $firma_doctor_path;
+
     public function __construct()
     {
         $this->adjunto_url = array();
@@ -162,5 +182,65 @@ class Evolucion
         }
 
         return $this;
+    }
+
+    /**
+     * Getters y Setters para datos de firma del doctor
+     */
+    public function getFirmaDoctorNombre(): ?string
+    {
+        return $this->firma_doctor_nombre;
+    }
+
+    public function setFirmaDoctorNombre(?string $firma_doctor_nombre): self
+    {
+        $this->firma_doctor_nombre = $firma_doctor_nombre;
+        return $this;
+    }
+
+    public function getFirmaDoctorApellido(): ?string
+    {
+        return $this->firma_doctor_apellido;
+    }
+
+    public function setFirmaDoctorApellido(?string $firma_doctor_apellido): self
+    {
+        $this->firma_doctor_apellido = $firma_doctor_apellido;
+        return $this;
+    }
+
+    public function getFirmaDoctorMatricula(): ?string
+    {
+        return $this->firma_doctor_matricula;
+    }
+
+    public function setFirmaDoctorMatricula(?string $firma_doctor_matricula): self
+    {
+        $this->firma_doctor_matricula = $firma_doctor_matricula;
+        return $this;
+    }
+
+    public function getFirmaDoctorPath(): ?string
+    {
+        return $this->firma_doctor_path;
+    }
+
+    public function setFirmaDoctorPath(?string $firma_doctor_path): self
+    {
+        $this->firma_doctor_path = $firma_doctor_path;
+        return $this;
+    }
+
+    /**
+     * Método helper para obtener los datos de firma formateados
+     */
+    public function getFirmaDoctorFormato(): array
+    {
+        return [
+            'nombre' => $this->firma_doctor_nombre,
+            'apellido' => $this->firma_doctor_apellido,
+            'matricula' => $this->firma_doctor_matricula,
+            'path' => $this->firma_doctor_path,
+        ];
     }
 }

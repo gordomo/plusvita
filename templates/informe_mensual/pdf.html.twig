@@ -83,7 +83,7 @@
 </head>
 <body>
     <div class="header clearfix">
-        <img src="{{ absolute_url(asset('assets/images/plusVitaLogo.png')) }}" alt="Logo Plus Vita" class="logo">
+        <img src="assets/images/plusVitaLogo.png" alt="Logo Plus Vita" class="logo">
         <div class="header-info">
             <h1>Informe Mensual</h1>
             <p>Fecha: {{ fechaPersonalizada is defined ? fechaPersonalizada|date('d/m/Y') : informeMensual.fechaCreacion|date('d/m/Y') }}</p>
@@ -229,12 +229,22 @@
     {% endif %}
     
     <div class="signature">
-        {% if informeMensual.doctor.firma is defined and informeMensual.doctor.firma %}
-            <img src="{{ absolute_url(asset('uploads/firmas/' ~ informeMensual.doctor.firma)) }}" alt="Firma Digital">
+        {% set doctorData = doctorSignature %}
+        {% if doctorData.firma_path %}
+            <img src="uploads/firmas/{{ doctorData.firma_path }}" alt="Firma Digital">
+        {% elseif informeMensual.doctor.firma is defined and informeMensual.doctor.firma %}
+            <img src="uploads/firmas/{{ informeMensual.doctor.firma }}" alt="Firma Digital">
         {% endif %}
         <div class="doctor-info">
-            <p><strong>{{ informeMensual.doctor.nombre }} {{ informeMensual.doctor.apellido }}</strong></p>
-            <p><strong>Matrícula {{ informeMensual.doctor.matricula }}</strong></p>
+            {% if doctorData.nombre and doctorData.apellido %}
+                <p><strong>{{ doctorData.nombre }} {{ doctorData.apellido }}</strong></p>
+                {% if doctorData.matricula %}
+                    <p><strong>Matrícula {{ doctorData.matricula }}</strong></p>
+                {% endif %}
+            {% else %}
+                <p><strong>{{ informeMensual.doctor.nombre }} {{ informeMensual.doctor.apellido }}</strong></p>
+                <p><strong>Matrícula {{ informeMensual.doctor.matricula }}</strong></p>
+            {% endif %}
         </div>
     </div>
     

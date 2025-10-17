@@ -82,10 +82,16 @@ class User implements UserInterface
      */
     private $roles;
 
+    /**
+     * @ORM\OneToMany(targetEntity=UserFirma::class, mappedBy="user", cascade={"remove"})
+     */
+    private $firmas;
+
     public function __construct()
     {
         $this->bookings = new ArrayCollection();
         $this->roles = new ArrayCollection();
+        $this->firmas = new ArrayCollection();
         $this->habilitado = true;
     }
 
@@ -338,5 +344,48 @@ class User implements UserInterface
     public function getPresente(): ?bool
     {
         return false;
+    }
+
+    /**
+     * @return Collection|UserFirma[]
+     */
+    public function getFirmas(): Collection
+    {
+        return $this->firmas;
+    }
+
+    public function addFirma(UserFirma $firma): self
+    {
+        if (!$this->firmas->contains($firma)) {
+            $this->firmas[] = $firma;
+            $firma->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFirma(UserFirma $firma): self
+    {
+        if ($this->firmas->removeElement($firma)) {
+            // set the owning side to null (unless already changed)
+            if ($firma->getUser() === $this) {
+                $firma->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Get the active signature for this user
+     */
+    public function getActiveFirma(): ?UserFirma
+    {
+        foreach ($this->firmas as $firma) {
+            if ($firma->getIsActive()) {
+                return $firma;
+            }
+        }
+        return null;
     }
 }

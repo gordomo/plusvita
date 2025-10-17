@@ -334,9 +334,11 @@
                                     {% for movimiento in item.ultimosMovimientos %}
                                         <div class="movimiento">
                                             <span class="movimiento-fecha">{{ movimiento.fecha|date("d/m/Y") }}</span>
-                                            <span class="movimiento-tipo">{{ movimiento.tipo }}</span>
-                                            {% if movimiento.descripcion %}
-                                                <div class="movimiento-descripcion">{{ movimiento.descripcion }}</div>
+                                            {% if movimiento.ubicacion %}
+                                                <span class="movimiento-tipo">{{ movimiento.ubicacion.nombre }}</span>
+                                            {% endif %}
+                                            {% if movimiento.motivo %}
+                                                <div class="movimiento-descripcion">{{ movimiento.motivo }}</div>
                                             {% endif %}
                                         </div>
                                     {% endfor %}

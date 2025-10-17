@@ -41,9 +41,15 @@ class EvolucionType extends AbstractType
                 $builder->add('doctor', ChoiceType::class, [
                     'required' => true,
                     'choices' => $doctores,
+                    'choice_label' => function($doctorObj) {
+                        return $doctorObj ? $doctorObj->getNombre() . ' ' . $doctorObj->getApellido() . ' (' . $doctorObj->getEmail() . ')' : '';
+                    },
+                    'choice_value' => function($doctorObj) {
+                        return $doctorObj ? $doctorObj->getId() : '';
+                    },
                     'mapped' => false,
-                    'choice_attr' => function($choice, $key, $value) use ($usuarioActual) {
-                        if ($value == $usuarioActual) {
+                    'choice_attr' => function($doctorObj, $key, $value) use ($usuarioActual) {
+                        if ($doctorObj && $doctorObj->getEmail() == $usuarioActual) {
                             return ['selected' => 'selected'];
                         } else {
                             return [];

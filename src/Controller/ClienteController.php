@@ -2146,41 +2146,116 @@ class ClienteController extends AbstractController
 
         if ($doc) {
             foreach ($evoluciones as $evolucion) {
-                $doctor = $doctorRepository->findBy(['email' => $evolucion->getUser()]);
-
-                if (count($doctor) == 0) {
-                    $doctor = $userRepository->findBy(['email' => $evolucion->getUser()]);
-                }
-                if (count($doctor) == 0) {
-                    $doctor = $userRepository->findBy(['user' => $evolucion->getUser()]);
-                }
                 $firma = '';
-                if (count($doctor) > 0) {
-                    $firma = $doctor[0]->getFirma();
+                $doctorData = ['nombre' => '', 'apellido' => '', 'matricula' => ''];
+                
+                // 1. PRIMERO: Verificar si la evolución ya tiene datos de firma guardados (nuevo sistema)
+                if ($evolucion->getFirmaDoctorPath()) {
+                    $firma = $evolucion->getFirmaDoctorPath();
+                    $doctorData['nombre'] = $evolucion->getFirmaDoctorNombre() ?: '';
+                    $doctorData['apellido'] = $evolucion->getFirmaDoctorApellido() ?: '';
+                    $doctorData['matricula'] = $evolucion->getFirmaDoctorMatricula() ?: '';
+                } else {
+                    // 2. SEGUNDO: Buscar firma activa del usuario
+                    // Primero buscar en User (nuevo sistema UserFirma)
+                    $userDoctor = $userRepository->findOneBy(['email' => $evolucion->getUser()]);
+                    if ($userDoctor && method_exists($userDoctor, 'getActiveFirma')) {
+                        $firmaActiva = $userDoctor->getActiveFirma();
+                        if ($firmaActiva && method_exists($firmaActiva, 'getFilePath')) {
+                            $firma = $firmaActiva->getFilePath();
+                            if (method_exists($userDoctor, 'getNombre')) {
+                                $doctorData['nombre'] = $userDoctor->getNombre();
+                            }
+                            if (method_exists($userDoctor, 'getApellido')) {
+                                $doctorData['apellido'] = $userDoctor->getApellido();
+                            }
+                            if (method_exists($userDoctor, 'getLegajo')) {
+                                $doctorData['matricula'] = $userDoctor->getLegajo();
+                            }
+                        }
+                    }
+                    
+                    // Si no encontró firma en User, buscar en Doctor (sistema viejo)
+                    if (empty($firma)) {
+                        $doctorObj = $doctorRepository->findOneBy(['email' => $evolucion->getUser()]);
+                        if ($doctorObj) {
+                            if (method_exists($doctorObj, 'getFirma')) {
+                                $firma = $doctorObj->getFirma();
+                            }
+                            if (method_exists($doctorObj, 'getNombre')) {
+                                $doctorData['nombre'] = $doctorObj->getNombre();
+                            }
+                            if (method_exists($doctorObj, 'getApellido')) {
+                                $doctorData['apellido'] = $doctorObj->getApellido();
+                            }
+                            if (method_exists($doctorObj, 'getLegajo')) {
+                                $doctorData['matricula'] = $doctorObj->getLegajo();
+                            }
+                        }
+                    }
                 }
 
-                if($doc->getEmail() === $doctor[0]->getEmail()) {
-                    $evArray[] = ['evolucion' => $evolucion, 'firma' => $firma];
+                if($doc->getEmail() === $evolucion->getUser()) {
+                    $evArray[] = ['evolucion' => $evolucion, 'firma' => $firma, 'doctorData' => $doctorData];
                 }
             }
         } else {
             foreach ($evoluciones as $evolucion) {
-                $doctor = $doctorRepository->findBy(['email' => $evolucion->getUser()]);
-
-                if (count($doctor) == 0) {
-                    $doctor = $userRepository->findBy(['email' => $evolucion->getUser()]);
-                }
-                if (count($doctor) == 0) {
-                    $doctor = $userRepository->findBy(['user' => $evolucion->getUser()]);
-                }
                 $firma = '';
-                if (count($doctor) > 0) {
-                    $firma = $doctor[0]->getFirma();
+                $doctorData = ['nombre' => '', 'apellido' => '', 'matricula' => ''];
+                
+                // 1. PRIMERO: Verificar si la evolución ya tiene datos de firma guardados (nuevo sistema)
+                if ($evolucion->getFirmaDoctorPath()) {
+                    $firma = $evolucion->getFirmaDoctorPath();
+                    $doctorData['nombre'] = $evolucion->getFirmaDoctorNombre() ?: '';
+                    $doctorData['apellido'] = $evolucion->getFirmaDoctorApellido() ?: '';
+                    $doctorData['matricula'] = $evolucion->getFirmaDoctorMatricula() ?: '';
+                } else {
+                    // 2. SEGUNDO: Buscar firma activa del usuario
+                    // Primero buscar en User (nuevo sistema UserFirma)
+                    $userDoctor = $userRepository->findOneBy(['email' => $evolucion->getUser()]);
+                    if ($userDoctor && method_exists($userDoctor, 'getActiveFirma')) {
+                        $firmaActiva = $userDoctor->getActiveFirma();
+                        if ($firmaActiva && method_exists($firmaActiva, 'getFilePath')) {
+                            $firma = $firmaActiva->getFilePath();
+                            if (method_exists($userDoctor, 'getNombre')) {
+                                $doctorData['nombre'] = $userDoctor->getNombre();
+                            }
+                            if (method_exists($userDoctor, 'getApellido')) {
+                                $doctorData['apellido'] = $userDoctor->getApellido();
+                            }
+                            if (method_exists($userDoctor, 'getLegajo')) {
+                                $doctorData['matricula'] = $userDoctor->getLegajo();
+                            }
+                        }
+                    }
+                    
+                    // Si no encontró firma en User, buscar en Doctor (sistema viejo)
+                    if (empty($firma)) {
+                        $doctorObj = $doctorRepository->findOneBy(['email' => $evolucion->getUser()]);
+                        if ($doctorObj) {
+                            if (method_exists($doctorObj, 'getFirma')) {
+                                $firma = $doctorObj->getFirma();
+                            }
+                            if (method_exists($doctorObj, 'getNombre')) {
+                                $doctorData['nombre'] = $doctorObj->getNombre();
+                            }
+                            if (method_exists($doctorObj, 'getApellido')) {
+                                $doctorData['apellido'] = $doctorObj->getApellido();
+                            }
+                            if (method_exists($doctorObj, 'getLegajo')) {
+                                $doctorData['matricula'] = $doctorObj->getLegajo();
+                            }
+                        }
+                    }
                 }
 
-                $evArray[] = ['evolucion' => $evolucion, 'firma' => $firma];
+                $evArray[] = ['evolucion' => $evolucion, 'firma' => $firma, 'doctorData' => $doctorData];
             }
         }
+
+        // Revertir para mostrar las más nuevas primero
+        $evArray = array_reverse($evArray);
 
         $novedadesDesde   = $request->get('novedadesDesde');
         $novedadesHasta   = $request->get('novedadesHasta');  
