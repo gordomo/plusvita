@@ -71,7 +71,7 @@ class HistoriaIngresoController extends AbstractController
             $entityManager->flush();
 
 
-            return $this->redirectToRoute('doctor_historia', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('cliente_index', [], Response::HTTP_SEE_OTHER);
             /*return $this->redirectToRoute('historia_ingreso_new', ['cliente' => $cliente->getId()], Response::HTTP_SEE_OTHER);*/
         }
 

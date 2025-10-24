@@ -507,6 +507,9 @@
                                         <a class="dropdown-item" href="{{ path('evolucion_index', {'cliente': cliente.id}) }}">
                                             <i class="fa fa-info-circle"></i> Evoluciones
                                         </a>
+                                        <a class="dropdown-item" href="{{ path('historia_ingreso_new', {'cliente': cliente.id}) }}">
+                                            <i class="far fa-calendar-alt"></i> Historia de Ingreso
+                                        </a>
                                         {% endif %}
                                         {% if is_granted('patient.prescription') %}
                                         <a class="dropdown-item" href="{{ path('consumible_indicar_view', {'id': cliente.id}) }}">
