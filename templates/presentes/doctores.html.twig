@@ -1,0 +1,48 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Presentes de Doctores{% endblock %}
+
+{% block body %}
+<h1>Presentes de Doctores - {{ hoy }}</h1>
+
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead class="thead-light">
+        <tr>
+          <th>Nombre</th>
+          <th>Apellido</th>
+          <th>Email</th>
+          <th>Presente hoy</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for doc in doctores %}
+        <tr>
+          <td>{{ doc.nombre }}</td>
+          <td>{{ doc.apellido }}</td>
+          <td>{{ doc.email }}</td>
+          <td>
+            {% if estados[doc.id] %}
+              <span class="badge badge-success">Presente</span>
+            {% else %}
+              <span class="badge badge-secondary">Ausente</span>
+            {% endif %}
+          </td>
+          <td>
+            <form method="post" action="{{ path('presentes_toggle', {id: doc.id}) }}" style="display:inline-block">
+              <input type="hidden" name="_token" value="{{ csrf_token('toggle_presente_' ~ doc.id) }}">
+              <button class="btn btn-sm {{ estados[doc.id] ? 'btn-outline-danger' : 'btn-outline-success' }}">
+                {{ estados[doc.id] ? 'Marcar ausente' : 'Dar presente' }}
+              </button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

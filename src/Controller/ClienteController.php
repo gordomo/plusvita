@@ -2099,7 +2099,7 @@ class ClienteController extends AbstractController
      */
     public function historia(Cliente $cliente, HistoriaPacienteRepository $historiaPacienteRepository, ObraSocialRepository $obraSocialRepository, NotasTurnoRepository $notasTurnoRepository, BookingRepository $bookingRepository, NotasHistoriaClinicaRepository $notasHistoriaClinicaRepository, EvolucionRepository $evolucionRepository, HistoriaEgresoRepository $historiaEgresoRepository, Request $request, DoctorRepository $doctorRepository, UserRepository $userRepository, HabitacionRepository $habitacionRepository, ConsumiblesClientesRepository $consumiblesClientesRepository): Response
     {
-        $puedenEditarEvoluciones = $this->isGranted('patient.evolve');
+        $puedenEditarEvoluciones = $this->isGranted('patient.edit_evolve');
 
         $tipos = [
             'Nutricionista',
@@ -2144,114 +2144,67 @@ class ClienteController extends AbstractController
         $doc = $doctorRepository->find($docId);
         $evArray = [];
 
-        if ($doc) {
-            foreach ($evoluciones as $evolucion) {
-                $firma = '';
-                $doctorData = ['nombre' => '', 'apellido' => '', 'matricula' => ''];
-                
-                // 1. PRIMERO: Verificar si la evolución ya tiene datos de firma guardados (nuevo sistema)
-                if ($evolucion->getFirmaDoctorPath()) {
-                    $firma = $evolucion->getFirmaDoctorPath();
-                    $doctorData['nombre'] = $evolucion->getFirmaDoctorNombre() ?: '';
-                    $doctorData['apellido'] = $evolucion->getFirmaDoctorApellido() ?: '';
-                    $doctorData['matricula'] = $evolucion->getFirmaDoctorMatricula() ?: '';
-                } else {
-                    // 2. SEGUNDO: Buscar firma activa del usuario
-                    // Primero buscar en User (nuevo sistema UserFirma)
-                    $userDoctor = $userRepository->findOneBy(['email' => $evolucion->getUser()]);
-                    if ($userDoctor && method_exists($userDoctor, 'getActiveFirma')) {
-                        $firmaActiva = $userDoctor->getActiveFirma();
-                        if ($firmaActiva && method_exists($firmaActiva, 'getFilePath')) {
-                            $firma = $firmaActiva->getFilePath();
-                            if (method_exists($userDoctor, 'getNombre')) {
-                                $doctorData['nombre'] = $userDoctor->getNombre();
-                            }
-                            if (method_exists($userDoctor, 'getApellido')) {
-                                $doctorData['apellido'] = $userDoctor->getApellido();
-                            }
-                            if (method_exists($userDoctor, 'getLegajo')) {
-                                $doctorData['matricula'] = $userDoctor->getLegajo();
-                            }
-                        }
-                    }
+        // Procesar cada evolución
+        foreach ($evoluciones as $evolucion) {
+            // Si hay filtro de doctor, verificar si coincide
+            if ($doc && $doc->getEmail() !== $evolucion->getUser()) {
+                continue; // Saltar esta evolución si no coincide con el filtro
+            }
+
+            $firma = '';
+            $doctorData = ['nombre' => '', 'apellido' => '', 'matricula' => ''];
+            
+            // 1. PRIMERO: Verificar si la evolución ya tiene datos de firma guardados (nuevo sistema)
+            if ($evolucion->getFirmaDoctorPath()) {
+                $firma = $evolucion->getFirmaDoctorPath();
+                $doctorData['nombre'] = $evolucion->getFirmaDoctorNombre() ?: '';
+                $doctorData['apellido'] = $evolucion->getFirmaDoctorApellido() ?: '';
+                $doctorData['matricula'] = $evolucion->getFirmaDoctorMatricula() ?: '';
+            } else {
+                // 2. SEGUNDO: Buscar firma activa del usuario en tabla User
+                $userDoctor = $userRepository->findOneBy(['email' => $evolucion->getUser()]);
+                if ($userDoctor) {
+                    // Obtener datos del usuario
+                    $doctorData['nombre'] = $userDoctor->getNombre() ?: '';
+                    $doctorData['apellido'] = $userDoctor->getApellido() ?: '';
+                    $doctorData['matricula'] = $userDoctor->getLegajo() ?: '';
                     
-                    // Si no encontró firma en User, buscar en Doctor (sistema viejo)
-                    if (empty($firma)) {
-                        $doctorObj = $doctorRepository->findOneBy(['email' => $evolucion->getUser()]);
-                        if ($doctorObj) {
-                            if (method_exists($doctorObj, 'getFirma')) {
-                                $firma = $doctorObj->getFirma();
-                            }
-                            if (method_exists($doctorObj, 'getNombre')) {
-                                $doctorData['nombre'] = $doctorObj->getNombre();
-                            }
-                            if (method_exists($doctorObj, 'getApellido')) {
-                                $doctorData['apellido'] = $doctorObj->getApellido();
-                            }
-                            if (method_exists($doctorObj, 'getLegajo')) {
-                                $doctorData['matricula'] = $doctorObj->getLegajo();
+                    // Buscar firma activa en las firmas del usuario
+                    $firmas = $userDoctor->getFirmas();
+                    if ($firmas && count($firmas) > 0) {
+                        foreach ($firmas as $firmaItem) {
+                            if ($firmaItem->getIsActive() && $firmaItem->getFilePath()) {
+                                $firma = $firmaItem->getFilePath();
+                                break; // Solo necesitamos la primera firma activa
                             }
                         }
                     }
                 }
-
-                if($doc->getEmail() === $evolucion->getUser()) {
-                    $evArray[] = ['evolucion' => $evolucion, 'firma' => $firma, 'doctorData' => $doctorData];
+                
+                // 3. TERCERO: Si no encontró firma en User, buscar en Doctor (sistema viejo)
+                if (empty($firma)) {
+                    $doctorObj = $doctorRepository->findOneBy(['email' => $evolucion->getUser()]);
+                    if ($doctorObj) {
+                        $firmaDoctor = $doctorObj->getFirma();
+                        if ($firmaDoctor) {
+                            $firma = $firmaDoctor;
+                        }
+                        
+                        // Si no obtuvimos datos de User, usar los de Doctor
+                        if (empty($doctorData['nombre'])) {
+                            $doctorData['nombre'] = $doctorObj->getNombre() ?: '';
+                        }
+                        if (empty($doctorData['apellido'])) {
+                            $doctorData['apellido'] = $doctorObj->getApellido() ?: '';
+                        }
+                        if (empty($doctorData['matricula'])) {
+                            $doctorData['matricula'] = $doctorObj->getLegajo() ?: '';
+                        }
+                    }
                 }
             }
-        } else {
-            foreach ($evoluciones as $evolucion) {
-                $firma = '';
-                $doctorData = ['nombre' => '', 'apellido' => '', 'matricula' => ''];
-                
-                // 1. PRIMERO: Verificar si la evolución ya tiene datos de firma guardados (nuevo sistema)
-                if ($evolucion->getFirmaDoctorPath()) {
-                    $firma = $evolucion->getFirmaDoctorPath();
-                    $doctorData['nombre'] = $evolucion->getFirmaDoctorNombre() ?: '';
-                    $doctorData['apellido'] = $evolucion->getFirmaDoctorApellido() ?: '';
-                    $doctorData['matricula'] = $evolucion->getFirmaDoctorMatricula() ?: '';
-                } else {
-                    // 2. SEGUNDO: Buscar firma activa del usuario
-                    // Primero buscar en User (nuevo sistema UserFirma)
-                    $userDoctor = $userRepository->findOneBy(['email' => $evolucion->getUser()]);
-                    if ($userDoctor && method_exists($userDoctor, 'getActiveFirma')) {
-                        $firmaActiva = $userDoctor->getActiveFirma();
-                        if ($firmaActiva && method_exists($firmaActiva, 'getFilePath')) {
-                            $firma = $firmaActiva->getFilePath();
-                            if (method_exists($userDoctor, 'getNombre')) {
-                                $doctorData['nombre'] = $userDoctor->getNombre();
-                            }
-                            if (method_exists($userDoctor, 'getApellido')) {
-                                $doctorData['apellido'] = $userDoctor->getApellido();
-                            }
-                            if (method_exists($userDoctor, 'getLegajo')) {
-                                $doctorData['matricula'] = $userDoctor->getLegajo();
-                            }
-                        }
-                    }
-                    
-                    // Si no encontró firma en User, buscar en Doctor (sistema viejo)
-                    if (empty($firma)) {
-                        $doctorObj = $doctorRepository->findOneBy(['email' => $evolucion->getUser()]);
-                        if ($doctorObj) {
-                            if (method_exists($doctorObj, 'getFirma')) {
-                                $firma = $doctorObj->getFirma();
-                            }
-                            if (method_exists($doctorObj, 'getNombre')) {
-                                $doctorData['nombre'] = $doctorObj->getNombre();
-                            }
-                            if (method_exists($doctorObj, 'getApellido')) {
-                                $doctorData['apellido'] = $doctorObj->getApellido();
-                            }
-                            if (method_exists($doctorObj, 'getLegajo')) {
-                                $doctorData['matricula'] = $doctorObj->getLegajo();
-                            }
-                        }
-                    }
-                }
 
-                $evArray[] = ['evolucion' => $evolucion, 'firma' => $firma, 'doctorData' => $doctorData];
-            }
+            $evArray[] = ['evolucion' => $evolucion, 'firma' => $firma, 'doctorData' => $doctorData];
         }
 
         // Revertir para mostrar las más nuevas primero

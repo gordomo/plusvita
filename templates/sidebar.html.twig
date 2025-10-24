@@ -76,7 +76,7 @@
             {% endif %}
             
             {# Mi Firma - Basado en permisos de firma #}
-            {% if is_granted('firma.view') %}
+            {% if is_granted('firma.create') %}
                 <a class="list-group-item list-group-item-action bg-light " href="{{ path('user_firma_index', {'userId': app.user.id}) }}">
                     <i class="fas fa-pen-fancy"></i>
                     Mi Firma
@@ -92,7 +92,7 @@
             {% endif %}
             
             {# Informes Mensuales - Basado en permisos específicos #}
-            {% if is_granted('informe_mensual.view') %}
+            {% if is_granted('informe_mensual.view') or is_granted('informe_mensual.manage') %}
                 <a class="list-group-item list-group-item-action bg-light " href="{{ path('informe_mensual_index') }}">
                     <i class="fas fa-file-medical-alt"></i>
                     Informes Mensuales

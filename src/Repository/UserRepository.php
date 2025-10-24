@@ -73,11 +73,74 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         return $this->createQueryBuilder('u')
             ->join('u.roles', 'r')
             ->where('r.name = :roleName')
+            ->andWhere('r.isActive = 1')
+            ->andWhere('u.habilitado = 1')
             ->setParameter('roleName', $roleName)
             ->orderBy('u.apellido', 'ASC')
             ->addOrderBy('u.nombre', 'ASC')
             ->getQuery()
             ->getResult()
         ;
+    }
+
+    /**
+     * Obtener usuarios con cualquiera de los roles especificados
+     */
+    public function findByRoles(array $roleNames)
+    {
+        return $this->createQueryBuilder('u')
+            ->join('u.roles', 'r')
+            ->where('r.name IN (:roles)')
+            ->andWhere('r.isActive = 1')
+            ->andWhere('u.habilitado = 1')
+            ->setParameter('roles', $roleNames)
+            ->orderBy('u.apellido', 'ASC')
+            ->addOrderBy('u.nombre', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+    /**
+     * Obtener doctores referentes (Fisiatras, Directores Médicos)
+     */
+    public function findDocReferente()
+    {
+        return $this->findByRoles(['fisiatra', 'director_medico', 'sub_director_medico']);
+    }
+
+    /**
+     * Obtener todos los usuarios con roles médicos
+     */
+    public function findDoctors()
+    {
+        $rolesDoctor = [
+            'medico_clinico', 'fisiatra', 'neurologo', 'cardiologo', 'psiquiatra',
+            'infectologo', 'urologo', 'hematologo', 'neumonologo', 'cirujano',
+            'traumatologo', 'director_medico', 'sub_director_medico', 'medico_guardia',
+            'nutricionista'
+        ];
+        
+        return $this->findByRoles($rolesDoctor);
+    }
+
+    /**
+     * Obtener todos los enfermeros
+     */
+    public function findNurses()
+    {
+        return $this->findByRoles(['enfermero', 'auxiliar_enfermeria', 'asistente_enfermeria', 'coordinador_enfermeria']);
+    }
+
+    /**
+     * Obtener emails de todos los usuarios
+     */
+    public function findEmails()
+    {
+        return $this->createQueryBuilder('u')
+            ->select('u.email')
+            ->where('u.habilitado = 1')
+            ->getQuery()
+            ->getResult();
     }
 }

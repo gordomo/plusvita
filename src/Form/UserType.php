@@ -20,15 +20,45 @@ class UserType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('username', TextType::class, ['required' => true])
+            ->add('email', EmailType::class, [
+                'label' => 'Email *',
+                'required' => true,
+                'attr' => ['placeholder' => 'ejemplo@correo.com', 'class' => 'form-control']
+            ])
+            ->add('password', PasswordType::class, [
+                'label' => 'Contraseña *',
+                'required' => true,
+                'attr' => ['placeholder' => 'Ingrese una contraseña segura', 'class' => 'form-control'],
+                'empty_data' => ''
+            ])
+            ->add('nombre', TextType::class, [
+                'label' => 'Nombre',
+                'required' => false,
+                'attr' => ['placeholder' => 'Nombre del usuario', 'class' => 'form-control']
+            ])
+            ->add('apellido', TextType::class, [
+                'label' => 'Apellido',
+                'required' => false,
+                'attr' => ['placeholder' => 'Apellido del usuario', 'class' => 'form-control']
+            ])
+            ->add('telefono', TelType::class, [
+                'label' => 'Teléfono',
+                'required' => false,
+                'attr' => ['placeholder' => 'Número de teléfono', 'class' => 'form-control']
+            ])
+            ->add('legajo', TextType::class, [
+                'label' => 'Legajo',
+                'required' => false,
+                'attr' => ['placeholder' => 'Número de legajo', 'class' => 'form-control']
+            ])
             ->add('roleEntities', EntityType::class, [
                 'class' => Role::class,
                 'choice_label' => 'displayName',
                 'multiple' => true,
                 'expanded' => true,
-                'label' => 'Roles',
+                'label' => 'Roles *',
                 'help' => 'Selecciona los roles que tendrá este usuario',
-                'required' => false,
+                'required' => true,
                 'mapped' => false,
                 'query_builder' => function ($repository) {
                     return $repository->createQueryBuilder('r')
@@ -38,17 +68,21 @@ class UserType extends AbstractType
                 },
                 'attr' => [
                     'class' => 'roles-checkboxes'
-                ]
+                ],
+                'choice_attr' => function($choice, $key, $value) {
+                    return ['class' => 'form-check-input'];
+                }
             ])
-            ->add('legajo', TextType::class, ['required' => false])
-            ->add('password', PasswordType::class, ['required' => false, 'empty_data' => 'noPass'])
-            ->add('email', EmailType::class, ['required' => true])
-            ->add('telefono', TelType::class, ['required' => false])
-            ->add('habilitado', ChoiceType::class, ['required' => false, 'choices' => [
-                'Si' => 1,
-                'No' => 0
-            ]])
-            ->add('save', SubmitType::class, ['label' => 'Guardar'])
+            ->add('habilitado', ChoiceType::class, [
+                'label' => 'Habilitado',
+                'required' => false,
+                'choices' => [
+                    'Si' => 1,
+                    'No' => 0
+                ],
+                'attr' => ['class' => 'form-control']
+            ])
+            ->add('save', SubmitType::class, ['label' => 'Guardar', 'attr' => ['class' => 'btn btn-primary']])
         ;
     }
 

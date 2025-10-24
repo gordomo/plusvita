@@ -11,7 +11,7 @@ use App\Repository\BookingRepository;
 use App\Repository\ClienteRepository;
 use App\Repository\HabitacionRepository;
 use App\Repository\ObraSocialRepository;
-use App\Service\DoctorService;
+use App\Service\UserEvolutionService;
 use DoctrineExtensions\Query\Mysql\Date;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\Request;
@@ -686,7 +686,7 @@ class DoctorController extends AbstractController
     /**
      * @Route("/doctor/historia/", name="doctor_historia", methods={"GET"})
      */
-    public function historia(Request $request, BookingRepository $bookingRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, HabitacionRepository $habitacionRepository, DoctorService $DoctorService)
+    public function historia(Request $request, BookingRepository $bookingRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, HabitacionRepository $habitacionRepository, UserEvolutionService $userEvolutionService)
     {
         $user = $this->getUser();
         $nombreInput = $request->query->get('nombreInput', '');
@@ -756,7 +756,7 @@ class DoctorController extends AbstractController
             'pestana' => $pestana,
             'obrasSociales' => $obrasSocialesArray,
             'habitacionesArray' => $habitacionesArray,
-            'puedeEvolucionar' => $DoctorService->puedeEvolucionar(),
+            'puedeEvolucionar' => $userEvolutionService->canEvolveToday(),
             'isDoctor' => true,
             'idObraSelected' => $request->query->get('idObra'),
             'hab' => $request->query->get('hab')

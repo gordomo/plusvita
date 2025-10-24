@@ -3,7 +3,7 @@
 namespace App\Form;
 
 use Svg\Tag\Text;
-use App\Entity\Doctor;
+use App\Entity\User;
 use App\Entity\Cliente;
 use App\Entity\ObraSocial;
 use Doctrine\ORM\EntityRepository;
@@ -153,13 +153,17 @@ class ClienteType extends AbstractType
                     'expanded' => false,
                 ])
                 ->add('docReferente', EntityType::class, [
-                    'class' => Doctor::class,
+                    'class' => User::class,
                     'choice_label' => 'NombreApellido',
                     'query_builder' => function (EntityRepository $er) {
+                        // Obtener usuarios con roles de Fisiatra, Director Médico o Sub Director Médico
                         return $er->createQueryBuilder('u')
-                            ->where("JSON_CONTAINS (u.modalidad, '\"Fisiatra\"', '$') = 1")
-                            ->orWhere("JSON_CONTAINS (u.modalidad, '\"Director medico\"', '$') = 1")
-                            ->orWhere("JSON_CONTAINS (u.modalidad, '\"Sub director medico\"', '$') = 1");
+                            ->leftJoin('u.roles', 'r')
+                            ->where('r.name IN (:roles)')
+                            ->andWhere('r.isActive = 1')
+                            ->andWhere('u.habilitado = 1')
+                            ->setParameter('roles', ['fisiatra', 'director_medico', 'sub_director_medico'])
+                            ->orderBy('u.apellido', 'ASC');
                     },
                     'by_reference' => false,
                     'required' => true,

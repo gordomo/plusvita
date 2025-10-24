@@ -573,64 +573,6 @@
                 </div>
             </div>
         </div>
-    
-    {% elseif isDoctor or isEnfermero %}
-        <div class="dashboard-container">
-            <div class="row">
-                {% if isDoctor %}
-                    <div class="col-md-4 mb-4">
-                        <a href="{{ path('doctor_agenda', {'periodo': 'dia'}) }}" class="text-decoration-none">
-                            <div class="dashboard-card">
-                                <div class="dashboard-card-header bg-primary text-white">
-                                    <i class="far fa-calendar-alt mr-2"></i> Agenda
-                                </div>
-                                <div class="dashboard-card-body">
-                                    <p class="card-text text-muted">Administre sus turnos y eventos diarios</p>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                    <div class="col-md-4 mb-4">
-                        <a href="{{ path('cliente_index') }}" class="text-decoration-none">
-                            <div class="dashboard-card">
-                                <div class="dashboard-card-header bg-success text-white">
-                                    <i class="fas fa-user-injured mr-2"></i> Pacientes
-                                </div>
-                                <div class="dashboard-card-body">
-                                    <p class="card-text text-muted">Acceda a historias clínicas de pacientes</p>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                    <div class="col-md-4 mb-4">
-                        <a href="{{ path('liquidar', {'id': app.user.id}) }}" class="text-decoration-none">
-                            <div class="dashboard-card">
-                                <div class="dashboard-card-header bg-info text-white">
-                                    <i class="fas fa-money-check-alt mr-2"></i> Liquidaciones
-                                </div>
-                                <div class="dashboard-card-body">
-                                    <p class="card-text text-muted">Imprima y exporte sus liquidaciones</p>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                {% endif %}
-                {% if isEnfermero %}
-                    <div class="col-md-4 mb-4">
-                        <a href="{{ path('prescripcion_index', {'id': app.user.id}) }}" class="text-decoration-none">
-                            <div class="dashboard-card">
-                                <div class="dashboard-card-header bg-primary text-white">
-                                    <i class="fas fa-user-nurse mr-2"></i> Prescripciones
-                                </div>
-                                <div class="dashboard-card-body">
-                                    <p class="card-text text-muted">Administre prescripciones médicas por paciente</p>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
     {% endif %}    
 {% endblock %}
 

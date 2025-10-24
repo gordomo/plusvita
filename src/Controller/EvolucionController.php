@@ -6,7 +6,7 @@ use http\Client;
 use App\Entity\Doctor;
 use App\Entity\Evolucion;
 use App\Form\EvolucionType;
-use App\Service\DoctorService;
+use App\Service\UserEvolutionService;
 use App\Repository\DoctorRepository;
 use App\Repository\ClienteRepository;
 use App\Repository\EvolucionRepository;
@@ -29,7 +29,7 @@ class EvolucionController extends AbstractController
     /**
      * @Route("/", name="evolucion_index", methods={"GET"})
      */
-    public function index(Request $request, EvolucionRepository $evolucionRepository, ClienteRepository $clienteRepository, DoctorService $DoctorService): Response
+    public function index(Request $request, EvolucionRepository $evolucionRepository, ClienteRepository $clienteRepository, UserEvolutionService $userEvolutionService): Response
     {
         $user               = $this->getUser();
         $tipoSeleccionado   = $request->query->get('tipoSeleccionado', 0);
@@ -43,19 +43,20 @@ class EvolucionController extends AbstractController
         $fechaDesde = $from ? new \DateTime($from. '0:0:0') : $from;
         $fechaHasta = $to   ? new \DateTime($to. '23:59:59'): $to;
 
-        $modalidades = [];
-        if($user instanceOf Doctor) {
-            $modalidades = $user->getModalidad();
-        }
-
-        if( count($modalidades) === 1 && $tipoSeleccionado === 0) {
-            $tipoSeleccionado = $modalidades[0];
-        }
+        // Modalidades deprecado - ya no se auto-selecciona tipo de evolución
+        // Los usuarios ahora seleccionan manualmente el tipo
+        // $modalidades = [];
+        // if($user instanceOf Doctor) {
+        //     $modalidades = $user->getModalidad();
+        // }
+        // if( count($modalidades) === 1 && $tipoSeleccionado === 0) {
+        //     $tipoSeleccionado = $modalidades[0];
+        // }
 
         $clientId = $request->get('cliente');
         $cliente = $clienteRepository->find($clientId);
 
-        if(!$DoctorService->puedeEvolucionar() && !$cliente->getAmbulatorioPresente()) {
+        if(!$userEvolutionService->canEvolveToday() && !$cliente->getAmbulatorioPresente()) {
             die('No puede evolucionar');
         }
 
@@ -108,11 +109,9 @@ class EvolucionController extends AbstractController
         $evolucion->setUser($user->getEmail());
         $evolucion->setFecha(new \DateTime());
 
-        $modalidades = $user->getModalidad();
+        // Modalidades deprecado - siempre será vacío con el nuevo sistema
+        // Los usuarios deben seleccionar el tipo de evolución manualmente
         $modalidad = '';
-        if( count($modalidades) === 1 ) {
-            $modalidad = $modalidades[0];
-        }
 
         $form = $this->createForm(EvolucionType::class, $evolucion, ['modalidad' => $modalidad, 'doctores' => $docArr, 'usuarioActual' => $user->getEmail(), 'puedenEditarEvoluciones' => $puedenEditarEvoluciones]);
         $form->handleRequest($request);
@@ -200,22 +199,68 @@ class EvolucionController extends AbstractController
     /**
      * @Route("/{id}", name="evolucion_show", methods={"GET"})
      */
-    public function show($id, EvolucionRepository $evolucionRepository, DoctorRepository $doctorRepository): Response
+    public function show($id, EvolucionRepository $evolucionRepository, DoctorRepository $doctorRepository, \App\Repository\UserRepository $userRepository): Response
     {
         $evolucion = $evolucionRepository->find($id);
-        $firmaData = null;
+        $firma = '';
+        $doctorData = ['nombre' => '', 'apellido' => '', 'matricula' => ''];
         
-        // Get the doctor associated with this evolution (by email)
         if ($evolucion && $evolucion->getUser()) {
-            $doctor = $doctorRepository->findOneBy(['email' => $evolucion->getUser()]);
-            if ($doctor) {
-                $firmaData = $this->obtenerFirmaDoctor($doctor);
+            // 1. PRIMERO: Verificar si la evolución ya tiene datos de firma guardados (nuevo sistema)
+            if ($evolucion->getFirmaDoctorPath()) {
+                $firma = $evolucion->getFirmaDoctorPath();
+                $doctorData['nombre'] = $evolucion->getFirmaDoctorNombre() ?: '';
+                $doctorData['apellido'] = $evolucion->getFirmaDoctorApellido() ?: '';
+                $doctorData['matricula'] = $evolucion->getFirmaDoctorMatricula() ?: '';
+            } else {
+                // 2. SEGUNDO: Buscar firma activa del usuario en tabla User
+                $userDoctor = $userRepository->findOneBy(['email' => $evolucion->getUser()]);
+                if ($userDoctor) {
+                    // Obtener datos del usuario
+                    $doctorData['nombre'] = $userDoctor->getNombre() ?: '';
+                    $doctorData['apellido'] = $userDoctor->getApellido() ?: '';
+                    $doctorData['matricula'] = $userDoctor->getLegajo() ?: '';
+                    
+                    // Buscar firma activa en las firmas del usuario
+                    $firmas = $userDoctor->getFirmas();
+                    if ($firmas && count($firmas) > 0) {
+                        foreach ($firmas as $firmaItem) {
+                            if ($firmaItem->getIsActive() && $firmaItem->getFilePath()) {
+                                $firma = $firmaItem->getFilePath();
+                                break; // Solo necesitamos la primera firma activa
+                            }
+                        }
+                    }
+                }
+                
+                // 3. TERCERO: Si no encontró firma en User, buscar en Doctor (sistema viejo)
+                if (empty($firma)) {
+                    $doctorObj = $doctorRepository->findOneBy(['email' => $evolucion->getUser()]);
+                    if ($doctorObj) {
+                        $firmaDoctor = $doctorObj->getFirma();
+                        if ($firmaDoctor) {
+                            $firma = $firmaDoctor;
+                        }
+                        
+                        // Si no obtuvimos datos de User, usar los de Doctor
+                        if (empty($doctorData['nombre'])) {
+                            $doctorData['nombre'] = $doctorObj->getNombre() ?: '';
+                        }
+                        if (empty($doctorData['apellido'])) {
+                            $doctorData['apellido'] = $doctorObj->getApellido() ?: '';
+                        }
+                        if (empty($doctorData['matricula'])) {
+                            $doctorData['matricula'] = $doctorObj->getLegajo() ?: '';
+                        }
+                    }
+                }
             }
         }
         
         return $this->render('evolucion/show.html.twig', [
             'evolucion' => $evolucion,
-            'firmaData' => $firmaData,
+            'firma' => $firma,
+            'doctorData' => $doctorData,
         ]);
     }
 
@@ -225,13 +270,10 @@ class EvolucionController extends AbstractController
     public function edit(Request $request, Evolucion $evolucion, DoctorRepository $doctorRepository, \App\Repository\UserRepository $userRepository): Response
     {
         $user = $this->getUser();
-        $modalidades = $user->getModalidad();
         $usuarioActual = $evolucion->getUser();
 
+        // Modalidades deprecado - siempre será vacío
         $modalidad = '';
-        if( count($modalidades) === 1 ) {
-            $modalidad = $modalidades[0];
-        }
 
         // Obtener doctores con rol doctor (User objects, no solo emails)
         $doctoresConRol = $userRepository->findByRole('doctor');
@@ -319,41 +361,5 @@ class EvolucionController extends AbstractController
     {
         $file = $this->getParameter('adjuntos_pacientes_directory') . '/' . $clienteId . '/evoluciones/' . $pdf;
         return new BinaryFileResponse($file);
-    }
-
-    /**
-     * Get the signature data for a doctor
-     * Priority: UserFirma -> Doctor.firma
-     */
-    private function obtenerFirmaDoctor(Doctor $doctor): ?array
-    {
-        $entityManager = $this->getDoctrine()->getManager();
-        $userRepository = $entityManager->getRepository(\App\Entity\User::class);
-        
-        // First, try to get UserFirma (new system)
-        $user = $userRepository->findOneBy(['email' => $doctor->getEmail()]);
-        if ($user) {
-            $activeFirma = $user->getActiveFirma();
-            if ($activeFirma && $activeFirma->getFilePath()) {
-                return [
-                    'nombre' => $doctor->getNombre(),
-                    'apellido' => $doctor->getApellido(),
-                    'matricula' => $doctor->getMatricula(),
-                    'firma_path' => $activeFirma->getFilePath(),
-                ];
-            }
-        }
-        
-        // Fallback to Doctor.firma (legacy system)
-        if ($doctor->getFirma()) {
-            return [
-                'nombre' => $doctor->getNombre(),
-                'apellido' => $doctor->getApellido(),
-                'matricula' => $doctor->getMatricula(),
-                'firma_path' => $doctor->getFirma(),
-            ];
-        }
-        
-        return null;
     }
 }

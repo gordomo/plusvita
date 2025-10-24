@@ -1,0 +1,143 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .dashboard-container {
+        padding: 1rem 0;
+    }
+    
+    .dashboard-card {
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        height: 100%;
+        overflow: hidden;
+    }
+    
+    .dashboard-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .dashboard-card-header {
+        padding: 1rem;
+        font-weight: 600;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        display: flex;
+        align-items: center;
+    }
+    
+    .dashboard-card-header i {
+        margin-right: 0.5rem;
+        font-size: 1.25rem;
+    }
+    
+    .dashboard-card-body {
+        padding: 1.5rem;
+    }
+    
+    .welcome-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 8px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block title %}Dashboard - Doctor{% endblock %}
+{% block panelTitle %}Panel del Doctor{% endblock %}
+
+{% block body %}
+    <div class="dashboard-container">
+        <!-- Sección de Bienvenida -->
+        <div class="welcome-section">
+            <h2><i class="fas fa-user-md"></i> Bienvenido, Dr./Dra. {{ app.user.apellido }}</h2>
+            <p class="mb-0">Acceso rápido a sus funciones principales</p>
+        </div>
+
+        <!-- Accesos Rápidos -->
+        <div class="row">
+            <!-- Agenda -->
+            <div class="col-md-4 mb-4">
+                <a href="{{ path('doctor_agenda', {'periodo': 'dia'}) }}" class="text-decoration-none">
+                    <div class="dashboard-card">
+                        <div class="dashboard-card-header bg-primary text-white">
+                            <i class="far fa-calendar-alt"></i> Mi Agenda
+                        </div>
+                        <div class="dashboard-card-body">
+                            <p class="card-text text-muted">
+                                <i class="fas fa-clock mr-2"></i> Administre sus turnos y eventos diarios
+                            </p>
+                            <small class="text-info">
+                                <i class="fas fa-arrow-right"></i> Ver agenda completa
+                            </small>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Pacientes -->
+            <div class="col-md-4 mb-4">
+                <a href="{{ path('cliente_index') }}" class="text-decoration-none">
+                    <div class="dashboard-card">
+                        <div class="dashboard-card-header bg-success text-white">
+                            <i class="fas fa-user-injured"></i> Mis Pacientes
+                        </div>
+                        <div class="dashboard-card-body">
+                            <p class="card-text text-muted">
+                                <i class="fas fa-notes-medical mr-2"></i> Acceda a historias clínicas y evoluciones
+                            </p>
+                            <small class="text-success">
+                                <i class="fas fa-arrow-right"></i> Ver pacientes
+                            </small>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Liquidaciones -->
+            <div class="col-md-4 mb-4">
+                <a href="{{ path('liquidar', {'id': app.user.id}) }}" class="text-decoration-none">
+                    <div class="dashboard-card">
+                        <div class="dashboard-card-header bg-info text-white">
+                            <i class="fas fa-money-check-alt"></i> Mis Liquidaciones
+                        </div>
+                        <div class="dashboard-card-body">
+                            <p class="card-text text-muted">
+                                <i class="fas fa-file-invoice-dollar mr-2"></i> Imprima y exporte sus liquidaciones
+                            </p>
+                            <small class="text-info">
+                                <i class="fas fa-arrow-right"></i> Ver liquidaciones
+                            </small>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Sección adicional: Aquí puedes agregar más widgets según necesites -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <h5 class="text-muted mb-3">
+                    <i class="fas fa-chart-line"></i> Información Adicional
+                </h5>
+            </div>
+            
+            <!-- Aquí puedes agregar más tarjetas según necesites -->
+            <!-- Por ejemplo: Turnos de hoy, Pacientes nuevos, Notificaciones, etc. -->
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        $(document).ready(function() {
+            // Inicializar tooltips si los necesitas
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+    </script>
+{% endblock %}

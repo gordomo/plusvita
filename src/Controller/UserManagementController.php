@@ -6,7 +6,10 @@ use App\Entity\User;
 use App\Entity\Doctor;
 use App\Entity\Nurse;
 use App\Entity\Role;
+use App\Entity\UserPresente;
 use App\Service\AuthorizationService;
+use App\Repository\UserPresenteRepository;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -36,7 +39,7 @@ class UserManagementController extends AbstractController
     /**
      * @Route("/", name="user_management_index", methods={"GET"})
      */
-    public function index(Request $request): Response
+    public function index(Request $request, UserPresenteRepository $presRepo): Response
     {
         // Verificar permisos (temporalmente comentado para debug)
         // if (!$this->authorizationService->hasPermission('user.read')) {
@@ -77,6 +80,13 @@ class UserManagementController extends AbstractController
         // Obtener roles disponibles
         $roles = $this->entityManager->getRepository(Role::class)->findBy(['isActive' => true]);
 
+        // Obtener estado de presentes para hoy
+        $hoy = new \DateTime('today');
+        $estadosPresentes = [];
+        foreach ($paginatedUsers as $user) {
+            $estadosPresentes[$user->getId()] = $presRepo->hasPresente($user, $hoy);
+        }
+
         return $this->render('admin/users/index.html.twig', [
             'users' => $paginatedUsers,
             'roles' => $roles,
@@ -89,6 +99,8 @@ class UserManagementController extends AbstractController
                 'search' => $search,
                 'status' => $status,
             ],
+            'estadosPresentes' => $estadosPresentes,
+            'hoy' => $hoy->format('Y-m-d'),
         ]);
     }
 
@@ -99,33 +111,24 @@ class UserManagementController extends AbstractController
             if ($search) {
                 $searchLower = strtolower($search);
                 $email = $user->getEmail() ?? '';
+                $nombre = $user->getNombre() ?? '';
+                $apellido = $user->getApellido() ?? '';
+                $username = $user->getUsername() ?? '';
+                $fullName = trim($nombre . ' ' . $apellido);
                 
-                if ($user->userType === 'admin') {
-                    // Para usuarios admin, buscar en username, nombre, apellido y email
-                    $username = $user->getUsername() ?? '';
-                    $nombre = $user->getNombre() ?? '';
-                    $apellido = $user->getApellido() ?? '';
-                    $fullName = trim($nombre . ' ' . $apellido);
-                    
-                    if (strpos(strtolower($username), $searchLower) === false && 
-                        strpos(strtolower($fullName), $searchLower) === false && 
-                        strpos(strtolower($email), $searchLower) === false) {
-                        return false;
-                    }
-                } else {
-                    // Para doctores y enfermeros, buscar en nombre completo y email
-                    $name = ($user->getNombre() ?? '') . ' ' . ($user->getApellido() ?? '');
-                    
-                    if (strpos(strtolower($name), $searchLower) === false && 
-                        strpos(strtolower($email), $searchLower) === false) {
-                        return false;
-                    }
+                // Buscar en todos los campos
+                $searchMatch = (strpos(strtolower($username), $searchLower) !== false || 
+                                strpos(strtolower($fullName), $searchLower) !== false || 
+                                strpos(strtolower($email), $searchLower) !== false);
+                
+                if (!$searchMatch) {
+                    return false;
                 }
             }
 
             // Filtro de estado
             if ($status !== 'all') {
-                $isActive = $user->habilitado ?? true;
+                $isActive = $user->isHabilitado();
                 if (($status === 'active' && !$isActive) || 
                     ($status === 'inactive' && $isActive)) {
                     return false;
@@ -276,5 +279,51 @@ class UserManagementController extends AbstractController
             default:
                 throw new \InvalidArgumentException('Tipo de usuario no válido');
         }
+    }
+
+    /**
+     * @Route("/{id}/toggle-presente", name="user_toggle_presente", methods={"POST"})
+     */
+    public function togglePresente(int $id, Request $request, UserRepository $userRepository, UserPresenteRepository $presRepo): Response
+    {
+        // Verificar permisos - requiere permisos de staff
+        if (!$this->authorizationService->hasPermission('doctor.update')) {
+            throw $this->createAccessDeniedException('No tienes permisos para gestionar presentes');
+        }
+
+        $user = $userRepository->find($id);
+        if (!$user) {
+            throw $this->createNotFoundException('Usuario no encontrado');
+        }
+
+        // Validar token CSRF
+        $token = $request->request->get('_token');
+        if (!$this->isCsrfTokenValid('toggle_presente_' . $id, $token)) {
+            throw $this->createAccessDeniedException('Token de seguridad inválido');
+        }
+
+        $hoy = new \DateTime('today');
+
+        // Buscar registro existente
+        $existing = $presRepo->findOneBy(['user' => $user, 'fecha' => $hoy]);
+        if ($existing) {
+            // Alternar estado
+            $existing->setValor(!$existing->getValor());
+            $this->entityManager->persist($existing);
+        } else {
+            // Crear nuevo registro con presente=true
+            $pres = new UserPresente();
+            $pres->setUser($user)->setFecha($hoy)->setValor(true);
+            $this->entityManager->persist($pres);
+        }
+        $this->entityManager->flush();
+
+        // Retornar al índice con mismo filtro
+        $referer = $request->headers->get('referer');
+        if ($referer) {
+            return $this->redirect($referer);
+        }
+
+        return $this->redirectToRoute('user_management_index');
     }
 }

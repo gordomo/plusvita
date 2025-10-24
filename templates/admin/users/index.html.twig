@@ -146,6 +146,7 @@
                                     <th class="roles">Roles</th>
                                     <th class="email">Email</th>
                                     <th class="telefono">Teléfono</th>
+                                    <th class="presente">Presente Hoy</th>
                                     <th class="acciones">Acciones</th>
                                 </tr>
                             </thead>
@@ -210,11 +211,28 @@
                                             --
                                         {% endif %}
                                     </td>
+                                    <td class="text-center presente">
+                                        {% if estadosPresentes[user.id] %}
+                                            <span class="badge badge-success">
+                                                <i class="fas fa-check-circle"></i> Presente
+                                            </span>
+                                        {% else %}
+                                            <span class="badge badge-secondary">
+                                                <i class="fas fa-times-circle"></i> Ausente
+                                            </span>
+                                        {% endif %}
+                                    </td>
                                     <td class="text-center">
                                         <div class="btn-group">
                                             <a class="btn btn-sm btn-primary btn-action" href="{{ path('user_edit', {'id': user.id}) }}" data-toggle="tooltip" title="Editar Usuario">
                                                 <i class="fas fa-edit"></i>
                                             </a>
+                                            <form method="post" action="{{ path('user_toggle_presente', {id: user.id}) }}" style="display:inline-block">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('toggle_presente_' ~ user.id) }}">
+                                                <button type="submit" class="btn btn-sm {% if estadosPresentes[user.id] %}btn-outline-danger{% else %}btn-outline-success{% endif %} btn-action" data-toggle="tooltip" title="{% if estadosPresentes[user.id] %}Marcar ausente{% else %}Dar presente{% endif %}">
+                                                    <i class="fas {% if estadosPresentes[user.id] %}fa-user-times{% else %}fa-user-check{% endif %}"></i>
+                                                </button>
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>

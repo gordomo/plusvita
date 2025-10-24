@@ -52,6 +52,29 @@ class DashboardController extends AbstractController
         if (!$this->isGranted('ROLE_USER')) {
             throw $this->createAccessDeniedException('No tienes permisos para acceder al dashboard');
         }
+
+        $user = $this->getUser();
+        
+        // Redirigir según el tipo de usuario
+        if ($this->isGranted('ROLE_ADMIN')) {
+            return $this->dashboardAdmin($habitacionRepository, $historiaPacienteRepository, $presentesRepository, $clienteRepository);
+        } elseif ($this->isDoctor()) {
+            return $this->dashboardDoctor();
+        } elseif ($this->isEnfermero()) {
+            return $this->dashboardEnfermero();
+        }
+
+        // Dashboard por defecto para otros usuarios autenticados
+        return $this->render('dashboard/default.html.twig', [
+            'dashboardActive' => 'active',
+        ]);
+    }
+
+    /**
+     * Dashboard para administradores
+     */
+    private function dashboardAdmin(HabitacionRepository $habitacionRepository, HistoriaPacienteRepository $historiaPacienteRepository, PresentesRepository $presentesRepository, ClienteRepository $clienteRepository): Response
+    {
         $isDoctor = $this->isDoctor();
         $isEnfermero = $this->isEnfermero();
 
@@ -95,7 +118,7 @@ class DashboardController extends AbstractController
         
         $rotacionCamas = $this->calcularRotacionCamas($numeroEgresos, $infoHabitaciones);
         
-        return $this->render('dashboard_new.html.twig',
+        return $this->render('dashboard/admin.html.twig',
             [
                 'dashboardActive' => 'active',
                 'isDoctor' => $isDoctor,
@@ -123,6 +146,40 @@ class DashboardController extends AbstractController
     }
 
     /**
+     * Dashboard para doctores
+     */
+    private function dashboardDoctor(): Response
+    {
+        $user = $this->getUser();
+        
+        // Aquí puedes agregar lógica específica para doctores
+        // Por ejemplo: turnos del día, pacientes asignados, etc.
+        
+        return $this->render('dashboard/doctor.html.twig', [
+            'dashboardActive' => 'active',
+            'user' => $user,
+            // Agrega aquí las variables que necesites para el dashboard del doctor
+        ]);
+    }
+
+    /**
+     * Dashboard para enfermeros
+     */
+    private function dashboardEnfermero(): Response
+    {
+        $user = $this->getUser();
+        
+        // Aquí puedes agregar lógica específica para enfermeros
+        // Por ejemplo: prescripciones pendientes, rondas del día, etc.
+        
+        return $this->render('dashboard/enfermero.html.twig', [
+            'dashboardActive' => 'active',
+            'user' => $user,
+            // Agrega aquí las variables que necesites para el dashboard del enfermero
+        ]);
+    }
+
+    /**
      * @Route("/old", name="dashboard_index_old", methods={"GET"})
      */
     public function old(Request $request, HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, DoctorRepository $doctorRepository): Response
@@ -136,10 +193,19 @@ class DashboardController extends AbstractController
         $isEnfermero = $this->isEnfermero();
 
         $user = $this->getUser();
-        $modalidad = 'Sin Modalidad - Consulte al Administrador';
-        if (is_callable([$user, 'getModalidad']) && !empty($user->getModalidad()) ) {
-            $modalidad = $user->getModalidad()[0];
+        
+        // Obtener rol principal del usuario para mostrar en dashboard
+        $modalidad = 'Usuario del Sistema';
+        if ($user instanceof \App\Entity\User) {
+            $roles = $user->getRoleEntities();
+            if (count($roles) > 0) {
+                $firstRole = $roles->first();
+                if ($firstRole) {
+                    $modalidad = $firstRole->getDisplayName();
+                }
+            }
         }
+        
         $habitacionesYpacientes = $this->getHabitacionesYpacientes();
 
         $osArray = $this->getOSarray($obraSocialRepository);
@@ -227,45 +293,40 @@ class DashboardController extends AbstractController
 
     private function isDoctor()
     {
-        $isDoctor = false;
         $user = $this->getUser();
-
-        $modalidad = 'sinModalidad';
-        if (is_callable([$user, 'getModalidad']) && !empty($user->getModalidad()) ) {
-            $modalidad = $user->getModalidad()[0];
+        if (!$user instanceof \App\Entity\User) {
+            return false;
         }
 
-        if( in_array($modalidad, $this->getModalidades(2)) ||
-            in_array($modalidad, $this->getModalidades(3)) ||
-            in_array($modalidad, $this->getModalidades(4))) {
-            $isDoctor = true;
+        // Verificar si tiene algún rol médico
+        $rolesDoctor = [
+            'medico_clinico', 'fisiatra', 'neurologo', 'cardiologo', 'psiquiatra',
+            'infectologo', 'urologo', 'hematologo', 'neumonologo', 'cirujano',
+            'traumatologo', 'director_medico', 'sub_director_medico', 'medico_guardia',
+            'nutricionista'
+        ];
+
+        foreach ($rolesDoctor as $role) {
+            if ($user->hasRole($role)) {
+                return true;
+            }
         }
 
-        return $isDoctor;
-
+        return false;
     }
 
     private function isEnfermero()
     {
-        $isEnfermero = false;
         $user = $this->getUser();
-
-        $modalidad = 'sinModalidad';
-        if (is_callable([$user, 'getModalidad']) && !empty($user->getModalidad()) ) {
-            $modalidad = $user->getModalidad()[0];
+        if (!$user instanceof \App\Entity\User) {
+            return false;
         }
 
-        if( in_array($modalidad, $this->getModalidadesEnfermeria())) {
-
-            $isEnfermero = true;
-        }
-
-        return $isEnfermero;
-
-    }
-
-    private function getModalidadesEnfermeria() {
-        return ['Enfermero/a', 'Auxiliar de enfermeria', 'Asistente de enfermeria'];
+        // Verificar si tiene algún rol de enfermería
+        return $user->hasRole('enfermero') || 
+               $user->hasRole('auxiliar_enfermeria') || 
+               $user->hasRole('asistente_enfermeria') ||
+               $user->hasRole('coordinador_enfermeria');
     }
 
     private function getModalidades(int $contrato)

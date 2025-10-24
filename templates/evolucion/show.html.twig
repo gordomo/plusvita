@@ -37,26 +37,17 @@
             <tr>
                 <th>Firma del Doctor</th>
                 <td>
-                    {% if firmaData and firmaData.firma_path %}
+                    {% if firma %}
                         <div class="firma-container" style="border: 1px solid #ddd; padding: 15px; max-width: 300px; text-align: center;">
-                            <img src="{{ asset('uploads/firmas/' ~ firmaData.firma_path) }}" alt="Firma" style="max-width: 200px; max-height: 100px; margin-bottom: 10px;">
+                            <img src="{{ asset('uploads/firmas/' ~ firma) }}" alt="Firma" style="max-width: 200px; max-height: 100px; margin-bottom: 10px;">
                             <div style="border-top: 1px solid #000; padding-top: 10px; font-size: 12px;">
-                                <strong>{{ firmaData.nombre }} {{ firmaData.apellido }}</strong>
+                                <strong>{{ doctorData.nombre }} {{ doctorData.apellido }}</strong>
                                 <br>
-                                MAT: {{ firmaData.matricula|default('N/A') }}
-                            </div>
-                        </div>
-                    {% elseif evolucion.firmaDoctorPath %}
-                        <div class="firma-container" style="border: 1px solid #ddd; padding: 15px; max-width: 300px; text-align: center;">
-                            <img src="{{ asset('uploads/firmas/' ~ evolucion.firmaDoctorPath) }}" alt="Firma" style="max-width: 200px; max-height: 100px; margin-bottom: 10px;">
-                            <div style="border-top: 1px solid #000; padding-top: 10px; font-size: 12px;">
-                                <strong>{{ evolucion.firmaDoctorNombre }} {{ evolucion.firmaDoctorApellido }}</strong>
-                                <br>
-                                MAT: {{ evolucion.firmaDoctorMatricula|default('N/A') }}
+                                MAT: {{ doctorData.matricula|default('N/A') }}
                             </div>
                         </div>
                     {% else %}
-                        <em>Sin firma registrada</em>
+                        <em style="color: #999; font-style: italic;">Firma No Registrada</em>
                     {% endif %}
                 </td>
             </tr>

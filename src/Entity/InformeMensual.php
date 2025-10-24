@@ -26,7 +26,7 @@ class InformeMensual
 
     /**
      * @ORM\ManyToOne(targetEntity=User::class)
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\JoinColumn(name="doctor_user_id", nullable=true)
      */
     private $doctor;
 

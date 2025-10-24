@@ -244,7 +244,11 @@
                                                 <td>
                                                     <div class="d-flex align-items-center">
                                                         <i class="fas fa-user-md mr-2 text-muted"></i>
-                                                        <span>{{ informe.doctor.apellido }}, {{ informe.doctor.nombre }}</span>
+                                                        {% if informe.doctor %}
+                                                            <span>{{ informe.doctor.apellido }}, {{ informe.doctor.nombre }}</span>
+                                                        {% else %}
+                                                            <span>Doctor desconocido</span>
+                                                        {% endif %}
                                                     </div>
                                                 </td>
                                                 <td>{{ informe.mesCorrespondiente }}</td>
@@ -267,18 +271,6 @@
                                         {% endfor %}
                                     </tbody>
                                 </table>
-                            </div>
-                            
-                            <div class="d-flex justify-content-between align-items-center mt-3">
-                                <span class="text-muted">Total: {{ informes|length }} informe(s)</span>
-                                <div>
-                                    <button type="button" class="btn btn-success btn-sm" id="export-excel" title="Exportar a Excel">
-                                        <i class="fas fa-file-excel mr-1"></i> Excel
-                                    </button>
-                                    <button type="button" class="btn btn-danger btn-sm" id="export-pdf" title="Exportar a PDF">
-                                        <i class="fas fa-file-pdf mr-1"></i> PDF
-                                    </button>
-                                </div>
                             </div>
                         {% endif %}
                     </div>
@@ -316,16 +308,6 @@
                     filterBody.style.display = 'none';
                     icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
                 }
-            });
-            
-            // Exportar a Excel
-            document.getElementById('export-excel').addEventListener('click', function() {
-                alert('Función de exportar a Excel será implementada próximamente.');
-            });
-            
-            // Exportar a PDF
-            document.getElementById('export-pdf').addEventListener('click', function() {
-                alert('Función de exportar a PDF será implementada próximamente.');
             });
         });
     </script>

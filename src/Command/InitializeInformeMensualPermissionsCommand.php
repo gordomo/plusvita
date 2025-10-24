@@ -36,25 +36,13 @@ class InitializeInformeMensualPermissionsCommand extends Command
                 'name' => 'informe_mensual.view',
                 'displayName' => 'Ver Informes Mensuales',
                 'category' => 'Informes Mensuales',
-                'description' => 'Permite ver los informes mensuales',
+                'description' => 'Permite ver los informes mensuales (solo los propios si no tiene manage)',
             ],
             [
-                'name' => 'informe_mensual.create',
-                'displayName' => 'Crear Informe Mensual',
+                'name' => 'informe_mensual.manage',
+                'displayName' => 'Administrar Informes Mensuales',
                 'category' => 'Informes Mensuales',
-                'description' => 'Permite crear un nuevo informe mensual',
-            ],
-            [
-                'name' => 'informe_mensual.edit',
-                'displayName' => 'Editar Informe Mensual',
-                'category' => 'Informes Mensuales',
-                'description' => 'Permite editar un informe mensual',
-            ],
-            [
-                'name' => 'informe_mensual.delete',
-                'displayName' => 'Eliminar Informe Mensual',
-                'category' => 'Informes Mensuales',
-                'description' => 'Permite eliminar un informe mensual',
+                'description' => 'Permite ver, crear, editar y eliminar todos los informes mensuales (acceso total)',
             ],
         ];
 

@@ -105,19 +105,24 @@ class UserFirmaController extends AbstractController
         try {
             $fileName = $this->handleFileUpload($uploadedFile);
             
+            // Desactivar todas las firmas anteriores del usuario
+            foreach ($user->getFirmas() as $existingFirma) {
+                $existingFirma->setIsActive(false);
+                $this->entityManager->persist($existingFirma);
+            }
+            
+            // Crear la nueva firma y activarla automáticamente
             $firma = new UserFirma();
             $firma->setUser($user);
             $firma->setFileName($uploadedFile->getClientOriginalName());
             $firma->setFilePath($fileName);
-            $firma->setIsActive(false);
+            $firma->setIsActive(true); // Activar la nueva firma por defecto
             
             $this->entityManager->persist($firma);
             $this->entityManager->flush();
 
-            $this->addFlash('success', 'Firma cargada exitosamente');
-            dd('ok');
+            $this->addFlash('success', 'Firma cargada y activada exitosamente');
         } catch (\Exception $e) {
-            dd($e);
             $this->addFlash('error', 'Error al cargar la firma: ' . $e->getMessage());
         }
 

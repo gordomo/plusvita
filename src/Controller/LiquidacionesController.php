@@ -163,7 +163,7 @@ class LiquidacionesController extends AbstractController
     /**
      * @Route("/mis", name="liquidaciones_mis", methods={"GET"})
      */
-    public function mis(DoctorRepository $doctorRepository, EvolucionRepository $evolucionRepository, HistoriaPacienteRepository $historiaRepository): Response
+    public function mis(EvolucionRepository $evolucionRepository, HistoriaPacienteRepository $historiaRepository): Response
     {
         $user = $this->getUser();
         if (!$user) {
@@ -173,15 +173,8 @@ class LiquidacionesController extends AbstractController
         // Solo doctores pueden ver sus propias liquidaciones
         $this->denyAccessUnlessGranted('liquidations.view');
         
-        // Obtener el doctor asociado al usuario actual (por email)
-        $userDoctor = $doctorRepository->findOneBy(['email' => $user->getEmail()]);
-        if (!$userDoctor) {
-            $this->addFlash('error', 'No se encontró un doctor asociado a tu usuario.');
-            return $this->redirectToRoute('dashboard');
-        }
-        
-        // Redirigir a la liquidación del doctor actual
-        return $this->redirectToRoute('liquidar', ['id' => $userDoctor->getId()]);
+        // Redirigir a la liquidación del usuario actual (ahora User es doctor)
+        return $this->redirectToRoute('liquidar', ['id' => $user->getId()]);
     }
 
     /**
@@ -208,9 +201,8 @@ class LiquidacionesController extends AbstractController
                 return $this->redirectToRoute('app_login');
             }
             
-            // Regular users (doctors) can only access their own liquidations (by email)
-            $userDoctor = $doctorRepository->findOneBy(['email' => $user->getEmail()]);
-            if (!$userDoctor || $userDoctor->getId() != $id) {
+            // Regular users (doctors) can only access their own liquidations
+            if ($user->getId() != $id) {
                 $this->addFlash('error', 'No tienes permiso para ver las liquidaciones de otro doctor.');
                 return $this->redirectToRoute('liquidaciones_mis');
             }
@@ -231,6 +223,14 @@ class LiquidacionesController extends AbstractController
         $evolucionesPivotOs = [];
         $evolucionesPivotOsActivos = [];
         $evolucionesPivotOsAmbulatorios = [];
+        
+        // Obtener el doctor (que ahora es User) por ID
+        $doctor = $userRepository->find($id);
+        if (!$doctor) {
+            $this->addFlash('error', 'Doctor no encontrado.');
+            return $this->redirectToRoute('liquidaciones_mis');
+        }
+        
         $evoluciones = $evolucionRepository->findByFechaDoctorYCliente($doctor->getEmail(), null, $fechaDesde, $fechaHasta);
 
         $evolucionesCount = count($evoluciones);

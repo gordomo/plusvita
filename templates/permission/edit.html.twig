@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Editar Permiso{% endblock %}
+{% block panelTitle %}Editar Permiso{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-edit mr-2"></i>
+                        Editar Permiso: {{ permission.displayName }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form) }}
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form_row(form.name) }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_row(form.displayName) }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form_row(form.category) }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_row(form.isActive) }}
+                            </div>
+                        </div>
+                        
+                        {{ form_row(form.description) }}
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ path('permission_index') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Guardar Cambios
+                            </button>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

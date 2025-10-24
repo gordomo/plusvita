@@ -58,7 +58,7 @@
         }
         .signature {
             margin-top: 40px;
-            text-align: right;
+            text-align: center;
             border-top: 1px dashed #ccc;
             padding-top: 15px;
         }
@@ -67,11 +67,16 @@
             max-width: 200px;
             display: block;
             margin-left: auto;
-            margin-bottom: 10px;
+            margin-right: auto;
+            margin-bottom: 5px;
         }
         .doctor-info {
-            text-align: right;
-            line-height: 1.2;
+            text-align: center;
+            line-height: 1.4;
+            margin-top: 5px;
+        }
+        .doctor-info p {
+            margin: 3px 0;
         }
         table {
             width: 100%;
@@ -99,8 +104,10 @@
                     <p><strong>Obra Social:</strong> {{ informeMensual.cliente.obraSocial ? informeMensual.cliente.obraSocial.nombre : 'No especificada' }}</p>
                 </td>
                 <td width="50%" style="text-align: right;">
-                    <p><strong>Doctor:</strong> {{ informeMensual.doctor.nombre }} {{ informeMensual.doctor.apellido }}</p>
-                    <p><strong>Matrícula:</strong> {{ informeMensual.doctor.matricula }}</p>
+                    <p><strong>Doctor:</strong> {{ doctorSignature.nombre }} {{ doctorSignature.apellido }}</p>
+                    {% if doctorSignature.matricula %}
+                        <p><strong>Matrícula:</strong> {{ doctorSignature.matricula }}</p>
+                    {% endif %}
                 </td>
             </tr>
         </table>
@@ -232,8 +239,6 @@
         {% set doctorData = doctorSignature %}
         {% if doctorData.firma_path %}
             <img src="uploads/firmas/{{ doctorData.firma_path }}" alt="Firma Digital">
-        {% elseif informeMensual.doctor.firma is defined and informeMensual.doctor.firma %}
-            <img src="uploads/firmas/{{ informeMensual.doctor.firma }}" alt="Firma Digital">
         {% endif %}
         <div class="doctor-info">
             {% if doctorData.nombre and doctorData.apellido %}
@@ -242,8 +247,7 @@
                     <p><strong>Matrícula {{ doctorData.matricula }}</strong></p>
                 {% endif %}
             {% else %}
-                <p><strong>{{ informeMensual.doctor.nombre }} {{ informeMensual.doctor.apellido }}</strong></p>
-                <p><strong>Matrícula {{ informeMensual.doctor.matricula }}</strong></p>
+                <p><strong>Doctor desconocido</strong></p>
             {% endif %}
         </div>
     </div>

@@ -1,51 +1,113 @@
-{{ form_start(form) }}
-<br>
-<div class="form-row">
-    <div class="col-sm">
-        {{ form_label(form.email, 'Email') }}
-        {{ form_widget(form.email, {'attr': { 'data-staff_check_email-url' : path('staff_check_email'), 'data-user-id' : user.id }}) }}
-        <div class="invalid-feedback">
-            El correo no es válido.
+{{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+
+<div class="container-fluid pb-4">
+    
+    <!-- SECCIÓN 1: Datos Personales -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Datos Personales</h5>
+        </div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form_label(form.nombre, 'Nombre') }}
+                        {{ form_widget(form.nombre, {'attr': {'class': 'form-control', 'placeholder': 'Nombre completo'}}) }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form_label(form.apellido, 'Apellido') }}
+                        {{ form_widget(form.apellido, {'attr': {'class': 'form-control', 'placeholder': 'Apellido'}}) }}
+                    </div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form_label(form.legajo, 'Legajo') }}
+                        {{ form_widget(form.legajo, {'attr': {'class': 'form-control', 'placeholder': 'Número de legajo'}}) }}
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    <div class="col-sm">
-        {{ form_label(form.username, 'Nombre') }}
-        {{ form_widget(form.username, {'attr': { 'autocomplete' : 'false'}}) }}
+
+    <!-- SECCIÓN 2: Contacto -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Datos de Contacto</h5>
+        </div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="col-md-8">
+                    <div class="form-group">
+                        {{ form_label(form.email, 'Email') }}
+                        {{ form_widget(form.email, {'attr': {'class': 'form-control', 'placeholder': 'usuario@example.com', 'data-staff_check_email-url' : path('staff_check_email'), 'data-user-id' : user.id}}) }}
+                        {% if form.email.vars.errors|length > 0 %}
+                            <small class="text-danger d-block mt-1">{{ form_errors(form.email) }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        {{ form_label(form.telefono, 'Teléfono') }}
+                        {{ form_widget(form.telefono, {'attr': {'class': 'form-control', 'placeholder': '+54 9 11 1234-5678'}}) }}
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <!-- SECCIÓN 3: Contraseña -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Contraseña y Estado</h5>
+        </div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="col-md-8">
+                    <div class="form-group">
+                        {{ form_label(form.password, 'Nueva Contraseña') }}
+                        {{ form_widget(form.password, {'attr': {'class': 'form-control', 'placeholder': 'Dejar vacío para mantener actual'}}) }}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        {{ form_label(form.habilitado, 'Habilitado') }}
+                        {{ form_widget(form.habilitado, {'attr': {'class': 'form-control'}}) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN 4: Roles y Permisos -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Roles y Permisos *</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for child in form.roleEntities %}
+                    <div class="col-md-4 mb-2">
+                        <div class="custom-control custom-checkbox">
+                            {{ form_widget(child) }}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de Acción -->
+    <div class="mb-4">
+        <div class="btn-group" role="group">
+            {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary btn-lg'}}) }}
+            <a class="btn btn-secondary btn-lg" href="{{ path('user_management_index') }}">Cancelar</a>
+        </div>
+    </div>
+
 </div>
-<br>
-<div class="form-row">
-    <div class="col-sm">
-        {{ form_label(form.legajo, 'legajo') }}
-        {{ form_widget(form.legajo) }}
-    </div>
-    <div class="col-sm">
-        {{ form_label(form.telefono, 'Telefono') }}
-        {{ form_widget(form.telefono) }}
-    </div>
-</div>
-<br>
-<div class="form-row">
-    <div class="col-sm">
-        {{ form_label(form.password, 'password') }}
-        {{ form_widget(form.password) }}
-    </div>
-    <div class="col-sm">
-        {{ form_label(form.habilitado, 'Habilitado') }}
-        {{ form_widget(form.habilitado) }}
-    </div>
-</div>
-<br>
-<div class="form-row">
-    <div class="col-sm">
-        {{ form_label(form.roleEntities, 'Roles') }}
-        {{ form_widget(form.roleEntities) }}
-    </div>
-</div><br>
-<div class="form-row">
-    <div class="col-sm">
-        {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary'}}) }}
-        <a class="btn btn-default" href="{{ path('user_index') }}">volver</a>
-    </div>
-</div>
+
 {{ form_end(form) }}

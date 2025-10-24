@@ -286,6 +286,8 @@ class AuthorizationService
             ['patient.delete', 'Eliminar Pacientes', 'Pacientes', 'Permite eliminar pacientes'],
             ['patient.history', 'Historia Clínica', 'Pacientes', 'Permite acceder a historias clínicas'],
             ['patient.evolve', 'Evolucionar Pacientes', 'Pacientes', 'Permite crear evoluciones médicas'],
+            ['patient.edit_evolve', 'Editar Evoluciones Médicas', 'Pacientes', 'Permite editar evoluciones médicas existentes'],
+            ['patient.evolve_without_presence', 'Evolucionar sin Presente', 'Pacientes', 'Permite crear evoluciones sin necesidad de tener presente del día'],
             ['patient.prescription', 'Prescripciones', 'Pacientes', 'Permite gestionar prescripciones médicas'],
             ['patient.cardex', 'Completar Cardex', 'Pacientes', 'Permite completar el cardex del paciente (signos vitales, medicación, cuidados)'],
             ['patient.discharge', 'Egresar Pacientes', 'Pacientes', 'Permite egresar pacientes del sistema'],
@@ -312,11 +314,10 @@ class AuthorizationService
             ['liquidations.manage', 'Gestionar Liquidaciones', 'Liquidaciones', 'Permite gestionar liquidaciones'],
             
             // ===== INFORMES MENSUALES =====
-            ['informe_mensual.view', 'Ver Informes Mensuales', 'Informes Mensuales', 'Permite ver los informes mensuales'],
-            ['informe_mensual.create', 'Crear Informe Mensual', 'Informes Mensuales', 'Permite crear un nuevo informe mensual'],
-            ['informe_mensual.edit', 'Editar Informe Mensual', 'Informes Mensuales', 'Permite editar un informe mensual'],
-            ['informe_mensual.delete', 'Eliminar Informe Mensual', 'Informes Mensuales', 'Permite eliminar un informe mensual'],
+            ['informe_mensual.view', 'Ver Informes Mensuales', 'Informes Mensuales', 'Permite ver los informes mensuales (solo los propios si no tiene manage)'],
+            ['informe_mensual.manage', 'Administrar Informes Mensuales', 'Informes Mensuales', 'Permite ver, crear, editar y eliminar todos los informes mensuales'],
             
+            // ===== REPORTES Y ESTADÍSTICAS =====
             ['stats.view', 'Ver Estadísticas', 'Estadísticas', 'Permite ver estadísticas del sistema'],
             
             // ===== CONFIGURACIÓN =====
@@ -330,6 +331,12 @@ class AuthorizationService
             
             // ===== QR CODES =====
             ['qr.generate', 'Generar Códigos QR', 'QR', 'Permite generar códigos QR'],
+            
+            // ===== FIRMAS =====
+            ['firma.create', 'Crear Firmas', 'Firmas', 'Permite crear firmas digitales propias'],
+            ['firma.update', 'Actualizar Firmas', 'Firmas', 'Permite actualizar firmas digitales propias'],
+            ['firma.delete', 'Eliminar Firmas', 'Firmas', 'Permite eliminar firmas digitales propias'],
+            ['firma.manage_others', 'Gestionar Firmas de Otros', 'Firmas', 'Permite gestionar firmas digitales de otros usuarios'],
             
             // ===== ENFERMERÍA =====
             ['nurse.create', 'Crear Enfermeros', 'Enfermería', 'Permite crear nuevos enfermeros'],
@@ -351,74 +358,397 @@ class AuthorizationService
             }
         }
 
-        // Crear roles por defecto
+        // Crear roles por defecto (basados en las antiguas modalidades)
         $roles = [
+            // ===== ROLES ADMINISTRATIVOS =====
             [
                 'name' => 'admin',
                 'displayName' => 'Administrador',
                 'description' => 'Acceso completo al sistema',
+                'permissions' => '*' // Todos los permisos
+            ],
+            
+            // ===== ROLES DE EMPLEADOS (TIPO CONTRATO 1) =====
+            [
+                'name' => 'mucamo',
+                'displayName' => 'Mucamo/a',
+                'description' => 'Personal de limpieza y mantenimiento básico',
+                'permissions' => ['patient.view', 'stats.view']
+            ],
+            [
+                'name' => 'enfermero',
+                'displayName' => 'Enfermero/a',
+                'description' => 'Personal de enfermería profesional',
                 'permissions' => [
-                    'user.create', 'user.read', 'user.update', 'user.delete',
-                    'role.create', 'role.read', 'role.update', 'role.delete',
-                    'patient.view', 'patient.create', 'patient.edit', 'patient.delete',
-                    'patient.history', 'patient.evolve', 'patient.prescription', 'patient.cardex',
-                    'patient.discharge', 'patient.refer', 'patient.permission', 'patient.outpatient', 'patient.attendance',
-                    'inventory.view', 'inventory.manage', 'inventory.clone', 'consumables.view', 'consumables.manage',
-                    'agenda.view', 'agenda.manage', 'liquidations.view', 'liquidations.manage',
-                    'reports.view', 'reports.generate', 'reports.export', 'stats.view', 'config.works', 'config.rooms', 'config.staff',
-                    'claims.view', 'claims.manage', 'qr.generate', 
-                    'nurse.create', 'nurse.read', 'nurse.update', 'nurse.delete',
-                    'doctor.create', 'doctor.read', 'doctor.update', 'doctor.delete'
+                    'patient.view', 'patient.history', 'patient.cardex', 'patient.attendance', 'patient.prescription',
+                    'agenda.view', 'consumables.view', 'stats.view'
                 ]
             ],
             [
-                'name' => 'doctor',
-                'displayName' => 'Doctor',
-                'description' => 'Acceso para personal médico',
+                'name' => 'auxiliar_enfermeria',
+                'displayName' => 'Auxiliar de Enfermería',
+                'description' => 'Asistente de enfermería',
                 'permissions' => [
-                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription',
-                    'patient.discharge', 'patient.refer', 'patient.outpatient',
+                    'patient.view', 'patient.history', 'patient.cardex', 'patient.attendance',
+                    'agenda.view', 'consumables.view', 'stats.view'
+                ]
+            ],
+            [
+                'name' => 'asistente_enfermeria',
+                'displayName' => 'Asistente de Enfermería',
+                'description' => 'Asistente de enfermería',
+                'permissions' => [
+                    'patient.view', 'patient.history', 'patient.cardex', 'patient.attendance',
+                    'consumables.view', 'stats.view'
+                ]
+            ],
+            [
+                'name' => 'mantenimiento',
+                'displayName' => 'Mantenimiento',
+                'description' => 'Personal de mantenimiento',
+                'permissions' => ['stats.view']
+            ],
+            [
+                'name' => 'cocinero',
+                'displayName' => 'Cocinero',
+                'description' => 'Personal de cocina',
+                'permissions' => ['patient.view', 'stats.view']
+            ],
+            [
+                'name' => 'ayudante_cocina',
+                'displayName' => 'Ayudante de Cocina',
+                'description' => 'Asistente de cocina',
+                'permissions' => ['patient.view', 'stats.view']
+            ],
+            [
+                'name' => 'administrativo',
+                'displayName' => 'Administrativo',
+                'description' => 'Personal administrativo',
+                'permissions' => [
+                    'patient.view', 'patient.create', 'patient.edit',
+                    'agenda.view', 'agenda.manage', 'config.works', 'stats.view'
+                ]
+            ],
+            [
+                'name' => 'recepcionista',
+                'displayName' => 'Recepcionista',
+                'description' => 'Personal de recepción',
+                'permissions' => [
+                    'patient.view', 'agenda.view', 'agenda.manage', 'stats.view'
+                ]
+            ],
+            [
+                'name' => 'coordinador_pisos',
+                'displayName' => 'Coordinador de Pisos',
+                'description' => 'Coordinador de pisos',
+                'permissions' => [
+                    'patient.view', 'patient.history', 'patient.cardex', 'patient.attendance',
+                    'nurse.read', 'stats.view', 'config.rooms'
+                ]
+            ],
+            [
+                'name' => 'coordinador_general',
+                'displayName' => 'Coordinador General',
+                'description' => 'Coordinador general del establecimiento',
+                'permissions' => [
+                    'patient.view', 'patient.create', 'patient.edit', 'patient.history',
+                    'nurse.read', 'doctor.read', 'stats.view', 'config.rooms', 'config.staff',
+                    'liquidations.view', 'claims.view', 'claims.manage'
+                ]
+            ],
+            [
+                'name' => 'coordinador_enfermeria',
+                'displayName' => 'Coordinador de Enfermería',
+                'description' => 'Coordinador del equipo de enfermería',
+                'permissions' => [
+                    'patient.view', 'patient.history', 'patient.cardex', 'patient.attendance',
+                    'nurse.read', 'nurse.create', 'nurse.update', 'consumables.view', 'consumables.manage',
+                    'stats.view'
+                ]
+            ],
+            [
+                'name' => 'coordinador_general',
+                'displayName' => 'Coordinador General',
+                'description' => 'Coordinador general de la institución',
+                'permissions' => [
+                    'patient.view', 'patient.history', 'patient.create', 'patient.edit',
+                    'nurse.read', 'doctor.read', 'staff.read', 'stats.view', 'config.rooms',
+                    'consumables.view', 'consumables.manage', 'claims.view', 'claims.manage'
+                ]
+            ],
+            [
+                'name' => 'coordinador_pisos',
+                'displayName' => 'Coordinador de Pisos',
+                'description' => 'Coordinador de pisos y habitaciones',
+                'permissions' => [
+                    'patient.view', 'patient.history', 'patient.attendance',
+                    'nurse.read', 'config.rooms', 'consumables.view', 'stats.view'
+                ]
+            ],
+            
+            // ===== ROLES DE PERSONAL DIRECTO (TIPO CONTRATO 2) =====
+            [
+                'name' => 'nutricionista',
+                'displayName' => 'Nutricionista',
+                'description' => 'Profesional de nutrición',
+                'permissions' => [
+                    'patient.view', 'patient.history', 'patient.evolve',
                     'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view'
                 ]
             ],
             [
-                'name' => 'nurse',
-                'displayName' => 'Enfermero',
-                'description' => 'Acceso para personal de enfermería',
+                'name' => 'director_medico',
+                'displayName' => 'Director Médico',
+                'description' => 'Director médico del establecimiento',
                 'permissions' => [
-                    'patient.view', 'patient.history', 'patient.cardex', 'patient.attendance',
-                    'agenda.view', 'consumables.view'
-                ]
-            ],
-            [
-                'name' => 'operator',
-                'displayName' => 'Operador',
-                'description' => 'Acceso básico de operación',
-                'permissions' => [
-                    'patient.view', 'inventory.view', 'consumables.view', 'agenda.view', 'agenda.manage'
-                ]
-            ],
-            [
-                'name' => 'manager',
-                'displayName' => 'Gerente',
-                'description' => 'Acceso de gestión al sistema',
-                'permissions' => [
-                    'patient.view', 'patient.create', 'patient.edit', 'patient.cardex',
-                    'inventory.view', 'inventory.manage', 'consumables.view', 'consumables.manage',
+                    'user.read', 'patient.view', 'patient.create', 'patient.edit', 'patient.history',
+                    'patient.evolve', 'patient.edit_evolve', 'patient.evolve_without_presence',
+                    'patient.prescription', 'patient.discharge', 'patient.refer', 'patient.permission',
+                    'doctor.read', 'doctor.create', 'doctor.update', 'nurse.read',
                     'agenda.view', 'agenda.manage', 'liquidations.view', 'liquidations.manage',
-                    'reports.view', 'reports.generate', 'reports.export', 'stats.view', 'claims.view', 'claims.manage'
+                    'informe_mensual.view', 'informe_mensual.manage', 'stats.view',
+                    'config.staff', 'claims.view', 'claims.manage'
                 ]
             ],
             [
-                'name' => 'inventory_manager',
-                'displayName' => 'Administrador de Inventario',
-                'description' => 'Especializado en la gestión de items del inventario',
+                'name' => 'sub_director_medico',
+                'displayName' => 'Sub Director Médico',
+                'description' => 'Sub director médico',
                 'permissions' => [
-                    'inventory.view', 'inventory.manage', 'inventory.clone',
-                    'consumables.view', 'consumables.manage',
-                    'reports.view', 'stats.view'
+                    'patient.view', 'patient.create', 'patient.edit', 'patient.history',
+                    'patient.evolve', 'patient.edit_evolve', 'patient.prescription',
+                    'patient.discharge', 'patient.refer', 'patient.permission',
+                    'doctor.read', 'nurse.read',
+                    'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view',
+                    'claims.view'
                 ]
-            ]
+            ],
+            [
+                'name' => 'trabajador_social',
+                'displayName' => 'Trabajador Social',
+                'description' => 'Trabajador social',
+                'permissions' => [
+                    'patient.view', 'patient.history', 'patient.evolve',
+                    'agenda.view', 'stats.view'
+                ]
+            ],
+            [
+                'name' => 'psiquiatra',
+                'displayName' => 'Psiquiatra',
+                'description' => 'Médico psiquiatra',
+                'permissions' => [
+                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription',
+                    'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view'
+                ]
+            ],
+            [
+                'name' => 'infectologo',
+                'displayName' => 'Infectólogo',
+                'description' => 'Médico infectólogo',
+                'permissions' => [
+                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription',
+                    'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view'
+                ]
+            ],
+            [
+                'name' => 'contador',
+                'displayName' => 'Contador',
+                'description' => 'Contador del establecimiento',
+                'permissions' => [
+                    'liquidations.view', 'liquidations.manage', 'stats.view', 'consumables.view'
+                ]
+            ],
+            [
+                'name' => 'abogado',
+                'displayName' => 'Abogado',
+                'description' => 'Asesor legal',
+                'permissions' => [
+                    'patient.view', 'claims.view', 'claims.manage', 'stats.view'
+                ]
+            ],
+            [
+                'name' => 'estudio_contable',
+                'displayName' => 'Estudio Contable',
+                'description' => 'Personal del estudio contable',
+                'permissions' => [
+                    'liquidations.view', 'liquidations.manage', 'stats.view'
+                ]
+            ],
+            [
+                'name' => 'directivo',
+                'displayName' => 'Directivo',
+                'description' => 'Directivo del establecimiento',
+                'permissions' => [
+                    'user.read', 'patient.view', 'patient.history',
+                    'doctor.read', 'nurse.read', 'liquidations.view', 'stats.view',
+                    'config.works', 'config.rooms', 'config.staff', 'claims.view'
+                ]
+            ],
+            [
+                'name' => 'programador',
+                'displayName' => 'Programador',
+                'description' => 'Desarrollador de sistemas',
+                'permissions' => '*' // Acceso total para mantenimiento del sistema
+            ],
+            
+            // ===== ROLES DE PRESTACIÓN (TIPO CONTRATO 3) =====
+            [
+                'name' => 'profesional_prestacion',
+                'displayName' => 'Profesional por Prestación',
+                'description' => 'Profesional contratado por prestación',
+                'permissions' => [
+                    'patient.view', 'patient.history', 'patient.evolve',
+                    'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view'
+                ]
+            ],
+            [
+                'name' => 'medico_clinico',
+                'displayName' => 'Médico Clínico',
+                'description' => 'Médico clínico',
+                'permissions' => [
+                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription',
+                    'patient.discharge', 'patient.refer',
+                    'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view'
+                ]
+            ],
+            [
+                'name' => 'hidroterapia_motora',
+                'displayName' => 'HidroTerapia Motora',
+                'description' => 'Especialista en hidroterapia motora',
+                'permissions' => [
+                    'patient.view', 'patient.history', 'patient.evolve',
+                    'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view'
+                ]
+            ],
+            [
+                'name' => 'medico_guardia',
+                'displayName' => 'Médico de Guardia',
+                'description' => 'Médico de guardia',
+                'permissions' => [
+                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription',
+                    'agenda.view', 'stats.view'
+                ]
+            ],
+            [
+                'name' => 'kinesiologo_motora',
+                'displayName' => 'Kinesiólogo Motora',
+                'description' => 'Kinesiólogo especializado en motricidad',
+                'permissions' => [
+                    'patient.view', 'patient.history', 'patient.evolve',
+                    'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view'
+                ]
+            ],
+            [
+                'name' => 'kinesiologo_respiratorio',
+                'displayName' => 'Kinesiólogo Respiratorio',
+                'description' => 'Kinesiólogo respiratorio',
+                'permissions' => [
+                    'patient.view', 'patient.history', 'patient.evolve',
+                    'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view'
+                ]
+            ],
+            [
+                'name' => 'terapista_ocupacional',
+                'displayName' => 'Terapista Ocupacional',
+                'description' => 'Terapista ocupacional',
+                'permissions' => [
+                    'patient.view', 'patient.history', 'patient.evolve',
+                    'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view'
+                ]
+            ],
+            [
+                'name' => 'fonoaudiologo',
+                'displayName' => 'Fonoaudiólogo',
+                'description' => 'Profesional en fonoaudiología',
+                'permissions' => [
+                    'patient.view', 'patient.history', 'patient.evolve',
+                    'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view'
+                ]
+            ],
+            [
+                'name' => 'psicologo',
+                'displayName' => 'Psicólogo',
+                'description' => 'Profesional en psicología',
+                'permissions' => [
+                    'patient.view', 'patient.history', 'patient.evolve',
+                    'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view'
+                ]
+            ],
+            [
+                'name' => 'fisiatra',
+                'displayName' => 'Fisiatra',
+                'description' => 'Médico fisiatra - puede ser doctor referente',
+                'permissions' => [
+                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription',
+                    'patient.discharge', 'patient.refer', 'patient.permission',
+                    'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view'
+                ]
+            ],
+            [
+                'name' => 'neurologo',
+                'displayName' => 'Neurólogo',
+                'description' => 'Médico neurólogo',
+                'permissions' => [
+                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription',
+                    'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view'
+                ]
+            ],
+            [
+                'name' => 'cardiologo',
+                'displayName' => 'Cardiólogo',
+                'description' => 'Médico cardiólogo',
+                'permissions' => [
+                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription',
+                    'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view'
+                ]
+            ],
+            [
+                'name' => 'urologo',
+                'displayName' => 'Urólogo',
+                'description' => 'Médico urólogo',
+                'permissions' => [
+                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription',
+                    'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view'
+                ]
+            ],
+            [
+                'name' => 'hematologo',
+                'displayName' => 'Hematólogo',
+                'description' => 'Médico hematólogo',
+                'permissions' => [
+                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription',
+                    'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view'
+                ]
+            ],
+            [
+                'name' => 'neumonologo',
+                'displayName' => 'Neumónologo',
+                'description' => 'Médico neumónologo',
+                'permissions' => [
+                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription',
+                    'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view'
+                ]
+            ],
+            
+            // ===== ROLES SIN CONTRATO (TIPO CONTRATO 4) =====
+            [
+                'name' => 'cirujano',
+                'displayName' => 'Cirujano',
+                'description' => 'Médico cirujano',
+                'permissions' => [
+                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription',
+                    'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view'
+                ]
+            ],
+            [
+                'name' => 'traumatologo',
+                'displayName' => 'Traumatólogo',
+                'description' => 'Médico traumatólogo',
+                'permissions' => [
+                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription',
+                    'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view'
+                ]
+            ],
         ];
 
         foreach ($roles as $roleData) {
@@ -427,10 +757,16 @@ class AuthorizationService
                 $role = $this->createRole($roleData['name'], $roleData['displayName'], $roleData['description']);
                 
                 // Asignar permisos al rol
-                foreach ($roleData['permissions'] as $permissionPrefix) {
-                    $permissions = $this->permissionRepository->findActive();
-                    foreach ($permissions as $permission) {
-                        if (strpos($permission->getName(), $permissionPrefix) === 0) {
+                if ($roleData['permissions'] === '*') {
+                    // Asignar todos los permisos
+                    $allPermissions = $this->permissionRepository->findActive();
+                    foreach ($allPermissions as $permission) {
+                        $this->assignPermissionToRole($role, $permission);
+                    }
+                } else {
+                    foreach ($roleData['permissions'] as $permissionName) {
+                        $permission = $this->permissionRepository->findByName($permissionName);
+                        if ($permission) {
                             $this->assignPermissionToRole($role, $permission);
                         }
                     }

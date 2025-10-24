@@ -145,26 +145,17 @@ class PrescripcionController extends AbstractController
         return new JsonResponse('ok');
     }
 
-    private function getModalidadesEnfermeria() {
-        return ['Enfermero/a', 'Auxiliar de enfermeria', 'Asistente de enfermeria'];
-    }
-
     private function isEnfermero()
     {
-        $isEnfermero = false;
         $user = $this->getUser();
-
-        $modalidad = 'sinModalidad';
-        if (is_callable([$user, 'getModalidad']) && !empty($user->getModalidad()) ) {
-            $modalidad = $user->getModalidad()[0];
+        if (!$user instanceof \App\Entity\User) {
+            return false;
         }
 
-        if( in_array($modalidad, $this->getModalidadesEnfermeria())) {
-
-            $isEnfermero = true;
-        }
-
-        return $isEnfermero;
-
+        // Verificar si tiene algún rol de enfermería usando el nuevo sistema
+        return $user->hasRole('enfermero') || 
+               $user->hasRole('auxiliar_enfermeria') || 
+               $user->hasRole('asistente_enfermeria') ||
+               $user->hasRole('coordinador_enfermeria');
     }
 }
