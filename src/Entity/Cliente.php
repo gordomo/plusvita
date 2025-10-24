@@ -76,7 +76,12 @@ class Cliente
     private $activo;
 
     /**
-     * @ORM\ManyToMany(targetEntity=Doctor::class, mappedBy="clientes")
+     * @ORM\ManyToMany(targetEntity=User::class, inversedBy="clientes")
+     * @ORM\JoinTable(
+     *     name="doctor_cliente",
+     *     joinColumns={@ORM\JoinColumn(name="cliente_id", referencedColumnName="id")},
+     *     inverseJoinColumns={@ORM\JoinColumn(name="doctor_id", referencedColumnName="id")}
+     * )
      */
     private $docReferente;
 
@@ -521,24 +526,19 @@ class Cliente
         return $this->docReferente;
     }
 
-    public function addDocReferente(Doctor $docReferente): self
+    public function addDocReferente(User $docReferente): self
     {
         if (!$this->docReferente->contains($docReferente)) {
             $this->docReferente[] = $docReferente;
-            $docReferente->addCliente($this);
         }
 
         return $this;
     }
 
-    public function removeDocReferente(Doctor $docReferente): self
+    public function removeDocReferente(User $docReferente): self
     {
         if ($this->docReferente->contains($docReferente)) {
             $this->docReferente->removeElement($docReferente);
-            // set the owning side to null (unless already changed)
-            if ($docReferente->getClientes()->contains($this)) {
-                $docReferente->removeCliente($this);
-            }
         }
 
         return $this;

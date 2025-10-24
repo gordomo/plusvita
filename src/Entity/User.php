@@ -89,11 +89,17 @@ class User implements UserInterface
      */
     private $firmas;
 
+    /**
+     * @ORM\ManyToMany(targetEntity=Cliente::class, mappedBy="docReferente")
+     */
+    private $clientes;
+
     public function __construct()
     {
         $this->bookings = new ArrayCollection();
         $this->roles = new ArrayCollection();
         $this->firmas = new ArrayCollection();
+        $this->clientes = new ArrayCollection();
         $this->habilitado = true;
     }
 
@@ -389,5 +395,33 @@ class User implements UserInterface
             }
         }
         return null;
+    }
+
+    /**
+     * @return Collection|Cliente[]
+     */
+    public function getClientes(): Collection
+    {
+        return $this->clientes;
+    }
+
+    public function addCliente(Cliente $cliente): self
+    {
+        if (!$this->clientes->contains($cliente)) {
+            $this->clientes[] = $cliente;
+            $cliente->addDocReferente($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCliente(Cliente $cliente): self
+    {
+        if ($this->clientes->contains($cliente)) {
+            $this->clientes->removeElement($cliente);
+            $cliente->removeDocReferente($this);
+        }
+
+        return $this;
     }
 }

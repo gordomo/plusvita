@@ -153,7 +153,16 @@ class HabitacionController extends AbstractController
         }
 
         $habitacion = $habitacionRepository->find($id);
-        $camasOcupadas = $habitacion->getCamasOcupadas();
+        
+        // Usar el mismo método que el repositorio para contar camas ocupadas realmente
+        $pacientesConCamaFisica = $clienteRepository->findClienteEnHabitacion($habitacion, true, true);
+        $camasOcupadas = [];
+        foreach ($pacientesConCamaFisica as $paciente) {
+            if ($paciente->getNCama() > 0) {
+                $camasOcupadas[] = $paciente->getNCama();
+            }
+        }
+        
         $cantCamas = $habitacion->getCamasDisponibles();
         $camasDispArray = [];
         
@@ -169,8 +178,6 @@ class HabitacionController extends AbstractController
             $esHabitacionPrivada = count($pacientesEnHabitacion) > 0;
         }
         
-        // Ya no agregamos la opción "sin cama" porque queremos forzar la selección de una cama válida
-        
         // Agregar camas físicas disponibles (1 a n)
         for ($i = 1; $i <= $cantCamas; $i++) {
             if (!in_array($i, $camasOcupadas)) {
@@ -183,10 +190,9 @@ class HabitacionController extends AbstractController
             $camasDispArray[$cliente->getNCama()] = $cliente->getNCama();
         }
 
-
         ksort($camasDispArray);
 
-        $form = $this->createForm(ClienteType::class, $cliente, ['camasDisp' => $camasDispArray, 'bloquearHab' => empty($camasOcupadas)]);
+        $form = $this->createForm(ClienteType::class, $cliente, ['camasDisp' => $camasDispArray, 'bloquearHab' => empty($camasDispArray)]);
         return $this->render('habitacion/_camas.html.twig', [
             'form' => $form->createView(),
         ]);

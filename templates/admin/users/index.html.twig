@@ -140,8 +140,6 @@
                         <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th class="id">ID</th>
-                                    <th class="tipo">Tipo</th>
                                     <th class="user">Usuario</th>
                                     <th class="roles">Roles</th>
                                     <th class="email">Email</th>
@@ -153,28 +151,6 @@
                             <tbody>
                                 {% for user in users %}
                                 <tr class="{% if user.habilitado %}enabled-user{% else %}disabled-user{% endif %}">
-                                    <td class="id">{{ user.id }}</td>
-                                    <td class="tipo">
-                                        {% for role in user.roleEntities %}
-                                            {% if role.name == 'ROLE_ADMIN' %}
-                                                <span class="badge badge-primary badge-lg">
-                                                    <i class="fas fa-user-shield mr-1"></i>{{ role.displayName }}
-                                                </span>
-                                            {% elseif role.name == 'ROLE_DOCTOR' %}
-                                                <span class="badge badge-success badge-lg">
-                                                    <i class="fas fa-user-md mr-1"></i>{{ role.displayName }}
-                                                </span>
-                                            {% elseif role.name == 'ROLE_NURSE' %}
-                                                <span class="badge badge-info badge-lg">
-                                                    <i class="fas fa-user-nurse mr-1"></i>{{ role.displayName }}
-                                                </span>
-                                            {% else %}
-                                                <span class="badge badge-secondary badge-lg">
-                                                    <i class="fas fa-user mr-1"></i>{{ role.displayName }}
-                                                </span>
-                                            {% endif %}
-                                        {% endfor %}
-                                    </td>
                                     <td class="user">
                                         <div class="d-flex align-items-center">
                                             <span class="status-indicator {% if user.habilitado %}status-active{% else %}status-inactive{% endif %}"></span>
