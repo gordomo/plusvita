@@ -192,6 +192,7 @@ class ItemController extends AbstractController
             'paginaImprimible' => true,
             'itemsAgrupados' => $agrupados,
             'ubicacion' => $ubicacion,
+            'searchTerm' => $request->query->get('search', ''),
         ]);
     }
 
