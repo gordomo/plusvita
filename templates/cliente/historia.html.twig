@@ -651,13 +651,13 @@
                                                     {% set docReferenteNombre = '' %}
 
                                                     {% for docId in docsReferenteAnterior %}
-                                                        {% set doc = doctorRepository.find(docId) %}
+                                                        {% set doc = userRepository.find(docId) %}
                                                         {% set docReferenteAnteriorNombre = (docId) ? docReferenteAnteriorNombre ~ ' ' ~ doc.getNombre() ~ ' ' ~ doc.getApellido() : 'sin referente'%}
                                                     {% endfor %}
 
                                                     {% set docsReferente = historia.docReferenteArray %}
                                                     {% for docId in docsReferente %}
-                                                        {% set doc = doctorRepository.find(docId) %}
+                                                        {% set doc = userRepository.find(docId) %}
                                                         {% set docReferenteNombre = (docId) ? docReferenteNombre ~ ' ' ~ doc.getNombre() ~ ' ' ~ doc.getApellido() : 'sin referente'%}
                                                     {% endfor %}
 

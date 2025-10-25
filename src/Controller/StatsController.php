@@ -547,10 +547,20 @@ class StatsController extends AbstractController
         
         // Obtener datos de camas por habitación para mostrar en barras
         $habitaciones = $em->getRepository(Habitacion::class)->findAll();
+        $clienteRepository = $em->getRepository(Cliente::class);
         $camasPorHabitacion = [];
         
         foreach ($habitaciones as $habitacion) {
-            $camasOcupadas = $habitacion->getCamasOcupadas() ? count($habitacion->getCamasOcupadas()) : 0;
+            // Calcular camas ocupadas reales consultando pacientes activos
+            $pacientesConCamaFisica = $clienteRepository->findClienteEnHabitacion($habitacion, true, true);
+            $camasOcupadasReales = [];
+            foreach ($pacientesConCamaFisica as $paciente) {
+                if ($paciente->getNCama() > 0) {
+                    $camasOcupadasReales[$paciente->getNCama()] = $paciente->getNCama();
+                }
+            }
+            
+            $camasOcupadas = count($camasOcupadasReales);
             $camasTotales = $habitacion->getCamasDisponibles();
             
             $camasPorHabitacion[] = [
@@ -810,15 +820,21 @@ class StatsController extends AbstractController
         // Precalculamos la ocupación actual para asegurar que siempre tengamos datos reales
         $ocupacionActualCalculada = 0;
         try {
-            // Calcular ocupación actual real
+            // Calcular ocupación actual real consultando pacientes activos
             $habitaciones = $em->getRepository('App\\Entity\\Habitacion')->findAll();
+            $clienteRepository = $em->getRepository('App\\Entity\\Cliente');
             $ocupadasHoy = 0;
+            
             foreach ($habitaciones as $hab) {
-                $camasOcupadas = $hab->getCamasOcupadas();
-                // Validar que camasOcupadas sea un array antes de contar
-                if (is_array($camasOcupadas) && !empty($camasOcupadas)) {
-                    $ocupadasHoy += count(array_filter($camasOcupadas));
+                // Calcular camas ocupadas reales consultando pacientes activos
+                $pacientesConCamaFisica = $clienteRepository->findClienteEnHabitacion($hab, true, true);
+                $camasOcupadasReales = [];
+                foreach ($pacientesConCamaFisica as $paciente) {
+                    if ($paciente->getNCama() > 0) {
+                        $camasOcupadasReales[$paciente->getNCama()] = $paciente->getNCama();
+                    }
                 }
+                $ocupadasHoy += count($camasOcupadasReales);
             }
             $ocupacionActualCalculada = $ocupadasHoy;
         } catch (\Exception $e) {

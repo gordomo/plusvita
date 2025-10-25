@@ -86,9 +86,11 @@ class Doctor implements UserInterface
     private $habilitado;
 
     /**
+     * LEGACY - Deprecated: Use User entity instead
      * @ORM\ManyToMany(targetEntity=Cliente::class, inversedBy="docReferente")
+     * @ORM\JoinTable(name="legacy_doctor_cliente")
      */
-    private $clientes;
+    // private $clientes;
 
     /**
      * @ORM\Column(type="json", nullable=true)
@@ -160,9 +162,10 @@ class Doctor implements UserInterface
     private $posicionEnArchivo;
 
     /**
+     * LEGACY - Deprecated: Use User entity instead
      * @ORM\OneToMany(targetEntity=Booking::class, mappedBy="doctor")
      */
-    private $bookings;
+    // private $bookings;
 
     /**
      * @ORM\Column(type="json", nullable=true)
@@ -190,11 +193,10 @@ class Doctor implements UserInterface
     private $fNac;
 
     /**
+     * LEGACY - Deprecated: Use User entity instead
      * @ORM\OneToMany(targetEntity=Prescripcion::class, mappedBy="user")
      */
-    private $doctor;
-
-
+    // private $doctor;
 
     /**
      * @ORM\Column(type="boolean")
@@ -202,17 +204,18 @@ class Doctor implements UserInterface
     private $presente;
 
     /**
+     * LEGACY - Deprecated: Use User entity instead
      * @ORM\OneToMany(targetEntity=PresentesDoctores::class, mappedBy="doctor")
      */
-    private $presentes;
+    // private $presentes;
 
 
     public function __construct()
     {
-        $this->clientes             = new ArrayCollection();
-        $this->bookings             = new ArrayCollection();
+        // $this->clientes             = new ArrayCollection(); // LEGACY - Deprecated
+        // $this->bookings             = new ArrayCollection(); // LEGACY - Deprecated
         $this->doctor               = new ArrayCollection();
-        $this->presentes            = new ArrayCollection();
+        // $this->presentes            = new ArrayCollection(); // LEGACY - Deprecated
         $this->roles                = new ArrayCollection(); // Initialize new roles collection
         $this->legacyRoles          = ['ROLE_STAFF']; // Keep legacy roles for compatibility
         $this->habilitado = true;
@@ -300,8 +303,10 @@ class Doctor implements UserInterface
     }
 
     /**
+     * LEGACY - Deprecated: Use User entity instead
      * @return Collection|Cliente[]
      */
+    /*
     public function getClientes(): Collection
     {
         return $this->clientes;
@@ -329,6 +334,7 @@ class Doctor implements UserInterface
 
         return $this;
     }
+    */
 
     public function getModalidad(): ?array
     {

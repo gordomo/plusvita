@@ -21,7 +21,11 @@
             </tr>
             <tr>
                 <th>CamasOcupadas</th>
-                <td>{{ habitacion.camasOcupadas }}</td>
+                <td>{{ camasOcupadasReales|length }}</td>
+            </tr>
+            <tr>
+                <th>CamasLibres</th>
+                <td>{{ habitacion.camasDisponibles - camasOcupadasReales|length }}</td>
             </tr>
         </tbody>
     </table>

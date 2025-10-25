@@ -18,7 +18,7 @@ class PresentesDoctores
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Doctor::class, inversedBy="presentes")
+     * @ORM\ManyToOne(targetEntity=User::class, inversedBy="presentesDoctores")
      */
     private $doctor;
 
@@ -37,12 +37,12 @@ class PresentesDoctores
         return $this->id;
     }
 
-    public function getDoctor(): ?Doctor
+    public function getDoctor(): ?User
     {
         return $this->doctor;
     }
 
-    public function setDoctor(?Doctor $doctor): self
+    public function setDoctor(?User $doctor): self
     {
         $this->doctor = $doctor;
 

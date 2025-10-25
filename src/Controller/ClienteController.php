@@ -1240,24 +1240,13 @@ class ClienteController extends AbstractController
 
             $now = new \DateTime();
             if (!empty($cliente->getHabitacion()) && (empty($cliente->getFEgreso()) || $cliente->getFEgreso() > $now)) {
-                $habitacion = $habitacionRepository->find($cliente->getHabitacion());
                 $cliente->setNCama($form->getExtraData()['nCama']);
                 $habPrivada = $form->getExtraData()['habPrivada'] ?? 0;
                 
                 if ($habPrivada) {
                     $cliente->setHabPrivada(1);
-                    // Para habitación privada, ocupar todas las camas
-                    $camasOcupadas = [];
-                    for ($i=1; $i <= $habitacion->getCamasDisponibles(); $i++) {
-                        $camasOcupadas[$i] = $i;
-                    }
-                    $habitacion->setCamasOcupadas($camasOcupadas);
-                    $entityManager->persist($habitacion);
-                } else {
-                    // Para habitación normal, usar el servicio para actualizar correctamente
-                    $habitacionService = new \App\Service\HabitacionService($entityManager, $clienteRepository, $habitacionRepository);
-                    $habitacionService->actualizarCamasOcupadas($habitacion);
                 }
+                // Ya no necesitamos actualizar el campo camasOcupadas - se calcula dinámicamente
             }
 
             $docReferenteIds = [];
@@ -1388,7 +1377,15 @@ class ClienteController extends AbstractController
                     $haArray[$habitacionActualId] = !empty($habitacionActual) ? $habitacionActual->getNombre() : 'Habitación sin nombre';
                 }
 
-                $camasOcupadas = $habitacionActual->getCamasOcupadas();
+                // Calcular camas ocupadas reales consultando pacientes activos
+                $pacientesConCamaFisica = $clienteRepository->findClienteEnHabitacion($habitacionActual, true, true);
+                $camasOcupadas = [];
+                foreach ($pacientesConCamaFisica as $paciente) {
+                    if ($paciente->getNCama() > 0) {
+                        $camasOcupadas[] = $paciente->getNCama();
+                    }
+                }
+                
                 $cantCamas = $habitacionActual->getCamasDisponibles();
                 // Eliminamos la opción 'sin cama' para forzar la selección de una cama válida
                 for ($i = 1; $i <= $cantCamas; $i++) {
@@ -1408,7 +1405,8 @@ class ClienteController extends AbstractController
         $habPrivada = $cliente->getHabPrivada() ?? false;
         $puedePasarHabPrivada = $habPrivada;
         if(!empty($habitacionActual)) {
-            if(count($habitacionActual->getCamasOcupadas()) == 1) {
+            // Verificar si solo hay 1 cama ocupada (el paciente actual)
+            if(count($camasOcupadas) == 1) {
                 $puedePasarHabPrivada = true;
             }
         }
@@ -1489,7 +1487,15 @@ class ClienteController extends AbstractController
                         // Buscar la primera cama disponible
                         $habitacionNueva = $habitacionRepository->find($nuevaHabId);
                         if ($habitacionNueva) {
-                            $camasOcupadas = $habitacionNueva->getCamasOcupadas();
+                            // Calcular camas ocupadas reales consultando pacientes activos
+                            $pacientesConCamaFisica = $clienteRepository->findClienteEnHabitacion($habitacionNueva, true, true);
+                            $camasOcupadas = [];
+                            foreach ($pacientesConCamaFisica as $paciente) {
+                                if ($paciente->getNCama() > 0) {
+                                    $camasOcupadas[] = $paciente->getNCama();
+                                }
+                            }
+                            
                             for ($i = 1; $i <= $habitacionNueva->getCamasDisponibles(); $i++) {
                                 if (!in_array($i, $camasOcupadas)) {
                                     $nuevaCamaId = $i;
@@ -1743,17 +1749,8 @@ class ClienteController extends AbstractController
 
                     if ($habPrivada) {
                         $cliente->setHabPrivada(1);
-                        // Para habitación privada, ocupar todas las camas
-                        $camasOcupadas = [];
-                        for ($i=1; $i <= $habitacion->getCamasDisponibles(); $i++) {
-                            $camasOcupadas[$i] = $i;
-                        }
-                        $habitacion->setCamasOcupadas($camasOcupadas);
-                    } else {
-                        // Para habitación normal, usar el servicio para actualizar correctamente
-                        $habitacionService = new \App\Service\HabitacionService($entityManager, $clienteRepository, $habitacionRepository);
-                        $habitacionService->actualizarCamasOcupadas($habitacion);
                     }
+                    // Ya no necesitamos actualizar el campo camasOcupadas - se calcula dinámicamente
                     $parametros['habitacion'] = $habitacion->getId();
                     $parametros['modalidad'] = 2;
                 } else {
@@ -2001,18 +1998,8 @@ class ClienteController extends AbstractController
 
                 if ($habPrivada) {
                     $cliente->setHabPrivada(1);
-                    // Para habitación privada, ocupar todas las camas
-                    $camasOcupadas = [];
-                    for ($i=1; $i <= $habitacion->getCamasDisponibles(); $i++) {
-                        $camasOcupadas[$i] = $i;
-                    }
-                    $habitacion->setCamasOcupadas($camasOcupadas);
-                    $entityManager->persist($habitacion);
-                } else {
-                    // Para habitación normal, usar el servicio para actualizar correctamente
-                    $habitacionService = new \App\Service\HabitacionService($entityManager, $this->getDoctrine()->getRepository(\App\Entity\Cliente::class), $this->getDoctrine()->getRepository(\App\Entity\Habitacion::class));
-                    $habitacionService->actualizarCamasOcupadas($habitacion);
                 }
+                // Ya no necesitamos actualizar el campo camasOcupadas - se calcula dinámicamente
                 $historial->setHabitacion($habitacion->getId());
             }
 
@@ -2141,7 +2128,7 @@ class ClienteController extends AbstractController
         $evoluciones = $evolucionRepository->findByFechaClienteYtipos($cliente, $fechaDesde, $fechaHasta, $tiposEvolucion);
 
         $docId = $request->query->get('prof', 0);
-        $doc = $doctorRepository->find($docId);
+        $doc = $userRepository->find($docId);
         $evArray = [];
 
         // Procesar cada evolución
@@ -2341,6 +2328,7 @@ class ClienteController extends AbstractController
                 'novedadesHasta'        => $novedadesHasta,
                 'doc'                   => $doc,
                 'doctorRepository'      => $doctorRepository,
+                'userRepository'        => $userRepository,
                 'epicrisisIngreso'      => $epicrisisIngreso,
                 'extensionEI'           => $extensionEI,
         ]);
@@ -2583,29 +2571,8 @@ class ClienteController extends AbstractController
      */
     public function acomodarHabitacion($habitacionNueva, int $nuevaCamaId, $habVieja, int $camaActualId, int $habPrivada, int $habPrivadaNueva, EntityManager $entityManager)
     {
-        // Usar el servicio de habitaciones para manejar las camas ocupadas de forma consistente
-        $habitacionService = new \App\Service\HabitacionService($entityManager, $this->getDoctrine()->getRepository(\App\Entity\Cliente::class), $this->getDoctrine()->getRepository(\App\Entity\Habitacion::class));
-        
-        // Liberar camas en la habitación anterior
-        if (!empty($habVieja)) {
-            $habitacionService->actualizarCamasOcupadas($habVieja);
-        }
-
-        // Asignar camas en la nueva habitación
-        if (!empty($habitacionNueva)) {
-            if ($habPrivadaNueva) {
-                // Si será habitación privada, ocupar todas las camas
-                $camasOcupadas = [];
-                for ($i=1; $i <= $habitacionNueva->getCamasDisponibles(); $i++) {
-                    $camasOcupadas[$i] = $i;
-                }
-                $habitacionNueva->setCamasOcupadas($camasOcupadas);
-                $entityManager->persist($habitacionNueva);
-            } else {
-                // Si no, actualizar basándose en los pacientes reales
-                $habitacionService->actualizarCamasOcupadas($habitacionNueva);
-            }
-        }
+        // Ya no necesitamos actualizar camasOcupadas - se calcula dinámicamente
+        // Este método se mantiene para compatibilidad pero ya no manipula el campo JSON
     }
 
     private function liberarCamaCliente($cliente) {
@@ -2613,56 +2580,16 @@ class ClienteController extends AbstractController
         $clienteRepository = $this->getDoctrine()->getRepository(Cliente::class);
 
         if($cliente->getHabitacion()) {
-            $habitacionActual = $habitacionRepository->find($cliente->getHabitacion());
-
-            // Verificar si hay otros pacientes en la misma habitación para evitar liberar sus camas
-            $otrosPacientes = $clienteRepository->findBy([
-                'habitacion' => $habitacionActual->getId(),
-                'fEgreso' => null
-            ]);
-            
-            // Filtrar el cliente actual de la lista
-            $otrosPacientes = array_filter($otrosPacientes, function($p) use ($cliente) {
-                return $p->getId() != $cliente->getId();
-            });
-
-            // Determinar qué camas deben permanecer ocupadas
-            $camasOcupadas = [];
-            $camasAsignadas = 0;
-            foreach ($otrosPacientes as $paciente) {
-                if ($paciente->getNCama() !== null) {
-                    // Si el paciente tiene número de cama (incluso si es 0), mantenerlo
-                    $camasOcupadas[$paciente->getNCama()] = $paciente->getNCama();
-                } else {
-                    // Si hay pacientes sin número de cama, asignarles una
-                    $camasAsignadas++;
-                    $numeroCama = $camasAsignadas;
-                    
-                    // Buscar la primera cama disponible
-                    while (isset($camasOcupadas[$numeroCama])) {
-                        $numeroCama++;
-                    }
-                    
-                    // Asignar la cama al paciente y actualizar el registro
-                    $paciente->setNCama($numeroCama);
-                    $camasOcupadas[$numeroCama] = $numeroCama;
-                    $entityManager = $this->getDoctrine()->getManager();
-                    $entityManager->persist($paciente);
-                }
-            }
-
-            // Actualizar las camas ocupadas de la habitación
-            $habitacionActual->setCamasOcupadas($camasOcupadas);
-
+            // Limpiar la asignación del cliente
             $cliente->setHabitacion(null);
             $cliente->setNCama(null);
             $cliente->setHabPrivada(0);
 
             $entityManager = $this->getDoctrine()->getManager();
-
-            $entityManager->persist($habitacionActual);
             $entityManager->persist($cliente);
             $entityManager->flush();
+            
+            // Ya no necesitamos actualizar camasOcupadas - se calcula dinámicamente
         }
     }
 

@@ -59,7 +59,7 @@ class Booking
     private $user;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Doctor::class, inversedBy="bookings")
+     * @ORM\ManyToOne(targetEntity=User::class, inversedBy="doctorBookings")
      * @ORM\JoinColumn(nullable=false)
      */
     private $doctor;
@@ -190,8 +190,17 @@ class Booking
 
     public function getDoctorModalidad(): ?string
     {
-        $doctorModalidad = !empty($this->doctor) ? $this->doctor->getModalidad()[0]: '';
-        return $doctorModalidad;
+        if (empty($this->doctor)) {
+            return '';
+        }
+        
+        // Get first role name if available
+        $roles = $this->doctor->getRoleEntities();
+        if ($roles && $roles->count() > 0) {
+            return $roles->first()->getName();
+        }
+        
+        return '';
     }
 
     /**

@@ -48,12 +48,15 @@
         {% set ocupadas = 0 %}
         {% set disponibles = 0 %}
         {% for habitacion in habitacions %}
+            {# Obtener las camas ocupadas reales pre-calculadas #}
+            {% set camasOcupadasReales = camasOcupadasPorHabitacion[habitacion.id] ?? [] %}
+            {% set camasOcupadas = camasOcupadasReales|length %}
+            {% set camasDisp = habitacion.camasDisponibles - camasOcupadas %}
+            
             <tr class="bg-light">
                 <td>{{ habitacion.nombre }}</td>
                 <td>{{ habitacion.camasDisponibles }}</td>
-                {% set camasOcupadas = habitacion.camasOcupadas|length %}
-                <td>{{ camasOcupadas ? camasOcupadas : 0 }}</td>
-                {% set camasDisp = habitacion.camasDisponibles - camasOcupadas %}
+                <td>{{ camasOcupadas }}</td>
                 <td>{{ camasDisp }}</td>
                 <td>
                     <a href="{{ path('habitacion_edit', {'id': habitacion.id}) }}"><i class="fas fa-pencil-alt"></i></a>

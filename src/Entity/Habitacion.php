@@ -33,11 +33,6 @@ class Habitacion
     private $camasDisponibles;
 
     /**
-     * @ORM\Column(type="json")
-     */
-    private $camasOcupadas = null;
-
-    /**
      * @ORM\OneToMany(targetEntity=HistoriaHabitaciones::class, mappedBy="habitacion")
      */
     private $historiaHabitaciones;
@@ -76,15 +71,18 @@ class Habitacion
         return $this;
     }
 
+    // Métodos eliminados - campo camasOcupadas ya no existe en BD
+    // Se mantienen temporalmente para compatibilidad pero retornan valores por defecto
     public function getCamasOcupadas(): ?array
     {
-        return $this->camasOcupadas;
+        // Retornar array vacío por compatibilidad con código legacy
+        return [];
     }
 
     public function setCamasOcupadas(array $camasOcupadas): self
     {
-        $this->camasOcupadas = $camasOcupadas;
-
+        // No-op: este campo ya no se persiste en BD
+        // Se mantiene el método para evitar errores en código que aún lo llama
         return $this;
     }
 
@@ -116,5 +114,28 @@ class Habitacion
         }
 
         return $this;
+    }
+
+    /**
+     * Calcula dinámicamente las camas ocupadas consultando los pacientes reales
+     * Este método recibe los datos pre-calculados para evitar N+1 queries
+     * 
+     * @param array $camasOcupadasReales Array con las camas realmente ocupadas [1 => 1, 2 => 2]
+     * @return int Cantidad de camas ocupadas
+     */
+    public function getCamasOcupadasCount(array $camasOcupadasReales = []): int
+    {
+        return count($camasOcupadasReales);
+    }
+
+    /**
+     * Calcula dinámicamente las camas disponibles
+     * 
+     * @param array $camasOcupadasReales Array con las camas realmente ocupadas
+     * @return int Cantidad de camas disponibles
+     */
+    public function getCamasDisponiblesCount(array $camasOcupadasReales = []): int
+    {
+        return $this->camasDisponibles - $this->getCamasOcupadasCount($camasOcupadasReales);
     }
 }

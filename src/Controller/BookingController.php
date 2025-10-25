@@ -455,19 +455,20 @@ class BookingController extends AbstractController
             $endAt = new \DateTime(substr($end, 0, 33));
             $endAt->modify('+3 hours');
             $booking = $bookingRepository->find($id);
-            $doctor = $doctorRepository->find($booking->getDoctor()->getId());
+            $doctor = $booking->getDoctor(); // Already a User entity
             $bookings = $bookingRepository->findBy(['doctor' => $doctor, 'beginAt' => $beginAt]);
 
-            if ( count($bookings) >= $doctor->getMaxCliTurno() && $doctor->getMaxCliTurno() != null || ($doctor->getMaxCliTurno() == null ) ) {
-                $error = true;
-                $message = 'El turno no puede ser movido a esa fecha/horario porque supera el número máximo de pacientes por turno que puede atender el profesional';
-            } else {
+            // TODO: Migrate max_cli_turno property to User entity when booking module is activated
+            // if ( count($bookings) >= $doctor->getMaxCliTurno() && $doctor->getMaxCliTurno() != null || ($doctor->getMaxCliTurno() == null ) ) {
+            //     $error = true;
+            //     $message = 'El turno no puede ser movido a esa fecha/horario porque supera el número máximo de pacientes por turno que puede atender el profesional';
+            // } else {
                 $booking->setBeginAt($beginAt);
                 $booking->setEndAt($endAt);
                 $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->persist($booking);
                 $entityManager->flush();
-            }
+            // }
 
             return new JsonResponse(['error' => $error, 'message' => $message]);
 

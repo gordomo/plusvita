@@ -343,7 +343,7 @@ class ClienteRepository extends ServiceEntityRepository
             ;
     }
 
-    public function findClienteEnHabitacion($habitacion, $soloConCamaFisica = false, $incluirPacientesDePermiso = false) {
+    public function findClienteEnHabitacion($habitacion, $soloConCamaFisica = true, $incluirPacientesDePermiso = false) {
         $hoy = new \DateTime();
         $query = $this->createQueryBuilder('c')
             ->andWhere('(c.fEgreso is null or c.fEgreso >= :hoy) and (c.habitacion is not null and c.habitacion = :habitacion)')

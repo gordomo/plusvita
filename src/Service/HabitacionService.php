@@ -26,31 +26,15 @@ class HabitacionService
 
     /**
      * Actualiza las camas ocupadas de una habitación basándose en los pacientes reales asignados
-     * Este método centraliza la lógica para evitar inconsistencias
+     * NOTA: Este método ya no persiste datos en BD ya que el campo camasOcupadas fue eliminado.
+     * Se mantiene para compatibilidad con código legacy que lo llama.
+     * Las camas ocupadas ahora se calculan dinámicamente consultando pacientes activos.
      */
     public function actualizarCamasOcupadas(Habitacion $habitacion): void
     {
-        // Obtener todos los pacientes activos en esta habitación
-        $pacientesEnHabitacion = $this->clienteRepository->findClienteEnHabitacion(
-            $habitacion, 
-            false, // incluir todos los pacientes, no solo los con cama física
-            true   // incluir pacientes de permiso
-        );
-        
-        // Reconstruir el array de camas ocupadas basado en los pacientes reales
-        $camasOcupadasReales = [];
-        
-        foreach ($pacientesEnHabitacion as $paciente) {
-            $nCama = $paciente->getNCama();
-            
-            if ($nCama !== null && $nCama > 0) {
-                $camasOcupadasReales[$nCama] = $nCama;
-            }
-        }
-        
-        // Actualizar las camas ocupadas de la habitación
-        $habitacion->setCamasOcupadas($camasOcupadasReales);
-        $this->entityManager->persist($habitacion);
+        // No-op: El campo camasOcupadas ya no existe en BD
+        // Las camas ocupadas se calculan dinámicamente desde los pacientes reales
+        // Este método se mantiene solo para evitar errores en código que lo llama
     }
 
     /**

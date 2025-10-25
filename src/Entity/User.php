@@ -74,6 +74,11 @@ class User implements UserInterface
     private $bookings;
 
     /**
+     * @ORM\OneToMany(targetEntity=Booking::class, mappedBy="doctor")
+     */
+    private $doctorBookings;
+
+    /**
      * @ORM\Column(type="boolean")
      */
     private $habilitado;
@@ -94,12 +99,25 @@ class User implements UserInterface
      */
     private $clientes;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Prescripcion::class, mappedBy="user")
+     */
+    private $prescripciones;
+
+    /**
+     * @ORM\OneToMany(targetEntity=PresentesDoctores::class, mappedBy="doctor")
+     */
+    private $presentesDoctores;
+
     public function __construct()
     {
         $this->bookings = new ArrayCollection();
+        $this->doctorBookings = new ArrayCollection();
         $this->roles = new ArrayCollection();
         $this->firmas = new ArrayCollection();
         $this->clientes = new ArrayCollection();
+        $this->prescripciones = new ArrayCollection();
+        $this->presentesDoctores = new ArrayCollection();
         $this->habilitado = true;
     }
 
@@ -420,6 +438,33 @@ class User implements UserInterface
         if ($this->clientes->contains($cliente)) {
             $this->clientes->removeElement($cliente);
             $cliente->removeDocReferente($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Booking[]
+     */
+    public function getDoctorBookings(): Collection
+    {
+        return $this->doctorBookings;
+    }
+
+    public function addDoctorBooking(Booking $booking): self
+    {
+        if (!$this->doctorBookings->contains($booking)) {
+            $this->doctorBookings[] = $booking;
+            $booking->setDoctor($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDoctorBooking(Booking $booking): self
+    {
+        if ($this->doctorBookings->contains($booking)) {
+            $this->doctorBookings->removeElement($booking);
         }
 
         return $this;

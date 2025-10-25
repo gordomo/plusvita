@@ -80,7 +80,7 @@ class InformeMensualController extends AbstractController
         
         // Obtener la lista de doctores para el filtro
         $entityManager = $this->getDoctrine()->getManager();
-        $doctores = $entityManager->getRepository(Doctor::class)->findBy([], ['apellido' => 'ASC']);
+        $doctores = $entityManager->getRepository(User::class)->findBy(['habilitado' => true], ['apellido' => 'ASC']);
 
         return $this->render('informe_mensual/index.html.twig', [
             'informes' => $informes,

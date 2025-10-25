@@ -33,7 +33,7 @@ class Prescripcion
     private $fecha;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Doctor::class, inversedBy="doctor")
+     * @ORM\ManyToOne(targetEntity=User::class, inversedBy="prescripciones")
      */
     private $user;
 
@@ -88,12 +88,12 @@ class Prescripcion
         return $this;
     }
 
-    public function getUser(): ?Doctor
+    public function getUser(): ?User
     {
         return $this->user;
     }
 
-    public function setUser(?Doctor $user): self
+    public function setUser(?User $user): self
     {
         $this->user = $user;
 

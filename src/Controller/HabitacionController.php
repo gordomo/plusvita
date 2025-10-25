@@ -27,7 +27,7 @@ class HabitacionController extends AbstractController
 
         switch ($pestana) {
             case 'completas':
-                $habitaciones = $habitacionRepository->findHabitacionSinCamasDisponibles();
+                $habitaciones = $habitacionRepository->findHabitacionSinCamasDisponibles($clienteRepository);
                 break;
             case 'camas-vacias':
                 $habitaciones = $habitacionRepository->findHabitacionConCamasDisponibles($clienteRepository);
@@ -37,11 +37,25 @@ class HabitacionController extends AbstractController
                 break;
         }
 
+        // Pre-calcular las camas ocupadas reales para cada habitación (evitar N+1 queries)
+        $camasOcupadasPorHabitacion = [];
+        foreach ($habitaciones as $habitacion) {
+            $pacientesConCamaFisica = $clienteRepository->findClienteEnHabitacion($habitacion, true, true);
+            $camasOcupadas = [];
+            foreach ($pacientesConCamaFisica as $paciente) {
+                if ($paciente->getNCama() > 0) {
+                    $camasOcupadas[$paciente->getNCama()] = $paciente->getNCama();
+                }
+            }
+            $camasOcupadasPorHabitacion[$habitacion->getId()] = $camasOcupadas;
+        }
+
         return $this->render('habitacion/index.html.twig', [
             'habitacions' => $habitaciones,
             'clienteRepository' => $clienteRepository,
             'fecha' => new \DateTime(),
             'pestana' => $pestana,
+            'camasOcupadasPorHabitacion' => $camasOcupadasPorHabitacion,
         ]);
     }
 
@@ -52,7 +66,6 @@ class HabitacionController extends AbstractController
     {
         $habitacion = new Habitacion();
         $habitacion->setCamasDisponibles(2);
-        $habitacion->setCamasOcupadas([]);
         $form = $this->createForm(HabitacionType::class, $habitacion);
         $form->handleRequest($request);
 
@@ -73,10 +86,20 @@ class HabitacionController extends AbstractController
     /**
      * @Route("/{id}", name="habitacion_show", methods={"GET"})
      */
-    public function show(Habitacion $habitacion): Response
+    public function show(Habitacion $habitacion, ClienteRepository $clienteRepository): Response
     {
+        // Calcular camas ocupadas reales
+        $pacientesConCamaFisica = $clienteRepository->findClienteEnHabitacion($habitacion, true, true);
+        $camasOcupadas = [];
+        foreach ($pacientesConCamaFisica as $paciente) {
+            if ($paciente->getNCama() > 0) {
+                $camasOcupadas[$paciente->getNCama()] = $paciente->getNCama();
+            }
+        }
+        
         return $this->render('habitacion/show.html.twig', [
             'habitacion' => $habitacion,
+            'camasOcupadasReales' => $camasOcupadas,
         ]);
     }
 
@@ -91,19 +114,14 @@ class HabitacionController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $habitacion = $form->getData();
             $camasDisponibles = $habitacion->getCamasDisponibles();
-            $camasOcupadas = $habitacion->getCamasOcupadas();
             $entityManager = $this->getDoctrine()->getManager();
             
-            if ($camasDisponibles < count($camasOcupadas)) {
-                $clientes = $clienteRepository->findActivosSinPag(new \DateTime(), '', $habitacion->getId(), 'nCama', null);
-                
-                $camasOcupadas = [];
-                for($i = 1; $i <= $camasDisponibles; $i ++) {
-                    $camasOcupadas[$i] = $i;
-                }
-                $habitacion->setCamasOcupadas($camasOcupadas);
-
-                while (count($clientes) > count($camasOcupadas)) {
+            // Obtener los pacientes realmente asignados
+            $clientes = $clienteRepository->findActivosSinPag(new \DateTime(), '', $habitacion->getId(), 'nCama', null);
+            
+            // Si se redujo el número de camas y hay más pacientes que camas, desasignar los últimos
+            if (count($clientes) > $camasDisponibles) {
+                while (count($clientes) > $camasDisponibles) {
                     $cliente = array_pop($clientes);
                     $cliente->setHabitacion(null);
                     $cliente->setNcama(null);
@@ -111,11 +129,8 @@ class HabitacionController extends AbstractController
                 }
             }
             
-            
             $entityManager->persist($habitacion);
-            
             $entityManager->flush();
-            
 
             return $this->redirectToRoute('habitacion_index');
         }

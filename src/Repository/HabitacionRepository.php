@@ -116,6 +116,7 @@ class HabitacionRepository extends ServiceEntityRepository
     public function findCamasOcupadasYDisponibles(): array
 {
     $habitaciones = $this->findAll();
+    $clienteRepository = $this->getEntityManager()->getRepository(\App\Entity\Cliente::class);
     $resultados = [];
 
     foreach ($habitaciones as $habitacion) {
@@ -123,10 +124,16 @@ class HabitacionRepository extends ServiceEntityRepository
         $piso = $numeroHabitacion[0]; // Obtener el primer número como identificador del piso
 
         $camasTotales = $habitacion->getCamasDisponibles();
-        $estadoCamas = $habitacion->getCamasOcupadas();
         
-        // Contar las camas ocupadas usando el mismo método que el listado de habitaciones
-        $camasOcupadas = $estadoCamas ? count($estadoCamas) : 0;
+        // Calcular camas ocupadas reales consultando pacientes activos
+        $pacientesConCamaFisica = $clienteRepository->findClienteEnHabitacion($habitacion, true, true);
+        $camasOcupadasReales = [];
+        foreach ($pacientesConCamaFisica as $paciente) {
+            if ($paciente->getNCama() > 0) {
+                $camasOcupadasReales[$paciente->getNCama()] = $paciente->getNCama();
+            }
+        }
+        $camasOcupadas = count($camasOcupadasReales);
 
         // Calcular las camas disponibles
         $camasDisponibles = $camasTotales - $camasOcupadas;
