@@ -25,19 +25,11 @@ class EvolucionType extends AbstractType
         $puedenEditarEvoluciones = $options['puedenEditarEvoluciones'];
         $today = new \DateTime();
 
-        $builder
-            ->add('tipo', ChoiceType::class, [
-                'required' => true,
-                'choices' => $this->getTipos(),
-                'choice_attr' => function($choice, $key, $value) use ($modalidad) {
-                    if ($value == $modalidad) {
-                            return ['selected' => 'selected'];
-                        } else {
-                            return [];
-                        }
-                    },
-                ]);
-            if($puedenEditarEvoluciones) {
+        // Campo "tipo" removido - se asigna automáticamente desde el rol del usuario
+        
+        // Solo mostrar selector de doctor si tiene permiso para editar evoluciones
+        $builder;
+        if($puedenEditarEvoluciones) {
                 $builder->add('doctor', ChoiceType::class, [
                     'required' => true,
                     'choices' => $doctores,

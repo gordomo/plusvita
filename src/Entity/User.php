@@ -469,4 +469,48 @@ class User implements UserInterface
 
         return $this;
     }
+
+    /**
+     * Obtiene el tipo de profesional basado en el rol principal del usuario
+     * Esto se usa para llenar automáticamente el campo "tipo" en evoluciones
+     */
+    public function getTipoProfesional(): string
+    {
+        // Mapeo de roles a tipos de profesional
+        $rolesToTipo = [
+            'nutricionista' => 'Nutricionista',
+            'director_medico' => 'Director medico',
+            'sub_director_medico' => 'Sub director medico',
+            'trabajadora_social' => 'Trabajadora social',
+            'psiquiatra' => 'Psiquiatra',
+            'infectologo' => 'Infectologo',
+            'kinesiologo' => 'Kinesiologo',
+            'kinesiologo_respiratorio' => 'Kinesiologo respiratorio',
+            'terapista_ocupacional' => 'Terapista ocupacional',
+            'fonoaudiologo' => 'Fonoaudiologo',
+            'psicologo' => 'Psicologo',
+            'fisiatra' => 'Fisiatra',
+            'neurologo' => 'Neurologo',
+            'cardiologo' => 'Cardiologo',
+            'urologo' => 'Urologo',
+            'hematologo' => 'Hematologo',
+            'neumonologo' => 'Neumonologo',
+            'cirujano' => 'Cirujano',
+            'traumatologo' => 'Traumatologo',
+            'doctor' => 'Medico Clínico',
+            'medico_guardia' => 'Medico de guardia',
+        ];
+
+        // Buscar el primer rol que coincida
+        foreach ($this->roles as $role) {
+            $roleName = $role->getName();
+            if (isset($rolesToTipo[$roleName])) {
+                return $rolesToTipo[$roleName];
+            }
+        }
+
+        // Default si no se encuentra ningún rol específico
+        return 'Profesional por prestacion';
+    }
 }
+

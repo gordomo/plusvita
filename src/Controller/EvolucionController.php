@@ -86,19 +86,34 @@ class EvolucionController extends AbstractController
     public function new(SluggerInterface $slugger, ValidatorInterface $validator, Request $request, ClienteRepository $clienteRepository, EvolucionRepository $evolucionRepository, DoctorRepository $doctorRepository, \App\Repository\UserRepository $userRepository): Response
     {
         $user = $this->getUser();
-        $puedenEditarEvoluciones = $this->isGranted('patient.evolve');
-        
-        // Obtener doctores con rol doctor (User objects, no solo emails)
-        $doctoresConRol = $userRepository->findByRole('doctor');
-        $docArr = [];
-        foreach ($doctoresConRol as $doc) {
-            // Usar el email como key y el objeto User como value
-            $docArr[$doc->getEmail()] = $doc;
-        }
         
         $error = '';
         if (!$user) {
             return $this->redirectToRoute('app_login');
+        }
+        
+        // Verificar permisos
+        $puedeEvolucionar = $this->isGranted('patient.evolve');
+        $puedenEditarEvoluciones = $this->isGranted('patient.edit_evolve');
+        
+        if (!$puedeEvolucionar) {
+            throw $this->createAccessDeniedException('No tienes permiso para crear evoluciones');
+        }
+        
+        // Solo cargar otros usuarios si tiene permiso para editar evoluciones
+        $docArr = [];
+        if ($puedenEditarEvoluciones) {
+            // Obtener todos los usuarios que tienen permiso para evolucionar
+            $todosUsuarios = $userRepository->findAll();
+            foreach ($todosUsuarios as $usr) {
+                // Filtrar solo usuarios que tengan algún rol relacionado con evolución
+                if ($usr->hasAnyRole(['doctor', 'fisiatra', 'director_medico', 'sub_director_medico', 
+                    'kinesiologo', 'kinesiologo_respiratorio', 'terapista_ocupacional', 
+                    'fonoaudiologo', 'psicologo', 'neurologo', 'cardiologo', 'nutricionista',
+                    'trabajadora_social', 'psiquiatra', 'infectologo'])) {
+                    $docArr[$usr->getEmail()] = $usr;
+                }
+            }
         }
         $evolucion = new Evolucion();
 
@@ -108,6 +123,10 @@ class EvolucionController extends AbstractController
         $evolucion->setPaciente($cliente);
         $evolucion->setUser($user->getEmail());
         $evolucion->setFecha(new \DateTime());
+        
+        // Asignar tipo automáticamente basado en el usuario actual (antes de crear el form)
+        // Esto es necesario para que pase la validación NotBlank
+        $evolucion->setTipo($user->getTipoProfesional());
 
         // Modalidades deprecado - siempre será vacío con el nuevo sistema
         // Los usuarios deben seleccionar el tipo de evolución manualmente
@@ -131,8 +150,11 @@ class EvolucionController extends AbstractController
                     }
                 }
                 
-                // Guardar datos del doctor que firma
+                // Asignar tipo automáticamente basado en el rol del usuario que evoluciona
                 if ($doctorQueFirma) {
+                    $evolucion->setTipo($doctorQueFirma->getTipoProfesional());
+                    
+                    // Guardar datos del doctor que firma
                     $evolucion->setFirmaDoctorNombre($doctorQueFirma->getNombre());
                     $evolucion->setFirmaDoctorApellido($doctorQueFirma->getApellido());
                     $evolucion->setFirmaDoctorMatricula($doctorQueFirma->getLegajo()); // Usando legajo como matrícula

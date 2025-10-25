@@ -1,15 +1,12 @@
 {{ form_start(form) }}
 <br>
 <div class="form-row mb-4">
-    <div class="col-sm">
-        {{ form_label(form.tipo, 'Tipo') }}
-        {{ form_widget(form.tipo) }}
-    </div>
+    {# Campo "tipo" removido - se asigna automáticamente basado en el rol del usuario #}
     <div class="col-sm">
         {{ form_label(form.fecha, 'Fecha') }}
         {{ form_widget(form.fecha) }}
     </div>
-    {% if (is_granted('ROLE_EDIT_HC')) %}
+    {% if form.doctor is defined %}
     <div class="col-sm">
         {{ form_label(form.doctor, 'Doctor') }}
         {{ form_widget(form.doctor) }}
