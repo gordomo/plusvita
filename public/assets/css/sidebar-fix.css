@@ -1,10 +1,19 @@
 /* Correcciones para el sidebar */
 #sidebar-wrapper {
-  margin-left: 0 !important;
   display: block !important;
   visibility: visible !important;
 }
 
+/* En móviles (< 768px): sidebar oculto por defecto, visible cuando se agrega 'toggled' */
+#sidebar-wrapper {
+  margin-left: -15rem;
+}
+
+#wrapper.toggled #sidebar-wrapper {
+  margin-left: 0 !important;
+}
+
+/* En desktop (>= 768px): sidebar visible por defecto, oculto cuando se agrega 'toggled' */
 @media (min-width: 768px) {
   #sidebar-wrapper {
     margin-left: 0 !important;
