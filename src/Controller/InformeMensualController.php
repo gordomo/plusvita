@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Cliente;
 use App\Entity\Doctor;
+use App\Entity\User;
 use App\Entity\InformeMensual;
 use App\Form\InformeMensualType;
 use App\Repository\ClienteRepository;
