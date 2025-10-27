@@ -336,7 +336,7 @@ class ClienteController extends AbstractController
     /**
      * @Route("/historico/prueba", name="cliente_historicos_habitaciones", methods={"GET"})
      */
-    public function historicoPrueba(Request $request, HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, DoctorRepository $doctorRepository, HistoriaPacienteRepository $historiaPacienteRepository, PresentesRepository $presentesRepository): Response
+    public function historicoPrueba(Request $request, HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, DoctorRepository $doctorRepository, UserRepository $userRepository, HistoriaPacienteRepository $historiaPacienteRepository, PresentesRepository $presentesRepository): Response
     {
         $user = $this->getUser();
         if (!$user) {
@@ -612,7 +612,8 @@ class ClienteController extends AbstractController
                     }
                     
                     // Agregar profesionales referentes
-                    $docReferentes = json_decode($historia->getDocReferente()) ?? [];
+                    $docReferentes = $historia->getDocReferenteArray() ?? [];
+
                     $profesionalesAgregados = false;
                     
                     foreach ($docReferentes as $docReferenteId) {
@@ -708,7 +709,7 @@ class ClienteController extends AbstractController
         }
         
 
-        $docReferentes = $doctorRepository->findByContratos(['Fisiatra', 'Director medico', 'Sub director medico'], false);
+        $docReferentes = $userRepository->findByRoles(['Fisiatra', 'Director medico', 'Sub director medico']);
         
         // Calcular distribución de patologías y edades para el resumen
         $patologiasLabels = [
