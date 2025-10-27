@@ -582,7 +582,9 @@ class PatientStateService
         $modalidad = $parametros['modalidad'] ?? (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getModalidad() : null);
         $patologia = $parametros['patologia'] ?? (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getPatologia() : null);
         $patologiaEspecifica = $parametros['patologiaEspecifica'] ?? (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getPatologiaEspecifica() : null);
-        $obraSocial = $parametros['obraSocial'] ?? (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getObraSocial() : null);
+        // CORRECCIÓN: Primero intentar obtener la obra social del cliente (dato más actualizado),
+        // luego del último historial, para asegurar sincronización correcta
+        $obraSocial = $parametros['obraSocial'] ?? $cliente->getObraSocial() ?? (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getObraSocial() : null);
         $nAfiliadoObraSocial = $parametros['nAfiliadoObraSocial'] ?? (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getNAfiliadoObraSocial() : null);
         $sistemaDeEmergencia = $parametros['sistemaDeEmergencia'] ?? (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getSistemaDeEmergencia() : null);
         $nAfiliadoSistemaDeEmergencia = $parametros['nAfiliadoSistemaDeEmergencia'] ?? (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getNAfiliadoSistemaDeEmergencia() : null);

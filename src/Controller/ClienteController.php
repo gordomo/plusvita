@@ -506,7 +506,7 @@ class ClienteController extends AbstractController
             // Cargar todos los clientes involucrados de una sola vez para evitar consultas repetidas
             $todosClientesInvolucrados = $clienteRepository->findBy(['id' => array_keys($clientesIdsInvolucrados)]);
             foreach ($todosClientesInvolucrados as $cliente) {
-                // Obtener la historia más reciente del paciente para conocer su obra social actual
+                // Obtener la historia más reciente del paciente para conocer su obra social en ese momento
                 $historiaReciente = $historiaPacienteRepository->findOneBy(
                     ['cliente' => $cliente->getId()],
                     ['fecha' => 'DESC']
