@@ -57,8 +57,9 @@ class InformeMensualRepository extends ServiceEntityRepository
             ->orderBy('i.fechaCreacion', 'DESC');
 
         // Si el usuario no puede gestionar todos los informes, filtrar por su email
+        // CORRECCIÓN: Incluir también informes sin doctor asignado (doctor_user_id NULL)
         if (!$canManage && $userEmail) {
-            $qb->andWhere('d.email = :userEmail')
+            $qb->andWhere('d.email = :userEmail OR i.doctor IS NULL')
                ->setParameter('userEmail', $userEmail);
         }
         
