@@ -540,6 +540,11 @@ class ClienteController extends AbstractController
                     $texto = '';
                     $cliente = null;
                     
+                    // FILTRO IMPORTANTE: Si se seleccionó una modalidad específica, solo mostrar esa modalidad
+                    if ($modalidad != 0 && $historia->getModalidad() != $modalidad) {
+                        continue; // Saltar esta fecha si no coincide con la modalidad filtrada
+                    }
+                    
                     
                     // Buscar cliente en la lista ya cargada
                     foreach ($todosClientesInvolucrados as $posibleCliente) {
