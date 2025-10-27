@@ -444,6 +444,11 @@ class ClienteController extends AbstractController
             $historiasPorPaciente = [];
             $clientesIdsInvolucrados = []; // Guardar IDs de clientes para cargarlos una sola vez
             
+            // Ordenar historias de más antigua a más reciente para que las recientes sobrescriban
+            usort($historias, function($a, $b) {
+                return $a->getFecha() <=> $b->getFecha();
+            });
+            
             foreach ($historias as $historia) {
                 $cliente = $historia->getCliente();
                 if (!$cliente) continue;
@@ -451,7 +456,9 @@ class ClienteController extends AbstractController
                 $clienteId = $cliente->getId();
                 $clientesIdsInvolucrados[$clienteId] = true; // Marcar este ID para cargarlo después
                 
-                $fechaInicio = max($historia->getFechaIngreso(), $fechaDesde);
+                // El rango de validez de esta historia es desde su 'fecha' hasta su 'fecha_fin'
+                // NO usar fecha_ingreso porque eso es la entrada original del paciente
+                $fechaInicio = max($historia->getFecha(), $fechaDesde);
                 $fechaFin = $historia->getFechaFin() ?: $fechaHasta;
                 
                 // Si el paciente tiene fecha de egreso, no mostrar después de esa fecha
@@ -468,6 +475,7 @@ class ClienteController extends AbstractController
                 
                 foreach ($rangoHistoria as $fecha) {
                     $fechaStr = $fecha->format('d/m/Y');
+                    // Sobrescribir siempre para que las historias más recientes prevalezcan
                     $historiasPorPaciente[$clienteId][$fechaStr] = $historia;
                 }
             }
@@ -558,14 +566,36 @@ class ClienteController extends AbstractController
                         $egresos[$fechaStr][$clienteId] = '1';
                     }
                     // Si está derivado en esta fecha
-                    else if ($historia->getFechaDerivacion() && 
-                            $fecha >= $historia->getFechaDerivacion() && 
-                            (!$historia->getFechaReingresoDerivacion() || $fecha <= $historia->getFechaReingresoDerivacion())) {
-                        $texto = 'Derivado';
-                        $derivados[$fechaStr][$clienteId] = '1';
+                    // LÓGICA CORREGIDA:
+                    // Un paciente está DERIVADO si tiene fecha_derivacion Y:
+                    // - NO tiene fecha_reingreso, O
+                    // - fecha_reingreso es ANTERIOR a fecha_derivacion (reingreso de ciclo anterior, no del actual), O
+                    // - la fecha actual es ANTES de la fecha_reingreso (aún no ha reingresado)
+                    else if ($historia->getFechaDerivacion() && $fecha >= $historia->getFechaDerivacion()) {
+                        $estaDerivado = false;
+                        
+                        // Si no hay fecha de reingreso, está derivado
+                        if (!$historia->getFechaReingresoDerivacion()) {
+                            $estaDerivado = true;
+                        }
+                        // Si fecha_reingreso es ANTERIOR a fecha_derivacion, es de un ciclo anterior
+                        // Por lo tanto, para esta derivación actual, aún no ha reingresado
+                        else if ($historia->getFechaReingresoDerivacion() < $historia->getFechaDerivacion()) {
+                            $estaDerivado = true;
+                        }
+                        // Si fecha_reingreso es posterior a fecha_derivacion, verificar si ya ocurrió
+                        else if ($fecha < $historia->getFechaReingresoDerivacion()) {
+                            $estaDerivado = true;
+                        }
+                        
+                        if ($estaDerivado) {
+                            $texto = 'Derivado';
+                            $derivados[$fechaStr][$clienteId] = '1';
+                        }
                     }
-                    // Si tiene una modalidad ambulatoria (no es internación)
-                    else if ($historia->getModalidad() != 2) {
+                    
+                    // Si tiene una modalidad ambulatoria (no es internación) y no está derivado
+                    if (empty($texto) && $historia->getModalidad() != 2) {
                         // Para ambulatorios: SOLO mostrar si están explícitamente marcados como presentes
                         // Esto asegura que solo se muestren los días con registros en la tabla presentes
                         if ($estaPresenteHoy === true || $estaPresenteHoy === 1 || $estaPresenteHoy === '1') {
@@ -592,8 +622,8 @@ class ClienteController extends AbstractController
                             continue; // Saltamos a la siguiente fecha
                         }
                     }
-                    // Si es internado
-                    else {
+                    // Si es internado y no se ha asignado otro estado
+                    else if (empty($texto)) {
                         // Para internados, verificamos si hay un registro explícito de ausencia
                         if ($estaPresenteHoy === false) {
                             continue; // Si está marcado como ausente explícitamente, lo saltamos
