@@ -112,15 +112,15 @@
                                     </select>
                                 </div>
                                 
-                                <!-- Filtro por Doctor (solo para administradores) -->
+                                <!-- Filtro por Profesional (solo para administradores) -->
                                 {% if is_granted('monthly_report.manage') %}
                                     <div class="col-md-3 filter-section">
-                                        <div class="filter-label">Doctor</div>
+                                        <div class="filter-label">Profesional</div>
                                         <select name="doctor" class="form-control" id="doctor-filter">
-                                            <option value="">Todos los doctores</option>
-                                            {% for doctor in doctores %}
-                                                <option value="{{ doctor.id }}" {% if filtros.doctorId == doctor.id %}selected{% endif %}>
-                                                    {{ doctor.apellido }}, {{ doctor.nombre }}
+                                            <option value="">Todos los profesionales</option>
+                                            {% for profesional in profesionales %}
+                                                <option value="{{ profesional.id }}" {% if filtros.doctorId == profesional.id %}selected{% endif %}>
+                                                    {{ profesional.apellido }}, {{ profesional.nombre }}
                                                 </option>
                                             {% endfor %}
                                         </select>
@@ -169,10 +169,10 @@
                                         {% endif %}
                                         
                                         {% if filtros.doctorId %}
-                                            {% for doctor in doctores %}
-                                                {% if doctor.id == filtros.doctorId %}
+                                            {% for profesional in profesionales %}
+                                                {% if profesional.id == filtros.doctorId %}
                                                     <span class="active-filter-badge">
-                                                        <i class="fas fa-user-md mr-1"></i> Doctor: {{ doctor.apellido }}, {{ doctor.nombre }}
+                                                        <i class="fas fa-user-md mr-1"></i> Profesional: {{ profesional.apellido }}, {{ profesional.nombre }}
                                                     </span>
                                                 {% endif %}
                                             {% endfor %}

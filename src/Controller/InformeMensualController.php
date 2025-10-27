@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\Cliente;
-use App\Entity\Doctor;
 use App\Entity\User;
 use App\Entity\InformeMensual;
 use App\Form\InformeMensualType;
@@ -79,14 +78,14 @@ class InformeMensualController extends AbstractController
         // Obtener la lista de pacientes para el filtro
         $pacientes = $clienteRepository->findBy([], ['apellido' => 'ASC']);
         
-        // Obtener la lista de doctores para el filtro
+        // Obtener la lista de profesionales para el filtro
         $entityManager = $this->getDoctrine()->getManager();
-        $doctores = $entityManager->getRepository(User::class)->findBy(['habilitado' => true], ['apellido' => 'ASC']);
+        $profesionales = $entityManager->getRepository(User::class)->findBy(['habilitado' => true], ['apellido' => 'ASC']);
 
         return $this->render('informe_mensual/index.html.twig', [
             'informes' => $informes,
             'pacientes' => $pacientes,
-            'doctores' => $doctores,
+            'profesionales' => $profesionales,
             'filtros' => [
                 'pacienteId' => $pacienteId,
                 'doctorId' => $doctorId,
@@ -143,16 +142,9 @@ class InformeMensualController extends AbstractController
      */
     public function show(InformeMensual $informeMensual): Response
     {
-        // Validar permisos
+        // Con informe_mensual.view pueden ver todos los informes
         if (!$this->isGranted('informe_mensual.view') && !$this->isGranted('informe_mensual.manage')) {
             throw $this->createAccessDeniedException('No tienes permiso para ver informes mensuales.');
-        }
-        
-        // Si solo tiene view, verificar que sea su propio informe
-        if (!$this->isGranted('informe_mensual.manage')) {
-            if (!$informeMensual->getDoctor() || $informeMensual->getDoctor()->getEmail() !== $this->getUser()->getEmail()) {
-                throw $this->createAccessDeniedException('Solo puedes ver tus propios informes.');
-            }
         }
         
         return $this->render('informe_mensual/show.html.twig', [
@@ -216,16 +208,9 @@ class InformeMensualController extends AbstractController
      */
     public function generarPdf(InformeMensual $informeMensual): Response
     {
-        // Validar permisos
+        // Con informe_mensual.view pueden ver PDFs de todos los informes
         if (!$this->isGranted('informe_mensual.view') && !$this->isGranted('informe_mensual.manage')) {
             throw $this->createAccessDeniedException('No tienes permiso para ver este informe.');
-        }
-        
-        // Si solo tiene view, verificar que sea su propio informe
-        if (!$this->isGranted('informe_mensual.manage')) {
-            if (!$informeMensual->getDoctor() || $informeMensual->getDoctor()->getEmail() !== $this->getUser()->getEmail()) {
-                throw $this->createAccessDeniedException('Solo puedes generar PDF de tus propios informes.');
-            }
         }
 
         // Obtener la fecha personalizada del request, o usar la fecha de creación por defecto
@@ -241,8 +226,8 @@ class InformeMensualController extends AbstractController
             $fecha = $informeMensual->getFechaCreacion();
         }
         
-        // Obtener datos de la firma del doctor
-        $doctorSignature = $this->obtenerFirmaDelInforme($informeMensual);
+        // Obtener datos de la firma del profesional
+        $profesionalSignature = $this->obtenerFirmaDelInforme($informeMensual);
         
         // Configurar Dompdf
         $options = new Options();
@@ -266,7 +251,7 @@ class InformeMensualController extends AbstractController
             'informeMensual' => $informeMensual,
             'baseUrl' => $baseUrl,
             'fechaPersonalizada' => $fecha,
-            'doctorSignature' => $doctorSignature
+            'doctorSignature' => $profesionalSignature
         ]);
         
         // Cargar HTML en Dompdf
@@ -299,16 +284,9 @@ class InformeMensualController extends AbstractController
      */
     public function mostrarFormularioPdf(InformeMensual $informeMensual): Response
     {
-        // Validar permisos (mismo que show y generarPdf)
+        // Con informe_mensual.view pueden ver PDFs de todos los informes
         if (!$this->isGranted('informe_mensual.view') && !$this->isGranted('informe_mensual.manage')) {
             throw $this->createAccessDeniedException('No tienes permiso para ver este informe.');
-        }
-        
-        // Si solo tiene view, verificar que sea su propio informe
-        if (!$this->isGranted('informe_mensual.manage')) {
-            if (!$informeMensual->getDoctor() || $informeMensual->getDoctor()->getEmail() !== $this->getUser()->getEmail()) {
-                throw $this->createAccessDeniedException('Solo puedes generar PDF de tus propios informes.');
-            }
         }
         
         return $this->render('informe_mensual/pdf_form.html.twig', [
@@ -397,11 +375,11 @@ class InformeMensualController extends AbstractController
         
         // 5. Médico referente
         if ($cliente->getDocReferente() && count($cliente->getDocReferente()) > 0) {
-            $doctores = [];
-            foreach ($cliente->getDocReferente() as $doctor) {
-                $doctores[] = $doctor->getNombre() . ' ' . $doctor->getApellido();
+            $profesionales = [];
+            foreach ($cliente->getDocReferente() as $profesional) {
+                $profesionales[] = $profesional->getNombre() . ' ' . $profesional->getApellido();
             }
-            $estadoActual[] = "• Médico/s referente/s: " . implode(', ', $doctores);
+            $estadoActual[] = "• Médico/s referente/s: " . implode(', ', $profesionales);
         }
         
         // 6. Fecha de ingreso
@@ -431,60 +409,14 @@ class InformeMensualController extends AbstractController
     }
     
     /**
-     * Obtiene la firma del doctor (UserFirma o Doctor.firma)
-     */
-    private function obtenerFirmaDoctor(Doctor $doctor): array
-    {
-        $firma = '';
-        $doctorData = [
-            'nombre' => $doctor->getNombre(),
-            'apellido' => $doctor->getApellido(),
-            'matricula' => $doctor->getMatricula(),
-            'firma_path' => null,
-        ];
-        
-        $entityManager = $this->getDoctrine()->getManager();
-        
-        // 1. Buscar por User con firmas activas
-        $userRepository = $entityManager->getRepository(\App\Entity\User::class);
-        $user = $userRepository->findOneBy(['email' => $doctor->getEmail()]);
-        
-        if ($user) {
-            // Actualizar datos del usuario si están disponibles
-            $doctorData['nombre'] = $user->getNombre() ?: $doctor->getNombre();
-            $doctorData['apellido'] = $user->getApellido() ?: $doctor->getApellido();
-            $doctorData['matricula'] = $user->getLegajo() ?: $doctor->getMatricula();
-            
-            // Buscar firma activa en las firmas del usuario
-            $firmas = $user->getFirmas();
-            if ($firmas && count($firmas) > 0) {
-                foreach ($firmas as $firmaItem) {
-                    if ($firmaItem->getIsActive() && $firmaItem->getFilePath()) {
-                        $firma = $firmaItem->getFilePath();
-                        break;
-                    }
-                }
-            }
-        }
-        
-        // 2. Si no encontró firma en User, usar firma del Doctor entity
-        if (empty($firma) && $doctor->getFirma()) {
-            $firma = $doctor->getFirma();
-        }
-        
-        $doctorData['firma_path'] = $firma;
-        
-        return $doctorData;
-    }
-    
-    /**
-     * Obtiene la firma del InformeMensual (User con fallback a firma vieja en Doctor)
+     * Obtiene la firma del InformeMensual desde el User asociado
+     * Busca primero firma activa en User, sino busca en Doctor legacy (retrocompatibilidad)
      */
     private function obtenerFirmaDelInforme(InformeMensual $informe): array
     {
-        $usuarioDoctor = $informe->getDoctor();
+        $usuarioProfesional = $informe->getDoctor();
         $firma = '';
-        $doctorData = [
+        $profesionalData = [
             'nombre' => '',
             'apellido' => '',
             'matricula' => null,
@@ -492,14 +424,14 @@ class InformeMensualController extends AbstractController
         ];
         
         // Si tiene User asociado
-        if ($usuarioDoctor) {
+        if ($usuarioProfesional) {
             // Obtener datos del usuario
-            $doctorData['nombre'] = $usuarioDoctor->getNombre() ?: '';
-            $doctorData['apellido'] = $usuarioDoctor->getApellido() ?: '';
-            $doctorData['matricula'] = $usuarioDoctor->getLegajo() ?: null;
+            $profesionalData['nombre'] = $usuarioProfesional->getNombre() ?: '';
+            $profesionalData['apellido'] = $usuarioProfesional->getApellido() ?: '';
+            $profesionalData['matricula'] = $usuarioProfesional->getLegajo() ?: null;
             
-            // Buscar firma activa en las firmas del usuario
-            $firmas = $usuarioDoctor->getFirmas();
+            // 1. Buscar firma activa en las firmas del usuario (nuevo sistema)
+            $firmas = $usuarioProfesional->getFirmas();
             if ($firmas && count($firmas) > 0) {
                 foreach ($firmas as $firmaItem) {
                     if ($firmaItem->getIsActive() && $firmaItem->getFilePath()) {
@@ -509,33 +441,20 @@ class InformeMensualController extends AbstractController
                 }
             }
             
-            // Si no encontró firma en User, buscar en Doctor (sistema viejo)
+            // 2. Si no hay firma activa, buscar en Doctor legacy (retrocompatibilidad)
             if (empty($firma)) {
-                $entityManager = $this->getDoctrine()->getManager();
-                $doctorRepository = $entityManager->getRepository(Doctor::class);
-                $doctorLegado = $doctorRepository->findOneBy(['email' => $usuarioDoctor->getEmail()]);
+                $em = $this->getDoctrine()->getManager();
+                $doctorLegacy = $em->getRepository(\App\Entity\Doctor::class)->findOneBy([
+                    'email' => $usuarioProfesional->getEmail()
+                ]);
                 
-                if ($doctorLegado) {
-                    $firmaDoctor = $doctorLegado->getFirma();
-                    if ($firmaDoctor) {
-                        $firma = $firmaDoctor;
-                    }
-                    
-                    // Complementar datos si faltan
-                    if (empty($doctorData['nombre'])) {
-                        $doctorData['nombre'] = $doctorLegado->getNombre() ?: '';
-                    }
-                    if (empty($doctorData['apellido'])) {
-                        $doctorData['apellido'] = $doctorLegado->getApellido() ?: '';
-                    }
-                    if (empty($doctorData['matricula'])) {
-                        $doctorData['matricula'] = $doctorLegado->getMatricula() ?: null;
-                    }
+                if ($doctorLegacy && $doctorLegacy->getFirma()) {
+                    $firma = $doctorLegacy->getFirma();
                 }
             }
             
-            $doctorData['firma_path'] = $firma;
-            return $doctorData;
+            $profesionalData['firma_path'] = $firma;
+            return $profesionalData;
         }
         
         // Si no hay usuario asociado
