@@ -1,0 +1,115 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Editar Contrato{% endblock %}
+{% block panelTitle %}
+    Editar Contrato <br>
+    <small>
+        <strong>Usuario:</strong> {{ contract.user.nombre }} {{ contract.user.apellido }} ({{ contract.user.email }})
+    </small>
+{% endblock %}
+
+{% block body %}
+    <div class="container-fluid">
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        {{ form_errors(form) }}
+
+        {{ form_start(form, {'action': path('user_contract_edit', {'id': contract.id}), 'method': 'POST'}) }}
+            {{ form_widget(form._token) }}
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form_label(form.tipo) }}
+                        {{ form_widget(form.tipo) }}
+                        {{ form_errors(form.tipo) }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form_label(form.cbu) }}
+                        {{ form_widget(form.cbu) }}
+                        {{ form_errors(form.cbu) }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form_label(form.inicioContrato) }}
+                        {{ form_widget(form.inicioContrato) }}
+                        {{ form_errors(form.inicioContrato) }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form_label(form.vtoContrato) }}
+                        {{ form_widget(form.vtoContrato) }}
+                        {{ form_errors(form.vtoContrato) }}
+                        <small class="form-text text-muted">{{ form_help(form.vtoContrato) }}</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        {{ form_label(form.concepto) }}
+                        {{ form_widget(form.concepto) }}
+                        {{ form_errors(form.concepto) }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        {{ form_label(form.observaciones) }}
+                        {{ form_widget(form.observaciones) }}
+                        {{ form_errors(form.observaciones) }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        {{ form_row(form.isActive) }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Actualizar Contrato
+                    </button>
+                    <a href="{{ path('user_contract_by_user', {'id': contract.user.id}) }}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancelar
+                    </a>
+                </div>
+            </div>
+        {{ form_end(form) }}
+
+        <div class="row mt-3">
+            <div class="col-md-12">
+                <form method="post" action="{{ path('user_contract_delete', {'id': contract.id}) }}" 
+                      style="display:inline" onsubmit="return confirm('¿Está seguro de eliminar este contrato?');">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ contract.id) }}">
+                    <button class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Eliminar Contrato
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

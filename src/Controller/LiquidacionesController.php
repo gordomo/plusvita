@@ -4,11 +4,11 @@ namespace App\Controller;
 
 use App\Repository\BookingRepository;
 use App\Repository\ClienteRepository;
-use App\Repository\DoctorRepository;
+use App\Repository\UserRepository;
 use App\Repository\EvolucionRepository;
 use App\Repository\ObraSocialRepository;
 use App\Repository\HistoriaPacienteRepository;
-use App\Repository\UserRepository;
+use App\Repository\RoleRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -34,66 +34,49 @@ class LiquidacionesController extends AbstractController
     /**
      * @Route("/profesionales", name="profesionales_index", methods={"GET"})
      */
-    public function profesionales(Request $request, DoctorRepository $doctorRepository): Response
+    public function profesionales(Request $request, UserRepository $userRepository, RoleRepository $roleRepository): Response
     {
         if (!$this->isGranted('liquidations.manage')) {
             $this->addFlash('error', 'No tienes permiso para acceder a esta página. Solo administradores pueden ver el listado de profesionales.');
             return $this->redirectToRoute('liquidaciones_mis');
         }
+
+        // Obtener todos los roles activos desde la base de datos
+        $rolesFromDb = $roleRepository->findActive();
         
-        $directo = [
-            'Nutricionista',
-            'Director medico',
-            'Sub director medico',
-            'Trabajadora social',
-            'Psiquiatra',
-            'Infectologo',
-            'Contador',
-            'Abogado',
-            'Estudio contable',
-            'Directivo',
-            'Programador',
-        ];
-        $prestacion = [
-            'Profesional por prestacion',
-            'Medico de guardia',
-            'Medico Clínico',
-            'HidroTerapia motora',
-            'Kinesiologo motora ',
-            'Kinesiología respiratoria',
-            'Terapista ocupacional',
-            'Fonoaudiologo',
-            'Psicologo',
-            'Fisiatra',
-            'Neurologo',
-            'Cardiologo',
-            'Urologo',
-            'Hematologo',
-            'Neumonologo',
-        ];
-        $sinContrato = [
-            'Cirujano',
-            'Traumatologo',
-            'Neumonologo',
-        ];
-        $contratosParaBusqueda = array_merge($directo, $prestacion, $sinContrato);
-        $contratosParaVista = ['directo' => $directo, 'prestacion' => $prestacion, 'sinContrato' => $sinContrato];
-
-        $ctrs = $request->query->get('ctr');
-        $ctrsArray = explode(',', $ctrs);
-
-
-        if(!empty($ctrs)) {
-            $profesionales = $doctorRepository->findByContratos($ctrsArray, false);
-        } else {
-            $profesionales = $doctorRepository->findByContratos($contratosParaBusqueda, false);
+        // Convertir a formato para la vista
+        $rolesParaVista = [];
+        $rolesParaBusqueda = [];
+        
+        foreach ($rolesFromDb as $role) {
+            $roleData = [
+                'id' => $role->getName(),
+                'label' => $role->getDisplayName()
+            ];
+            $rolesParaVista[] = $roleData;
+            $rolesParaBusqueda[] = $role->getName();
         }
 
+        $ctrs = $request->query->get('ctr');
+        $ctrsArray = $ctrs !== null && $ctrs !== '' ? explode(',', $ctrs) : [];
+        $searchTerm = $request->query->get('search', '');
+
+        if (!empty($ctrsArray)) {
+            // Filtrar por roles específicos
+            $profesionales = $userRepository->findByRoles($ctrsArray, $searchTerm);
+        } elseif (!empty($searchTerm)) {
+            // Si hay búsqueda por texto sin filtro de roles, mostrar todos los usuarios habilitados
+            $profesionales = $userRepository->findAllEnabled($searchTerm);
+        } else {
+            // Por defecto, listamos todos los usuarios con roles activos
+            $profesionales = $userRepository->findByRoles($rolesParaBusqueda, $searchTerm);
+        }
 
         return $this->render('liquidaciones/profesionales.html.twig', [
             'doctors' => $profesionales,
-            'contratos' => $contratosParaVista,
-            'ctrsArray' => $ctrsArray
+            'contratos' => ['todos' => $rolesParaVista],
+            'ctrsArray' => $ctrsArray,
+            'searchTerm' => $searchTerm
         ]);
     }
 

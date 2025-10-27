@@ -1,0 +1,147 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Detalles del Contrato{% endblock %}
+{% block panelTitle %}Detalles del Contrato{% endblock %}
+
+{% block body %}
+    <div class="container-fluid">
+        <div class="row mb-3">
+            <div class="col-sm-12">
+                <a href="{{ path('user_contract_by_user', {'id': contract.user.id}) }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+                <a href="{{ path('user_contract_edit', {'id': contract.id}) }}" class="btn btn-warning">
+                    <i class="fas fa-edit"></i> Editar
+                </a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5>
+                    <i class="fas fa-file-contract"></i> Contrato de {{ contract.user.nombreApellido }}
+                    {% if contract.isActive %}
+                        <span class="badge badge-success">Activo</span>
+                    {% else %}
+                        <span class="badge badge-secondary">Inactivo</span>
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Información del Usuario</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <th>Nombre:</th>
+                                <td>{{ contract.user.nombre }} {{ contract.user.apellido }}</td>
+                            </tr>
+                            <tr>
+                                <th>Email:</th>
+                                <td>{{ contract.user.email }}</td>
+                            </tr>
+                            <tr>
+                                <th>Legajo:</th>
+                                <td>{{ contract.user.legajo ?? '-' }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Estado del Contrato</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <th>Estado:</th>
+                                <td>
+                                    {% if contract.isActive %}
+                                        <span class="badge badge-success">Activo</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">Inactivo</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Validez:</th>
+                                <td>
+                                    {% if contract.isExpired %}
+                                        <span class="badge badge-danger">Vencido</span>
+                                    {% elseif contract.expiresThisMonth %}
+                                        <span class="badge badge-warning">Vence este mes</span>
+                                    {% else %}
+                                        <span class="badge badge-success">Vigente</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Datos Contractuales</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <th>Tipo:</th>
+                                <td>{{ contract.tipoLabel }}</td>
+                            </tr>
+                            <tr>
+                                <th>Fecha de Inicio:</th>
+                                <td>{{ contract.inicioContrato | date('d/m/Y') }}</td>
+                            </tr>
+                            <tr>
+                                <th>Fecha de Vencimiento:</th>
+                                <td>
+                                    {% if contract.vtoContrato %}
+                                        {{ contract.vtoContrato | date('d/m/Y') }}
+                                    {% else %}
+                                        <span class="text-muted">Indefinido</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>CBU:</th>
+                                <td>{{ contract.cbu ?? '-' }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Información Adicional</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <th>Concepto:</th>
+                                <td>{{ contract.concepto ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Creado:</th>
+                                <td>{{ contract.createdAt | date('d/m/Y H:i') }}</td>
+                            </tr>
+                            <tr>
+                                <th>Última modificación:</th>
+                                <td>
+                                    {% if contract.updatedAt %}
+                                        {{ contract.updatedAt | date('d/m/Y H:i') }}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                {% if contract.observaciones %}
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h6>Observaciones</h6>
+                            <div class="alert alert-secondary">
+                                {{ contract.observaciones }}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

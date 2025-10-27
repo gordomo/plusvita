@@ -109,6 +109,11 @@ class User implements UserInterface
      */
     private $presentesDoctores;
 
+    /**
+     * @ORM\OneToMany(targetEntity=UserContract::class, mappedBy="user", cascade={"persist", "remove"})
+     */
+    private $contracts;
+
     public function __construct()
     {
         $this->bookings = new ArrayCollection();
@@ -118,6 +123,7 @@ class User implements UserInterface
         $this->clientes = new ArrayCollection();
         $this->prescripciones = new ArrayCollection();
         $this->presentesDoctores = new ArrayCollection();
+        $this->contracts = new ArrayCollection();
         $this->habilitado = true;
     }
 
@@ -511,6 +517,82 @@ class User implements UserInterface
 
         // Default si no se encuentra ningún rol específico
         return 'Profesional por prestacion';
+    }
+
+    /**
+     * @return Collection|UserContract[]
+     */
+    public function getContracts(): Collection
+    {
+        return $this->contracts;
+    }
+
+    public function addContract(UserContract $contract): self
+    {
+        if (!$this->contracts->contains($contract)) {
+            $this->contracts[] = $contract;
+            $contract->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeContract(UserContract $contract): self
+    {
+        if ($this->contracts->removeElement($contract)) {
+            // set the owning side to null (unless already changed)
+            if ($contract->getUser() === $this) {
+                $contract->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Obtiene el contrato activo del usuario
+     */
+    public function getActiveContract(): ?UserContract
+    {
+        foreach ($this->contracts as $contract) {
+            if ($contract->getIsActive()) {
+                return $contract;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Métodos de compatibilidad para acceso rápido a datos del contrato activo
+     */
+    public function getInicioContrato(): ?\DateTimeInterface
+    {
+        $contract = $this->getActiveContract();
+        return $contract ? $contract->getInicioContrato() : null;
+    }
+
+    public function getVtoContrato(): ?\DateTimeInterface
+    {
+        $contract = $this->getActiveContract();
+        return $contract ? $contract->getVtoContrato() : null;
+    }
+
+    public function getCbu(): ?string
+    {
+        $contract = $this->getActiveContract();
+        return $contract ? $contract->getCbu() : null;
+    }
+
+    public function getConcepto(): ?string
+    {
+        $contract = $this->getActiveContract();
+        return $contract ? $contract->getConcepto() : null;
+    }
+
+    public function getTipoContrato(): ?string
+    {
+        $contract = $this->getActiveContract();
+        return $contract ? $contract->getTipo() : null;
     }
 }
 

@@ -4,45 +4,38 @@
 {% block panelTitle %}Liquidaciones Profesionales{% endblock %}
 {% block body %}
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-sm">
-                <select class="form-control predictivo" id="contrato" multiple data-placeholder="Filtrar por Tipo de contrato">
+        <div class="row mb-3">
+            <div class="col-sm-4">
+                <select class="form-control predictivo" id="contrato" multiple data-placeholder="Filtrar por Rol de usuario">
                     <option value="0">Todos</option>
-                    <optgroup label="Directo">
-                        {% for contratoDirecto in contratos['directo'] %}
-                            <option id='{{ contratoDirecto|replace({' ': ''}) }}' value="{{ contratoDirecto }}" {% if contratoDirecto in ctrsArray %} selected {% endif %}>{{ contratoDirecto }}</option>
-                        {% endfor %}
-                    </optgroup>
-                    <optgroup label="Prestacion">
-                        {% for contratoPrestacion in contratos['prestacion'] %}
-                            <option id='{{ contratoPrestacion|replace({' ': ''}) }}' value="{{ contratoPrestacion }}" {% if contratoPrestacion in ctrsArray %} selected {% endif %}>{{ contratoPrestacion }}</option>
-                        {% endfor %}
-                    </optgroup>
-                    <optgroup label="Sin Contrato">
-                        {% for contratoSinContrato in contratos['sinContrato'] %}
-                            <option id='{{ contratoSinContrato|replace({' ': ''}) }}' value="{{ contratoSinContrato }}" {% if contratoSinContrato in ctrsArray %} selected {% endif %}>{{ contratoSinContrato }}</option>
-                        {% endfor %}
-                    </optgroup>
+                    {% for role in contratos['todos'] %}
+                        <option id='{{ role.id|replace({' ': ''}) }}' value="{{ role.id }}" {% if role.id in ctrsArray %} selected {% endif %}>{{ role.label }}</option>
+                    {% endfor %}
                 </select>
             </div>
-            <div class="col-sm">
-                <button class="btn btn-default" id="buscarContrato"><i class="fas fa-search" aria-hidden="true"></i></button>
-                <button class="btn btn-default" id="limpiarContratos" style="padding: 2px 16px;">Limpiar</button>
-                <a class="btn btn-success" style="padding: 2px 16px;" href="{{ path('liquidaciones_index') }}">Volver</a>
-                <button class="btn btn-action" id="liquidarVarios" style="padding: 2px 16px;">Liquidar Varios</button>
+            <div class="col-sm-4">
+                <input type="text" class="form-control" id="searchInput" placeholder="Buscar por nombre, apellido o email..." value="{{ searchTerm }}">
+            </div>
+            <div class="col-sm-4">
+                <button class="btn btn-default" id="buscarContrato"><i class="fas fa-search" aria-hidden="true"></i> Buscar</button>
+                <button class="btn btn-default" id="limpiarContratos">Limpiar</button>
+                <a class="btn btn-success" href="{{ path('liquidaciones_index') }}">Volver</a>
+                <button class="btn btn-action" id="liquidarVarios">Liquidar Varios</button>
             </div>
         </div>
     </div>
-    <br><br>
+    <br>
     <table class="table table-responsive table-striped">
         <thead>
         <tr>
             <th scope="col">Nombre</th>
             <th scope="col">Apellido</th>
-            <th scope="col">Tipo</th>
+            <th scope="col">Roles</th>
+            <th scope="col">Email</th>
             <th scope="col">Legajo</th>
-            <th scope="col">Inicio Contrato</th>
-            <th scope="col">Vto Contrato</th>
+            <th scope="col">Teléfono</th>
+            <th scope="col">Tipo Contrato</th>
+            <th scope="col">Vto. Contrato</th>
             <th scope="col">CBU</th>
             <th scope="col">Liquidar</th>
             <th scope="col">Seleccionar</th>
@@ -50,27 +43,49 @@
         </thead>
         <tbody>
         {% for doctor in doctors %}
-            <tr class="editarStaff" data-url="{{ path('doctor_edit', {'id': doctor.id}) }}">
+            {% set contract = doctor.activeContract %}
+            {% set isExpired = contract and contract.vtoContrato and contract.vtoContrato < date() %}
+            {% set expiresThisMonth = contract and contract.expiresThisMonth %}
+            <tr {% if isExpired %}class="table-danger"{% elseif expiresThisMonth %}class="table-warning"{% endif %}>
                 <td>{{ doctor.nombre }}</td>
                 <td>{{ doctor.apellido }}</td>
                 <td>
-                    {{ doctor.modalidad | json_encode(constant('JSON_PRETTY_PRINT')) | replace({'[': '', ']': '', '\\': '', 'u00ed': 'í'})}}
+                    {% if doctor.roleEntities is not empty %}
+                        {% for role in doctor.roleEntities %}
+                            {% if role.isActive %}
+                                <span class="badge badge-info">{{ role.displayName }}</span>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <span class="text-muted">Sin roles</span>
+                    {% endif %}
+                </td>
+                <td>{{ doctor.email }}</td>
+                <td>{{ doctor.legajo ?? '-' }}</td>
+                <td>{{ doctor.telefono ?? '-' }}</td>
+                <td>
+                    {% if contract %}
+                        {{ contract.tipoLabel }}
+                        {% if isExpired %}
+                            <span class="badge badge-danger">Vencido</span>
+                        {% elseif expiresThisMonth %}
+                            <span class="badge badge-warning">Vence este mes</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="text-muted">Sin contrato</span>
+                    {% endif %}
                 </td>
                 <td>
-                    {{ doctor.legajo }}
-                    {#<a href="{{ asset('uploads/firmas/' ~ doctor.firma) }}" target="_blank">Ver firma digital</a>#}
+                    {% if contract and contract.vtoContrato %}
+                        {{ contract.vtoContrato | date('d/m/Y') }}
+                    {% else %}
+                        <span class="text-muted">-</span>
+                    {% endif %}
                 </td>
+                <td>{{ contract ? contract.cbu : '-' }}</td>
                 <td>
-                    {{ doctor.inicioContrato | date('d/m/Y') }}
-                </td>
-                <td>
-                    {{ doctor.vtoContrato | date('d/m/Y') }}
-                </td>
-                <td class="">
-                    {{ doctor.cbu }}
-                </td>
-                <td>
-                    <a href="{{ path('liquidar', {'id': doctor.id}) }}"><i class="fas fa-money-check-alt"></i></a>
+                    <a href="{{ path('liquidar', {'id': doctor.id}) }}" title="Ver liquidación"><i class="fas fa-money-check-alt"></i></a>
+                    <a href="{{ path('user_contract_by_user', {'id': doctor.id}) }}" title="Ver contratos" class="ml-2"><i class="fas fa-file-contract"></i></a>
                 </td>
                 <td>
                     <input type="checkbox" value="{{ doctor.id }}">
@@ -78,7 +93,7 @@
             </tr>
         {% else %}
             <tr>
-                <td colspan="10">No existen registros</td>
+                <td colspan="11">No existen registros</td>
             </tr>
         {% endfor %}
         </tbody>
@@ -90,6 +105,34 @@
     {{ parent() }}
     <script src="{{ asset('assets/js/staff.js') }}"></script>
     <script>
+        $('.predictivo').chosen();
+        
+        $("#buscarContrato").click(function() {
+            let roles = $('#contrato').val();
+            let search = $('#searchInput').val();
+            let params = [];
+            
+            if (roles && roles.length > 0 && roles[0] !== '0') {
+                params.push('ctr=' + roles.join(','));
+            }
+            if (search && search.trim() !== '') {
+                params.push('search=' + encodeURIComponent(search.trim()));
+            }
+            
+            location.href = '?' + params.join('&');
+        });
+
+        $("#limpiarContratos").click(function() {
+            location.href = '?';
+        });
+        
+        // Permitir buscar con Enter en el campo de búsqueda
+        $('#searchInput').on('keypress', function(e) {
+            if (e.which === 13) { // Enter key
+                $('#buscarContrato').click();
+            }
+        });
+
         $("#liquidarVarios").click(function() {
             let checkboxes = document.querySelectorAll('input[type="checkbox"]');
             if ([...checkboxes].some(checkbox => checkbox.checked)) {

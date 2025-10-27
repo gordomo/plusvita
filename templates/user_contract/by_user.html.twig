@@ -1,0 +1,133 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Contratos de {{ user.nombreApellido }}{% endblock %}
+{% block panelTitle %}Contratos de {{ user.nombreApellido }}{% endblock %}
+
+{% block body %}
+    <div class="container-fluid">
+        <div class="row mb-3">
+            <div class="col-sm-6">
+                <h5>
+                    <i class="fas fa-user"></i> {{ user.nombre }} {{ user.apellido }}
+                    <small class="text-muted">({{ user.email }})</small>
+                </h5>
+            </div>
+            <div class="col-sm-6 text-right">
+                <a href="{{ path('user_contract_new', {'userId': user.id}) }}" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Nuevo Contrato
+                </a>
+                <a href="{{ path('user_contract_index') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+            </div>
+        </div>
+
+        {% if contracts %}
+            <div class="alert alert-info">
+                <strong>Total de contratos:</strong> {{ contracts|length }}
+                {% set activeContract = user.activeContract %}
+                {% if activeContract %}
+                    | <strong>Contrato activo:</strong> {{ activeContract.tipoLabel }}
+                    {% if activeContract.vtoContrato %}
+                        (vence {{ activeContract.vtoContrato | date('d/m/Y') }})
+                    {% endif %}
+                {% else %}
+                    | <span class="text-danger">Sin contrato activo</span>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Estado</th>
+                    <th>Tipo</th>
+                    <th>Inicio</th>
+                    <th>Vencimiento</th>
+                    <th>CBU</th>
+                    <th>Concepto</th>
+                    <th>Creado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for contract in contracts %}
+                    {% set isExpired = contract.isExpired %}
+                    {% set expiresThisMonth = contract.expiresThisMonth %}
+                    <tr {% if contract.isActive and isExpired %}class="table-danger"
+                        {% elseif contract.isActive and expiresThisMonth %}class="table-warning"
+                        {% elseif contract.isActive %}class="table-success"
+                        {% endif %}>
+                        <td>
+                            {% if contract.isActive %}
+                                <span class="badge badge-success">Activo</span>
+                                {% if isExpired %}
+                                    <span class="badge badge-danger">Vencido</span>
+                                {% elseif expiresThisMonth %}
+                                    <span class="badge badge-warning">Vence pronto</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge badge-secondary">Inactivo</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ contract.tipoLabel }}</td>
+                        <td>{{ contract.inicioContrato | date('d/m/Y') }}</td>
+                        <td>
+                            {% if contract.vtoContrato %}
+                                {{ contract.vtoContrato | date('d/m/Y') }}
+                            {% else %}
+                                <span class="text-muted">Indefinido</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ contract.cbu ?? '-' }}</td>
+                        <td>{{ contract.concepto ?? '-' }}</td>
+                        <td>{{ contract.createdAt | date('d/m/Y') }}</td>
+                        <td>
+                            <a href="{{ path('user_contract_show', {'id': contract.id}) }}" 
+                               class="btn btn-sm btn-primary" title="Ver">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{{ path('user_contract_edit', {'id': contract.id}) }}" 
+                               class="btn btn-sm btn-warning" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            
+                            {% if contract.isActive %}
+                                <form method="post" action="{{ path('user_contract_deactivate', {'id': contract.id}) }}" 
+                                      style="display:inline" onsubmit="return confirm('¿Desactivar este contrato?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('deactivate' ~ contract.id) }}">
+                                    <button class="btn btn-sm btn-secondary" title="Desactivar">
+                                        <i class="fas fa-ban"></i>
+                                    </button>
+                                </form>
+                            {% else %}
+                                <form method="post" action="{{ path('user_contract_activate', {'id': contract.id}) }}" 
+                                      style="display:inline" onsubmit="return confirm('¿Activar este contrato? Se desactivarán los demás.');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('activate' ~ contract.id) }}">
+                                    <button class="btn btn-sm btn-success" title="Activar">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                </form>
+                            {% endif %}
+                            
+                            <form method="post" action="{{ path('user_contract_delete', {'id': contract.id}) }}" 
+                                  style="display:inline" onsubmit="return confirm('¿Está seguro de eliminar este contrato?');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ contract.id) }}">
+                                <button class="btn btn-sm btn-danger" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center">
+                            Este usuario no tiene contratos registrados.
+                            <a href="{{ path('user_contract_new', {'userId': user.id}) }}">Crear primer contrato</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

@@ -86,19 +86,43 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     /**
      * Obtener usuarios con cualquiera de los roles especificados
      */
-    public function findByRoles(array $roleNames)
+    public function findByRoles(array $roleNames, ?string $searchTerm = null)
     {
-        return $this->createQueryBuilder('u')
-            ->join('u.roles', 'r')
+        $qb = $this->createQueryBuilder('u')
+            ->leftJoin('u.roles', 'r')
             ->where('r.name IN (:roles)')
             ->andWhere('r.isActive = 1')
             ->andWhere('u.habilitado = 1')
             ->setParameter('roles', $roleNames)
             ->orderBy('u.apellido', 'ASC')
-            ->addOrderBy('u.nombre', 'ASC')
-            ->getQuery()
-            ->getResult()
-        ;
+            ->addOrderBy('u.nombre', 'ASC');
+
+        // Agregar filtro por búsqueda si se proporciona
+        if ($searchTerm !== null && trim($searchTerm) !== '') {
+            $qb->andWhere('(u.nombre LIKE :search OR u.apellido LIKE :search OR u.email LIKE :search)')
+               ->setParameter('search', '%' . $searchTerm . '%');
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * Obtener todos los usuarios habilitados (con o sin roles)
+     */
+    public function findAllEnabled(?string $searchTerm = null)
+    {
+        $qb = $this->createQueryBuilder('u')
+            ->where('u.habilitado = 1')
+            ->orderBy('u.apellido', 'ASC')
+            ->addOrderBy('u.nombre', 'ASC');
+
+        // Agregar filtro por búsqueda si se proporciona
+        if ($searchTerm !== null && trim($searchTerm) !== '') {
+            $qb->andWhere('(u.nombre LIKE :search OR u.apellido LIKE :search OR u.email LIKE :search)')
+               ->setParameter('search', '%' . $searchTerm . '%');
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
     /**

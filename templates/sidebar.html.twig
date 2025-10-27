@@ -116,13 +116,18 @@
                     </a>
                     <div class="dropdown-menu" aria-labelledby="dropdownLiquidacionesLink">
                         {% if is_granted('liquidations.manage') %}
-                            <a class="text-white dropdown-item" href="{{ path('liquidaciones_index') }}">
+                            <a class="text-white dropdown-item" href="{{ path('profesionales_index') }}">
                                 <i class="fas fa-list"></i> Listado General
                             </a>
                         {% endif %}
                         {% if is_granted('liquidations.view') or is_granted('liquidations.manage') %}
                             <a class="text-white dropdown-item" href="{{ path('liquidaciones_mis') }}">
                                 <i class="fas fa-user-md"></i> Mis Liquidaciones
+                            </a>
+                        {% endif %}
+                        {% if is_granted('contract.manage') %}
+                            <a class="text-white dropdown-item" href="{{ path('user_contract_index') }}">
+                                <i class="fas fa-user-md"></i> Contratos
                             </a>
                         {% endif %}
                     </div>

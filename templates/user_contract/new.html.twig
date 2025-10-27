@@ -1,0 +1,97 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nuevo Contrato{% endblock %}
+{% block panelTitle %}Nuevo Contrato para {{ user.nombreApellido }}{% endblock %}
+
+{% block body %}
+    <div class="container-fluid">
+        <div class="row mb-3">
+            <div class="col-sm-12">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Usuario:</strong> {{ user.nombre }} {{ user.apellido }} ({{ user.email }})
+                </div>
+            </div>
+        </div>
+
+        {{ form_start(form, {'action': path('user_contract_new', {'userId': user.id}), 'method': 'POST'}) }}
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form_label(form.tipo) }}
+                        {{ form_widget(form.tipo) }}
+                        {{ form_errors(form.tipo) }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form_label(form.cbu) }}
+                        {{ form_widget(form.cbu) }}
+                        {{ form_errors(form.cbu) }}
+                        <small class="form-text text-muted">{{ form_help(form.cbu) }}</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form_label(form.inicioContrato) }}
+                        {{ form_widget(form.inicioContrato) }}
+                        {{ form_errors(form.inicioContrato) }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form_label(form.vtoContrato) }}
+                        {{ form_widget(form.vtoContrato) }}
+                        {{ form_errors(form.vtoContrato) }}
+                        <small class="form-text text-muted">{{ form_help(form.vtoContrato) }}</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        {{ form_label(form.concepto) }}
+                        {{ form_widget(form.concepto) }}
+                        {{ form_errors(form.concepto) }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        {{ form_label(form.observaciones) }}
+                        {{ form_widget(form.observaciones) }}
+                        {{ form_errors(form.observaciones) }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-check">
+                        {{ form_widget(form.isActive) }}
+                        {{ form_label(form.isActive) }}
+                        {{ form_errors(form.isActive) }}
+                        <small class="form-text text-muted">{{ form_help(form.isActive) }}</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Guardar Contrato
+                    </button>
+                    <a href="{{ path('user_contract_by_user', {'id': user.id}) }}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancelar
+                    </a>
+                </div>
+            </div>
+        {{ form_end(form) }}
+    </div>
+{% endblock %}
