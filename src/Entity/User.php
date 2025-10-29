@@ -219,6 +219,19 @@ class User implements UserInterface
     }
 
     /**
+     * Check if user has any of the specified roles
+     */
+    public function hasAnyRole(array $roleNames): bool
+    {
+        foreach ($roleNames as $roleName) {
+            if ($this->hasRole($roleName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Check if user has a specific permission
      */
     public function hasPermission(string $permissionName): bool

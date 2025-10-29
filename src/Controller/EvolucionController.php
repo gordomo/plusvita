@@ -105,15 +105,43 @@ class EvolucionController extends AbstractController
         if ($puedenEditarEvoluciones) {
             // Obtener todos los usuarios que tienen permiso para evolucionar
             $todosUsuarios = $userRepository->findAll();
+            
+            // Agrupar usuarios por roles (un usuario puede aparecer en múltiples grupos)
+            $usuariosPorRol = [];
+            
             foreach ($todosUsuarios as $usr) {
-                // Filtrar solo usuarios que tengan algún rol relacionado con evolución
-                if ($usr->hasAnyRole(['doctor', 'fisiatra', 'director_medico', 'sub_director_medico', 
-                    'kinesiologo', 'kinesiologo_respiratorio', 'terapista_ocupacional', 
-                    'fonoaudiologo', 'psicologo', 'neurologo', 'cardiologo', 'nutricionista',
-                    'trabajadora_social', 'psiquiatra', 'infectologo'])) {
-                    $docArr[$usr->getEmail()] = $usr;
+                // Filtrar solo usuarios que tengan permiso patient.evolve
+                if ($usr->hasPermission('patient.evolve')) {
+                    // Obtener todos los roles activos del usuario
+                    $rolesDelUsuario = $usr->getRoleEntities(); // Obtiene Collection de Role
+                    
+                    if ($rolesDelUsuario && count($rolesDelUsuario) > 0) {
+                        foreach ($rolesDelUsuario as $role) {
+                            if ($role->getIsActive()) {
+                                $nombreRol = $role->getDisplayName(); // Nombre amigable del rol
+                                if (!isset($usuariosPorRol[$nombreRol])) {
+                                    $usuariosPorRol[$nombreRol] = [];
+                                }
+                                // Agregar el usuario bajo este rol
+                                $usuariosPorRol[$nombreRol][] = $usr;
+                            }
+                        }
+                    } else {
+                        // Usuario sin roles definidos
+                        if (!isset($usuariosPorRol['Sin rol'])) {
+                            $usuariosPorRol['Sin rol'] = [];
+                        }
+                        $usuariosPorRol['Sin rol'][] = $usr;
+                    }
                 }
             }
+            
+            // Ordenar alfabéticamente por nombre de rol
+            ksort($usuariosPorRol);
+            
+            // La estructura ya está lista para ChoiceType con grupos
+            // Formato: ['Nombre Rol' => [usuario1, usuario2, ...], ...]
+            $docArr = $usuariosPorRol;
         }
         $evolucion = new Evolucion();
 
@@ -297,17 +325,47 @@ class EvolucionController extends AbstractController
         // Modalidades deprecado - siempre será vacío
         $modalidad = '';
 
-        // Obtener doctores con rol doctor (User objects, no solo emails)
-        $doctoresConRol = $userRepository->findByRole('doctor');
+        // Obtener usuarios agrupados por roles (igual que en new)
         $docArr = [];
-        foreach ($doctoresConRol as $doc) {
-            // Usar el email como key y el objeto User como value
-            $docArr[$doc->getEmail()] = $doc;
+        $puedenEditarEvoluciones = $this->isGranted('patient.edit_evolve');
+        
+        if ($puedenEditarEvoluciones) {
+            // Obtener todos los usuarios que tienen permiso para evolucionar
+            $todosUsuarios = $userRepository->findAll();
+            
+            // Agrupar usuarios por roles (un usuario puede aparecer en múltiples grupos)
+            $usuariosPorRol = [];
+            
+            foreach ($todosUsuarios as $usr) {
+                // Filtrar solo usuarios que tengan permiso patient.evolve
+                if ($usr->hasPermission('patient.evolve')) {
+                    // Obtener todos los roles activos del usuario
+                    $rolesDelUsuario = $usr->getRoleEntities();
+                    
+                    if ($rolesDelUsuario && count($rolesDelUsuario) > 0) {
+                        foreach ($rolesDelUsuario as $role) {
+                            if ($role->getIsActive()) {
+                                $nombreRol = $role->getDisplayName();
+                                if (!isset($usuariosPorRol[$nombreRol])) {
+                                    $usuariosPorRol[$nombreRol] = [];
+                                }
+                                $usuariosPorRol[$nombreRol][] = $usr;
+                            }
+                        }
+                    } else {
+                        if (!isset($usuariosPorRol['Sin rol'])) {
+                            $usuariosPorRol['Sin rol'] = [];
+                        }
+                        $usuariosPorRol['Sin rol'][] = $usr;
+                    }
+                }
+            }
+            
+            ksort($usuariosPorRol);
+            $docArr = $usuariosPorRol;
         }
 
         $redirect = $request->get('redirect', '');
-
-        $puedenEditarEvoluciones = $this->isGranted('patient.evolve');
 
         if ( $puedenEditarEvoluciones ) {
             $form = $this->createForm(EvolucionType::class, $evolucion, ['usuarioActual'=>$usuarioActual, 'modalidad' => $modalidad, 'doctores' => $docArr, 'puedenEditarEvoluciones' => $puedenEditarEvoluciones]);
