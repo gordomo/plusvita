@@ -47,6 +47,7 @@ security:
         - { path: ^/reclamo/new, roles: PUBLIC_ACCESS }
         - { path: ^/reclamo/gracias, roles: PUBLIC_ACCESS }
         - { path: ^/login, roles: PUBLIC_ACCESS }
+        - { path: ^/restPass, roles: PUBLIC_ACCESS }
         
         # Rutas que requieren autenticación básica
         - { path: ^/dashboard, roles: IS_AUTHENTICATED_FULLY }

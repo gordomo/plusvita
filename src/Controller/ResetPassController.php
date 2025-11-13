@@ -10,9 +10,8 @@ use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
+use App\Service\ResetPasswordMailerService;
 use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -89,7 +88,7 @@ class ResetPassController extends AbstractController
     /**
      * @Route("/blanquear", name="reset_password_blanquear", methods={"POST"})
      */
-    public function blanquear(Request $request, UserRepository $userRepository, ClienteRepository $pacienteRepository, DoctorRepository $staffRepository, MailerInterface $mailer, MailCodeRepository $mailCodeRepository): Response
+    public function blanquear(Request $request, UserRepository $userRepository, ClienteRepository $pacienteRepository, DoctorRepository $staffRepository, MailCodeRepository $mailCodeRepository, ResetPasswordMailerService $mailerService): Response
     {
 
         $mensaje = '';
@@ -139,41 +138,50 @@ class ResetPassController extends AbstractController
                 $entityManager->persist($mailCode);
                 $entityManager->flush();
 
-                $email = (new Email())
-                    ->from('morimartin@gmail.com')
-                    ->to($userEmail)
-                    //->cc('cc@example.com')
-                    //->bcc('bcc@example.com')
-                    //->replyTo('fabien@example.com')
-                    ->priority(Email::PRIORITY_HIGH)
-                    ->subject('Resetear Password del Sistema Plus Vita')
-                    //->text('Resetear Password del Sistema Plus Vita');
-                    ->html('<p>Use el siguiente codigo para resetear su password</p><p><h1>' . $code . '</h1></p>');
-
-                try {
-                    $mailer->send($email);
-                } catch (TransportExceptionInterface $e) {
+                // Enviar email usando el servicio
+                $result = $mailerService->sendResetPasswordEmail($userEmail, $code);
+                
+                if (!$result['success']) {
                     $error = true;
-                    $mensaje = $e->getMessage();
+                    $mensaje = $result['error'] ?? $result['message'];
                 }
             }
         }
 
         if($error) {
+            // En desarrollo, mostrar el error completo para debugging
+            $isDev = ($_ENV['APP_ENV'] ?? 'dev') === 'dev';
+            $errorMessage = $isDev ? $mensaje : 'Error al enviar el correo. Por favor, intente nuevamente más tarde.';
+            
             return $this->redirectToRoute('app_login',
                 [
-                    'last_username' => $userEmail,
+                    'last_username' => $userEmail ?? '',
                     'cambioDePassOk' => false,
                     'error' => '',
-                    'customError' => $mensaje,
+                    'customError' => $errorMessage,
                 ]);
         } else {
             return $this->render('resetPass/codigoEnviado.html.twig', [
-
                 'userEmail' => $userEmail,
             ]);
         }
 
     }
 
+    /**
+     * Escribe un mensaje en un archivo de log en var/log/
+     */
+    private function writeToLogFile(string $filename, string $message): void
+    {
+        $logDir = $this->getParameter('kernel.project_dir') . '/var/log';
+        $logFile = $logDir . '/' . $filename;
+        
+        // Asegurar que el directorio existe
+        if (!is_dir($logDir)) {
+            mkdir($logDir, 0777, true);
+        }
+        
+        // Escribir al archivo (append mode)
+        file_put_contents($logFile, $message, FILE_APPEND | LOCK_EX);
+    }
 }

@@ -46,3 +46,8 @@ services:
     # Permission voter for custom permissions
     App\Security\Voter\PermissionVoter:
         tags: ['security.voter']
+    
+    # Reset Password Mailer Service
+    App\Service\ResetPasswordMailerService:
+        arguments:
+            $projectDir: '%kernel.project_dir%'

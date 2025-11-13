@@ -685,10 +685,39 @@ class DoctorController extends AbstractController
 
     /**
      * @Route("/doctor/historia/", name="doctor_historia", methods={"GET"})
+     * @deprecated Esta ruta está deprecada. Los usuarios con patient.view deben usar cliente_index.
+     * Redirige automáticamente a cliente_index si el usuario tiene el permiso patient.view.
      */
     public function historia(Request $request, BookingRepository $bookingRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, HabitacionRepository $habitacionRepository, UserEvolutionService $userEvolutionService)
     {
         $user = $this->getUser();
+        
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+        
+        // Si el usuario tiene patient.view, redirigir a cliente_index (vista moderna)
+        if ($this->isGranted('patient.view')) {
+            $pestana = $request->query->get('pestana', 'activos');
+            // Mapear 'todos' a 'activos' ya que cliente_index no tiene pestaña 'todos'
+            if ($pestana === 'todos') {
+                $pestana = 'activos';
+            }
+            return $this->redirectToRoute('cliente_index', [
+                'pestana' => $pestana,
+                'nombreInput' => $request->query->get('nombreInput', ''),
+                'currentPage' => $request->query->get('currentPage', 1),
+                'limit' => $request->query->get('limit', 10),
+                'idObra' => $request->query->get('idObra'),
+                'hab' => $request->query->get('hab'),
+            ]);
+        }
+        
+        // Solo usuarios sin patient.view pero con doctor.read pueden acceder aquí (legacy)
+        if (!$this->isGranted('doctor.read')) {
+            return $this->redirectToRoute('dashboard_index');
+        }
+        
         $nombreInput = $request->query->get('nombreInput', '');
         $pestana = $request->query->get('pestana') ?? 'todos';
         $currentPage = $request->query->get('currentPage') ?? 1;
@@ -700,12 +729,6 @@ class DoctorController extends AbstractController
 
         foreach ($obrasSociales as $obrasSocial) {
             $obrasSocialesArray[$obrasSocial->getId()] = $obrasSocial->getNombre();
-        }
-
-        if (!$user) {
-            return $this->redirectToRoute('app_login');
-        } else if (!$this->isGranted('doctor.read')) {
-            return $this->redirectToRoute('dashboard_index');
         }
 
         $bookings = $bookingRepository->findBy(['doctor' => $user]);
