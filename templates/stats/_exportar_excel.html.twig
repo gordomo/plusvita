@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Estadisticas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+        }
+        h1 {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        h2 {
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            background-color: #f0f0f0;
+            padding: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th {
+            background-color: #4a90e2;
+            color: white;
+            font-weight: bold;
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #333;
+        }
+        td {
+            padding: 6px;
+            border: 1px solid #ccc;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .summary-table {
+            width: 50%;
+            margin: 0 auto 20px;
+        }
+        .summary-table td:first-child {
+            font-weight: bold;
+            background-color: #e8e8e8;
+        }
+        .subcategoria-row {
+            background-color: #f5f5f5 !important;
+        }
+        .subcategoria-row td:first-child {
+            padding-left: 30px;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .text-right {
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <h1>Estadísticas del Sistema Plus Vita</h1>
+    <p style="text-align: center; font-size: 11px; color: #666;">Período: {{ periodLabel }}</p>
+    
+    <!-- Resumen General -->
+    <h2>Resumen General</h2>
+    <table class="summary-table">
+        <tr>
+            <td>Ocupación Promedio</td>
+            <td class="text-right">{{ ocupacionActual }}%</td>
+        </tr>
+        <tr>
+            <td>Total de Habitaciones</td>
+            <td class="text-right">{{ totalHabitaciones }}</td>
+        </tr>
+        <tr>
+            <td>Total de Camas</td>
+            <td class="text-right">{{ totalCamas }}</td>
+        </tr>
+        <tr>
+            <td>Ingresos del Período</td>
+            <td class="text-right">{{ ingresosDelMes }}</td>
+        </tr>
+        <tr>
+            <td>Egresos del Período</td>
+            <td class="text-right">{{ egresosDelMes }}</td>
+        </tr>
+    </table>
+    
+    <!-- Ocupación por Día -->
+    <h2>Ocupación Diaria</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th class="text-center">Camas Ocupadas</th>
+                <th class="text-center">Total de Camas</th>
+                <th class="text-center">Porcentaje de Ocupación</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for dia in ocupacionPorDia %}
+            <tr>
+                <td>{{ dia.fecha }}</td>
+                <td class="text-center">{{ dia.ocupadas }}</td>
+                <td class="text-center">{{ dia.total }}</td>
+                <td class="text-center">{{ dia.porcentaje }}%</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <!-- Días de Internación por Patología -->
+    <h2>Días de Internación por Patología</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Patología</th>
+                <th class="text-center">Promedio (días)</th>
+                <th class="text-center">Mínimo (días)</th>
+                <th class="text-center">Máximo (días)</th>
+                <th class="text-center">Total Días</th>
+                <th class="text-center">Cantidad de Casos</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for patologia, datos in statsInternacion %}
+            <tr>
+                <td><strong>{{ patologia }}</strong></td>
+                <td class="text-center"><strong>{{ datos.promedio }}</strong></td>
+                <td class="text-center"><strong>{{ datos.min }}</strong></td>
+                <td class="text-center"><strong>{{ datos.max }}</strong></td>
+                <td class="text-center"><strong>{{ datos.total }}</strong></td>
+                <td class="text-center"><strong>{{ datos.casos }}</strong></td>
+            </tr>
+            {% if datos.subcategorias|length > 0 %}
+                {% for subcategoria, subDatos in datos.subcategorias %}
+                <tr class="subcategoria-row">
+                    <td>{{ subcategoria }}</td>
+                    <td class="text-center">{{ subDatos.promedio }}</td>
+                    <td class="text-center">{{ subDatos.min }}</td>
+                    <td class="text-center">{{ subDatos.max }}</td>
+                    <td class="text-center">{{ subDatos.total }}</td>
+                    <td class="text-center">{{ subDatos.casos }}</td>
+                </tr>
+                {% endfor %}
+            {% endif %}
+            {% else %}
+            <tr>
+                <td colspan="6" class="text-center">No hay datos de internación registrados.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <p style="text-align: center; font-size: 10px; color: #999; margin-top: 30px;">
+        Generado el {{ "now"|date("d/m/Y H:i:s") }}
+    </p>
+</body>
+</html>
+

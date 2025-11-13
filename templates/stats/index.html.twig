@@ -160,6 +160,13 @@
                             <div class="input-group-append">
                                 <a href="{{ path('app_stats_index') }}" class="btn btn-sm btn-outline-secondary">Reiniciar</a>
                             </div>
+                            <div class="input-group-append">
+                                <a href="{{ path('app_stats_exportar', {'fecha_desde': fechaDesde, 'fecha_hasta': fechaHasta}) }}" 
+                                   class="btn btn-sm btn-success" 
+                                   title="Exportar estadísticas a Excel">
+                                    <i class="fas fa-file-excel"></i> Exportar
+                                </a>
+                            </div>
                         </div>
                     </form>
                 </div>

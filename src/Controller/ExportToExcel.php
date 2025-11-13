@@ -15,10 +15,24 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 Class ExportToExcel extends AbstractController {
 
-    public static function toExcel($html, $router, $nombre) {
+    public static function toExcel($html, $router, $nombre, $sheetTitle = null) {
         try {
             $reader = new \PhpOffice\PhpSpreadsheet\Reader\Html();
             $spreadsheet = $reader->loadFromString($html);
+
+            // Establecer un título de hoja válido (máximo 31 caracteres, sin caracteres especiales)
+            if ($sheetTitle !== null) {
+                // Limpiar el título: remover caracteres inválidos y truncar a 31 caracteres
+                $cleanTitle = preg_replace('/[\\\\\/\?\*\[\]]/', '', $sheetTitle);
+                $cleanTitle = mb_substr($cleanTitle, 0, 31);
+                if (empty($cleanTitle)) {
+                    $cleanTitle = 'Hoja1';
+                }
+                $spreadsheet->getActiveSheet()->setTitle($cleanTitle);
+            } else {
+                // Si no se proporciona título, usar uno por defecto seguro
+                $spreadsheet->getActiveSheet()->setTitle('Datos');
+            }
 
             $colums = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
             foreach ($colums as $colum) {
@@ -28,11 +42,16 @@ Class ExportToExcel extends AbstractController {
             $spreadsheet->getActiveSheet()->getDefaultRowDimension()->setRowHeight(20);
             $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
 
-            $temp_file = tempnam(sys_get_temp_dir(), $nombre);
+            // Generar un prefijo más corto para el archivo temporal (tempnam tiene límite de prefijo)
+            $tempPrefix = 'excel_' . substr(md5($nombre), 0, 8);
+            $temp_file = tempnam(sys_get_temp_dir(), $tempPrefix);
 
             // Create the file
             $writer->save($temp_file);
-            $getExcelRoute = $router->generate('helper_get_excel', ['path' => explode('/', $temp_file)[2], 'nombre' => $nombre]);
+            
+            // Obtener solo el nombre del archivo (sin la ruta completa)
+            $tempFileName = basename($temp_file);
+            $getExcelRoute = $router->generate('helper_get_excel', ['path' => $tempFileName, 'nombre' => $nombre]);
 
             return new JsonResponse(['error' => false, 'message' => $getExcelRoute]);
 

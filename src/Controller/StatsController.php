@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Controller\ExportToExcel;
 use App\Entity\Cliente;
 use App\Entity\Habitacion;
 use App\Entity\HistoriaEgreso;
@@ -11,9 +12,12 @@ use App\Entity\Item;
 use App\Entity\Movimiento;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\RouterInterface;
 
 /**
  * @Route("/estadisticas")
@@ -271,6 +275,278 @@ class StatsController extends AbstractController
             'statsInternacion' => $statsInternacion,
             'ocupacionActual' => round($ocupacionActual),
         ]);
+    }
+    
+    /**
+     * @Route("/exportar", name="app_stats_exportar", methods={"GET", "POST"})
+     */
+    public function exportar(EntityManagerInterface $em, Request $request, RouterInterface $router): Response
+    {
+        // Recuperar filtros de fecha (desde - hasta)
+        $currentMonth = (int)date('m');
+        $currentYear = (int)date('Y');
+        
+        // Obtener fechas desde la request o usar por defecto (mes actual)
+        $fechaDesde = $request->query->get('fecha_desde') ?: $request->request->get('fecha_desde');
+        $fechaHasta = $request->query->get('fecha_hasta') ?: $request->request->get('fecha_hasta');
+        
+        if ($fechaDesde && $fechaHasta) {
+            try {
+                $startOfMonth = new \DateTime($fechaDesde . ' 00:00:00');
+                $endOfMonth = new \DateTime($fechaHasta . ' 23:59:59');
+            } catch (\Exception $e) {
+                // Si hay error en las fechas, usar mes actual
+                $startOfMonth = new \DateTime("$currentYear-$currentMonth-01 00:00:00");
+                $endOfMonth = clone $startOfMonth;
+                $endOfMonth->modify('last day of this month 23:59:59');
+            }
+        } else {
+            // Por defecto: mes actual
+            $startOfMonth = new \DateTime("$currentYear-$currentMonth-01 00:00:00");
+            $endOfMonth = clone $startOfMonth;
+            $endOfMonth->modify('last day of this month 23:59:59');
+        }
+        
+        // Calcular la diferencia en días para mostrar en la etiqueta
+        $diasPeriodo = $startOfMonth->diff($endOfMonth)->days + 1;
+        
+        // Obtener los mismos datos que en el método index
+        try {
+            $totalHabitaciones = count($em->getRepository(Habitacion::class)->findAll());
+            
+            $year = (int)$startOfMonth->format('Y');
+            $totalCamas = $this->getCapacidadCamasSegunAno($year);
+            
+            if ($year >= 2025) {
+                $camasActuales = $em->createQuery('SELECT SUM(h.camasDisponibles) FROM App\Entity\Habitacion h')->getSingleScalarResult() ?: 0;
+                if ($camasActuales > 0) {
+                    $totalCamas = $camasActuales;
+                }
+            }
+        } catch (\Exception $e) {
+            $totalHabitaciones = 0;
+            $year = (int)$startOfMonth->format('Y');
+            $totalCamas = $this->getCapacidadCamasSegunAno($year);
+        }
+        
+        try {
+            $conn = $em->getConnection();
+            $sql = "SELECT COUNT(id) as total FROM cliente WHERE f_ingreso BETWEEN :start AND :end";
+            $stmt = $conn->prepare($sql);
+            $stmt->bindValue('start', $startOfMonth->format('Y-m-d H:i:s'));
+            $stmt->bindValue('end', $endOfMonth->format('Y-m-d H:i:s'));
+            $result = $stmt->executeQuery();
+            $ingresosDelMes = $result->fetchOne() ?: 0;
+        } catch (\Exception $e) {
+            $ingresosDelMes = 0;
+        }
+        
+        try {
+            $conn = $em->getConnection();
+            $sql = "SELECT COUNT(id) as total FROM historia_paciente WHERE fecha_engreso BETWEEN :start AND :end";
+            $stmt = $conn->prepare($sql);
+            $stmt->bindValue('start', $startOfMonth->format('Y-m-d H:i:s'));
+            $stmt->bindValue('end', $endOfMonth->format('Y-m-d H:i:s'));
+            $result = $stmt->executeQuery();
+            $egresosDelMes = $result->fetchOne() ?: 0;
+        } catch (\Exception $e) {
+            $egresosDelMes = 0;
+        }
+        
+        // Datos para gráficos de ocupación
+        $ocupacionPorDia = $this->getOcupacionPorDia($em, $startOfMonth, $endOfMonth);
+        
+        // Calcular ocupación promedio
+        $hoy = new \DateTime();
+        $esPeriodoFuturo = $startOfMonth > $hoy;
+        
+        if ($esPeriodoFuturo) {
+            $ocupacionActual = 0;
+        } else {
+            $diasValidos = [];
+            foreach ($ocupacionPorDia as $index => $dia) {
+                $currentDate = clone $startOfMonth;
+                $currentDate->modify("+{$index} days");
+                if ($currentDate <= $hoy) {
+                    $diasValidos[] = $dia['porcentaje'];
+                }
+            }
+            $totalDias = count($diasValidos);
+            $sumaOcupacion = array_sum($diasValidos);
+            $ocupacionActual = $totalDias > 0 ? round($sumaOcupacion / $totalDias) : 0;
+            if ($ocupacionActual < 0) {
+                $ocupacionActual = 0;
+            }
+        }
+        
+        // Obtener estadísticas de internación por patología (mismo código que en index)
+        $patologiasLabels = [
+            1 => 'Neurológicas',
+            2 => 'Traumatológicas',
+            3 => 'Respiratorias',
+            4 => 'Paliativos',
+            5 => 'Patologías laborales',
+            0 => 'Otra Patología',
+        ];
+        
+        $conn = $em->getConnection();
+        $sql = "SELECT patologia, patologia_especifica, fecha_ingreso, fecha_engreso FROM historia_paciente 
+               WHERE modalidad = '2' AND fecha_ingreso IS NOT NULL 
+               AND fecha_engreso IS NOT NULL AND patologia IS NOT NULL";
+        $stmt = $conn->prepare($sql);
+        $result = $stmt->executeQuery();
+        $internaciones = $result->fetchAllAssociative();
+
+        $diasPorPatologia = [];
+        $diasPorSubcategoria = [];
+        
+        $subcategoriasConocidas = [
+            1 => [
+                'acv hemorragico' => 'ACV Hemorrágico',
+                'acv izquemico' => 'ACV Isquémico',
+                'ela' => 'ELA',
+                'guillain barre' => 'Guillain Barré',
+                'pop' => 'POP Neurocirugía',
+                'tec' => 'TEC',
+                'trauma medular' => 'Trauma Medular',
+                'otras' => 'Otras Neurológicas'
+            ],
+            2 => [
+                'amputaciones' => 'Amputaciones',
+                'politrauma' => 'Politrauma',
+                'pop' => 'POP Traumatología',
+                'otras' => 'Otras Traumatológicas'
+            ],
+            3 => [
+                'pop' => 'POP Cirugía Torácica',
+                'rehabilitacion respiratoria' => 'Rehabilitación Respiratoria',
+                'otras' => 'Otras Respiratorias'
+            ],
+            4 => [
+                'ca' => 'Cáncer',
+                'otros' => 'Otros Paliativos'
+            ],
+            5 => [
+                'otros' => 'Otros Laborales'
+            ],
+            0 => [
+                'otras' => 'Sin Especificar'
+            ]
+        ];
+
+        foreach ($internaciones as $row) {
+            $patologiaId = $row['patologia'];
+            $subcategoria = !empty($row['patologia_especifica']) ? strtolower($row['patologia_especifica']) : 'otras';
+            
+            $nombrePatologia = isset($patologiasLabels[$patologiaId]) ? $patologiasLabels[$patologiaId] : ('Patología ' . $patologiaId);
+            
+            $nombreSubcategoria = isset($subcategoriasConocidas[$patologiaId][$subcategoria]) 
+                ? $subcategoriasConocidas[$patologiaId][$subcategoria] 
+                : ucfirst($subcategoria);
+            
+            $fechaIngreso = $row['fecha_ingreso'];
+            $fechaEngreso = $row['fecha_engreso'];
+            if ($fechaIngreso && $fechaEngreso) {
+                $dias = (new \DateTime($fechaIngreso))->diff(new \DateTime($fechaEngreso))->days + 1;
+                
+                $diasPorPatologia[$nombrePatologia][] = $dias;
+                
+                $clave = $nombrePatologia . '|' . $nombreSubcategoria;
+                $diasPorSubcategoria[$clave][] = $dias;
+            }
+        }
+        
+        $statsInternacion = [];
+        foreach ($diasPorPatologia as $patologia => $diasArr) {
+            if (count($diasArr) > 0) {
+                $statsInternacion[$patologia] = [
+                    'promedio' => round(array_sum($diasArr) / count($diasArr), 1),
+                    'min' => min($diasArr),
+                    'max' => max($diasArr),
+                    'total' => array_sum($diasArr),
+                    'casos' => count($diasArr),
+                    'subcategorias' => []
+                ];
+            }
+        }
+        
+        foreach ($diasPorSubcategoria as $clave => $diasArr) {
+            list($patologia, $subcategoria) = explode('|', $clave);
+            
+            if (count($diasArr) > 0 && isset($statsInternacion[$patologia])) {
+                $statsInternacion[$patologia]['subcategorias'][$subcategoria] = [
+                    'promedio' => round(array_sum($diasArr) / count($diasArr), 1),
+                    'min' => min($diasArr),
+                    'max' => max($diasArr),
+                    'total' => array_sum($diasArr),
+                    'casos' => count($diasArr)
+                ];
+            }
+        }
+        
+        // Generar el contenido HTML para el Excel
+        $html = $this->renderView('stats/_exportar_excel.html.twig', [
+            'totalHabitaciones' => $totalHabitaciones,
+            'totalCamas' => $totalCamas,
+            'ingresosDelMes' => $ingresosDelMes,
+            'egresosDelMes' => $egresosDelMes,
+            'ocupacionPorDia' => $ocupacionPorDia,
+            'fechaDesde' => $startOfMonth->format('Y-m-d'),
+            'fechaHasta' => $endOfMonth->format('Y-m-d'),
+            'periodLabel' => $startOfMonth->format('d/m/Y') . ' - ' . $endOfMonth->format('d/m/Y') . ' (' . $diasPeriodo . ' días)',
+            'statsInternacion' => $statsInternacion,
+            'ocupacionActual' => round($ocupacionActual),
+        ]);
+        
+        // Generar nombre del archivo
+        $nombreArchivo = 'estadisticas-' . $startOfMonth->format('Y-m-d') . '-a-' . $endOfMonth->format('Y-m-d') . '.xlsx';
+        
+        // Generar título de hoja válido (máximo 31 caracteres, sin caracteres especiales)
+        $sheetTitle = 'Estadisticas ' . $startOfMonth->format('Y-m-d');
+        if (mb_strlen($sheetTitle) > 31) {
+            $sheetTitle = mb_substr($sheetTitle, 0, 31);
+        }
+        
+        // Generar Excel directamente
+        try {
+            $reader = new \PhpOffice\PhpSpreadsheet\Reader\Html();
+            $spreadsheet = $reader->loadFromString($html);
+            
+            // Establecer título de hoja válido
+            $cleanTitle = preg_replace('/[\\\\\/\?\*\[\]]/', '', $sheetTitle);
+            $cleanTitle = mb_substr($cleanTitle, 0, 31);
+            if (empty($cleanTitle)) {
+                $cleanTitle = 'Estadisticas';
+            }
+            $spreadsheet->getActiveSheet()->setTitle($cleanTitle);
+            
+            // Autoajustar columnas
+            $colums = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+            foreach ($colums as $colum) {
+                $spreadsheet->getActiveSheet()->getColumnDimension($colum)->setAutoSize(true);
+            }
+            $spreadsheet->getActiveSheet()->getRowDimension(1)->setRowHeight(40);
+            $spreadsheet->getActiveSheet()->getDefaultRowDimension()->setRowHeight(20);
+            
+            // Guardar en archivo temporal
+            $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+            $temp_file = tempnam(sys_get_temp_dir(), 'excel_');
+            $writer->save($temp_file);
+            
+            // Devolver el archivo directamente
+            $response = new BinaryFileResponse($temp_file);
+            $response->setContentDisposition(
+                ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+                $nombreArchivo
+            );
+            
+            // Limpiar el archivo temporal después de enviarlo
+            $response->deleteFileAfterSend(true);
+            
+            return $response;
+        } catch (\Exception $e) {
+            throw new \RuntimeException('Error al generar el archivo Excel: ' . $e->getMessage());
+        }
     }
     
     /**
