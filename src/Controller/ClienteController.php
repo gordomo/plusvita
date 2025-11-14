@@ -1780,47 +1780,60 @@ class ClienteController extends AbstractController
                 $ncama = $request->request->get('cliente')['nCama'] ?? null;
                 $habitacion = $form->get('habitacion')->getData() ? $habitacionRepository->find($form->get('habitacion')->getData()) : null;
 
-                if($habitacion) {
+                if($habitacion && $ncama) {
+                    // Reingreso como internado (con habitación y cama)
                     $habPrivada = $request->request->get('cliente')['habPrivada'] ?? null;
 
                     if ($habPrivada) {
                         $cliente->setHabPrivada(1);
+                    } else {
+                        $cliente->setHabPrivada(0);
                     }
-                    // Ya no necesitamos actualizar el campo camasOcupadas - se calcula dinámicamente
+                    
+                    $cliente->setModalidad(2);
+                    $cliente->setAmbulatorio(false);
+                    $cliente->setHabitacion($habitacion->getId());
+                    $cliente->setNCama($ncama);
+                    $cliente->setFechaAmbulatorio(null);
+                    
                     $parametros['habitacion'] = $habitacion->getId();
                     $parametros['modalidad'] = 2;
+                    $parametros['ambulatorio'] = false;
                 } else {
+                    // Reingreso como ambulatorio (sin habitación o sin cama)
+                    $cliente->setModalidad(1);
                     $cliente->setAmbulatorio(true);
                     $cliente->setFechaAmbulatorio(new \DateTime());
+                    // Limpiar campos de habitación
+                    $cliente->setHabitacion(null);
+                    $cliente->setNCama(null);
+                    $cliente->setHabPrivada(0);
+                    
                     $parametros['ambulatorio'] = true;
                     $parametros['modalidad'] = 1;
-
+                    $parametros['habitacion'] = null;
+                    $ncama = null; // Asegurar que no se asigne cama
                 }
 
-                // $parametros['dePermiso'] = false;
                 $parametros['cama'] = $ncama;
-
-                $cliente->setNCama($ncama);
             }
 
             if($cliente->getDerivado()) {
                 $parametros['dePermiso'] = false;
-                $parametros['fechaReingresoDerivacion'] = new \DateTime(); //$form->get('fechaReingresoDerivacion')->getData();;
+                $parametros['fechaReingresoDerivacion'] = new \DateTime();
                 $parametros['derivadoEn'] = null;
                 $parametros['motivoDerivacion'] = $form->has('motivoReingresoDerivacion') ? $form->get('motivoReingresoDerivacion')->getData() : '';
                 $parametros['empresaTransporteDerivacion'] = null;
-                $parametros['habitacion'] = $habitacion != null ? $habitacion->getId() : '';
-                $parametros['cama'] = $ncama != null ? $ncama : '';
+                
+                // Si no se estableció habitación arriba, asegurar que los parámetros sean consistentes
+                if (!isset($parametros['habitacion']) || $parametros['habitacion'] === null) {
+                    $parametros['habitacion'] = null;
+                    $parametros['cama'] = null;
+                    $parametros['modalidad'] = 1;
+                    $parametros['ambulatorio'] = true;
+                }
 
                 $cliente->setDerivado(false);
-            }
-
-            if($cliente->getAmbulatorio() && $cliente->getHabitacion() != null ) {
-                $parametros['derivadoEn'] = null;
-                $parametros['ambulatorio'] = false;
-                $parametros['modalidad'] = 2;
-
-                $cliente->setAmbulatorio(false);
             }
 
             if($cliente->getDePermiso()) {

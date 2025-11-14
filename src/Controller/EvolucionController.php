@@ -10,6 +10,7 @@ use App\Service\UserEvolutionService;
 use App\Repository\DoctorRepository;
 use App\Repository\ClienteRepository;
 use App\Repository\EvolucionRepository;
+use App\Repository\PresentesRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -83,7 +84,7 @@ class EvolucionController extends AbstractController
     /**
      * @Route("/new", name="evolucion_new", methods={"GET","POST"})
      */
-    public function new(SluggerInterface $slugger, ValidatorInterface $validator, Request $request, ClienteRepository $clienteRepository, EvolucionRepository $evolucionRepository, DoctorRepository $doctorRepository, \App\Repository\UserRepository $userRepository): Response
+    public function new(SluggerInterface $slugger, ValidatorInterface $validator, Request $request, ClienteRepository $clienteRepository, EvolucionRepository $evolucionRepository, DoctorRepository $doctorRepository, \App\Repository\UserRepository $userRepository, PresentesRepository $presentesRepository): Response
     {
         $user = $this->getUser();
         
@@ -202,6 +203,35 @@ class EvolucionController extends AbstractController
                 
                 if ($evolucion->getFecha()->diff($hoy)->days > 0 && !$puedenEditarEvoluciones) {
                     die('la fecha de la evolución es anterior al día de la fecha, no se puede evolucionar');
+                }
+                
+                // Validar presente para pacientes ambulatorios
+                if ($cliente->getAmbulatorio()) {
+                    $fechaEvolucion = clone $evolucion->getFecha();
+                    $fechaEvolucion->setTime(0, 0, 0); // Normalizar a inicio del día
+                    
+                    // Verificar si el paciente tiene presente en la fecha de la evolución
+                    $presentes = $presentesRepository->findByFechaCliente($fechaEvolucion, $cliente);
+                    $tienePresente = false;
+                    
+                    foreach ($presentes as $presente) {
+                        if ($presente->getValor() === true) {
+                            $tienePresente = true;
+                            break;
+                        }
+                    }
+                    
+                    // Si no tiene presente y el doctor no tiene permiso especial, rechazar
+                    if (!$tienePresente && !$this->isGranted('patient.evolve_without_presence')) {
+                        $error = 'No se puede evolucionar a un paciente ambulatorio sin presente. El paciente debe tener presente registrado en la fecha de la evolución (' . $fechaEvolucion->format('d/m/Y') . '). Si necesitas evolucionar sin presente, contacta al administrador para obtener el permiso "Evolucionar sin Presente".';
+                        return $this->render('evolucion/new.html.twig', [
+                            'evolucion' => $evolucion,
+                            'nombreCliente' => $cliente->getNombre() . ' ' . $cliente->getApellido(),
+                            'form' => $form->createView(),
+                            'clienteId' => $cliente->getId(),
+                            'error' => $error,
+                        ]);
+                    }
                 }
                 
                 foreach($adjuntos as $adjunto) {
