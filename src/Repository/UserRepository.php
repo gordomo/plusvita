@@ -118,7 +118,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
 
         // Agregar filtro por búsqueda si se proporciona
         if ($searchTerm !== null && trim($searchTerm) !== '') {
-            $qb->andWhere('(u.nombre LIKE :search OR u.apellido LIKE :search OR u.email LIKE :search)')
+            $qb->andWhere('(u.nombre LIKE :search OR u.apellido LIKE :search OR u.email LIKE :search OR u.username LIKE :search)')
                ->setParameter('search', '%' . $searchTerm . '%');
         }
 

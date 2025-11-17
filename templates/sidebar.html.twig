@@ -75,11 +75,11 @@
                 </div>
             {% endif %}
             
-            {# Mi Firma - Basado en permisos de firma #}
+            {# Mi Firma / Firmas - Basado en permisos de firma #}
             {% if is_granted('firma.create') %}
                 <a class="list-group-item list-group-item-action bg-light " href="{{ path('user_firma_index', {'userId': app.user.id}) }}">
                     <i class="fas fa-pen-fancy"></i>
-                    Mi Firma
+                    {% if is_granted('firma.manage_others') %}Firmas{% else %}Mi Firma{% endif %}
                 </a>
             {% endif %}
             
