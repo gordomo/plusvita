@@ -22,8 +22,8 @@
                                 <p><strong>DNI:</strong> {{ informeMensual.cliente.dni }}</p>
                                 <p><strong>Obra Social:</strong> {{ informeMensual.cliente.obraSocial ? informeMensual.cliente.obraSocial.nombre : 'No especificada' }}</p>
                             </div>
-                            <div class="col-md-6 text-right">                            <p><strong>Fecha:</strong> {{ informeMensual.fechaCreacion|date("d/m/Y") }}</p>
-                            <p><strong>Médico:</strong> {{ informeMensual.doctor.nombre }} {{ informeMensual.doctor.apellido }}</p>
+                            <div class="col-md-6 text-right"><p><strong>Fecha:</strong> {{ informeMensual.fechaCreacion|date("d/m/Y") }}</p>
+                            <p><strong>Médico:</strong> {% if informeMensual.doctor %} {{ informeMensual.doctor.nombre }} {{ informeMensual.doctor.apellido }} {% else %} Doctor desconocido {% endif %}</p>
                             </div>
                         </div>
                         <hr>

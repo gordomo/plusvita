@@ -14,7 +14,7 @@
                         <div class="mb-3">
                             <h5>Información del Informe</h5>
                             <p><strong>Paciente:</strong> {{ informeMensual.cliente.nombre }} {{ informeMensual.cliente.apellido }}</p>
-                            <p><strong>Doctor:</strong> {{ informeMensual.doctor.nombre }} {{ informeMensual.doctor.apellido }}</p>
+                            <p><strong>Doctor:</strong> {% if informeMensual.doctor %} {{ informeMensual.doctor.nombre }} {{ informeMensual.doctor.apellido }} {% else %} Doctor desconocido {% endif %}</p>
                             <p><strong>Mes correspondiente:</strong> {{ informeMensual.mesCorrespondiente }}</p>
                             <p><strong>Fecha de creación:</strong> {{ informeMensual.fechaCreacion|date('d/m/Y') }}</p>
                         </div>
