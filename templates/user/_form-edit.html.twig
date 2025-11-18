@@ -23,7 +23,19 @@
                 </div>
             </div>
             <div class="form-row">
-                <div class="col-md-6">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        {{ form_label(form.dni, 'DNI') }}
+                        {{ form_widget(form.dni, {'attr': {'class': 'form-control', 'placeholder': 'Documento Nacional de Identidad'}}) }}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        {{ form_label(form.telefono, 'Teléfono') }}
+                        {{ form_widget(form.telefono, {'attr': {'class': 'form-control', 'placeholder': '+54 9 11 1234-5678'}}) }}
+                    </div>
+                </div>
+                <div class="col-md-4">
                     <div class="form-group">
                         {{ form_label(form.legajo, 'Legajo') }}
                         {{ form_widget(form.legajo, {'attr': {'class': 'form-control', 'placeholder': 'Número de legajo'}}) }}
@@ -40,19 +52,13 @@
         </div>
         <div class="card-body">
             <div class="form-row">
-                <div class="col-md-8">
+                <div class="col-md-12">
                     <div class="form-group">
                         {{ form_label(form.email, 'Email') }}
-                        {{ form_widget(form.email, {'attr': {'class': 'form-control', 'placeholder': 'usuario@example.com', 'class' : 'not-check'}}) }}
+                        {{ form_widget(form.email, {'attr': {'class': 'form-control not-check', 'placeholder': 'usuario@example.com'}}) }}
                         {% if form.email.vars.errors|length > 0 %}
                             <small class="text-danger d-block mt-1">{{ form_errors(form.email) }}</small>
                         {% endif %}
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="form-group">
-                        {{ form_label(form.telefono, 'Teléfono') }}
-                        {{ form_widget(form.telefono, {'attr': {'class': 'form-control', 'placeholder': '+54 9 11 1234-5678'}}) }}
                     </div>
                 </div>
             </div>
@@ -99,7 +105,192 @@
             </div>
         </div>
     </div>
-    
+
+    <!-- SECCIÓN 5: Datos de Contrato -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Datos de Contrato</h5>
+        </div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        {{ form_label(form.contract_tipo, 'Tipo de Contrato') }}
+                        {{ form_widget(form.contract_tipo) }}
+                        {{ form_errors(form.contract_tipo) }}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        {{ form_label(form.contract_inicioContrato, 'Fecha de Inicio') }}
+                        {{ form_widget(form.contract_inicioContrato) }}
+                        {{ form_errors(form.contract_inicioContrato) }}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        {{ form_label(form.contract_vtoContrato, 'Fecha de Vencimiento') }}
+                        {{ form_widget(form.contract_vtoContrato) }}
+                        <small class="form-text text-muted">Dejar vacío para contrato indefinido</small>
+                        {{ form_errors(form.contract_vtoContrato) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN 6: Información de Doctor (Opcional) -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Información Adicional para Doctor</h5>
+        </div>
+        <div class="card-body">
+            <div class="form-group">
+                <div class="custom-control custom-checkbox">
+                    {{ form_widget(form.completarInfoDoctor, {'attr': {'class': 'form-check-input', 'id': 'completar_info_doctor'}}) }}
+                    {{ form_label(form.completarInfoDoctor, null, {'label_attr': {'for': 'completar_info_doctor', 'class': 'form-check-label'}}) }}
+                </div>
+            </div>
+            
+            <div id="doctor-info-section" style="display: none;">
+                <hr>
+                <h6 class="mb-3">Datos del Doctor</h6>
+                
+                <div class="form-row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            {{ form_label(form.doctor_matricula) }}
+                            {{ form_widget(form.doctor_matricula) }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            {{ form_label(form.doctor_vtoMatricula) }}
+                            {{ form_widget(form.doctor_vtoMatricula) }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <!-- Espacio vacío para mantener el layout -->
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            {{ form_label(form.doctor_max_cli_turno) }}
+                            {{ form_widget(form.doctor_max_cli_turno) }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            {{ form_label(form.doctor_color) }}
+                            {{ form_widget(form.doctor_color) }}
+                        </div>
+                    </div>
+                </div>
+                
+                <hr>
+                <h6 class="mb-3">Horarios de Atención (Business Hours)</h6>
+                <p class="text-muted small">
+                    Configure los horarios de atención para cada día de la semana. Puede agregar múltiples rangos de horarios por día. 
+                    Marque "Cruza medianoche" para horarios que terminan al día siguiente (ej: domingo 02:00 hasta lunes 10:00).
+                </p>
+                
+                <div class="row" id="business-hours-container">
+                    {% set dias = [
+                        {'num': 1, 'name': 'lunes'},
+                        {'num': 2, 'name': 'martes'},
+                        {'num': 3, 'name': 'miercoles'},
+                        {'num': 4, 'name': 'jueves'},
+                        {'num': 5, 'name': 'viernes'},
+                        {'num': 6, 'name': 'sabado'},
+                        {'num': 7, 'name': 'domingo'}
+                    ] %}
+                    {% set horarios = {
+                        '00:00': '00:00', '00:30': '00:30', '01:00': '01:00', '01:30': '01:30',
+                        '02:00': '02:00', '02:30': '02:30', '03:00': '03:00', '03:30': '03:30',
+                        '04:00': '04:00', '04:30': '04:30', '05:00': '05:00', '05:30': '05:30',
+                        '06:00': '06:00', '06:30': '06:30', '07:00': '07:00', '07:30': '07:30',
+                        '08:00': '08:00', '08:30': '08:30', '09:00': '09:00', '09:30': '09:30',
+                        '10:00': '10:00', '10:30': '10:30', '11:00': '11:00', '11:30': '11:30',
+                        '12:00': '12:00', '12:30': '12:30', '13:00': '13:00', '13:30': '13:30',
+                        '14:00': '14:00', '14:30': '14:30', '15:00': '15:00', '15:30': '15:30',
+                        '16:00': '16:00', '16:30': '16:30', '17:00': '17:00', '17:30': '17:30',
+                        '18:00': '18:00', '18:30': '18:30', '19:00': '19:00', '19:30': '19:30',
+                        '20:00': '20:00', '20:30': '20:30', '21:00': '21:00', '21:30': '21:30',
+                        '22:00': '22:00', '22:30': '22:30', '23:00': '23:00', '23:30': '23:30'
+                    } %}
+                    {% for dia in dias %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <strong>{{ dia.name|capitalize }}</strong>
+                                </div>
+                                <div class="card-body">
+                                    <div class="business-hours-day" data-day="{{ dia.name }}" data-day-num="{{ dia.num }}">
+                                        <div class="time-ranges-container">
+                                            {# Se generará dinámicamente con JavaScript #}
+                                        </div>
+                                        <button type="button" class="btn btn-sm btn-success add-range-btn mt-2" data-day="{{ dia.name }}">
+                                            <i class="fas fa-plus"></i> Agregar horario
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                {# Template para un rango de horario (usado por JavaScript) #}
+                <script type="text/template" id="time-range-template">
+                    <div class="time-range-row mb-2" data-range-index="__INDEX__" data-day="__DAY__" data-day-num="__DAY_NUM__">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="small">Desde:</label>
+                                <select name="doctor___DAY___ranges[__INDEX__][start]" class="form-control form-control-sm time-select time-start">
+                                    <option value="">Seleccione hora</option>
+                                    {% for hour, label in horarios %}
+                                        <option value="{{ hour }}">{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3 normal-end-container">
+                                <label class="small">Hasta:</label>
+                                <select name="doctor___DAY___ranges[__INDEX__][end]" class="form-control form-control-sm time-select time-end">
+                                    <option value="">Seleccione hora</option>
+                                    {% for hour, label in horarios %}
+                                        <option value="{{ hour }}">{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3 next-day-container" style="display: none;">
+                                <label class="small">Hasta (día siguiente):</label>
+                                <select name="doctor___DAY___ranges[__INDEX__][endNextDay]" class="form-control form-control-sm time-select time-end-next-day">
+                                    <option value="">Seleccione hora</option>
+                                    {% for hour, label in horarios %}
+                                        <option value="{{ hour }}">{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted">del día siguiente</small>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="small">Cruza medianoche:</label>
+                                <div class="form-check mt-2">
+                                    <input type="checkbox" name="doctor___DAY___ranges[__INDEX__][nextDay]" 
+                                           class="form-check-input next-day-checkbox" 
+                                           value="1">
+                                    <label class="form-check-label small">Sí</label>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-danger remove-range-btn mt-1">
+                                    <i class="fas fa-trash"></i> Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </script>
+            </div>
+        </div>
+    </div>
 
     <!-- Botones de Acción -->
     <div class="mb-4">

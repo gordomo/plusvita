@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Entity\Doctor;
 use App\Form\UserType;
 use App\Repository\BookingRepository;
 use App\Repository\UserRepository;
@@ -76,6 +77,31 @@ class UserController extends AbstractController
                 }
             }
             
+            // Debug: mostrar errores de validación
+            if (!$form->isValid()) {
+                $errors = [];
+                // getErrors(true) devuelve un array plano de FormError
+                foreach ($form->getErrors(true) as $error) {
+                    $errors[] = $error->getMessage();
+                }
+                if (!empty($errors)) {
+                    $this->addFlash('error', 'Errores de validación: ' . implode(', ', $errors));
+                }
+                
+                // Verificar errores específicos por campo
+                if (!$form->get('roleEntities')->isValid()) {
+                    $roleErrors = [];
+                    foreach ($form->get('roleEntities')->getErrors(true) as $error) {
+                        $roleErrors[] = $error->getMessage();
+                    }
+                    if (!empty($roleErrors)) {
+                        $this->addFlash('error', 'Roles: ' . implode(', ', $roleErrors));
+                    } else {
+                        $this->addFlash('error', 'Debe seleccionar al menos un rol.');
+                    }
+                }
+            }
+            
             if ($form->isValid()) {
             
                 try {
@@ -83,6 +109,15 @@ class UserController extends AbstractController
                     $user->setUsername($user->getEmail());
 
                     $password = $form->get('password')->getData() ?? '';
+                    if (empty($password)) {
+                        $this->addFlash('error', 'La contraseña es obligatoria.');
+                        $businessHoursData = $this->extractBusinessHoursData($request);
+                        return $this->render('user/new.html.twig', [
+                            'user' => $user,
+                            'form' => $form->createView(),
+                            'businessHoursData' => $businessHoursData
+                        ]);
+                    }
                     $encodePass = $passwordEncoder->encodePassword($user, $password);
                     $user->setPassword($encodePass);
                     
@@ -101,6 +136,33 @@ class UserController extends AbstractController
                     $entityManager->persist($user);
                     $entityManager->flush();
                     
+                    // Crear o actualizar contrato si se proporcionaron datos
+                    try {
+                        $this->handleUserContract($user, $form, $entityManager);
+                    } catch (\Exception $e) {
+                        // Si falla la creación del contrato, continuar pero registrar el error
+                        $this->addFlash('warning', 'El usuario se creó correctamente, pero hubo un problema al guardar los datos del contrato. Puede editarlos más tarde.');
+                    }
+                    
+                    // Si se marcó "completar info para doctor", crear registro en tabla doctor
+                    $completarInfoDoctor = $form->get('completarInfoDoctor')->getData();
+                    if ($completarInfoDoctor) {
+                        try {
+                            $doctor = $this->createDoctorFromForm($user, $form, $request);
+                            if ($doctor) {
+                                $entityManager->persist($doctor);
+                                $entityManager->flush();
+                            }
+                        } catch (\Exception $e) {
+                            // Si falla la creación del doctor, continuar pero registrar el error
+                            $errorMsg = 'El usuario se creó correctamente, pero hubo un problema al guardar los datos del doctor. Puede editarlos más tarde.';
+                            if ($this->getParameter('kernel.environment') === 'dev') {
+                                $errorMsg .= ' Error: ' . $e->getMessage() . ' (' . get_class($e) . ')';
+                            }
+                            $this->addFlash('warning', $errorMsg);
+                        }
+                    }
+                    
                     $this->addFlash('success', 'Usuario creado correctamente.');
                     return $this->redirectToRoute('user_management_index');
                 } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $e) {
@@ -110,24 +172,56 @@ class UserController extends AbstractController
                     } else {
                         $this->addFlash('error', 'Error: Datos duplicados. Por favor, verifica los datos ingresados.');
                     }
+                    $businessHoursData = $this->extractBusinessHoursData($request);
                     return $this->render('user/new.html.twig', [
                         'user' => $user,
                         'form' => $form->createView(),
+                        'businessHoursData' => $businessHoursData
+                    ]);
+                } catch (\Doctrine\DBAL\Exception\DriverException $e) {
+                    // Errores de base de datos (columnas no encontradas, etc.)
+                    $errorMessage = 'Error en la base de datos. Por favor, contacte al administrador del sistema.';
+                    if ($this->getParameter('kernel.environment') === 'dev') {
+                        $errorMessage = 'Error de base de datos: ' . $e->getMessage();
+                    }
+                    $this->addFlash('error', $errorMessage);
+                    
+                    $businessHoursData = $this->extractBusinessHoursData($request);
+                    return $this->render('user/new.html.twig', [
+                        'user' => $user,
+                        'form' => $form->createView(),
+                        'businessHoursData' => $businessHoursData
                     ]);
                 } catch (\Exception $e) {
-                    $this->addFlash('error', 'Error al crear el usuario: ' . $e->getMessage());
+                    // Mensaje de error más amigable para el usuario
+                    $errorMessage = 'Error al crear el usuario. Por favor, verifique los datos ingresados.';
+                    if ($this->getParameter('kernel.environment') === 'dev') {
+                        $errorMessage = 'Error al crear el usuario: ' . $e->getMessage() . ' (' . get_class($e) . ')';
+                    }
+                    
+                    $this->addFlash('error', $errorMessage);
+                    
+                    // Extraer datos de horarios del request para restaurarlos
+                    $businessHoursData = $this->extractBusinessHoursData($request);
                     return $this->render('user/new.html.twig', [
                         'user' => $user,
                         'form' => $form->createView(),
+                        'businessHoursData' => $businessHoursData
                     ]);
                 }
                 }
         }
 
+        // Extraer datos de horarios del request si hay errores de validación
+        $businessHoursData = [];
+        if ($form->isSubmitted() && !$form->isValid()) {
+            $businessHoursData = $this->extractBusinessHoursData($request);
+        }
+
         return $this->render('user/new.html.twig', [
             'user' => $user,
             'form' => $form->createView(),
-            
+            'businessHoursData' => $businessHoursData
         ]);
     }
 
@@ -158,6 +252,44 @@ class UserController extends AbstractController
         
         // Populate the unmapped roleEntities field with current user roles
         $form->get('roleEntities')->setData($user->getRoleEntities());
+        
+        // Cargar datos del doctor si existe (por email)
+        // Usar DQL directo para evitar problemas con campos eliminados
+        $doctor = null;
+        try {
+            $doctor = $this->getDoctrine()->getRepository(Doctor::class)
+                ->createQueryBuilder('d')
+                ->where('d.email = :email')
+                ->setParameter('email', $user->getEmail())
+                ->getQuery()
+                ->getOneOrNullResult();
+        } catch (\Exception $e) {
+            // Si hay error al buscar doctor, continuar sin datos de doctor
+            // Esto puede pasar si hay problemas con campos eliminados
+        }
+        
+        if ($doctor) {
+            // Marcar el checkbox como marcado
+            $form->get('completarInfoDoctor')->setData(true);
+            
+            // Prellenar campos de doctor
+            $form->get('doctor_matricula')->setData($doctor->getMatricula());
+            $form->get('doctor_vtoMatricula')->setData($doctor->getVtoMatricula());
+            // Los datos de contrato se obtienen desde UserContract, no desde Doctor
+            $form->get('doctor_max_cli_turno')->setData($doctor->getMaxCliTurno());
+            $form->get('doctor_color')->setData($doctor->getColor());
+            
+            // Los businessHours se cargarán dinámicamente con JavaScript desde la nueva estructura
+            // No necesitamos prellenar campos antiguos ya que usamos la nueva interfaz dinámica
+        }
+        
+        // Prellenar campos de contrato si existe un contrato activo
+        $activeContract = $user->getActiveContract();
+        if ($activeContract) {
+            $form->get('contract_tipo')->setData($activeContract->getTipo());
+            $form->get('contract_inicioContrato')->setData($activeContract->getInicioContrato());
+            $form->get('contract_vtoContrato')->setData($activeContract->getVtoContrato());
+        }
 
         $form->handleRequest($request);
 
@@ -218,7 +350,20 @@ class UserController extends AbstractController
                 $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->persist($user);
                 $entityManager->flush();
-
+                
+                // Crear o actualizar contrato si se proporcionaron datos
+                $this->handleUserContract($user, $form, $entityManager);
+                
+                // Si se marcó "completar info para doctor", crear/actualizar registro en tabla doctor
+                $completarInfoDoctor = $form->get('completarInfoDoctor')->getData();
+                if ($completarInfoDoctor) {
+                    $doctor = $this->createDoctorFromForm($user, $form, $request);
+                    if ($doctor) {
+                        $entityManager->persist($doctor);
+                        $entityManager->flush();
+                    }
+                }
+                
                 $this->addFlash('success', 'Usuario actualizado correctamente.');
                 return $this->redirectToRoute('user_management_index');
 
@@ -267,5 +412,234 @@ class UserController extends AbstractController
         
 
         return $this->redirectToRoute('user_index');
+    }
+
+    /**
+     * Crea un registro Doctor desde los datos del formulario de usuario
+     */
+    private function createDoctorFromForm(User $user, $form, $request = null): ?Doctor
+    {
+        // Verificar si ya existe un doctor con este email
+        // Buscar doctor existente usando DQL para evitar problemas con campos eliminados
+        $existingDoctor = null;
+        try {
+            $existingDoctor = $this->getDoctrine()->getRepository(Doctor::class)
+                ->createQueryBuilder('d')
+                ->where('d.email = :email')
+                ->setParameter('email', $user->getEmail())
+                ->getQuery()
+                ->getOneOrNullResult();
+        } catch (\Exception $e) {
+            // Si hay error, crear nuevo doctor
+        }
+        
+        if ($existingDoctor) {
+            // Actualizar doctor existente
+            $doctor = $existingDoctor;
+        } else {
+            // Crear nuevo doctor
+            $doctor = new Doctor();
+            $doctor->setEmail($user->getEmail());
+        }
+        
+        // Sincronizar datos básicos desde User
+        $doctor->setNombre($user->getNombre() ?? '');
+        $doctor->setApellido($user->getApellido() ?? '');
+        $doctor->setTelefono($user->getTelefono());
+        $doctor->setLegajo($user->getLegajo());
+        $doctor->setHabilitado($user->getHabilitado() ?? true);
+        
+        // Establecer valores por defecto requeridos
+        $doctor->setEspecialidad([]);
+        // legacyRoles ya se inicializa en el constructor con ['ROLE_STAFF'], no necesita establecerse
+        $doctor->setUsername($user->getEmail());
+        // Password: establecer un password temporal (el método setPassword lo codifica automáticamente)
+        // Nota: El Doctor entity es legacy y no se usa para autenticación, solo para datos adicionales
+        if (!$doctor->getPassword()) {
+            // Solo establecer password si no existe (para actualizaciones)
+            $doctor->setPassword('temp_password_not_used');
+        }
+        $doctor->setPresente(false);
+        
+        // Campos específicos de doctor del formulario
+        if ($form->has('doctor_matricula')) {
+            $matricula = $form->get('doctor_matricula')->getData();
+            $doctor->setMatricula($matricula);
+        }
+        
+        if ($form->has('doctor_vtoMatricula')) {
+            $doctor->setVtoMatricula($form->get('doctor_vtoMatricula')->getData());
+        }
+        
+        // Los datos de contrato se gestionan a través de UserContract, no aquí
+        // El campo tipo ya no existe en Doctor, se maneja en UserContract
+        
+        if ($form->has('doctor_max_cli_turno')) {
+            $doctor->setMaxCliTurno($form->get('doctor_max_cli_turno')->getData());
+        }
+        
+        if ($form->has('doctor_color')) {
+            $doctor->setColor($form->get('doctor_color')->getData());
+        }
+        
+        // Construir businessHours desde los campos de horarios
+        // Nueva estructura: soporta múltiples rangos por día y horarios que cruzan medianoche
+        $dias = [
+            1 => 'lunes',
+            2 => 'martes',
+            3 => 'miercoles',
+            4 => 'jueves',
+            5 => 'viernes',
+            6 => 'sabado',
+            7 => 'domingo',
+        ];
+        
+        $businessHours = [];
+        
+        foreach ($dias as $key => $dia) {
+            // Intentar obtener la nueva estructura (rangos múltiples)
+            $rangesData = null;
+            if ($request) {
+                $formData = $request->request->get('user', []);
+                $rangesData = $formData['doctor_' . $dia . '_ranges'] ?? null;
+            }
+            
+            if ($rangesData && is_array($rangesData)) {
+                // Nueva estructura: múltiples rangos
+                $ranges = [];
+                foreach ($rangesData as $rangeData) {
+                    if (isset($rangeData['start']) && !empty($rangeData['start'])) {
+                        $start = $rangeData['start'];
+                        $end = null;
+                        $nextDay = false;
+                        
+                        // Si cruza medianoche, usar endNextDay, sino usar end normal
+                        if (isset($rangeData['nextDay']) && $rangeData['nextDay'] && 
+                            isset($rangeData['endNextDay']) && !empty($rangeData['endNextDay'])) {
+                            $end = $rangeData['endNextDay'];
+                            $nextDay = true;
+                        } elseif (isset($rangeData['end']) && !empty($rangeData['end'])) {
+                            $end = $rangeData['end'];
+                        }
+                        
+                        // Solo agregar si tenemos start y end válidos
+                        if ($start && $end) {
+                            $range = [
+                                'start' => $start,
+                                'end' => $end,
+                            ];
+                            
+                            // Si el horario cruza medianoche
+                            if ($nextDay) {
+                                $range['nextDay'] = true;
+                            }
+                            
+                            $ranges[] = $range;
+                        }
+                    }
+                }
+                
+                if (!empty($ranges)) {
+                    $businessHours[$key] = $ranges;
+                }
+            }
+        }
+        
+        if (!empty($businessHours)) {
+            $doctor->setBusinessHours($businessHours);
+        }
+        
+        // Valores por defecto
+        $doctor->setPresente(false);
+        
+        return $doctor;
+    }
+    
+    /**
+     * Extrae los datos de businessHours del request para restaurarlos en el formulario
+     */
+    private function extractBusinessHoursData(Request $request): array
+    {
+        $businessHoursData = [];
+        $dias = [
+            1 => 'lunes',
+            2 => 'martes',
+            3 => 'miercoles',
+            4 => 'jueves',
+            5 => 'viernes',
+            6 => 'sabado',
+            7 => 'domingo',
+        ];
+        
+        // Los campos pueden estar directamente en el request o dentro de 'user'
+        $allRequestData = $request->request->all();
+        
+        foreach ($dias as $key => $dia) {
+            $rangesData = null;
+            
+            // Intentar obtener desde el nivel raíz del request
+            $fieldName = 'doctor_' . $dia . '_ranges';
+            if (isset($allRequestData[$fieldName]) && is_array($allRequestData[$fieldName])) {
+                $rangesData = $allRequestData[$fieldName];
+            } else {
+                // Intentar obtener desde dentro de 'user'
+                $formData = $request->request->get('user', []);
+                if (isset($formData[$fieldName]) && is_array($formData[$fieldName])) {
+                    $rangesData = $formData[$fieldName];
+                }
+            }
+            
+            if ($rangesData && is_array($rangesData)) {
+                // Filtrar solo los rangos que tienen datos válidos
+                $validRanges = [];
+                foreach ($rangesData as $rangeData) {
+                    if (is_array($rangeData) && isset($rangeData['start']) && !empty($rangeData['start'])) {
+                        $validRanges[] = $rangeData;
+                    }
+                }
+                if (!empty($validRanges)) {
+                    $businessHoursData[$dia] = $validRanges;
+                }
+            }
+        }
+        
+        return $businessHoursData;
+    }
+    
+    /**
+     * Maneja la creación o actualización del contrato del usuario
+     */
+    private function handleUserContract(User $user, $form, $entityManager): void
+    {
+        $tipo = $form->get('contract_tipo')->getData();
+        $inicioContrato = $form->get('contract_inicioContrato')->getData();
+        $vtoContrato = $form->get('contract_vtoContrato')->getData();
+        
+        // Solo crear/actualizar contrato si se proporcionó al menos tipo e inicio
+        if ($tipo && $tipo !== '0' && $inicioContrato) {
+            // Buscar contrato activo existente
+            $activeContract = $user->getActiveContract();
+            
+            if ($activeContract) {
+                // Actualizar contrato existente
+                $activeContract->setTipo($tipo);
+                $activeContract->setInicioContrato($inicioContrato);
+                $activeContract->setVtoContrato($vtoContrato);
+                $activeContract->setUpdatedAt(new \DateTime());
+            } else {
+                // Crear nuevo contrato
+                $contract = new \App\Entity\UserContract();
+                $contract->setUser($user);
+                $contract->setTipo($tipo);
+                $contract->setInicioContrato($inicioContrato);
+                $contract->setVtoContrato($vtoContrato);
+                $contract->setIsActive(true);
+                $contract->setCreatedAt(new \DateTime());
+                
+                $entityManager->persist($contract);
+            }
+            
+            $entityManager->flush();
+        }
     }
 }

@@ -64,6 +64,11 @@ class User implements UserInterface
     private $apellido;
 
     /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $dni;
+
+    /**
      * @ORM\Column(type="json", nullable=true)
      */
     private $modalidad = [];
@@ -317,6 +322,17 @@ class User implements UserInterface
     public function setApellido(?string $apellido): self
     {
         $this->apellido = $apellido;
+        return $this;
+    }
+
+    public function getDni(): ?string
+    {
+        return $this->dni;
+    }
+
+    public function setDni(?string $dni): self
+    {
+        $this->dni = $dni;
         return $this;
     }
 

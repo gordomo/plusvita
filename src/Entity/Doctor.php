@@ -100,26 +100,6 @@ class Doctor implements UserInterface
     /**
      * @ORM\Column(type="date", nullable=true)
      */
-    private $vtoContrato;
-
-    /**
-     * @ORM\Column(type="date", nullable=true)
-     */
-    private $inicioContrato;
-
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private $tipo;
-
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private $dni;
-
-    /**
-     * @ORM\Column(type="date", nullable=true)
-     */
     private $vtoMatricula;
 
 
@@ -284,7 +264,7 @@ class Doctor implements UserInterface
         return $this->matricula;
     }
 
-    public function setMatricula(string $matricula): self
+    public function setMatricula(?string $matricula): self
     {
         $this->matricula = $matricula;
 
@@ -348,54 +328,6 @@ class Doctor implements UserInterface
         return $this;
     }
 
-    public function getVtoContrato(): ?\DateTimeInterface
-    {
-        return $this->vtoContrato;
-    }
-
-    public function setVtoContrato(?\DateTimeInterface $vtoContrato): self
-    {
-        $this->vtoContrato = $vtoContrato;
-
-        return $this;
-    }
-
-    public function getInicioContrato(): ?\DateTimeInterface
-    {
-        return $this->inicioContrato;
-    }
-
-    public function setInicioContrato(?\DateTimeInterface $inicioContrato): self
-    {
-        $this->inicioContrato = $inicioContrato;
-
-        return $this;
-    }
-
-    public function getTipo(): ?string
-    {
-        return $this->tipo;
-    }
-
-    public function setTipo(string $tipo): self
-    {
-        $this->tipo = $tipo;
-
-        return $this;
-    }
-
-    public function getDni(): ?string
-    {
-        return $this->dni;
-    }
-
-    public function setDni(string $dni): self
-    {
-        $this->dni = $dni;
-
-        return $this;
-    }
-
     public function getVtoMatricula(): ?\DateTimeInterface
     {
         return $this->vtoMatricula;
@@ -425,7 +357,7 @@ class Doctor implements UserInterface
         return $this->legajo;
     }
 
-    public function setLegajo(string $legajo): self
+    public function setLegajo(?string $legajo): self
     {
         $this->legajo = $legajo;
 
@@ -473,7 +405,7 @@ class Doctor implements UserInterface
         return $this->telefono;
     }
 
-    public function setTelefono(string $telefono): self
+    public function setTelefono(?string $telefono): self
     {
         $this->telefono = $telefono;
 

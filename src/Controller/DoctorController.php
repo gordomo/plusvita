@@ -279,7 +279,7 @@ class DoctorController extends AbstractController
     public function getModalidadesSelect(Request $request)
     {
         $doctor = new Doctor();
-        $doctor->setTipo($request->query->get('tipo'));
+        // El campo tipo ya no existe en Doctor, se maneja en UserContract
         $form = $this->createForm(DoctorType::class, $doctor);
         if (!$form->has('modalidad')) {
             return new Response(null, 204);
@@ -356,7 +356,7 @@ class DoctorController extends AbstractController
     {
         $doctor = new Doctor();
         $doctor->setRoles([]);
-        $doctor->setInicioContrato(new \DateTime());
+        // El campo inicioContrato ya no existe en Doctor, se maneja en UserContract
         $error = '';
         $coloresEnUso = $doctorRepository->findColoresEnUso();
         foreach($coloresEnUso as $colorUsado) {
