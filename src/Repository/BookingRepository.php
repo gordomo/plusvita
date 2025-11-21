@@ -40,7 +40,15 @@ class BookingRepository extends ServiceEntityRepository
         $end = $endofdayyesterday2->format("Y-m-d H:i:s");
 
 
-        $query = $this->createQueryBuilder('b');
+        $query = $this->createQueryBuilder('b')
+            // JOIN con cliente y obraSocial para evitar consultas N+1
+            ->leftJoin('b.cliente', 'c')
+            ->addSelect('c')
+            ->leftJoin('c.obraSocial', 'os')
+            ->addSelect('os')
+            // JOIN con notas para evitar consultas adicionales
+            ->leftJoin('b.notas', 'n')
+            ->addSelect('n');
 
         if($periodo !== 'anteriores' || ($desde != '' && $hasta != '')) {
             $query = $query
@@ -48,6 +56,12 @@ class BookingRepository extends ServiceEntityRepository
                 ->andWhere('b.beginAt <= :end')
                 ->setParameter('end', $end)
                 ->setParameter('start', $start);
+        } else {
+            // Para período "anteriores", solo mostrar turnos pasados y limitar resultados
+            $query = $query
+                ->andWhere('b.beginAt < :now')
+                ->setParameter('now', (new \DateTime())->format('Y-m-d H:i:s'))
+                ->setMaxResults(500); // Limitar a 500 registros para evitar cargar demasiados datos
         }
 
         if(!empty($doctor)) {
@@ -61,7 +75,14 @@ class BookingRepository extends ServiceEntityRepository
         if(!empty($completado)) {
           $query = $query->andWhere('b.completado = :completado')->setParameter('completado', $completado);
         };
-        $query = $query->orderBy('b.beginAt', 'asc');
+        
+        // Ordenar según el período: ascendente para períodos normales, descendente para "anteriores"
+        if($periodo === 'anteriores' && ($desde == '' || $hasta == '')) {
+            $query = $query->orderBy('b.beginAt', 'desc');
+        } else {
+            $query = $query->orderBy('b.beginAt', 'asc');
+        }
+        
         $query = $query->getQuery();
 
         return $query->getResult();

@@ -11,6 +11,7 @@ use CalendarBundle\Entity\Event;
 use CalendarBundle\Event\CalendarEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Core\Security;
 
 class CalendarSubscriber implements EventSubscriberInterface
 {
@@ -19,13 +20,15 @@ class CalendarSubscriber implements EventSubscriberInterface
     private $clienteRepository;
     private $userRepository;
     private $router;
+    private $security;
 
-    public function __construct( BookingRepository $bookingRepository, DoctorRepository $doctorRepository, ClienteRepository $clienteRepository, UserRepository $userRepository, UrlGeneratorInterface $router) {
+    public function __construct( BookingRepository $bookingRepository, DoctorRepository $doctorRepository, ClienteRepository $clienteRepository, UserRepository $userRepository, UrlGeneratorInterface $router, Security $security) {
         $this->bookingRepository = $bookingRepository;
         $this->doctorRepository = $doctorRepository;
         $this->clienteRepository = $clienteRepository;
         $this->userRepository = $userRepository;
         $this->router = $router;
+        $this->security = $security;
     }
 
     public static function getSubscribedEvents()
@@ -48,6 +51,24 @@ class CalendarSubscriber implements EventSubscriberInterface
             ->where('booking.beginAt BETWEEN :start and :end OR booking.endAt BETWEEN :start and :end')
             ->setParameter('start', $start->format('Y-m-d H:i:s'))
             ->setParameter('end', $end->format('Y-m-d H:i:s'));
+
+        // Filtrar por permisos: si el usuario no tiene permisos de administración,
+        // solo mostrar sus propios turnos (donde él es el doctor)
+        $currentUser = $this->security->getUser();
+        $canManageAgenda = false;
+        
+        if ($currentUser) {
+            $canManageAgenda = $this->security->isGranted('agenda.manage') || $this->security->isGranted('ROLE_ADMIN');
+            
+            if (!$canManageAgenda) {
+                // Si no tiene permisos de administración, solo mostrar turnos donde él es el doctor
+                $bookings->andWhere('booking.doctor = :currentUser')
+                         ->setParameter('currentUser', $currentUser);
+            }
+        } else {
+            // Si no hay usuario autenticado, no mostrar ningún turno
+            $bookings->andWhere('1 = 0');
+        }
 
         if (!empty($filters['ctr'])) {
             $ctr = $filters['ctr'];

@@ -653,7 +653,11 @@ class DoctorController extends AbstractController
             $to = (new \DateTime($hasta));
         }
 
-        $clientes = $clienteRepository->findByNombreYobraSocial($nombreInput, $obraSocialSelected);
+        // Optimización: Solo buscar clientes si hay filtro de nombre u obra social
+        $clientes = [];
+        if ($nombreInput != '' || ($obraSocialSelected != '' && $obraSocialSelected != 0)) {
+            $clientes = $clienteRepository->findByNombreYobraSocial($nombreInput, $obraSocialSelected);
+        }
 
         $dia = new \DateTime();
         if ($obraSocialSelected != 0 && count($clientes) == 0) {
@@ -662,11 +666,41 @@ class DoctorController extends AbstractController
             $turnos = $bookingRepository->turnosParaAgenda($user, $dia, $periodo, $clientes, $from, $to);
         }
 
-        $obrasSociales = $obraSocialRepository->findAll();
+        // Optimización: Solo obtener obras sociales que están relacionadas con los turnos mostrados
         $obrasSocialesArray = [];
-
-        foreach ($obrasSociales as $obrasSocial) {
-            $obrasSocialesArray[$obrasSocial->getId()] = $obrasSocial->getNombre();
+        if (!empty($turnos)) {
+            $obraSocialIds = [];
+            foreach ($turnos as $turno) {
+                if ($turno->getCliente() && $turno->getCliente()->getObraSocial()) {
+                    $obraSocialId = $turno->getCliente()->getObraSocial()->getId();
+                    if (!in_array($obraSocialId, $obraSocialIds)) {
+                        $obraSocialIds[] = $obraSocialId;
+                    }
+                }
+            }
+            
+            if (!empty($obraSocialIds)) {
+                $obrasSociales = $obraSocialRepository->findBy(['id' => $obraSocialIds]);
+                foreach ($obrasSociales as $obrasSocial) {
+                    $obrasSocialesArray[$obrasSocial->getId()] = $obrasSocial->getNombre();
+                }
+            }
+        }
+        
+        // Si no hay turnos pero hay filtro de obra social, obtener esa obra social específica
+        if (empty($obrasSocialesArray) && $obraSocialSelected && $obraSocialSelected != 0) {
+            $obraSocial = $obraSocialRepository->find($obraSocialSelected);
+            if ($obraSocial) {
+                $obrasSocialesArray[$obraSocial->getId()] = $obraSocial->getNombre();
+            }
+        }
+        
+        // Si aún no hay obras sociales y no hay filtro, obtener todas (para el dropdown)
+        if (empty($obrasSocialesArray) && (!$obraSocialSelected || $obraSocialSelected == 0)) {
+            $obrasSociales = $obraSocialRepository->findAll();
+            foreach ($obrasSociales as $obrasSocial) {
+                $obrasSocialesArray[$obrasSocial->getId()] = $obrasSocial->getNombre();
+            }
         }
 
         return $this->render('doctor/agenda.html.twig', [
