@@ -69,28 +69,83 @@ class CalendarSubscriber implements EventSubscriberInterface
         }
 
         if (!empty($filters['doctor_id'])) {
-            $docIds = json_decode($filters['doctor_id']);
-            // Obtener doctores por IDs
-            $doctors = $this->doctorRepository->findBy(['id' => array_values($docIds)]);
-            // Convertir doctores a usuarios por email
-            $userEmails = [];
-            foreach ($doctors as $doctor) {
-                $userEmails[] = $doctor->getEmail();
-            }
-            if (!empty($userEmails)) {
-                $users = $this->userRepository->findBy(['email' => $userEmails]);
-                $bookings->andWhere('booking.doctor IN (:doctor)')
-                         ->setParameter('doctor', $users);
-            } else {
-                // Si no hay doctores con esos IDs, no mostrar ningún turno
-                $bookings->andWhere('1 = 0');
+            try {
+                $docIds = json_decode($filters['doctor_id'], true);
+                // Si json_decode falla, intentar como string simple
+                if ($docIds === null && json_last_error() !== JSON_ERROR_NONE) {
+                    $docIds = $filters['doctor_id'];
+                }
+                // Asegurar que sea un array
+                if (!is_array($docIds)) {
+                    $docIds = [$docIds];
+                }
+                // Filtrar valores válidos (solo números enteros)
+                $docIds = array_filter(array_map('intval', $docIds), function($id) {
+                    return $id > 0;
+                });
+                
+                if (!empty($docIds)) {
+                    // Obtener doctores por IDs
+                    $doctors = $this->doctorRepository->findBy(['id' => array_values($docIds)]);
+                    // Convertir doctores a usuarios por email
+                    $userEmails = [];
+                    foreach ($doctors as $doctor) {
+                        $userEmails[] = $doctor->getEmail();
+                    }
+                    if (!empty($userEmails)) {
+                        $users = $this->userRepository->findBy(['email' => $userEmails]);
+                        if (!empty($users)) {
+                            $bookings->andWhere('booking.doctor IN (:doctor)')
+                                     ->setParameter('doctor', $users);
+                        } else {
+                            // Si no hay usuarios correspondientes, no mostrar ningún turno
+                            $bookings->andWhere('1 = 0');
+                        }
+                    } else {
+                        // Si no hay doctores con esos IDs, no mostrar ningún turno
+                        $bookings->andWhere('1 = 0');
+                    }
+                } else {
+                    // Si no hay IDs válidos, no mostrar ningún turno
+                    $bookings->andWhere('1 = 0');
+                }
+            } catch (\Exception $e) {
+                // En caso de error, no aplicar filtro de doctor
+                // Log del error si es necesario
             }
         }
         if (!empty($filters['cliente_id'])) {
-            $cliIds = json_decode($filters['cliente_id']);
-            $cliente = $this->clienteRepository->findBy(array('id' => array_values($cliIds)));
-            $bookings->andWhere('booking.cliente IN (:cliente)')
-                ->setParameter('cliente', $cliente);
+            try {
+                $cliIds = json_decode($filters['cliente_id'], true);
+                // Si json_decode falla, intentar como string simple
+                if ($cliIds === null && json_last_error() !== JSON_ERROR_NONE) {
+                    $cliIds = $filters['cliente_id'];
+                }
+                // Asegurar que sea un array
+                if (!is_array($cliIds)) {
+                    $cliIds = [$cliIds];
+                }
+                // Filtrar valores válidos (solo números enteros)
+                $cliIds = array_filter(array_map('intval', $cliIds), function($id) {
+                    return $id > 0;
+                });
+                
+                if (!empty($cliIds)) {
+                    $cliente = $this->clienteRepository->findBy(array('id' => array_values($cliIds)));
+                    if (!empty($cliente)) {
+                        $bookings->andWhere('booking.cliente IN (:cliente)')
+                            ->setParameter('cliente', $cliente);
+                    } else {
+                        // Si no hay clientes con esos IDs, no mostrar ningún turno
+                        $bookings->andWhere('1 = 0');
+                    }
+                } else {
+                    // Si no hay IDs válidos, no aplicar filtro
+                }
+            } catch (\Exception $e) {
+                // En caso de error, no aplicar filtro de cliente
+                // Log del error si es necesario
+            }
         }
 
         $bookings = $bookings->getQuery()->getResult();

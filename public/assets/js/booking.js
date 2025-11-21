@@ -8,7 +8,45 @@ var getParams = function (url) {
     var vars = query.split('&');
     for (var i = 0; i < vars.length; i++) {
         var pair = vars[i].split('=');
-        params[pair[0]] = decodeURIComponent(pair[1]);
+        var key = pair[0];
+        var value = decodeURIComponent(pair[1] || '');
+        
+        // Manejar arrays en la URL (ej: doc_id[0]=151)
+        var arrayMatch = key.match(/^(.+)\[(\d+)\]$/);
+        if (arrayMatch) {
+            var arrayKey = arrayMatch[1];
+            var arrayIndex = parseInt(arrayMatch[2]);
+            if (!params[arrayKey] || !Array.isArray(params[arrayKey])) {
+                params[arrayKey] = [];
+            }
+            // Convertir a número si es posible
+            var numValue = parseInt(value);
+            params[arrayKey][arrayIndex] = (!isNaN(numValue) && numValue.toString() === value) ? numValue : value;
+        } else {
+            // Si la clave ya existe y es un array, agregar al array
+            if (params[key] !== undefined && Array.isArray(params[key])) {
+                var numValue = parseInt(value);
+                params[key].push((!isNaN(numValue) && numValue.toString() === value) ? numValue : value);
+            } else if (params[key] !== undefined && !Array.isArray(params[key])) {
+                // Convertir a array si ya existe un valor
+                var numValue1 = parseInt(params[key]);
+                var numValue2 = parseInt(value);
+                params[key] = [
+                    (!isNaN(numValue1) && numValue1.toString() === params[key]) ? numValue1 : params[key],
+                    (!isNaN(numValue2) && numValue2.toString() === value) ? numValue2 : value
+                ];
+            } else {
+                // Nuevo valor
+                var numValue = parseInt(value);
+                params[key] = (!isNaN(numValue) && numValue.toString() === value) ? numValue : value;
+            }
+        }
+    }
+    // Limpiar arrays para asegurar que no tengan huecos
+    for (var key in params) {
+        if (Array.isArray(params[key])) {
+            params[key] = params[key].filter(function(item) { return item !== undefined && item !== null; });
+        }
     }
     return params;
 };
@@ -36,13 +74,33 @@ var es = {
 };
 
 $params = getParams(window.location.href);
-var cli_id = 0;
+var cli_id = [];
 if (typeof($params.cli_id) !== "undefined") {
-    cli_id = $params.cli_id;
+    // Si viene como string separado por comas o como array, convertir a array
+    if (Array.isArray($params.cli_id)) {
+        cli_id = $params.cli_id;
+    } else if (typeof $params.cli_id === 'string' && $params.cli_id.includes(',')) {
+        cli_id = $params.cli_id.split(',').map(function(id) { return parseInt(id); }).filter(function(id) { return !isNaN(id); });
+    } else {
+        var parsedId = parseInt($params.cli_id);
+        if (!isNaN(parsedId) && parsedId > 0) {
+            cli_id = [parsedId];
+        }
+    }
 }
-var doc_id = 0;
+var doc_id = [];
 if (typeof($params.doc_id) !== "undefined") {
-    doc_id = $params.doc_id;
+    // Si viene como string separado por comas o como array, convertir a array
+    if (Array.isArray($params.doc_id)) {
+        doc_id = $params.doc_id;
+    } else if (typeof $params.doc_id === 'string' && $params.doc_id.includes(',')) {
+        doc_id = $params.doc_id.split(',').map(function(id) { return parseInt(id); }).filter(function(id) { return !isNaN(id); });
+    } else {
+        var parsedId = parseInt($params.doc_id);
+        if (!isNaN(parsedId) && parsedId > 0) {
+            doc_id = [parsedId];
+        }
+    }
 }
 
 var ctr = 0;
@@ -200,11 +258,19 @@ if(!window.location.href.includes('edit') && !window.location.href.includes('new
                         url: eventSourceUrl,
                         method: "POST",
                         extraParams: {
-                            filters: JSON.stringify({
-                                doctor_id: doc_id,
-                                cliente_id: cli_id,
-                                ctr: ctr,
-                            })
+                            filters: JSON.stringify((function() {
+                                var filters = {};
+                                if (doc_id && doc_id.length > 0) {
+                                    filters.doctor_id = doc_id;
+                                }
+                                if (cli_id && cli_id.length > 0) {
+                                    filters.cliente_id = cli_id;
+                                }
+                                if (ctr && ctr != 0) {
+                                    filters.ctr = ctr;
+                                }
+                                return filters;
+                            })())
                         },
                         failure: () => {
                             // alert("There was an error while fetching FullCalendar!");
@@ -257,24 +323,37 @@ if(!window.location.href.includes('edit') && !window.location.href.includes('new
         });
 
         if(typeof($params.doc_id) != "undefined") {
-            $.each(JSON.parse($params.doc_id), function(e, k) {
-                $('#doctor-'+k).prop('checked', true);
+            var docIds = Array.isArray($params.doc_id) ? $params.doc_id : [$params.doc_id];
+            $.each(docIds, function(e, k) {
+                var docId = parseInt(k);
+                if (!isNaN(docId)) {
+                    $('#doctor-'+docId).prop('checked', true);
+                }
             })
         }
 
         if(typeof($params.cli_id) != "undefined") {
-            $.each(JSON.parse($params.cli_id), function (e, k) {
-                $('#cliente-' + k).prop('checked', true);
+            var cliIds = Array.isArray($params.cli_id) ? $params.cli_id : [$params.cli_id];
+            $.each(cliIds, function (e, k) {
+                var cliId = parseInt(k);
+                if (!isNaN(cliId)) {
+                    $('#cliente-' + cliId).prop('checked', true);
+                }
             })
         }
 
-        if(typeof($params.ctr) != "undefined") {
-            var id = '#' + $params.ctr.replaceAll(' ', '');
-            $(id).prop('selected', true);
+        if(typeof($params.ctr) != "undefined" && $params.ctr && $params.ctr !== '') {
+            var ctrValue = String($params.ctr).replaceAll(' ', '');
+            if (ctrValue) {
+                var id = '#' + ctrValue;
+                var $element = $(id);
+                if ($element.length > 0) {
+                    $element.prop('selected', true);
+                }
+            }
             if(typeof($params.cli_id) !== "undefined" && typeof($params.doc_id) == "undefined") {
                 $('.filtros').modal('show');
             }
-
         }
     });
 }
