@@ -25,13 +25,49 @@
 
 {% block javascripts %}
     {{ parent() }}
+    <!-- Summernote CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-bs4.min.css" rel="stylesheet">
+    <!-- Summernote JS -->
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-bs4.min.js"></script>
+    <!-- Summernote Spanish Language -->
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/lang/summernote-es-ES.min.js"></script>
     <script>
         {% if error is not empty %}
         alert("{{ error }}");
         {% endif %}
-        $('.predeterminada').click(function (e) {
-            let newHtml = $('#evolucion_description').val().length > 0 ? $('#evolucion_description').val() + ' ' + $(this).html() : $(this).html();
-            CKEDITOR.instances['evolucion_description'].insertHtml(newHtml);
+        
+        $(document).ready(function() {
+            // Inicializar Summernote en el campo de descripción
+            $('#evolucion_description').summernote({
+                height: 200,
+                toolbar: [
+                    ['style', ['style']],
+                    ['font', ['bold', 'italic', 'underline', 'clear']],
+                    ['para', ['ul', 'ol', 'paragraph']],
+                    ['insert', ['link']],
+                    ['view', ['fullscreen', 'codeview', 'help']]
+                ],
+                lang: 'es-ES'
+            });
+            
+            // Inicializar los botones predefinidos
+            $('.predeterminada').on('click', function (e) {
+                e.preventDefault();
+                var textoBoton = $(this).html();
+                var $editor = $('#evolucion_description');
+                
+                // Obtener el contenido actual del editor
+                var contenidoActual = $editor.summernote('code');
+                var contenidoTexto = $('<div>').html(contenidoActual).text().trim();
+                
+                // Si hay contenido existente, agregar un espacio antes del nuevo texto
+                if (contenidoTexto.length > 0) {
+                    $editor.summernote('insertText', ' ' + textoBoton);
+                } else {
+                    // Si está vacío, simplemente insertar el texto
+                    $editor.summernote('insertText', textoBoton);
+                }
+            });
         });
     </script>
 {% endblock %}

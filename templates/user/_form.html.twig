@@ -195,11 +195,16 @@
                 </div>
                 
                 <hr>
-                <h6 class="mb-3">Horarios de Atención (Business Hours)</h6>
-                <p class="text-muted small">
-                    Configure los horarios de atención para cada día de la semana. Puede agregar múltiples rangos de horarios por día. 
-                    Marque "Cruza medianoche" para horarios que terminan al día siguiente (ej: domingo 02:00 hasta lunes 10:00).
-                </p>
+                <h6 class="mb-3">
+                    <i class="fas fa-clock text-primary"></i> Horarios de Atención (Business Hours)
+                </h6>
+                <div class="alert alert-info mb-3">
+                    <i class="fas fa-info-circle"></i> 
+                    <strong>Configure los horarios de atención para cada día de la semana.</strong><br>
+                    <small>• Puede agregar múltiples rangos de horarios por día<br>
+                    • Para horarios que cruzan medianoche, configure el primer día hasta las 00:00 y el siguiente día desde las 00:00<br>
+                    • Los horarios configurados aquí se utilizarán para validar los turnos que se agenden a este profesional</small>
+                </div>
                 
                 <div class="row" id="business-hours-container">
                     {% set dias = [
@@ -227,9 +232,9 @@
                     } %}
                     {% for dia in dias %}
                         <div class="col-md-6 mb-3">
-                            <div class="card">
-                                <div class="card-header bg-light">
-                                    <strong>{{ dia.name|capitalize }}</strong>
+                            <div class="card border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <strong><i class="fas fa-calendar-day"></i> {{ dia.name|capitalize }}</strong>
                                 </div>
                                 <div class="card-body">
                                     <div class="business-hours-day" data-day="{{ dia.name }}" data-day-num="{{ dia.num }}">
@@ -255,7 +260,7 @@
                 <script type="text/template" id="time-range-template">
                     <div class="time-range-row mb-2" data-range-index="__INDEX__" data-day="__DAY__" data-day-num="__DAY_NUM__">
                         <div class="row">
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <label class="small">Desde:</label>
                                 <select name="doctor___DAY___ranges[__INDEX__][start]" class="form-control form-control-sm time-select time-start">
                                     <option value="">Seleccione hora</option>
@@ -264,7 +269,7 @@
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="col-md-3 normal-end-container">
+                            <div class="col-md-4">
                                 <label class="small">Hasta:</label>
                                 <select name="doctor___DAY___ranges[__INDEX__][end]" class="form-control form-control-sm time-select time-end">
                                     <option value="">Seleccione hora</option>
@@ -273,25 +278,8 @@
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="col-md-3 next-day-container" style="display: none;">
-                                <label class="small">Hasta (día siguiente):</label>
-                                <select name="doctor___DAY___ranges[__INDEX__][endNextDay]" class="form-control form-control-sm time-select time-end-next-day">
-                                    <option value="">Seleccione hora</option>
-                                    {% for hour, label in horarios %}
-                                        <option value="{{ hour }}">{{ label }}</option>
-                                    {% endfor %}
-                                </select>
-                                <small class="text-muted">del día siguiente</small>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="small">Cruza medianoche:</label>
-                                <div class="form-check mt-2">
-                                    <input type="checkbox" name="doctor___DAY___ranges[__INDEX__][nextDay]" 
-                                           class="form-check-input next-day-checkbox" 
-                                           value="1">
-                                    <label class="form-check-label small">Sí</label>
-                                </div>
-                                <button type="button" class="btn btn-sm btn-danger remove-range-btn mt-1">
+                            <div class="col-md-4">
+                                <button type="button" class="btn btn-sm btn-danger remove-range-btn mt-4">
                                     <i class="fas fa-trash"></i> Eliminar
                                 </button>
                             </div>

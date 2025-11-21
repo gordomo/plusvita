@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Booking;
+use App\Entity\User;
 use App\Form\BookingType;
 use App\Repository\BookingRepository;
 use App\Repository\ClienteRepository;
@@ -225,6 +226,9 @@ class BookingController extends AbstractController
         //TODO calcular businessHours de acuerdo a los doctores disponibles
         $businessHours = $this->getBusinessHours($doctores);
 
+        // Verificar si el usuario tiene permiso para agendar turnos
+        $canManageAgenda = $this->isGranted('agenda.manage') || $this->isGranted('ROLE_ADMIN');
+
         return $this->render('booking/calendar.html.twig', [
             'clientes' => $clientes,
             'doctores' => $doctores,
@@ -233,7 +237,8 @@ class BookingController extends AbstractController
             'ctrsArray' => $ctrsArray,
             'businessHours' => $businessHours,
             'docIdArrFiler' => $docIdArrFiler,
-            'cliFilter' => $cliFilter
+            'cliFilter' => $cliFilter,
+            'canManageAgenda' => $canManageAgenda
         ]);
     }
 
@@ -265,6 +270,11 @@ class BookingController extends AbstractController
      */
     public function new(Request $request, DoctorRepository $doctorRepository, BookingRepository $bookingRepository): Response
     {
+        // Verificar permiso para agendar turnos
+        if (!$this->isGranted('agenda.manage') && !$this->isGranted('ROLE_ADMIN')) {
+            throw $this->createAccessDeniedException('No tienes permisos para agendar turnos');
+        }
+
         $booking = new Booking();
         $error = false;
         $yaTieneTurno = false;
@@ -272,11 +282,13 @@ class BookingController extends AbstractController
         $user = $this->security->getUser();
         $booking->setUser($user);
 
-        $beginAt = !empty($request->get('date')) ? new \DateTime($request->get('date')) : new \DateTime();
+        // Obtener fecha desde query string o request
+        $dateParam = $request->query->get('date') ?? $request->request->get('date');
+        $beginAt = !empty($dateParam) ? new \DateTime($dateParam) : new \DateTime();
 
         $minutes_to_add = 30;
 
-        $endAt = !empty($request->get('date')) ? new \DateTime($request->get('date')) : new \DateTime();
+        $endAt = !empty($dateParam) ? new \DateTime($dateParam) : new \DateTime();
         $endAt->add(new DateInterval('PT' . $minutes_to_add . 'M'));
 
         $booking->setBeginAt($beginAt);
@@ -287,12 +299,64 @@ class BookingController extends AbstractController
         $form = $this->createForm(BookingType::class, $booking, ['ctr' => $ctr, 'isNew' => true]);
         $form->handleRequest($request);
 
+        // Obtener todos los doctores disponibles y sus horarios para el JavaScript
+        $allDoctors = $doctorRepository->findAll();
+        $allDoctorsBusinessHours = [];
+        foreach ($allDoctors as $doctor) {
+            $allDoctorsBusinessHours[$doctor->getId()] = $doctor->getBusinessHours();
+        }
+
         if ($form->isSubmitted() && $form->isValid()) {
 
-            $doctor = $booking->getDoctor();
+            // El formulario devuelve un Doctor, pero Booking necesita un User
+            // Buscar el User correspondiente al Doctor por email
+            $doctorEntity = $booking->getDoctor();
+            $doctorUser = null;
+            $doctorData = null; // Para acceder a métodos de Doctor como getMaxCliTurno()
+            
+            if ($doctorEntity instanceof \App\Entity\Doctor) {
+                // Buscar el User correspondiente
+                $doctorUser = $this->getDoctrine()->getRepository(User::class)
+                    ->findOneBy(['email' => $doctorEntity->getEmail()]);
+                if (!$doctorUser) {
+                    $this->addFlash('error', 'No se encontró el usuario correspondiente al profesional seleccionado.');
+                    return $this->render('booking/new.html.twig', [
+                        'booking' => $booking,
+                        'form' => $form->createView(),
+                        'error' => false,
+                        'allDoctorsBusinessHours' => $allDoctorsBusinessHours,
+                    ]);
+                }
+                $booking->setDoctor($doctorUser);
+                // Guardar referencia al Doctor para acceder a sus métodos
+                $doctorData = $doctorEntity;
+            } else {
+                // Si ya es un User, usarlo directamente y buscar el Doctor correspondiente
+                $doctorUser = $doctorEntity;
+                $doctorData = $this->getDoctrine()->getRepository(\App\Entity\Doctor::class)
+                    ->createQueryBuilder('d')
+                    ->where('d.email = :email')
+                    ->setParameter('email', $doctorUser->getEmail())
+                    ->getQuery()
+                    ->getOneOrNullResult();
+            }
+            
+            $doctor = $doctorUser; // Para usar en Booking
             $cliente = $booking->getCliente();
             $newBeginAt = !empty($booking->getBeginAt()) ? $booking->getBeginAt() : new \DateTime();
             $newEndAt = !empty($booking->getEndAt()) ? $booking->getEndAt() : new \DateTime();
+
+            // Validar que la fecha/hora del turno no sea anterior a la fecha/hora actual
+            $now = new \DateTime();
+            if ($newBeginAt < $now) {
+                $this->addFlash('error', 'No se puede crear un turno para una fecha/hora anterior a la actual. Por favor, seleccione una fecha y hora futura.');
+                return $this->render('booking/new.html.twig', [
+                    'booking' => $booking,
+                    'form' => $form->createView(),
+                    'error' => false,
+                    'allDoctorsBusinessHours' => $allDoctorsBusinessHours,
+                ]);
+            }
 
             $horaTurno = $newBeginAt->format('H');
             $minutosTurno = $newBeginAt->format('i');
@@ -314,7 +378,8 @@ class BookingController extends AbstractController
                     $arrayDeErrores[] = $desde->format(DATE_ATOM);
                 } else {
                     $bookings = $bookingRepository->findBy(['doctor' => $doctor, 'beginAt' => $desde]);
-                    if ( count($bookings) >= $doctor->getMaxCliTurno() && $doctor->getMaxCliTurno() != null || ($doctor->getMaxCliTurno() == null ) ) {
+                    $maxCliTurno = $doctorData ? $doctorData->getMaxCliTurno() : null;
+                    if ( count($bookings) >= $maxCliTurno && $maxCliTurno != null || ($maxCliTurno == null ) ) {
                         $error = true;
                         $arrayDeErrores[] = $desde->format(DATE_ATOM);
                     } else {
@@ -337,7 +402,8 @@ class BookingController extends AbstractController
                             $arrayDeErrores[] = $desde->format(DATE_ATOM);
                         } else {
                             $bookings = $bookingRepository->findBy(['doctor' => $doctor, 'beginAt' => $date]);
-                            if ( count($bookings) >= $doctor->getMaxCliTurno() && $doctor->getMaxCliTurno() != null || ($doctor->getMaxCliTurno() == null ) ) {
+                            $maxCliTurno = $doctorData ? $doctorData->getMaxCliTurno() : null;
+                            if ( count($bookings) >= $maxCliTurno && $maxCliTurno != null || ($maxCliTurno == null ) ) {
                                 $error = true;
                                 $arrayDeErrores[] = $start;
                             } else {
@@ -368,7 +434,8 @@ class BookingController extends AbstractController
                     $entityManager->persist($book);
                     $entityManager->flush();
                 }
-                return $this->redirectToRoute('booking_calendar', ['doc_id' => [$doctor->getId()], 'cli_id' => $booking->getCliente()->getId(), 'ctr' => $doctor->getModalidad()[0]]);
+                $modalidad = $doctorData && !empty($doctorData->getModalidad()) ? $doctorData->getModalidad()[0] : '';
+                return $this->redirectToRoute('booking_calendar', ['doc_id' => [$doctor->getId()], 'cli_id' => $booking->getCliente()->getId(), 'ctr' => $modalidad]);
             } else {
                     if($yaTieneTurno) {
                         $stringError = "Los siguientes turnos no pueden ser agendados, porque el paciente ya tiene un turno asignado en ese día y horario con ese profesional <br>" ;
@@ -401,6 +468,7 @@ class BookingController extends AbstractController
             'booking' => $booking,
             'form' => $form->createView(),
             'error' => $error ?? 0,
+            'allDoctorsBusinessHours' => $allDoctorsBusinessHours,
         ]);
     }
 
@@ -419,26 +487,55 @@ class BookingController extends AbstractController
      */
     public function edit(Request $request, Booking $booking, DoctorRepository $doctorRepository, BookingRepository $bookingRepository): Response
     {
+        // Verificar permiso para editar turnos
+        if (!$this->isGranted('agenda.manage') && !$this->isGranted('ROLE_ADMIN')) {
+            throw $this->createAccessDeniedException('No tienes permisos para editar turnos');
+        }
+
+        // Obtener todos los doctores con sus business hours para el filtrado dinámico
+        $allDoctors = $doctorRepository->findAll();
+        $allDoctorsBusinessHours = [];
+        foreach ($allDoctors as $doctor) {
+            $allDoctorsBusinessHours[$doctor->getId()] = $doctor->getBusinessHours();
+        }
+
         $form = $this->createForm(BookingType::class, $booking);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $doctor = $booking->getDoctor();
+            $doctor = $booking->getDoctor(); // Ya es un User
+            // Buscar el Doctor correspondiente para acceder a getMaxCliTurno()
+            $doctorData = $this->getDoctrine()->getRepository(\App\Entity\Doctor::class)
+                ->createQueryBuilder('d')
+                ->where('d.email = :email')
+                ->setParameter('email', $doctor->getEmail())
+                ->getQuery()
+                ->getOneOrNullResult();
+            
             $newBeginAt = $booking->getBeginAt();
-            $bookings = $bookingRepository->findBy(['doctor' => $doctor, 'beginAt' => $newBeginAt]);
-
-            if ( count($bookings) >= $doctor->getMaxCliTurno() && $doctor->getMaxCliTurno() != null || ($doctor->getMaxCliTurno() == null ) ) {
-                $error = 'El turno no puede ser movido a esa fecha/horario porque supera el número máximo de pacientes por turno que puede atender el profesional';
+            
+            // Validar que la fecha/hora del turno no sea anterior a la fecha/hora actual
+            $now = new \DateTime();
+            if ($newBeginAt < $now) {
+                $error = 'No se puede modificar un turno a una fecha/hora anterior a la actual. Por favor, seleccione una fecha y hora futura.';
             } else {
-                $this->getDoctrine()->getManager()->flush();
-                return $this->redirectToRoute('booking_calendar');
+                $bookings = $bookingRepository->findBy(['doctor' => $doctor, 'beginAt' => $newBeginAt]);
+                $maxCliTurno = $doctorData ? $doctorData->getMaxCliTurno() : null;
+
+                if ( count($bookings) >= $maxCliTurno && $maxCliTurno != null || ($maxCliTurno == null ) ) {
+                    $error = 'El turno no puede ser movido a esa fecha/horario porque supera el número máximo de pacientes por turno que puede atender el profesional';
+                } else {
+                    $this->getDoctrine()->getManager()->flush();
+                    return $this->redirectToRoute('booking_calendar');
+                }
             }
         }
 
         return $this->render('booking/edit.html.twig', [
             'booking' => $booking,
             'form' => $form->createView(),
-            'error' => $error ?? 0
+            'error' => $error ?? 0,
+            'allDoctorsBusinessHours' => $allDoctorsBusinessHours,
         ]);
     }
 
@@ -447,6 +544,11 @@ class BookingController extends AbstractController
      */
     public function ajaxEdit($id, $start, $end, BookingRepository $bookingRepository, DoctorRepository $doctorRepository): Response
     {
+        // Verificar permiso para editar turnos
+        if (!$this->isGranted('agenda.manage') && !$this->isGranted('ROLE_ADMIN')) {
+            return new JsonResponse(['error' => true, 'message' => 'No tienes permisos para editar turnos']);
+        }
+
         $error = false;
         $message = 'ok';
         try {
@@ -454,6 +556,15 @@ class BookingController extends AbstractController
             $beginAt->modify('+3 hours');
             $endAt = new \DateTime(substr($end, 0, 33));
             $endAt->modify('+3 hours');
+            
+            // Validar que la fecha/hora del turno no sea anterior a la fecha/hora actual
+            $now = new \DateTime();
+            if ($beginAt < $now) {
+                $error = true;
+                $message = 'No se puede mover un turno a una fecha/hora anterior a la actual. Por favor, seleccione una fecha y hora futura.';
+                return new JsonResponse(['error' => $error, 'message' => $message]);
+            }
+            
             $booking = $bookingRepository->find($id);
             $doctor = $booking->getDoctor(); // Already a User entity
             $bookings = $bookingRepository->findBy(['doctor' => $doctor, 'beginAt' => $beginAt]);
@@ -520,130 +631,185 @@ class BookingController extends AbstractController
 
     private function getBusinessHours(array $doctores)
     {
+        $businessHours = [];
+        $diasMap = [
+            1 => 'lunes',
+            2 => 'martes',
+            3 => 'miercoles',
+            4 => 'jueves',
+            5 => 'viernes',
+            6 => 'sabado',
+            7 => 'domingo',
+        ];
+        
         foreach ($doctores as $doctor) {
             $doctorsBusinessHours = $doctor->getBusinessHours();
 
-            if (!empty($doctorsBusinessHours)) {
-                if (!isset($businessHours)) {
-                    if (isset($doctorsBusinessHours[1])) {
-                        $businessHours['lunes'] = $doctorsBusinessHours[1];
+            if (!empty($doctorsBusinessHours) && is_array($doctorsBusinessHours)) {
+                foreach ($doctorsBusinessHours as $dayNum => $ranges) {
+                    // Convertir a entero si viene como string
+                    $dayNumInt = is_numeric($dayNum) ? (int)$dayNum : $dayNum;
+                    
+                    if (!isset($diasMap[$dayNumInt])) {
+                        continue;
                     }
-                    if (isset($doctorsBusinessHours[2])) {
-                        $businessHours['martes'] = $doctorsBusinessHours[2];
-                    }
-                    if (isset($doctorsBusinessHours[3])) {
-                        $businessHours['miercoles'] = $doctorsBusinessHours[3];
-                    }
-                    if (isset($doctorsBusinessHours[4])) {
-                        $businessHours['jueves'] = $doctorsBusinessHours[4];
-                    }
-                    if (isset($doctorsBusinessHours[5])) {
-                        $businessHours['viernes'] = $doctorsBusinessHours[5];
-                    }
-                    if (isset($doctorsBusinessHours[6])) {
-                        $businessHours['sabado'] = $doctorsBusinessHours[6];
-                    }
-                    if (isset($doctorsBusinessHours[7])) {
-                        $businessHours['domingo'] = $doctorsBusinessHours[7];
-                    }
-                } else {
-                    //lunes
-                    if (isset($doctorsBusinessHours[1]) && (isset($businessHours['lunes'])) && $businessHours['lunes']['desde'] > $doctorsBusinessHours[1]['desde']) {
-                        $businessHours['lunes']['desde'] = $doctorsBusinessHours[1]['desde'];
-                    }
-                    if (isset($doctorsBusinessHours[1]) && (isset($businessHours['lunes'])) && $businessHours['lunes']['hasta'] < $doctorsBusinessHours[1]['hasta']) {
-                        $businessHours['lunes']['hasta'] = $doctorsBusinessHours[1]['hasta'];
-                    }
-                    if (isset($doctorsBusinessHours[1]) && (isset($businessHours['lunes'])) && $businessHours['lunes']['ydesde'] > $doctorsBusinessHours[1]['ydesde']) {
-                        $businessHours['lunes']['ydesde'] = $doctorsBusinessHours[1]['ydesde'];
-                    }
-                    if (isset($doctorsBusinessHours[1]) && (isset($businessHours['lunes'])) && $businessHours['lunes']['yhasta'] < $doctorsBusinessHours[1]['yhasta']) {
-                        $businessHours['lunes']['yhasta'] = $doctorsBusinessHours[1]['yhasta'];
-                    }
-                    //martes
-                    if (isset($doctorsBusinessHours[2]) && (isset($businessHours['martes'])) && $businessHours['martes']['desde'] > $doctorsBusinessHours[2]['desde']) {
-                        $businessHours['martes']['desde'] = $doctorsBusinessHours[2]['desde'];
-                    }
-                    if (isset($doctorsBusinessHours[2]) && (isset($businessHours['martes'])) && $businessHours['martes']['hasta'] < $doctorsBusinessHours[2]['hasta']) {
-                        $businessHours['martes']['hasta'] = $doctorsBusinessHours[2]['hasta'];
-                    }
-                    if (isset($doctorsBusinessHours[2]) && (isset($businessHours['martes'])) && $businessHours['martes']['ydesde'] > $doctorsBusinessHours[2]['ydesde']) {
-                        $businessHours['martes']['ydesde'] = $doctorsBusinessHours[2]['ydesde'];
-                    }
-                    if (isset($doctorsBusinessHours[2]) && (isset($businessHours['martes'])) && $businessHours['martes']['yhasta'] < $doctorsBusinessHours[2]['yhasta']) {
-                        $businessHours['martes']['yhasta'] = $doctorsBusinessHours[2]['yhasta'];
-                    }
-                    //miercoles
-                    if (isset($doctorsBusinessHours[3]) && (isset($businessHours['miercoles'])) && $businessHours['miercoles']['desde'] > $doctorsBusinessHours[3]['desde']) {
-                        $businessHours['miercoles']['desde'] = $doctorsBusinessHours[3]['desde'];
-                    }
-                    if (isset($doctorsBusinessHours[3]) && (isset($businessHours['miercoles'])) && $businessHours['miercoles']['hasta'] < $doctorsBusinessHours[3]['hasta']) {
-                        $businessHours['miercoles']['hasta'] = $doctorsBusinessHours[3]['hasta'];
-                    }
-                    if (isset($doctorsBusinessHours[3]) && (isset($businessHours['miercoles'])) && $businessHours['miercoles']['ydesde'] > $doctorsBusinessHours[3]['ydesde']) {
-                        $businessHours['miercoles']['ydesde'] = $doctorsBusinessHours[3]['ydesde'];
-                    }
-                    if (isset($doctorsBusinessHours[3]) && (isset($businessHours['miercoles'])) && $businessHours['miercoles']['yhasta'] < $doctorsBusinessHours[3]['yhasta']) {
-                        $businessHours['miercoles']['yhasta'] = $doctorsBusinessHours[3]['yhasta'];
-                    }
-                    //jueves
-                    if (isset($doctorsBusinessHours[4]) && (isset($businessHours['jueves'])) && $businessHours['jueves']['desde'] > $doctorsBusinessHours[4]['desde']) {
-                        $businessHours['jueves']['desde'] = $doctorsBusinessHours[4]['desde'];
-                    }
-                    if (isset($doctorsBusinessHours[4]) && (isset($businessHours['jueves'])) && $businessHours['jueves']['hasta'] < $doctorsBusinessHours[4]['hasta']) {
-                        $businessHours['jueves']['hasta'] = $doctorsBusinessHours[4]['hasta'];
-                    }
-                    if (isset($doctorsBusinessHours[4]) && (isset($businessHours['jueves'])) && $businessHours['jueves']['ydesde'] > $doctorsBusinessHours[4]['ydesde']) {
-                        $businessHours['jueves']['ydesde'] = $doctorsBusinessHours[4]['ydesde'];
-                    }
-                    if (isset($doctorsBusinessHours[4]) && (isset($businessHours['jueves'])) && $businessHours['jueves']['yhasta'] < $doctorsBusinessHours[4]['yhasta']) {
-                        $businessHours['jueves']['yhasta'] = $doctorsBusinessHours[4]['yhasta'];
-                    }
-                    //viernes
-                    if (isset($doctorsBusinessHours[5]) && (isset($businessHours['viernes'])) && $businessHours['viernes']['desde'] > $doctorsBusinessHours[5]['desde']) {
-                        $businessHours['viernes']['desde'] = $doctorsBusinessHours[5]['desde'];
-                    }
-                    if (isset($doctorsBusinessHours[5]) && (isset($businessHours['viernes'])) && $businessHours['viernes']['hasta'] < $doctorsBusinessHours[5]['hasta']) {
-                        $businessHours['viernes']['hasta'] = $doctorsBusinessHours[5]['hasta'];
-                    }
-                    if (isset($doctorsBusinessHours[5]) && (isset($businessHours['viernes'])) && $businessHours['viernes']['ydesde'] > $doctorsBusinessHours[5]['ydesde']) {
-                        $businessHours['viernes']['ydesde'] = $doctorsBusinessHours[5]['ydesde'];
-                    }
-                    if (isset($doctorsBusinessHours[5]) && (isset($businessHours['viernes'])) && $businessHours['viernes']['yhasta'] < $doctorsBusinessHours[5]['yhasta']) {
-                        $businessHours['viernes']['yhasta'] = $doctorsBusinessHours[5]['yhasta'];
-                    }
-                    //sabado
-                    if (isset($doctorsBusinessHours[6]) && (isset($businessHours['sabado'])) && $businessHours['sabado']['desde'] > $doctorsBusinessHours[6]['desde']) {
-                        $businessHours['sabado']['desde'] = $doctorsBusinessHours[6]['desde'];
-                    }
-                    if (isset($doctorsBusinessHours[6]) && (isset($businessHours['sabado'])) && $businessHours['sabado']['hasta'] < $doctorsBusinessHours[6]['hasta']) {
-                        $businessHours['sabado']['hasta'] = $doctorsBusinessHours[6]['hasta'];
-                    }
-                    if (isset($doctorsBusinessHours[6]) && (isset($businessHours['sabado'])) && $businessHours['sabado']['ydesde'] > $doctorsBusinessHours[6]['ydesde']) {
-                        $businessHours['sabado']['ydesde'] = $doctorsBusinessHours[6]['ydesde'];
-                    }
-                    if (isset($doctorsBusinessHours[6]) && (isset($businessHours['sabado'])) && $businessHours['sabado']['yhasta'] < $doctorsBusinessHours[6]['yhasta']) {
-                        $businessHours['sabado']['yhasta'] = $doctorsBusinessHours[6]['yhasta'];
-                    }
-                    //domingo
-                    if (isset($doctorsBusinessHours[7]) && (isset($businessHours['domingo'])) && $businessHours['domingo']['desde'] > $doctorsBusinessHours[7]['desde']) {
-                        $businessHours['domingo']['desde'] = $doctorsBusinessHours[7]['desde'];
-                    }
-                    if (isset($doctorsBusinessHours[7]) && (isset($businessHours['domingo'])) && $businessHours['domingo']['hasta'] < $doctorsBusinessHours[7]['hasta']) {
-                        $businessHours['domingo']['hasta'] = $doctorsBusinessHours[7]['hasta'];
-                    }
-                    if (isset($doctorsBusinessHours[7]) && (isset($businessHours['domingo'])) && $businessHours['domingo']['ydesde'] > $doctorsBusinessHours[7]['ydesde']) {
-                        $businessHours['domingo']['ydesde'] = $doctorsBusinessHours[7]['ydesde'];
-                    }
-                    if (isset($doctorsBusinessHours[7]) && (isset($businessHours['domingo'])) && $businessHours['domingo']['yhasta'] < $doctorsBusinessHours[7]['yhasta']) {
-                        $businessHours['domingo']['yhasta'] = $doctorsBusinessHours[7]['yhasta'];
+                    
+                    $dayName = $diasMap[$dayNumInt];
+                    
+                    // Manejar formato antiguo: objeto con desde/hasta/ydesde/yhasta
+                    if (is_array($ranges) && isset($ranges['desde']) && isset($ranges['hasta'])) {
+                        // Formato antiguo: ['desde' => '08:00', 'hasta' => '18:00', 'ydesde' => '08:00', 'yhasta' => '18:00']
+                        if (!isset($businessHours[$dayName])) {
+                            $businessHours[$dayName] = [
+                                'desde' => $ranges['desde'],
+                                'hasta' => $ranges['hasta'],
+                                'ydesde' => $ranges['ydesde'] ?? $ranges['desde'],
+                                'yhasta' => $ranges['yhasta'] ?? $ranges['hasta'],
+                            ];
+                        } else {
+                            // Si ya existe, expandir el rango para cubrir todos los doctores
+                            // Comparar y tomar el inicio más temprano y el fin más tarde
+                            $existingDesde = $businessHours[$dayName]['desde'];
+                            $existingHasta = $businessHours[$dayName]['hasta'];
+                            
+                            // Convertir a minutos para comparar
+                            [$existingDesdeHour, $existingDesdeMin] = explode(':', $existingDesde);
+                            [$existingHastaHour, $existingHastaMin] = explode(':', $existingHasta);
+                            [$newDesdeHour, $newDesdeMin] = explode(':', $ranges['desde']);
+                            [$newHastaHour, $newHastaMin] = explode(':', $ranges['hasta']);
+                            
+                            $existingDesdeMinutes = (int)$existingDesdeHour * 60 + (int)$existingDesdeMin;
+                            $existingHastaMinutes = (int)$existingHastaHour * 60 + (int)$existingHastaMin;
+                            $newDesdeMinutes = (int)$newDesdeHour * 60 + (int)$newDesdeMin;
+                            $newHastaMinutes = (int)$newHastaHour * 60 + (int)$newHastaMin;
+                            
+                            // Tomar el inicio más temprano
+                            if ($newDesdeMinutes < $existingDesdeMinutes) {
+                                $businessHours[$dayName]['desde'] = $ranges['desde'];
+                            }
+                            
+                            // Tomar el fin más tarde
+                            if ($newHastaMinutes > $existingHastaMinutes) {
+                                $businessHours[$dayName]['hasta'] = $ranges['hasta'];
+                            }
+                            
+                            // Manejar ydesde/yhasta (segundo rango)
+                            if (isset($ranges['ydesde']) && isset($ranges['yhasta'])) {
+                                if (!isset($businessHours[$dayName]['ydesde']) || 
+                                    $ranges['ydesde'] < $businessHours[$dayName]['ydesde']) {
+                                    $businessHours[$dayName]['ydesde'] = $ranges['ydesde'];
+                                }
+                                if (!isset($businessHours[$dayName]['yhasta']) || 
+                                    $ranges['yhasta'] > $businessHours[$dayName]['yhasta']) {
+                                    $businessHours[$dayName]['yhasta'] = $ranges['yhasta'];
+                                }
+                            }
+                        }
+                    } 
+                    // Manejar formato nuevo (para compatibilidad): array de rangos con start/end
+                    else if (is_array($ranges) && !empty($ranges) && isset($ranges[0])) {
+                        // Formato nuevo: [['start' => '08:00', 'end' => '16:00'], ['start' => '18:00', 'end' => '20:00']]
+                        // Convertir a formato antiguo
+                        $earliestStart = null;
+                        $latestEnd = null;
+                        $secondEarliestStart = null;
+                        $secondLatestEnd = null;
+                        
+                        foreach ($ranges as $range) {
+                            if (!isset($range['start']) || !isset($range['end'])) {
+                                continue;
+                            }
+                            
+                            $start = $range['start'];
+                            $end = $range['end'];
+                            
+                            // Convertir a minutos para comparar
+                            [$startHour, $startMin] = explode(':', $start);
+                            [$endHour, $endMin] = explode(':', $end);
+                            $startMinutes = (int)$startHour * 60 + (int)$startMin;
+                            $endMinutes = (int)$endHour * 60 + (int)$endMin;
+                            
+                            // Encontrar el inicio más temprano
+                            if ($earliestStart === null || $startMinutes < $earliestStart['minutes']) {
+                                if ($earliestStart !== null) {
+                                    $secondEarliestStart = $earliestStart;
+                                }
+                                $earliestStart = ['time' => $start, 'minutes' => $startMinutes];
+                            } elseif ($secondEarliestStart === null || $startMinutes < $secondEarliestStart['minutes']) {
+                                $secondEarliestStart = ['time' => $start, 'minutes' => $startMinutes];
+                            }
+                            
+                            // Encontrar el fin más tarde
+                            if ($latestEnd === null || $endMinutes > $latestEnd['minutes']) {
+                                if ($latestEnd !== null) {
+                                    $secondLatestEnd = $latestEnd;
+                                }
+                                $latestEnd = ['time' => $end, 'minutes' => $endMinutes];
+                            } elseif ($secondLatestEnd === null || $endMinutes > $secondLatestEnd['minutes']) {
+                                $secondLatestEnd = ['time' => $end, 'minutes' => $endMinutes];
+                            }
+                        }
+                        
+                        if ($earliestStart === null || $latestEnd === null) {
+                            continue;
+                        }
+                        
+                        // Inicializar el día si no existe
+                        if (!isset($businessHours[$dayName])) {
+                            $businessHours[$dayName] = [
+                                'desde' => $earliestStart['time'],
+                                'hasta' => $latestEnd['time'],
+                                'ydesde' => $secondEarliestStart ? $secondEarliestStart['time'] : $earliestStart['time'],
+                                'yhasta' => $secondLatestEnd ? $secondLatestEnd['time'] : $latestEnd['time'],
+                            ];
+                        } else {
+                            // Comparar y actualizar con los rangos más amplios
+                            [$currentDesdeHour, $currentDesdeMin] = explode(':', $businessHours[$dayName]['desde']);
+                            [$currentHastaHour, $currentHastaMin] = explode(':', $businessHours[$dayName]['hasta']);
+                            $currentDesdeMinutes = (int)$currentDesdeHour * 60 + (int)$currentDesdeMin;
+                            $currentHastaMinutes = (int)$currentHastaHour * 60 + (int)$currentHastaMin;
+                            
+                            // Actualizar 'desde' si encontramos uno más temprano
+                            if ($earliestStart['minutes'] < $currentDesdeMinutes) {
+                                $businessHours[$dayName]['desde'] = $earliestStart['time'];
+                            }
+                            
+                            // Actualizar 'hasta' si encontramos uno más tarde
+                            if ($latestEnd['minutes'] > $currentHastaMinutes) {
+                                $businessHours[$dayName]['hasta'] = $latestEnd['time'];
+                            }
+                            
+                            // Actualizar 'ydesde' y 'yhasta' si hay un segundo rango
+                            if ($secondEarliestStart) {
+                                if (!isset($businessHours[$dayName]['ydesde'])) {
+                                    $businessHours[$dayName]['ydesde'] = $secondEarliestStart['time'];
+                                } else {
+                                    [$currentYDesdeHour, $currentYDesdeMin] = explode(':', $businessHours[$dayName]['ydesde']);
+                                    $currentYDesdeMinutes = (int)$currentYDesdeHour * 60 + (int)$currentYDesdeMin;
+                                    if ($secondEarliestStart['minutes'] < $currentYDesdeMinutes) {
+                                        $businessHours[$dayName]['ydesde'] = $secondEarliestStart['time'];
+                                    }
+                                }
+                            }
+                            
+                            if ($secondLatestEnd) {
+                                if (!isset($businessHours[$dayName]['yhasta'])) {
+                                    $businessHours[$dayName]['yhasta'] = $secondLatestEnd['time'];
+                                } else {
+                                    [$currentYHastaHour, $currentYHastaMin] = explode(':', $businessHours[$dayName]['yhasta']);
+                                    $currentYHastaMinutes = (int)$currentYHastaHour * 60 + (int)$currentYHastaMin;
+                                    if ($secondLatestEnd['minutes'] > $currentYHastaMinutes) {
+                                        $businessHours[$dayName]['yhasta'] = $secondLatestEnd['time'];
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
-
         }
 
-        return $businessHours ?? [];
+        return $businessHours;
     }
 
     /**

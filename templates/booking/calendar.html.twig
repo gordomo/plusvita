@@ -98,6 +98,7 @@
         var eventSourceUrl = "{{ path('fc_load_events') }}";
         var businessHours = '{{ businessHours | json_encode | raw }}';
         var businessHoursJson = JSON.parse(businessHours);
+        var canManageAgenda = {{ canManageAgenda ? 'true' : 'false' }};
 
 
     </script>

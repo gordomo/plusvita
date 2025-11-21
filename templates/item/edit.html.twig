@@ -93,6 +93,7 @@
             </div>
             
             <div class="col-md-4">
+                {% if is_granted('inventory.manage') %}
                 <div class="card">
                     <div class="card-header bg-danger text-white">
                         <h4>Zona de peligro</h4>
@@ -102,6 +103,7 @@
                         {{ include('item/_delete_form.html.twig') }}
                     </div>
                 </div>
+                {% endif %}
                 
                 {% if item.codigoQr %}
                     <div class="card mt-3">

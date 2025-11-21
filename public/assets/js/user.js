@@ -26,11 +26,8 @@ $('#form_email').not('.not-check').on('keyup', function () {
     }
 });
 
-// Verificar que el script se carga
-console.log('user.js cargado');
 
 $(document).ready(function() {
-    console.log('jQuery ready ejecutado');
     
     let emailField = $('#form_email').not('.not-check');
     
@@ -63,16 +60,11 @@ $(document).ready(function() {
     
     // Mostrar/ocultar campos de doctor cuando se marca el checkbox
     function initDoctorFieldsToggle() {
-        console.log('Inicializando toggle de campos de doctor');
-        
         const doctorSection = document.getElementById('doctor-info-section');
         
         if (!doctorSection) {
-            console.error('No se encontró la sección doctor-info-section');
             return;
         }
-        
-        console.log('Sección doctor encontrada:', doctorSection);
         
         // Función para mostrar/ocultar campos
         function toggleDoctorFields() {
@@ -82,35 +74,26 @@ $(document).ready(function() {
             if (!checkbox) {
                 // Buscar por nombre del campo (Symfony puede generar IDs diferentes)
                 const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-                console.log('Total de checkboxes encontrados:', checkboxes.length);
                 for (let i = 0; i < checkboxes.length; i++) {
                     const cb = checkboxes[i];
-                    console.log('Checkbox:', cb.id, cb.name, cb.type);
                     if (cb.name && cb.name.indexOf('completarInfoDoctor') !== -1) {
                         checkbox = cb;
-                        console.log('Checkbox encontrado por nombre:', cb.name);
                         break;
                     }
                 }
-            } else {
-                console.log('Checkbox encontrado por ID:', checkbox.id);
             }
             
             if (!checkbox) {
-                console.error('No se encontró el checkbox completarInfoDoctor');
                 return;
             }
             
             const isChecked = checkbox.checked;
-            console.log('Toggle doctor fields, checkbox checked:', isChecked);
             
             // Mostrar/ocultar la sección completa de doctor
             if (isChecked) {
                 doctorSection.style.display = 'block';
-                console.log('Mostrando campos de doctor');
             } else {
                 doctorSection.style.display = 'none';
-                console.log('Ocultando campos de doctor');
             }
         }
         
@@ -130,22 +113,17 @@ $(document).ready(function() {
         }
         
         if (checkbox) {
-            console.log('Checkbox encontrado para eventos:', checkbox.id || checkbox.name);
-            
             // Agregar event listeners directamente al checkbox
             checkbox.addEventListener('change', function() {
-                console.log('Evento change en checkbox');
                 toggleDoctorFields();
             });
             
             checkbox.addEventListener('click', function() {
-                console.log('Evento click en checkbox');
                 setTimeout(toggleDoctorFields, 10);
             });
             
             // También usar jQuery para estar seguro
             $(checkbox).on('change click', function() {
-                console.log('jQuery event en checkbox');
                 setTimeout(toggleDoctorFields, 10);
             });
             
@@ -153,19 +131,12 @@ $(document).ready(function() {
             const parentContainer = checkbox.closest('.custom-control');
             if (parentContainer) {
                 $(parentContainer).on('click', function(e) {
-                    console.log('Click en contenedor padre');
                     setTimeout(toggleDoctorFields, 10);
                 });
             }
             
             // Ejecutar al cargar la página
             toggleDoctorFields();
-        } else {
-            console.error('No se pudo encontrar el checkbox completarInfoDoctor');
-            console.log('Todos los checkboxes en la página:');
-            document.querySelectorAll('input[type="checkbox"]').forEach(function(cb) {
-                console.log('  - ID:', cb.id, 'Name:', cb.name, 'Type:', cb.type);
-            });
         }
     }
     
@@ -215,44 +186,58 @@ $(document).ready(function() {
                 });
             }
             
-            // Agregar listener al checkbox "cruza medianoche"
-            const nextDayCheckbox = newRange.querySelector('.next-day-checkbox');
-            if (nextDayCheckbox) {
-                nextDayCheckbox.addEventListener('change', function() {
-                    toggleNextDayFields(newRange);
+            // Agregar listener al campo "Desde" para filtrar opciones de "Hasta"
+            const startSelect = newRange.querySelector('.time-start');
+            const endSelect = newRange.querySelector('.time-end');
+            if (startSelect && endSelect) {
+                startSelect.addEventListener('change', function() {
+                    filterEndTimeOptions(startSelect, endSelect);
                 });
+                // Aplicar filtro inicial si ya hay un valor seleccionado
+                if (startSelect.value) {
+                    filterEndTimeOptions(startSelect, endSelect);
+                }
             }
         }
         
-        // Función para mostrar/ocultar campos según si cruza medianoche
-        function toggleNextDayFields(rangeElement) {
-            const nextDayCheckbox = rangeElement.querySelector('.next-day-checkbox');
-            const normalEndContainer = rangeElement.querySelector('.normal-end-container');
-            const nextDayContainer = rangeElement.querySelector('.next-day-container');
+        // Función para filtrar las opciones de "Hasta" basándose en la hora "Desde"
+        function filterEndTimeOptions(startSelect, endSelect) {
+            const startTime = startSelect.value;
             
-            if (nextDayCheckbox && normalEndContainer && nextDayContainer) {
-                if (nextDayCheckbox.checked) {
-                    // Ocultar "Hasta" normal y mostrar "Hasta día siguiente"
-                    normalEndContainer.style.display = 'none';
-                    nextDayContainer.style.display = 'block';
-                    
-                    // Limpiar el valor del campo "Hasta" normal
-                    const normalEndSelect = rangeElement.querySelector('.time-end');
-                    if (normalEndSelect) {
-                        normalEndSelect.value = '';
-                    }
+            if (!startTime) {
+                // Si no hay hora "Desde" seleccionada, mostrar todas las opciones
+                Array.from(endSelect.options).forEach(function(option) {
+                    option.style.display = '';
+                });
+                return;
+            }
+            
+            // Convertir hora "Desde" a minutos para comparación
+            const [startHour, startMinute] = startTime.split(':').map(Number);
+            const startTotalMinutes = startHour * 60 + startMinute;
+            
+            // Filtrar opciones del campo "Hasta"
+            Array.from(endSelect.options).forEach(function(option) {
+                if (option.value === '') {
+                    // Mantener la opción vacía visible
+                    option.style.display = '';
+                    return;
+                }
+                
+                const [endHour, endMinute] = option.value.split(':').map(Number);
+                const endTotalMinutes = endHour * 60 + endMinute;
+                
+                // Mostrar solo horas posteriores a la hora "Desde"
+                if (endTotalMinutes > startTotalMinutes) {
+                    option.style.display = '';
                 } else {
-                    // Mostrar "Hasta" normal y ocultar "Hasta día siguiente"
-                    normalEndContainer.style.display = 'block';
-                    nextDayContainer.style.display = 'none';
-                    
-                    // Limpiar el valor del campo "Hasta día siguiente"
-                    const nextDayEndSelect = rangeElement.querySelector('.time-end-next-day');
-                    if (nextDayEndSelect) {
-                        nextDayEndSelect.value = '';
+                    option.style.display = 'none';
+                    // Si la opción seleccionada es anterior o igual, limpiar la selección
+                    if (endSelect.value === option.value) {
+                        endSelect.value = '';
                     }
                 }
-            }
+            });
         }
         
         // Función para eliminar un rango
@@ -278,20 +263,12 @@ $(document).ready(function() {
                 // Actualizar nombres de los campos
                 const startSelect = range.querySelector('select[name*="[start]"]');
                 const endSelect = range.querySelector('select[name*="[end]"]');
-                const endNextDaySelect = range.querySelector('select[name*="[endNextDay]"]');
-                const nextDayCheckbox = range.querySelector('input[name*="[nextDay]"]');
                 
                 if (startSelect) {
                     startSelect.name = `doctor_${dayName}_ranges[${index}][start]`;
                 }
                 if (endSelect) {
                     endSelect.name = `doctor_${dayName}_ranges[${index}][end]`;
-                }
-                if (endNextDaySelect) {
-                    endNextDaySelect.name = `doctor_${dayName}_ranges[${index}][endNextDay]`;
-                }
-                if (nextDayCheckbox) {
-                    nextDayCheckbox.name = `doctor_${dayName}_ranges[${index}][nextDay]`;
                 }
             });
             
@@ -320,20 +297,8 @@ $(document).ready(function() {
             });
         });
         
-        // Agregar listeners a todos los checkboxes "cruza medianoche" existentes
-        container.querySelectorAll('.next-day-checkbox').forEach(function(checkbox) {
-            checkbox.addEventListener('change', function() {
-                const rangeElement = this.closest('.time-range-row');
-                toggleNextDayFields(rangeElement);
-            });
-            
-            // Ejecutar al cargar para establecer el estado inicial
-            const rangeElement = checkbox.closest('.time-range-row');
-            toggleNextDayFields(rangeElement);
-        });
-        
         // Función para crear un rango con valores específicos
-        function addRangeWithValues(dayElement, dayName, startValue, endValue, nextDayValue, endNextDayValue) {
+        function addRangeWithValues(dayElement, dayName, startValue, endValue) {
             const rangesContainer = dayElement.querySelector('.time-ranges-container');
             const existingRanges = rangesContainer.querySelectorAll('.time-range-row');
             const index = existingRanges.length;
@@ -354,23 +319,12 @@ $(document).ready(function() {
             // Establecer valores si se proporcionan
             const startSelect = newRange.querySelector('.time-start');
             const endSelect = newRange.querySelector('.time-end');
-            const endNextDaySelect = newRange.querySelector('.time-end-next-day');
-            const nextDayCheckbox = newRange.querySelector('.next-day-checkbox');
             
             if (startSelect && startValue) {
                 startSelect.value = startValue;
             }
             
-            if (nextDayValue && endNextDayValue) {
-                // Si cruza medianoche
-                if (nextDayCheckbox) {
-                    nextDayCheckbox.checked = true;
-                }
-                if (endNextDaySelect) {
-                    endNextDaySelect.value = endNextDayValue;
-                }
-                toggleNextDayFields(newRange);
-            } else if (endSelect && endValue) {
+            if (endSelect && endValue) {
                 endSelect.value = endValue;
             }
             
@@ -385,12 +339,15 @@ $(document).ready(function() {
                 });
             }
             
-            // Agregar listener al checkbox "cruza medianoche"
-            const nextDayCb = newRange.querySelector('.next-day-checkbox');
-            if (nextDayCb) {
-                nextDayCb.addEventListener('change', function() {
-                    toggleNextDayFields(newRange);
+            // Agregar listener al campo "Desde" para filtrar opciones de "Hasta"
+            if (startSelect && endSelect) {
+                startSelect.addEventListener('change', function() {
+                    filterEndTimeOptions(startSelect, endSelect);
                 });
+                // Aplicar filtro inicial si ya hay un valor seleccionado
+                if (startSelect.value) {
+                    filterEndTimeOptions(startSelect, endSelect);
+                }
             }
         }
         
@@ -428,26 +385,12 @@ $(document).ready(function() {
                         // Restaurar valores
                         const startSelect = newRange.querySelector('.time-start');
                         const endSelect = newRange.querySelector('.time-end');
-                        const endNextDaySelect = newRange.querySelector('.time-end-next-day');
-                        const nextDayCheckbox = newRange.querySelector('.next-day-checkbox');
                         
                         if (startSelect && rangeData.start) {
                             startSelect.value = rangeData.start;
                         }
                         
-                        // Verificar si cruza medianoche
-                        // nextDay puede venir como "1" (string) del request o como true (boolean)
-                        const hasNextDay = rangeData.nextDay === "1" || rangeData.nextDay === 1 || rangeData.nextDay === true;
-                        
-                        if (hasNextDay && rangeData.endNextDay) {
-                            if (nextDayCheckbox) {
-                                nextDayCheckbox.checked = true;
-                            }
-                            if (endNextDaySelect) {
-                                endNextDaySelect.value = rangeData.endNextDay;
-                            }
-                            toggleNextDayFields(newRange);
-                        } else if (endSelect && rangeData.end) {
+                        if (endSelect && rangeData.end) {
                             endSelect.value = rangeData.end;
                         }
                         
@@ -459,11 +402,15 @@ $(document).ready(function() {
                             });
                         }
                         
-                        const nextDayCb = newRange.querySelector('.next-day-checkbox');
-                        if (nextDayCb) {
-                            nextDayCb.addEventListener('change', function() {
-                                toggleNextDayFields(newRange);
+                        // Agregar listener al campo "Desde" para filtrar opciones de "Hasta"
+                        if (startSelect && endSelect) {
+                            startSelect.addEventListener('change', function() {
+                                filterEndTimeOptions(startSelect, endSelect);
                             });
+                            // Aplicar filtro inicial si ya hay un valor seleccionado
+                            if (startSelect.value) {
+                                filterEndTimeOptions(startSelect, endSelect);
+                            }
                         }
                     });
                     
@@ -473,7 +420,7 @@ $(document).ready(function() {
                     // No hay datos guardados para este día, usar valores por defecto
                     if (defaultDays.includes(dayName)) {
                         // Lunes a viernes: 08:00 a 16:00
-                        addRangeWithValues(dayElement, dayName, '08:00', '16:00', null, null);
+                        addRangeWithValues(dayElement, dayName, '08:00', '16:00');
                     } else {
                         // Sábado y domingo: rango vacío
                         addRange(dayElement, dayName);

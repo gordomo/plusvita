@@ -146,14 +146,21 @@ if(!window.location.href.includes('edit') && !window.location.href.includes('new
                 locale: es,
                 navLinks: true,
                 defaultView: 'dayGridMonth',
-                editable: true,
+                editable: typeof(canManageAgenda) !== 'undefined' ? canManageAgenda : true,
                 businessHours: businessHoursA,
                 dateClick: function(info) {
+                    // Verificar permiso antes de permitir crear turno
+                    if (typeof(canManageAgenda) !== 'undefined' && !canManageAgenda) {
+                        // No hacer nada, simplemente retornar sin mostrar alert ni redirigir
+                        return false;
+                    }
+                    
                     info.date.setDate(info.date.getDate() + 1);
 
                     var hoy = new Date();
                     if( info.date <= hoy ) {
-                        console.log(info.date);
+                        alert('No se puede crear un turno para una fecha/hora anterior a la actual. Por favor, seleccione una fecha y hora futura.');
+                        return false;
                     } else {
                         if (info.view.type === 'dayGridMonth') {
                             calendar.changeView('timeGridDay');
@@ -165,10 +172,12 @@ if(!window.location.href.includes('edit') && !window.location.href.includes('new
                             click.setHours(click.getHours() + 3)
                             if(Date.parse(click) > Date.parse(hoy)) {
                                 window.location.href = url+'&ctr='+ctr;
+                            } else {
+                                alert('No se puede crear un turno para una fecha/hora anterior a la actual. Por favor, seleccione una fecha y hora futura.');
                             }
                         }
                     }
-
+                    return false;
                 },
                 eventDrop: function( data) {
                     //booking_edit_ajax
@@ -342,12 +351,41 @@ $('#booking_dias input').on('change', function() {
 
 })
 
+// Establecer fecha mínima para los campos de fecha/hora al cargar la página
+$(document).ready(function() {
+    if ($('#booking_beginAt').length) {
+        var ahora = new Date();
+        ahora.setMinutes(ahora.getMinutes() + 1); // Agregar 1 minuto para evitar problemas de tiempo
+        var fechaMinima = ahora.toISOString().slice(0, 16);
+        $('#booking_beginAt').attr('min', fechaMinima);
+        $('#booking_endAt').attr('min', fechaMinima);
+    }
+});
+
 $('#booking_desde').on('change', function () {
     $('#booking_hasta').attr("min", $(this).val());
 });
 
 $('#booking_beginAt').on('change', function () {
     var beginAtString = $('#booking_beginAt').val();
+
+    // Validar que la fecha/hora seleccionada no sea anterior a la actual
+    var fechaInicio = new Date(beginAtString);
+    var ahora = new Date();
+    if (fechaInicio <= ahora) {
+        alert('No se puede crear un turno para una fecha/hora anterior a la actual. Por favor, seleccione una fecha y hora futura.');
+        // Establecer la fecha/hora mínima como ahora + 1 minuto
+        var fechaMinima = new Date(ahora);
+        fechaMinima.setMinutes(fechaMinima.getMinutes() + 1);
+        var ye = new Intl.DateTimeFormat('es', { year: 'numeric' }).format(fechaMinima);
+        var mo = new Intl.DateTimeFormat('es', { month: '2-digit' }).format(fechaMinima);
+        var da = new Intl.DateTimeFormat('es', { day: '2-digit' }).format(fechaMinima);
+        var hr = new Intl.DateTimeFormat('es', { hour: '2-digit', hour12: false }).format(fechaMinima);
+        var min = Intl.DateTimeFormat('en-US', { minute: '2-digit', second: '2-digit', hour12: false }).format(fechaMinima);
+        var fechaMinimaString = (`${ye}-${mo}-${da}T${hr}:${min}`);
+        $('#booking_beginAt').val(fechaMinimaString);
+        beginAtString = fechaMinimaString;
+    }
 
     var newDateEndAt = new Date(beginAtString);
 
@@ -376,9 +414,38 @@ if(typeof (form) != "undefined" && form != null) {
         e.preventDefault();
         let desde = $('#booking_desde').val();
         let hasta = $('#booking_hasta').val();
-        let comienso = $('#booking_beginAt').val().substring(0, 10);
+        let comienso = $('#booking_beginAt').val();
+        
+        // Validar que el campo beginAt tenga un valor
+        if (!comienso || comienso.trim() === '') {
+            alert('El campo "Comienza" es obligatorio. Por favor, seleccione una fecha y hora.');
+            $('form button:submit').prop('disabled', false);
+            return false;
+        }
+        
+        let comiensoFecha = comienso.substring(0, 10);
         let hayDiasChequeados = false;
         let todoOk = true;
+
+        // Validar que la fecha/hora de inicio no sea anterior a la actual
+        let ahora = new Date();
+        let fechaInicio = new Date(comienso);
+        if (isNaN(fechaInicio.getTime())) {
+            todoOk = false;
+            alert('La fecha/hora de inicio no es válida. Por favor, verifique el formato.');
+            setTimeout(function () {
+                $('form button:submit').prop('disabled', false);
+            }, 300);
+            return false;
+        }
+        if (fechaInicio <= ahora) {
+            todoOk = false;
+            alert('No se puede crear un turno para una fecha/hora anterior a la actual. Por favor, seleccione una fecha y hora futura.');
+            setTimeout(function () {
+                $('form button:submit').prop('disabled', false);
+            }, 300);
+            return false;
+        }
 
         $.each($('#booking_dias').find('input'), function(e, a) {
             if(a.checked) {
@@ -390,7 +457,7 @@ if(typeof (form) != "undefined" && form != null) {
             if (desde === '' || hasta === '') {
                 todoOk = false;
                 alert('Debe completar los campos Desde y Hasta cuando selecciona un día en el que se repite el evento');
-            } else if (Date.parse(comienso) > Date.parse(desde)) {
+            } else if (Date.parse(comiensoFecha) > Date.parse(desde)) {
                 todoOk = false;
                 alert('El comienzo del turno no puede ser posterior al campo Desde');
             } else if (Date.parse(desde) > Date.parse(hasta)) {

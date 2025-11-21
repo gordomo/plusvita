@@ -236,6 +236,7 @@
                     </div>
                 </div>
                 
+                {% if is_granted('inventory.manage') %}
                 <div class="card">
                     <div class="card-header bg-danger text-white">
                         <h4>Zona de peligro</h4>
@@ -250,6 +251,7 @@
                         </form>
                     </div>
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>

@@ -340,6 +340,11 @@ class ItemController extends AbstractController
      */
     public function delete(Request $request, Item $item, EntityManagerInterface $entityManager): Response
     {
+        // Verificar permisos: solo usuarios con inventory.manage pueden borrar items
+        if (!$this->isGranted('inventory.manage')) {
+            throw $this->createAccessDeniedException('No tienes permiso para eliminar items.');
+        }
+
         if ($this->isCsrfTokenValid('delete'.$item->getId(), $request->request->get('_token'))) {
             // Si existe una imagen, eliminarla
             if ($item->getImagen()) {

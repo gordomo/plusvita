@@ -968,7 +968,7 @@
                     <form method="post" id="epiform" action="{{ path('guardar_epi', {'id': cliente.id}) }}">
                         <div class="form-group">
                             <label for="exampleInputEmail1">Epicrisis al Alta</label>
-                            <textarea class="form-control ckeditor" name="epicrisisAlAlta" id="epicrisisAlAlta" rows="3" required></textarea>
+                            <textarea class="form-control summernote" name="epicrisisAlAlta" id="epicrisisAlAlta" rows="3" required></textarea>
                         </div>
                         <button type="submit" class="btn btn-primary">Guardar</button>
                     </form>
@@ -1115,12 +1115,31 @@
         $('#filtrarPorTipo').chosen();
 
         $( document ).ready(function () {
-            var editor = CKEDITOR.instances['epicrisisAlAlta'];
-
-            editor.on( 'required', function( evt ) {
-                editor.showNotification( 'La epicrisis no puede estar vacía.', 'warning' );
-                evt.cancel();
-            } );
+            // Inicializar Summernote en el campo de epicrisis
+            $('#epicrisisAlAlta').summernote({
+                height: 200,
+                toolbar: [
+                    ['style', ['style']],
+                    ['font', ['bold', 'italic', 'underline', 'clear']],
+                    ['para', ['ul', 'ol', 'paragraph']],
+                    ['insert', ['link']],
+                    ['view', ['fullscreen', 'codeview', 'help']]
+                ],
+                lang: 'es-ES'
+            });
+            
+            // Validación personalizada para el campo requerido
+            $('#epiform').on('submit', function(e) {
+                var contenido = $('#epicrisisAlAlta').summernote('code');
+                var contenidoTexto = $('<div>').html(contenido).text().trim();
+                
+                if (contenidoTexto.length === 0) {
+                    e.preventDefault();
+                    alert('La epicrisis no puede estar vacía.');
+                    $('#epicrisisAlAlta').summernote('focus');
+                    return false;
+                }
+            });
         });
 
 

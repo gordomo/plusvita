@@ -26,8 +26,22 @@ class BookingType extends AbstractType
         $this->isNew = $options['isNew'];
 
         $builder
-            ->add('beginAt', DateTimeType::class, ['label' => 'Hora de Inicio', 'required' => true, 'widget' => 'single_text', 'html5' => true])
-            ->add('endAt', DateTimeType::class, ['label' => 'Hora de Inicio', 'required' => true, 'widget' => 'single_text', 'html5' => true])
+            ->add('beginAt', DateTimeType::class, [
+                'label' => 'Hora de Inicio', 
+                'required' => true, 
+                'widget' => 'single_text', 
+                'html5' => true,
+                'input' => 'datetime',
+                'attr' => ['class' => 'form-control']
+            ])
+            ->add('endAt', DateTimeType::class, [
+                'label' => 'Hora de Fin', 
+                'required' => true, 
+                'widget' => 'single_text', 
+                'html5' => true,
+                'input' => 'datetime',
+                'attr' => ['class' => 'form-control']
+            ])
             ->add('title', TextType::class, ['label' => 'Titulo'])
             ->add('doctor', EntityType::class, [
                 'class' => Doctor::class,

@@ -279,8 +279,44 @@ class UserController extends AbstractController
             $form->get('doctor_max_cli_turno')->setData($doctor->getMaxCliTurno());
             $form->get('doctor_color')->setData($doctor->getColor());
             
-            // Los businessHours se cargarán dinámicamente con JavaScript desde la nueva estructura
-            // No necesitamos prellenar campos antiguos ya que usamos la nueva interfaz dinámica
+            // Convertir businessHours de formato numérico (1,2,3...) a formato con nombres de días (lunes, martes...)
+            // Las claves pueden venir como strings ("1", "2") o enteros (1, 2) desde la BD
+            $businessHoursData = [];
+            $doctorBusinessHours = $doctor->getBusinessHours();
+            if ($doctorBusinessHours && is_array($doctorBusinessHours)) {
+                $diasMap = [
+                    1 => 'lunes',
+                    2 => 'martes',
+                    3 => 'miercoles',
+                    4 => 'jueves',
+                    5 => 'viernes',
+                    6 => 'sabado',
+                    7 => 'domingo',
+                ];
+                
+                foreach ($doctorBusinessHours as $dayNum => $ranges) {
+                    // Convertir a entero si viene como string
+                    $dayNumInt = is_numeric($dayNum) ? (int)$dayNum : $dayNum;
+                    
+                    if (isset($diasMap[$dayNumInt])) {
+                        $dayName = $diasMap[$dayNumInt];
+                        
+                        // Formato antiguo: objeto con desde/hasta/ydesde/yhasta
+                        if (is_array($ranges) && isset($ranges['desde']) && isset($ranges['hasta'])) {
+                            // Convertir formato antiguo a formato del formulario (start/end)
+                            $businessHoursData[$dayName] = [[
+                                'start' => $ranges['desde'],
+                                'end' => $ranges['hasta'],
+                            ]];
+                        } else if (is_array($ranges) && isset($ranges[0]) && is_array($ranges[0])) {
+                            // Formato nuevo (temporal, para compatibilidad): array de rangos con start/end
+                            $businessHoursData[$dayName] = $ranges;
+                        }
+                    }
+                }
+            }
+        } else {
+            $businessHoursData = [];
         }
         
         // Prellenar campos de contrato si existe un contrato activo
@@ -302,9 +338,11 @@ class UserController extends AbstractController
                 
                 if ($existingUser && $existingUser->getId() !== $user->getId()) {
                     $this->addFlash('error', 'Ya existe un usuario registrado con este email.');
+                    $businessHoursData = $this->extractBusinessHoursData($request);
                     return $this->render('user/edit.html.twig', [
                         'user' => $user,
                         'form' => $form->createView(),
+                        'businessHoursData' => $businessHoursData,
                     ]);
                 }
             }
@@ -354,7 +392,20 @@ class UserController extends AbstractController
                 // Crear o actualizar contrato si se proporcionaron datos
                 $this->handleUserContract($user, $form, $entityManager);
                 
-                // Si se marcó "completar info para doctor", crear/actualizar registro en tabla doctor
+                // Buscar Doctor asociado (si existe) para sincronizar campos básicos
+                $doctorAssociated = null;
+                try {
+                    $doctorAssociated = $entityManager->getRepository(Doctor::class)
+                        ->createQueryBuilder('d')
+                        ->where('d.email = :email')
+                        ->setParameter('email', $user->getEmail())
+                        ->getQuery()
+                        ->getOneOrNullResult();
+                } catch (\Exception $e) {
+                    // Si hay error, continuar sin sincronizar
+                }
+                
+                // Si se marcó "completar info para doctor", crear/actualizar registro completo en tabla doctor
                 $completarInfoDoctor = $form->get('completarInfoDoctor')->getData();
                 if ($completarInfoDoctor) {
                     $doctor = $this->createDoctorFromForm($user, $form, $request);
@@ -362,16 +413,23 @@ class UserController extends AbstractController
                         $entityManager->persist($doctor);
                         $entityManager->flush();
                     }
+                } elseif ($doctorAssociated) {
+                    // Si existe un Doctor pero no se marcó el checkbox, solo sincronizar campos básicos
+                    $this->syncBasicFieldsToDoctor($user, $doctorAssociated);
+                    $entityManager->persist($doctorAssociated);
+                    $entityManager->flush();
                 }
-                
+
                 $this->addFlash('success', 'Usuario actualizado correctamente.');
                 return $this->redirectToRoute('user_management_index');
 
             } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $e) {
                 $this->addFlash('error', 'Ya existe un usuario registrado con este email.');
+                $businessHoursData = $this->extractBusinessHoursData($request);
                 return $this->render('user/edit.html.twig', [
                     'user' => $user,
                     'form' => $form->createView(),
+                    'businessHoursData' => $businessHoursData,
                 ]);
             } catch (\Exception $e) {
                 $this->addFlash('error', 'Error al actualizar el usuario: ' . $e->getMessage());
@@ -385,6 +443,7 @@ class UserController extends AbstractController
         return $this->render('user/edit.html.twig', [
             'user' => $user,
             'form' => $form->createView(),
+            'businessHoursData' => $businessHoursData ?? [],
         ]);
     }
 
@@ -397,6 +456,23 @@ class UserController extends AbstractController
         if($user && $this->isGranted('user.delete')) {
             if ($this->isCsrfTokenValid('delete'.$user_to_delete->getId(), $request->request->get('_token'))) {
                 $entityManager = $this->getDoctrine()->getManager();
+                
+                // Buscar y eliminar el registro Doctor asociado (si existe)
+                try {
+                    $doctor = $entityManager->getRepository(Doctor::class)
+                        ->createQueryBuilder('d')
+                        ->where('d.email = :email')
+                        ->setParameter('email', $user_to_delete->getEmail())
+                        ->getQuery()
+                        ->getOneOrNullResult();
+                    
+                    if ($doctor) {
+                        $entityManager->remove($doctor);
+                    }
+                } catch (\Exception $e) {
+                    // Si hay error al buscar/eliminar doctor, continuar con la eliminación del usuario
+                    // Esto puede pasar si hay problemas con campos eliminados
+                }
                 
                 $bookingsDelUsuario = $bookingRepository->findBy(['user' => $user_to_delete]);
                 foreach ( $bookingsDelUsuario as $book ) {
@@ -411,7 +487,21 @@ class UserController extends AbstractController
 
         
 
-        return $this->redirectToRoute('user_index');
+        return $this->redirectToRoute('user_management_index');
+    }
+
+    /**
+     * Sincroniza campos básicos del User al Doctor (nombre, apellido, telefono, legajo, habilitado, email)
+     */
+    private function syncBasicFieldsToDoctor(User $user, Doctor $doctor): void
+    {
+        $doctor->setNombre($user->getNombre() ?? '');
+        $doctor->setApellido($user->getApellido() ?? '');
+        $doctor->setTelefono($user->getTelefono());
+        $doctor->setLegajo($user->getLegajo());
+        $doctor->setHabilitado($user->getHabilitado() ?? true);
+        $doctor->setEmail($user->getEmail());
+        $doctor->setUsername($user->getEmail());
     }
 
     /**
@@ -443,11 +533,7 @@ class UserController extends AbstractController
         }
         
         // Sincronizar datos básicos desde User
-        $doctor->setNombre($user->getNombre() ?? '');
-        $doctor->setApellido($user->getApellido() ?? '');
-        $doctor->setTelefono($user->getTelefono());
-        $doctor->setLegajo($user->getLegajo());
-        $doctor->setHabilitado($user->getHabilitado() ?? true);
+        $this->syncBasicFieldsToDoctor($user, $doctor);
         
         // Establecer valores por defecto requeridos
         $doctor->setEspecialidad([]);
@@ -496,58 +582,68 @@ class UserController extends AbstractController
         
         $businessHours = [];
         
+        
         foreach ($dias as $key => $dia) {
             // Intentar obtener la nueva estructura (rangos múltiples)
             $rangesData = null;
             if ($request) {
-                $formData = $request->request->get('user', []);
-                $rangesData = $formData['doctor_' . $dia . '_ranges'] ?? null;
-            }
-            
-            if ($rangesData && is_array($rangesData)) {
-                // Nueva estructura: múltiples rangos
-                $ranges = [];
-                foreach ($rangesData as $rangeData) {
-                    if (isset($rangeData['start']) && !empty($rangeData['start'])) {
-                        $start = $rangeData['start'];
-                        $end = null;
-                        $nextDay = false;
-                        
-                        // Si cruza medianoche, usar endNextDay, sino usar end normal
-                        if (isset($rangeData['nextDay']) && $rangeData['nextDay'] && 
-                            isset($rangeData['endNextDay']) && !empty($rangeData['endNextDay'])) {
-                            $end = $rangeData['endNextDay'];
-                            $nextDay = true;
-                        } elseif (isset($rangeData['end']) && !empty($rangeData['end'])) {
-                            $end = $rangeData['end'];
-                        }
-                        
-                        // Solo agregar si tenemos start y end válidos
-                        if ($start && $end) {
-                            $range = [
-                                'start' => $start,
-                                'end' => $end,
-                            ];
-                            
-                            // Si el horario cruza medianoche
-                            if ($nextDay) {
-                                $range['nextDay'] = true;
-                            }
-                            
-                            $ranges[] = $range;
-                        }
+                $fieldName = 'doctor_' . $dia . '_ranges';
+                
+                // Los campos están en el nivel raíz del request cuando se envía el formulario
+                $allRequestData = $request->request->all();
+                
+                // Intentar obtener desde el nivel raíz primero
+                if (isset($allRequestData[$fieldName]) && is_array($allRequestData[$fieldName])) {
+                    $rangesData = $allRequestData[$fieldName];
+                } else {
+                    // Intentar obtener desde dentro de 'user' como fallback
+                    $formData = $request->request->get('user', []);
+                    if (isset($formData[$fieldName]) && is_array($formData[$fieldName])) {
+                        $rangesData = $formData[$fieldName];
                     }
                 }
                 
-                if (!empty($ranges)) {
-                    $businessHours[$key] = $ranges;
+                // Si aún no encontramos los datos, intentar parsear desde el contenido raw del request
+                // Esto puede ser necesario si los campos están siendo enviados con una estructura diferente
+                if (!$rangesData && $request->getContent()) {
+                    parse_str($request->getContent(), $parsedContent);
+                    if (isset($parsedContent[$fieldName]) && is_array($parsedContent[$fieldName])) {
+                        $rangesData = $parsedContent[$fieldName];
+                    } elseif (isset($parsedContent['user'][$fieldName]) && is_array($parsedContent['user'][$fieldName])) {
+                        $rangesData = $parsedContent['user'][$fieldName];
+                    }
+                }
+                
+            }
+            
+            if ($rangesData && is_array($rangesData)) {
+                // Usar el formato antiguo: desde/hasta/ydesde/yhasta
+                // Tomar el primer rango válido (el formato antiguo solo soporta un rango por día)
+                foreach ($rangesData as $rangeData) {
+                    if (isset($rangeData['start']) && !empty($rangeData['start']) && 
+                        isset($rangeData['end']) && !empty($rangeData['end'])) {
+                        $desde = $rangeData['start'];
+                        $hasta = $rangeData['end'];
+                        // ydesde y yhasta son iguales a desde y hasta por defecto (formato antiguo)
+                        $ydesde = $desde;
+                        $yhasta = $hasta;
+                        
+                        // Formato antiguo: objeto con desde/hasta/ydesde/yhasta
+                        $businessHours[$key] = [
+                            'desde' => $desde,
+                            'hasta' => $hasta,
+                            'ydesde' => $ydesde,
+                            'yhasta' => $yhasta,
+                        ];
+                        break; // Solo tomar el primer rango válido
+                    }
                 }
             }
         }
         
-        if (!empty($businessHours)) {
-            $doctor->setBusinessHours($businessHours);
-        }
+        // Siempre establecer businessHours, incluso si está vacío (para limpiar horarios anteriores)
+        // Si no hay horarios configurados, establecer un array vacío
+        $doctor->setBusinessHours($businessHours);
         
         // Valores por defecto
         $doctor->setPresente(false);

@@ -35,6 +35,12 @@
 {% block javascripts %}
     {{ parent() }}
     <script src="{{ asset('assets/js/booking.js') }}"></script>
+    
+    {# Pasar horarios de todos los doctores al JavaScript #}
+    <script type="text/javascript">
+        var allDoctorsBusinessHours = {{ allDoctorsBusinessHours|default({})|json_encode|raw }};
+    </script>
+    <script src="{{ asset('assets/js/booking-form-validation.js') }}"></script>
 
     {% if error %}
         <script>

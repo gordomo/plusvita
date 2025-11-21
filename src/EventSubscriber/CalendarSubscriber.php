@@ -5,6 +5,7 @@ namespace App\EventSubscriber;
 use App\Repository\BookingRepository;
 use App\Repository\ClienteRepository;
 use App\Repository\DoctorRepository;
+use App\Repository\UserRepository;
 use CalendarBundle\CalendarEvents;
 use CalendarBundle\Entity\Event;
 use CalendarBundle\Event\CalendarEvent;
@@ -16,12 +17,14 @@ class CalendarSubscriber implements EventSubscriberInterface
     private $bookingRepository;
     private $doctorRepository;
     private $clienteRepository;
+    private $userRepository;
     private $router;
 
-    public function __construct( BookingRepository $bookingRepository, DoctorRepository $doctorRepository, ClienteRepository $clienteRepository, UrlGeneratorInterface $router) {
+    public function __construct( BookingRepository $bookingRepository, DoctorRepository $doctorRepository, ClienteRepository $clienteRepository, UserRepository $userRepository, UrlGeneratorInterface $router) {
         $this->bookingRepository = $bookingRepository;
         $this->doctorRepository = $doctorRepository;
         $this->clienteRepository = $clienteRepository;
+        $this->userRepository = $userRepository;
         $this->router = $router;
     }
 
@@ -48,16 +51,40 @@ class CalendarSubscriber implements EventSubscriberInterface
 
         if (!empty($filters['ctr'])) {
             $ctr = $filters['ctr'];
-            $doctor = $this->doctorRepository->findByContrato($ctr);
-            $bookings->andWhere('booking.doctor IN (:doctor)')
-                ->setParameter('doctor', $doctor);
+            // Obtener doctores por contrato (modalidad)
+            $doctors = $this->doctorRepository->findByContrato($ctr);
+            // Convertir doctores a usuarios por email
+            $userEmails = [];
+            foreach ($doctors as $doctor) {
+                $userEmails[] = $doctor->getEmail();
+            }
+            if (!empty($userEmails)) {
+                $users = $this->userRepository->findBy(['email' => $userEmails]);
+                $bookings->andWhere('booking.doctor IN (:doctor)')
+                    ->setParameter('doctor', $users);
+            } else {
+                // Si no hay doctores con ese contrato, no mostrar ningún turno
+                $bookings->andWhere('1 = 0');
+            }
         }
 
         if (!empty($filters['doctor_id'])) {
             $docIds = json_decode($filters['doctor_id']);
-            $doctor = $this->doctorRepository->findBy(array('id' => array_values($docIds)));
-            $bookings->andWhere('booking.doctor IN (:doctor)')
-                     ->setParameter('doctor', $doctor);
+            // Obtener doctores por IDs
+            $doctors = $this->doctorRepository->findBy(['id' => array_values($docIds)]);
+            // Convertir doctores a usuarios por email
+            $userEmails = [];
+            foreach ($doctors as $doctor) {
+                $userEmails[] = $doctor->getEmail();
+            }
+            if (!empty($userEmails)) {
+                $users = $this->userRepository->findBy(['email' => $userEmails]);
+                $bookings->andWhere('booking.doctor IN (:doctor)')
+                         ->setParameter('doctor', $users);
+            } else {
+                // Si no hay doctores con esos IDs, no mostrar ningún turno
+                $bookings->andWhere('1 = 0');
+            }
         }
         if (!empty($filters['cliente_id'])) {
             $cliIds = json_decode($filters['cliente_id']);
@@ -84,9 +111,25 @@ class CalendarSubscriber implements EventSubscriberInterface
              * and: https://github.com/fullcalendar/fullcalendar/blob/master/src/core/options.ts
              */
 
-            $doctor = $booking->getDoctor();
-
-            $color = $doctor->getColor() ?? '#2196f3';
+            // booking->getDoctor() ahora devuelve un User, necesitamos buscar el Doctor asociado por email
+            $doctorUser = $booking->getDoctor();
+            $color = '#2196f3'; // Color por defecto
+            
+            if ($doctorUser) {
+                try {
+                    $doctor = $this->doctorRepository->createQueryBuilder('d')
+                        ->where('d.email = :email')
+                        ->setParameter('email', $doctorUser->getEmail())
+                        ->getQuery()
+                        ->getOneOrNullResult();
+                    
+                    if ($doctor && $doctor->getColor()) {
+                        $color = $doctor->getColor();
+                    }
+                } catch (\Exception $e) {
+                    // Si hay error al buscar el doctor, usar color por defecto
+                }
+            }
 
             $bookingEvent->setOptions([
                 'backgroundColor' => $color,

@@ -14,7 +14,7 @@
         {% endfor %}
     {% endfor %}
 
-    {{ include('user/_form-edit.html.twig', {'button_label': 'Actualizar'}) }}
+    {{ include('user/_form-edit.html.twig', {'button_label': 'Actualizar', 'businessHoursData': businessHoursData|default({})}) }}
     {{ include('user/_delete_form.html.twig') }}
 {% endblock %}
 {% block javascripts %}
