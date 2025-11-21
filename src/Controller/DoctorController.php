@@ -336,11 +336,10 @@ class DoctorController extends AbstractController
         }
         $id         = $request->query->get('id');
 
-        $doctor     = $doctorRepository->findBy(['dni' => $dni], ['id'=>'DESC'], 1);
+        // Buscar solo en Cliente ya que Doctor no tiene campo dni
         $cliente    = $clienteRepository->findBy(['dni' => $dni], ['id'=>'DESC'], 1);
 
-        if( (count($doctor) > 0 && $doctor[0]->getId() != $id) ||
-            (count($cliente) && $cliente[0]->getId() != $id)) {
+        if(count($cliente) > 0 && $cliente[0]->getId() != $id) {
             $libre      = false;
             $message    = 'el dni ingresado se encuentra en uso';
         }
