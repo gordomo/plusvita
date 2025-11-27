@@ -68,12 +68,33 @@
                         
                         <div class="row">
                             <div class="col-md-6">
+                                {{ form_row(form.category) }}
+                            </div>
+                            <div class="col-md-6">
                                 {{ form_row(form.isActive) }}
                             </div>
                         </div>
                         
                         <hr class="my-4">
                         
+                        <div class="form-group">
+                            <h5>
+                                <i class="fas fa-key mr-2"></i>
+                                Permisos del Rol
+                            </h5>
+                            <p class="text-muted">Selecciona los permisos que tendrá este rol:</p>
+                            {{ form_row(form.permissions) }}
+                        </div>
+                        
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Guardar Cambios
+                            </button>
+                            <a href="{{ path('role_index') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Cancelar
+                            </a>
+                        </div>
+                    {{ form_end(form) }}
                 </div>
             </div>
         </div>

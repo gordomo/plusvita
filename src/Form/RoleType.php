@@ -45,7 +45,7 @@ class RoleType extends AbstractType
                 'label' => 'Categoría',
                 'required' => false,
                 'placeholder' => 'Seleccione una categoría',
-                'choices' => Role::getCategories(),
+                'choices' => array_flip(Role::getCategories()),
                 'help' => 'Categoría del rol (Médico, Enfermería, Administrativo, etc.)',
                 'attr' => [
                     'class' => 'form-control'
