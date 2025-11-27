@@ -200,11 +200,14 @@ if(!window.location.href.includes('edit') && !window.location.href.includes('new
         var businessHoursA = getBussinesHours();
 
         if (typeof (FullCalendar) != 'undefined') {
+            // Permitir editar si es admin o si es doctor (para sus propios turnos)
+            var canEditEvents = typeof(canEditEvents) !== 'undefined' ? canEditEvents : (typeof(canManageAgenda) !== 'undefined' ? canManageAgenda : true);
+            
             calendar = new FullCalendar.Calendar(calendarEl, {
                 locale: es,
                 navLinks: true,
                 defaultView: 'dayGridMonth',
-                editable: typeof(canManageAgenda) !== 'undefined' ? canManageAgenda : true,
+                editable: canEditEvents,
                 businessHours: businessHoursA,
                 dateClick: function(info) {
                     // Verificar permiso antes de permitir crear turno
@@ -277,27 +280,42 @@ if(!window.location.href.includes('edit') && !window.location.href.includes('new
                         },
                     },
                 ],
-                customButtons: {
-                    filtros: {
-                        text: 'Filtros',
-                        //icon: 'fc-icon-filter',
-                        click: function() {
-                            $('.filtros').modal('show');
+                customButtons: (function() {
+                    var buttons = {
+                        filtros: {
+                            text: 'Filtros',
+                            //icon: 'fc-icon-filter',
+                            click: function() {
+                                $('.filtros').modal('show');
+                            }
                         }
-                    },
-                    ver: {
-                        text: 'Ver Todos',
-                        //icon: 'fc-icon-filter',
-                        click: function() {
-                            location.href = '/booking/';
-                        }
+                    };
+                    
+                    // Solo agregar el botón "Ver Todos" si el usuario tiene permisos
+                    if (typeof(canManageAgenda) !== 'undefined' && canManageAgenda) {
+                        buttons.ver = {
+                            text: 'Ver Todos',
+                            //icon: 'fc-icon-filter',
+                            click: function() {
+                                location.href = '/booking/';
+                            }
+                        };
                     }
-                },
-                header: {
-                    left: 'prev,next today, filtros, ver',
-                    center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay',
-                },
+                    
+                    return buttons;
+                })(),
+                header: (function() {
+                    var leftButtons = 'prev,next today, filtros';
+                    // Solo agregar "ver" si el usuario tiene permisos
+                    if (typeof(canManageAgenda) !== 'undefined' && canManageAgenda) {
+                        leftButtons += ', ver';
+                    }
+                    return {
+                        left: leftButtons,
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay',
+                    };
+                })(),
                 plugins: [ 'interaction', 'dayGrid', 'timeGrid' ], // https://fullcalendar.io/docs/plugin-index
                 timeZone: 'UTC',
                 rrule: {

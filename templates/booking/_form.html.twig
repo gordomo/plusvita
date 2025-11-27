@@ -1,78 +1,106 @@
 {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'id': 'booking-form'}}) }}
 <br>
-<div class="form-row">
-    <div class="col-sm">
-        {{ form_label(form.cliente) }}
-        {{ form_widget(form.cliente) }}
-    </div>
-    <div class="col-sm"></div>
-    <div class="col-sm"></div>
-</div>
-<br>
-<div class="form-row">
-    <div class="col-sm">
-        {{ form_label(form.title, 'Titulo') }}
-        {{ form_widget(form.title) }}
-    </div>
-    <div class="col-sm">
-        {{ form_label(form.doctor, 'Profesional') }}
-        {{ form_widget(form.doctor, {'attr': {'id': 'booking-doctor-select', 'class': 'predictivo'}}) }}
-    </div>
-    <div class="col-sm"></div>
-</div>
-<br>
 
-{# Sección de Horarios Disponibles del Doctor #}
-<div id="doctor-business-hours-section" class="card mb-3" style="display: none;">
-    <div class="card-header bg-info text-white">
-        <h6 class="mb-0"><i class="fas fa-clock"></i> Horarios Disponibles del Profesional</h6>
+{% if isDoctorEdit is defined and isDoctorEdit %}
+    {# Vista simplificada para doctores: solo fecha/hora #}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i> Estás editando tu turno. Solo puedes modificar la fecha y hora.
     </div>
-    <div class="card-body">
-        <p class="text-muted small mb-3">Los turnos solo pueden agendarse dentro de estos horarios:</p>
-        <div id="business-hours-display" class="row">
-            {# Se llenará dinámicamente con JavaScript #}
+    <div class="form-row">
+        <div class="col-sm">
+            {{ form_label(form.beginAt, 'Fecha y Hora de Inicio') }}
+            {{ form_widget(form.beginAt, {'attr': {'min': 'now'|date('Y-m-d\\TH:i'), 'class': 'form-control', 'id': 'booking-begin-at'}}) }}
+            {{ form_errors(form.beginAt) }}
+            <small id="begin-at-validation" class="text-danger" style="display: none;"></small>
+        </div>
+        <div class="col-sm">
+            {{ form_label(form.endAt, 'Fecha y Hora de Fin') }}
+            {{ form_widget(form.endAt, {'attr': {'min': 'now'|date('Y-m-d\\TH:i'), 'class': 'form-control', 'id': 'booking-end-at'}}) }}
+            {{ form_errors(form.endAt) }}
+            <small id="end-at-validation" class="text-danger" style="display: none;"></small>
         </div>
     </div>
-</div>
+    <br>
+    <div class="form-group">
+        {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary'}}) }}
+        <a class="btn btn-default" href="{{ path('doctor_agenda', {'periodo': 'mes'}) }}">volver</a>
+    </div>
+{% else %}
+    {# Vista completa para administradores #}
+    <div class="form-row">
+        <div class="col-sm">
+            {{ form_label(form.cliente) }}
+            {{ form_widget(form.cliente) }}
+        </div>
+        <div class="col-sm"></div>
+        <div class="col-sm"></div>
+    </div>
+    <br>
+    <div class="form-row">
+        <div class="col-sm">
+            {{ form_label(form.title, 'Titulo') }}
+            {{ form_widget(form.title) }}
+        </div>
+        <div class="col-sm">
+            {{ form_label(form.doctor, 'Profesional') }}
+            {{ form_widget(form.doctor, {'attr': {'id': 'booking-doctor-select', 'class': 'predictivo'}}) }}
+        </div>
+        <div class="col-sm"></div>
+    </div>
+    <br>
 
-<div class="form-row">
-    <div class="col-sm">
-        {{ form_label(form.beginAt, 'Comienza') }}
-        {{ form_widget(form.beginAt, {'attr': {'min': 'now'|date('Y-m-d\\TH:i'), 'class': 'form-control', 'id': 'booking-begin-at'}}) }}
-        {{ form_errors(form.beginAt) }}
-        <small id="begin-at-validation" class="text-danger" style="display: none;"></small>
-    </div>
-    <div class="col-sm">
-        {{ form_label(form.endAt, 'Finaliza') }}
-        {{ form_widget(form.endAt, {'attr': {'min': 'now'|date('Y-m-d\\TH:i'), 'class': 'form-control', 'id': 'booking-end-at'}}) }}
-        {{ form_errors(form.endAt) }}
-        <small id="end-at-validation" class="text-danger" style="display: none;"></small>
-    </div>
-    <div class="col-sm"></div>
-</div>
-<br>
-<hr>
-{%  if form.dias is defined %}
-<div class="form-row">
-    <div class="col-sm">
-        {{ form_label(form.dias, 'Se repite') }}
-        <div class="columnas-de-dos">
-            {{ form_widget(form.dias) }}
+    {# Sección de Horarios Disponibles del Doctor #}
+    <div id="doctor-business-hours-section" class="card mb-3" style="display: none;">
+        <div class="card-header bg-info text-white">
+            <h6 class="mb-0"><i class="fas fa-clock"></i> Horarios Disponibles del Profesional</h6>
+        </div>
+        <div class="card-body">
+            <p class="text-muted small mb-3">Los turnos solo pueden agendarse dentro de estos horarios:</p>
+            <div id="business-hours-display" class="row">
+                {# Se llenará dinámicamente con JavaScript #}
+            </div>
         </div>
     </div>
-    <div class="col-sm">
-        {{ form_label(form.desde) }}
-        {{ form_widget(form.desde) }}
-<br>
-        {{ form_label(form.hasta) }}
-        {{ form_widget(form.hasta) }}
+
+    <div class="form-row">
+        <div class="col-sm">
+            {{ form_label(form.beginAt, 'Comienza') }}
+            {{ form_widget(form.beginAt, {'attr': {'min': 'now'|date('Y-m-d\\TH:i'), 'class': 'form-control', 'id': 'booking-begin-at'}}) }}
+            {{ form_errors(form.beginAt) }}
+            <small id="begin-at-validation" class="text-danger" style="display: none;"></small>
+        </div>
+        <div class="col-sm">
+            {{ form_label(form.endAt, 'Finaliza') }}
+            {{ form_widget(form.endAt, {'attr': {'min': 'now'|date('Y-m-d\\TH:i'), 'class': 'form-control', 'id': 'booking-end-at'}}) }}
+            {{ form_errors(form.endAt) }}
+            <small id="end-at-validation" class="text-danger" style="display: none;"></small>
+        </div>
+        <div class="col-sm"></div>
     </div>
-</div>
-<br>
+    <br>
+    <hr>
+    {%  if form.dias is defined %}
+    <div class="form-row">
+        <div class="col-sm">
+            {{ form_label(form.dias, 'Se repite') }}
+            <div class="columnas-de-dos">
+                {{ form_widget(form.dias) }}
+            </div>
+        </div>
+        <div class="col-sm">
+            {{ form_label(form.desde) }}
+            {{ form_widget(form.desde) }}
+    <br>
+            {{ form_label(form.hasta) }}
+            {{ form_widget(form.hasta) }}
+        </div>
+    </div>
+    <br>
+    {% endif %}
+    <div class="form-group">
+        {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary'}}) }}
+        <a class="btn btn-default" href="{{ path('booking_calendar') }}">volver</a>
+    </div>
 {% endif %}
-<div class="form-group">
-    {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary'}}) }}
-    <a class="btn btn-default" href="{{ path('booking_calendar') }}">volver</a>
-</div>
 <br>
 {{ form_end(form) }}

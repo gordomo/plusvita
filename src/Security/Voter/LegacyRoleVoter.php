@@ -44,21 +44,9 @@ class LegacyRoleVoter extends Voter
             return $user->hasRole('admin');
         }
 
-        // ROLE_DOCTOR: cualquier usuario con rol médico
+        // ROLE_DOCTOR: cualquier usuario con rol médico (verificado por categoría)
         if ($attribute === 'ROLE_DOCTOR') {
-            $rolesDoctor = [
-                'medico_clinico', 'fisiatra', 'neurologo', 'cardiologo', 'psiquiatra',
-                'infectologo', 'urologo', 'hematologo', 'neumonologo', 'cirujano',
-                'traumatologo', 'director_medico', 'sub_director_medico', 'medico_guardia',
-                'nutricionista'
-            ];
-
-            foreach ($rolesDoctor as $role) {
-                if ($user->hasRole($role)) {
-                    return true;
-                }
-            }
-            return false;
+            return $user->hasMedicalRole();
         }
 
         // ROLE_STAFF: cualquier usuario con roles de staff (médicos, enfermeros, administrativos, etc.)

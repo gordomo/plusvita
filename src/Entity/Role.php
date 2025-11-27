@@ -13,6 +13,14 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Role
 {
+    // Constantes para categorías de roles
+    public const CATEGORY_MEDICAL = 'medical';
+    public const CATEGORY_NURSING = 'nursing';
+    public const CATEGORY_ADMINISTRATIVE = 'administrative';
+    public const CATEGORY_MAINTENANCE = 'maintenance';
+    public const CATEGORY_KITCHEN = 'kitchen';
+    public const CATEGORY_OTHER = 'other';
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -34,6 +42,11 @@ class Role
      * @ORM\Column(type="text", nullable=true)
      */
     private $description;
+
+    /**
+     * @ORM\Column(type="string", length=50, nullable=true)
+     */
+    private $category;
 
     /**
      * @ORM\Column(type="boolean")
@@ -109,6 +122,40 @@ class Role
     {
         $this->description = $description;
         return $this;
+    }
+
+    public function getCategory(): ?string
+    {
+        return $this->category;
+    }
+
+    public function setCategory(?string $category): self
+    {
+        $this->category = $category;
+        return $this;
+    }
+
+    /**
+     * Get available role categories
+     */
+    public static function getCategories(): array
+    {
+        return [
+            self::CATEGORY_MEDICAL => 'Médico',
+            self::CATEGORY_NURSING => 'Enfermería',
+            self::CATEGORY_ADMINISTRATIVE => 'Administrativo',
+            self::CATEGORY_MAINTENANCE => 'Mantenimiento',
+            self::CATEGORY_KITCHEN => 'Cocina',
+            self::CATEGORY_OTHER => 'Otro',
+        ];
+    }
+
+    /**
+     * Check if this role is a medical role
+     */
+    public function isMedical(): bool
+    {
+        return $this->category === self::CATEGORY_MEDICAL;
     }
 
     public function getIsActive(): ?bool

@@ -99,7 +99,9 @@
         var businessHours = '{{ businessHours | json_encode | raw }}';
         var businessHoursJson = JSON.parse(businessHours);
         var canManageAgenda = {{ canManageAgenda ? 'true' : 'false' }};
-
+        var isDoctor = {{ isDoctor|default(false) ? 'true' : 'false' }};
+        // Permitir editar si es admin o si es doctor (para sus propios turnos)
+        var canEditEvents = canManageAgenda || isDoctor;
 
     </script>
 {% endblock %}

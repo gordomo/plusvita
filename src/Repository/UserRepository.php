@@ -134,18 +134,20 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     }
 
     /**
-     * Obtener todos los usuarios con roles médicos
+     * Obtener todos los usuarios con roles médicos (basado en categoría)
      */
     public function findDoctors()
     {
-        $rolesDoctor = [
-            'medico_clinico', 'fisiatra', 'neurologo', 'cardiologo', 'psiquiatra',
-            'infectologo', 'urologo', 'hematologo', 'neumonologo', 'cirujano',
-            'traumatologo', 'director_medico', 'sub_director_medico', 'medico_guardia',
-            'nutricionista'
-        ];
-        
-        return $this->findByRoles($rolesDoctor);
+        return $this->createQueryBuilder('u')
+            ->leftJoin('u.roles', 'r')
+            ->where('r.category = :category')
+            ->andWhere('r.isActive = 1')
+            ->andWhere('u.habilitado = 1')
+            ->setParameter('category', \App\Entity\Role::CATEGORY_MEDICAL)
+            ->orderBy('u.apellido', 'ASC')
+            ->addOrderBy('u.nombre', 'ASC')
+            ->getQuery()
+            ->getResult();
     }
 
     /**

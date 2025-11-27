@@ -237,6 +237,20 @@ class User implements UserInterface
     }
 
     /**
+     * Check if user has any medical role
+     * Returns true if the user has any role with category 'medical'
+     */
+    public function hasMedicalRole(): bool
+    {
+        foreach ($this->roles as $role) {
+            if ($role->getIsActive() && $role->isMedical()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Check if user has a specific permission
      */
     public function hasPermission(string $permissionName): bool

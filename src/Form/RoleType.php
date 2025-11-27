@@ -9,6 +9,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -38,6 +39,16 @@ class RoleType extends AbstractType
                 'attr' => [
                     'rows' => 3,
                     'placeholder' => 'Descripción del rol...'
+                ]
+            ])
+            ->add('category', ChoiceType::class, [
+                'label' => 'Categoría',
+                'required' => false,
+                'placeholder' => 'Seleccione una categoría',
+                'choices' => Role::getCategories(),
+                'help' => 'Categoría del rol (Médico, Enfermería, Administrativo, etc.)',
+                'attr' => [
+                    'class' => 'form-control'
                 ]
             ])
             ->add('isActive', CheckboxType::class, [

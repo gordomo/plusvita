@@ -80,7 +80,7 @@
                 <div class="col-2">
                     <button class="btn btn-default" type="submit" style="padding: 10px"><i class="fas fa-search"></i></button>
                     <a class="btn btn-default" style="padding: 10px" href="{{ path('booking_index') }}">Ver todos</a>
-                    <a class="btn btn-default" style="padding: 10px" id="borrarTurnos">Borrar Turnos</a>
+                    {# <a class="btn btn-default" style="padding: 10px" id="borrarTurnos">Borrar Turnos</a> #}
                 </div>
             </div>
         </form>
@@ -96,7 +96,7 @@
                 <th>Comienza</th>
                 <th>Finaliza</th>
                 <th>Completado</th>
-                <th>Seleccionar <input class="borrarTodos" type="checkbox"></th>
+                {# <th>Seleccionar <input class="borrarTodos" type="checkbox"></th> #}
             </tr>
         </thead>
         <tbody>
@@ -109,11 +109,11 @@
                 <td class="comenzo">{{ booking.beginAt | date('d/m/Y H:i:s') }}</td>
                 <td class="finalizo">{{ booking.endAt | date('d/m/Y H:i:s') }}</td>
                 <td class="titulo">{{ booking.completado ? 'si' : 'no' }}</td>
-                <td>
+                {# <td>
                     {% if not booking.completado %}
                         <input class="borrar" type="checkbox" value="{{ booking.id }}" name="borrarTurno">
                     {% endif %}
-                </td>
+                </td> #}
             </tr>
         {% else %}
             <tr>

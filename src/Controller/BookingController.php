@@ -37,6 +37,11 @@ class BookingController extends AbstractController
      */
     public function index(Request $request, BookingRepository $bookingRepository, DoctorRepository $doctorRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository): Response
     {
+        // Verificar permiso para ver la lista de turnos
+        if (!$this->isGranted('agenda.manage') && !$this->isGranted('ROLE_ADMIN')) {
+            throw $this->createAccessDeniedException('No tienes permisos para acceder a esta sección');
+        }
+
         $user = $this->getUser();
         if (!$user) {
             return $this->redirectToRoute('app_login');
@@ -228,6 +233,9 @@ class BookingController extends AbstractController
 
         // Verificar si el usuario tiene permiso para agendar turnos
         $canManageAgenda = $this->isGranted('agenda.manage') || $this->isGranted('ROLE_ADMIN');
+        
+        // Verificar si el usuario es doctor (para permitir editar sus propios turnos)
+        $isDoctor = $user && $user->hasMedicalRole();
 
         return $this->render('booking/calendar.html.twig', [
             'clientes' => $clientes,
@@ -238,7 +246,8 @@ class BookingController extends AbstractController
             'businessHours' => $businessHours,
             'docIdArrFiler' => $docIdArrFiler,
             'cliFilter' => $cliFilter,
-            'canManageAgenda' => $canManageAgenda
+            'canManageAgenda' => $canManageAgenda,
+            'isDoctor' => $isDoctor
         ]);
     }
 
@@ -434,8 +443,8 @@ class BookingController extends AbstractController
                     $entityManager->persist($book);
                     $entityManager->flush();
                 }
-                $modalidad = $doctorData && !empty($doctorData->getModalidad()) ? $doctorData->getModalidad()[0] : '';
-                return $this->redirectToRoute('booking_calendar', ['doc_id' => [$doctor->getId()], 'cli_id' => $booking->getCliente()->getId(), 'ctr' => $modalidad]);
+                // Redirigir al calendario sin filtros después de crear el turno
+                return $this->redirectToRoute('booking_calendar');
             } else {
                     if($yaTieneTurno) {
                         $stringError = "Los siguientes turnos no pueden ser agendados, porque el paciente ya tiene un turno asignado en ese día y horario con ese profesional <br>" ;
@@ -477,6 +486,44 @@ class BookingController extends AbstractController
      */
     public function show(Booking $booking): Response
     {
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+        
+        // Verificar si el turno está asignado al usuario actual
+        // Esto es más confiable que verificar roles específicos
+        $isDoctorEditingOwnBooking = false;
+        $doctorUser = $booking->getDoctor();
+        
+        if ($doctorUser) {
+            $doctorId = $doctorUser->getId();
+            $userId = $user->getId();
+            
+            // Si el turno está asignado al usuario actual, permitir editarlo
+            // Comparar IDs como enteros para evitar problemas de tipo
+            if ($doctorId && $userId && (int)$doctorId === (int)$userId) {
+                $isDoctorEditingOwnBooking = true;
+            }
+        }
+        
+        // Verificar si el usuario tiene algún rol médico
+        $isDoctor = $user->hasMedicalRole();
+        
+        // Si es un doctor viendo su propio turno, redirigir a editar
+        if ($isDoctorEditingOwnBooking) {
+            return $this->redirectToRoute('booking_edit', ['id' => $booking->getId()]);
+        }
+        
+        // Si no tiene permisos de administración, no permitir ver turnos de otros
+        if (!$this->isGranted('agenda.manage') && !$this->isGranted('ROLE_ADMIN')) {
+            // Si es doctor pero no es su turno, redirigir al dashboard en lugar de lanzar excepción
+            if ($isDoctor) {
+                return $this->redirectToRoute('dashboard_index');
+            }
+            throw $this->createAccessDeniedException('No tienes permisos para ver este turno');
+        }
+        
         return $this->render('booking/show.html.twig', [
             'booking' => $booking,
         ]);
@@ -487,9 +534,21 @@ class BookingController extends AbstractController
      */
     public function edit(Request $request, Booking $booking, DoctorRepository $doctorRepository, BookingRepository $bookingRepository): Response
     {
-        // Verificar permiso para editar turnos
-        if (!$this->isGranted('agenda.manage') && !$this->isGranted('ROLE_ADMIN')) {
-            throw $this->createAccessDeniedException('No tienes permisos para editar turnos');
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        // Verificar si es un doctor editando su propio turno
+        $isDoctorEditingOwnBooking = false;
+        $doctorUser = $booking->getDoctor();
+        if ($doctorUser && $doctorUser->getId() === $user->getId()) {
+            $isDoctorEditingOwnBooking = true;
+        }
+
+        // Verificar permisos: admin/agenda.manage pueden editar cualquier turno, doctores solo sus propios
+        if (!$isDoctorEditingOwnBooking && !$this->isGranted('agenda.manage') && !$this->isGranted('ROLE_ADMIN')) {
+            throw $this->createAccessDeniedException('No tienes permisos para editar este turno');
         }
 
         // Obtener todos los doctores con sus business hours para el filtrado dinámico
@@ -499,11 +558,23 @@ class BookingController extends AbstractController
             $allDoctorsBusinessHours[$doctor->getId()] = $doctor->getBusinessHours();
         }
 
-        $form = $this->createForm(BookingType::class, $booking);
+        // Si es un doctor editando, solo permitir editar fecha/hora
+        $form = $this->createForm(BookingType::class, $booking, [
+            'doctor_edit' => $isDoctorEditingOwnBooking
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $doctor = $booking->getDoctor(); // Ya es un User
+            
+            // Si es un doctor editando, asegurar que no cambie el doctor ni el cliente
+            if ($isDoctorEditingOwnBooking) {
+                // Mantener el doctor y cliente originales
+                $originalDoctor = $booking->getDoctor();
+                $originalCliente = $booking->getCliente();
+                // Los campos doctor y cliente no estarán en el formulario, así que están protegidos
+            }
+            
             // Buscar el Doctor correspondiente para acceder a getMaxCliTurno()
             $doctorData = $this->getDoctrine()->getRepository(\App\Entity\Doctor::class)
                 ->createQueryBuilder('d')
@@ -519,13 +590,24 @@ class BookingController extends AbstractController
             if ($newBeginAt < $now) {
                 $error = 'No se puede modificar un turno a una fecha/hora anterior a la actual. Por favor, seleccione una fecha y hora futura.';
             } else {
-                $bookings = $bookingRepository->findBy(['doctor' => $doctor, 'beginAt' => $newBeginAt]);
+                // Excluir el turno actual del conteo
+                $bookings = $bookingRepository->createQueryBuilder('b')
+                    ->where('b.doctor = :doctor')
+                    ->andWhere('b.beginAt = :beginAt')
+                    ->andWhere('b.id != :currentId')
+                    ->setParameter('doctor', $doctor)
+                    ->setParameter('beginAt', $newBeginAt)
+                    ->setParameter('currentId', $booking->getId())
+                    ->getQuery()
+                    ->getResult();
+                
                 $maxCliTurno = $doctorData ? $doctorData->getMaxCliTurno() : null;
 
-                if ( count($bookings) >= $maxCliTurno && $maxCliTurno != null || ($maxCliTurno == null ) ) {
+                if (count($bookings) >= $maxCliTurno && $maxCliTurno != null) {
                     $error = 'El turno no puede ser movido a esa fecha/horario porque supera el número máximo de pacientes por turno que puede atender el profesional';
                 } else {
                     $this->getDoctrine()->getManager()->flush();
+                    // Redirigir al calendario general después de editar
                     return $this->redirectToRoute('booking_calendar');
                 }
             }
@@ -536,6 +618,7 @@ class BookingController extends AbstractController
             'form' => $form->createView(),
             'error' => $error ?? 0,
             'allDoctorsBusinessHours' => $allDoctorsBusinessHours,
+            'isDoctorEdit' => $isDoctorEditingOwnBooking,
         ]);
     }
 
@@ -544,14 +627,31 @@ class BookingController extends AbstractController
      */
     public function ajaxEdit($id, $start, $end, BookingRepository $bookingRepository, DoctorRepository $doctorRepository): Response
     {
-        // Verificar permiso para editar turnos
-        if (!$this->isGranted('agenda.manage') && !$this->isGranted('ROLE_ADMIN')) {
-            return new JsonResponse(['error' => true, 'message' => 'No tienes permisos para editar turnos']);
+        $user = $this->getUser();
+        if (!$user) {
+            return new JsonResponse(['error' => true, 'message' => 'Debes estar autenticado para editar turnos']);
         }
 
         $error = false;
         $message = 'ok';
         try {
+            $booking = $bookingRepository->find($id);
+            if (!$booking) {
+                return new JsonResponse(['error' => true, 'message' => 'Turno no encontrado']);
+            }
+
+            // Verificar si es un doctor editando su propio turno
+            $isDoctorEditingOwnBooking = false;
+            $doctorUser = $booking->getDoctor();
+            if ($doctorUser && $doctorUser->getId() === $user->getId()) {
+                $isDoctorEditingOwnBooking = true;
+            }
+
+            // Verificar permisos: admin/agenda.manage pueden editar cualquier turno, doctores solo sus propios
+            if (!$isDoctorEditingOwnBooking && !$this->isGranted('agenda.manage') && !$this->isGranted('ROLE_ADMIN')) {
+                return new JsonResponse(['error' => true, 'message' => 'No tienes permisos para editar este turno']);
+            }
+
             $beginAt = new \DateTime(substr($start, 0, 33));
             $beginAt->modify('+3 hours');
             $endAt = new \DateTime(substr($end, 0, 33));
@@ -565,21 +665,40 @@ class BookingController extends AbstractController
                 return new JsonResponse(['error' => $error, 'message' => $message]);
             }
             
-            $booking = $bookingRepository->find($id);
             $doctor = $booking->getDoctor(); // Already a User entity
-            $bookings = $bookingRepository->findBy(['doctor' => $doctor, 'beginAt' => $beginAt]);
+            
+            // Excluir el turno actual del conteo
+            $bookings = $bookingRepository->createQueryBuilder('b')
+                ->where('b.doctor = :doctor')
+                ->andWhere('b.beginAt = :beginAt')
+                ->andWhere('b.id != :currentId')
+                ->setParameter('doctor', $doctor)
+                ->setParameter('beginAt', $beginAt)
+                ->setParameter('currentId', $booking->getId())
+                ->getQuery()
+                ->getResult();
 
-            // TODO: Migrate max_cli_turno property to User entity when booking module is activated
-            // if ( count($bookings) >= $doctor->getMaxCliTurno() && $doctor->getMaxCliTurno() != null || ($doctor->getMaxCliTurno() == null ) ) {
-            //     $error = true;
-            //     $message = 'El turno no puede ser movido a esa fecha/horario porque supera el número máximo de pacientes por turno que puede atender el profesional';
-            // } else {
-                $booking->setBeginAt($beginAt);
-                $booking->setEndAt($endAt);
-                $entityManager = $this->getDoctrine()->getManager();
-                $entityManager->persist($booking);
-                $entityManager->flush();
-            // }
+            // Buscar el Doctor correspondiente para acceder a getMaxCliTurno()
+            $doctorData = $this->getDoctrine()->getRepository(\App\Entity\Doctor::class)
+                ->createQueryBuilder('d')
+                ->where('d.email = :email')
+                ->setParameter('email', $doctor->getEmail())
+                ->getQuery()
+                ->getOneOrNullResult();
+            
+            $maxCliTurno = $doctorData ? $doctorData->getMaxCliTurno() : null;
+
+            if (count($bookings) >= $maxCliTurno && $maxCliTurno != null) {
+                $error = true;
+                $message = 'El turno no puede ser movido a esa fecha/horario porque supera el número máximo de pacientes por turno que puede atender el profesional';
+                return new JsonResponse(['error' => $error, 'message' => $message]);
+            }
+
+            $booking->setBeginAt($beginAt);
+            $booking->setEndAt($endAt);
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($booking);
+            $entityManager->flush();
 
             return new JsonResponse(['error' => $error, 'message' => $message]);
 

@@ -298,21 +298,8 @@ class DashboardController extends AbstractController
             return false;
         }
 
-        // Verificar si tiene algún rol médico
-        $rolesDoctor = [
-            'medico_clinico', 'fisiatra', 'neurologo', 'cardiologo', 'psiquiatra',
-            'infectologo', 'urologo', 'hematologo', 'neumonologo', 'cirujano',
-            'traumatologo', 'director_medico', 'sub_director_medico', 'medico_guardia',
-            'nutricionista'
-        ];
-
-        foreach ($rolesDoctor as $role) {
-            if ($user->hasRole($role)) {
-                return true;
-            }
-        }
-
-        return false;
+        // Usar el método hasMedicalRole() que verifica la categoría del rol
+        return $user->hasMedicalRole();
     }
 
     private function isEnfermero()
