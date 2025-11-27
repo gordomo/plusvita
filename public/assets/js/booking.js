@@ -93,8 +93,25 @@ if (typeof($params.doc_id) !== "undefined") {
     // Si viene como string separado por comas o como array, convertir a array
     if (Array.isArray($params.doc_id)) {
         doc_id = $params.doc_id;
-    } else if (typeof $params.doc_id === 'string' && $params.doc_id.includes(',')) {
-        doc_id = $params.doc_id.split(',').map(function(id) { return parseInt(id); }).filter(function(id) { return !isNaN(id); });
+    } else if (typeof $params.doc_id === 'string') {
+        // Manejar formato [115] o [115,116]
+        if ($params.doc_id.startsWith('[') && $params.doc_id.endsWith(']')) {
+            var content = $params.doc_id.slice(1, -1); // Remover [ y ]
+            if (content.trim() !== '') {
+                doc_id = content.split(',').map(function(id) { 
+                    return parseInt(id.trim()); 
+                }).filter(function(id) { 
+                    return !isNaN(id) && id > 0; 
+                });
+            }
+        } else if ($params.doc_id.includes(',')) {
+            doc_id = $params.doc_id.split(',').map(function(id) { return parseInt(id); }).filter(function(id) { return !isNaN(id); });
+        } else {
+            var parsedId = parseInt($params.doc_id);
+            if (!isNaN(parsedId) && parsedId > 0) {
+                doc_id = [parsedId];
+            }
+        }
     } else {
         var parsedId = parseInt($params.doc_id);
         if (!isNaN(parsedId) && parsedId > 0) {
@@ -280,42 +297,20 @@ if(!window.location.href.includes('edit') && !window.location.href.includes('new
                         },
                     },
                 ],
-                customButtons: (function() {
-                    var buttons = {
-                        filtros: {
-                            text: 'Filtros',
-                            //icon: 'fc-icon-filter',
-                            click: function() {
-                                $('.filtros').modal('show');
-                            }
+                customButtons: {
+                    filtros: {
+                        text: 'Filtros',
+                        //icon: 'fc-icon-filter',
+                        click: function() {
+                            $('.filtros').modal('show');
                         }
-                    };
-                    
-                    // Solo agregar el botón "Ver Todos" si el usuario tiene permisos
-                    if (typeof(canManageAgenda) !== 'undefined' && canManageAgenda) {
-                        buttons.ver = {
-                            text: 'Ver Todos',
-                            //icon: 'fc-icon-filter',
-                            click: function() {
-                                location.href = '/booking/';
-                            }
-                        };
                     }
-                    
-                    return buttons;
-                })(),
-                header: (function() {
-                    var leftButtons = 'prev,next today, filtros';
-                    // Solo agregar "ver" si el usuario tiene permisos
-                    if (typeof(canManageAgenda) !== 'undefined' && canManageAgenda) {
-                        leftButtons += ', ver';
-                    }
-                    return {
-                        left: leftButtons,
-                        center: 'title',
-                        right: 'dayGridMonth,timeGridWeek,timeGridDay',
-                    };
-                })(),
+                },
+                header: {
+                    left: 'prev,next today, filtros',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay',
+                },
                 plugins: [ 'interaction', 'dayGrid', 'timeGrid' ], // https://fullcalendar.io/docs/plugin-index
                 timeZone: 'UTC',
                 rrule: {
@@ -389,20 +384,32 @@ $('#filtrar').click(function () {
 
     var url = 'calendar?'
     if (doctoresId.length > 0) {
-        url += 'doc_id=[' + doctoresId + ']';
+        // Construir URL con formato de array: doc_id[0]=115&doc_id[1]=116
+        doctoresId.forEach(function(id, index) {
+            if (index > 0 || url !== 'calendar?') {
+                url += '&';
+            }
+            url += 'doc_id[' + index + ']=' + id;
+        });
     }
     if (clientesId.length > 0) {
-        if (url.includes('doc_id')) {
+        if (url !== 'calendar?') {
             url += '&';
         }
-        url += 'cli_id=['+clientesId+']';
+        // Construir URL con formato de array: cli_id[0]=1368&cli_id[1]=1369
+        clientesId.forEach(function(id, index) {
+            if (index > 0) {
+                url += '&';
+            }
+            url += 'cli_id[' + index + ']=' + id;
+        });
     }
-    if ( contrato.length > 0 ) {
+    /* if ( contrato.length > 0 ) {
         if (url.includes('doc_id') || url.includes('cli_id')) {
             url += '&';
         }
         url += 'ctr='+contrato+'';
-    }
+    } */
 
     if(doctoresId.length > 0 || clientesId.length > 0) {
         set_cookie('doctoresId', doctoresId);

@@ -43,6 +43,22 @@ class CalendarSubscriber implements EventSubscriberInterface
         $start = $calendar->getStart();
         $end = $calendar->getEnd();
         $filters = $calendar->getFilters();
+        
+        // Si filters es un string JSON, decodificarlo
+        if (is_string($filters)) {
+            $decodedFilters = json_decode($filters, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decodedFilters)) {
+                $filters = $decodedFilters;
+            } else {
+                // Si no se puede decodificar, inicializar como array vacío
+                $filters = [];
+            }
+        }
+        
+        // Asegurar que filters sea un array
+        if (!is_array($filters)) {
+            $filters = [];
+        }
 
         // Modify the query to fit to your entity and needs
         // Change booking.beginAt by your start date property
@@ -91,15 +107,21 @@ class CalendarSubscriber implements EventSubscriberInterface
 
         if (!empty($filters['doctor_id'])) {
             try {
-                $docIds = json_decode($filters['doctor_id'], true);
-                // Si json_decode falla, intentar como string simple
-                if ($docIds === null && json_last_error() !== JSON_ERROR_NONE) {
-                    $docIds = $filters['doctor_id'];
+                $docIds = $filters['doctor_id'];
+                
+                // Si es un string, intentar decodificarlo como JSON
+                if (is_string($docIds)) {
+                    $decoded = json_decode($docIds, true);
+                    if (json_last_error() === JSON_ERROR_NONE && $decoded !== null) {
+                        $docIds = $decoded;
+                    }
                 }
+                
                 // Asegurar que sea un array
                 if (!is_array($docIds)) {
                     $docIds = [$docIds];
                 }
+                
                 // Filtrar valores válidos (solo números enteros)
                 $docIds = array_filter(array_map('intval', $docIds), function($id) {
                     return $id > 0;
@@ -137,15 +159,21 @@ class CalendarSubscriber implements EventSubscriberInterface
         }
         if (!empty($filters['cliente_id'])) {
             try {
-                $cliIds = json_decode($filters['cliente_id'], true);
-                // Si json_decode falla, intentar como string simple
-                if ($cliIds === null && json_last_error() !== JSON_ERROR_NONE) {
-                    $cliIds = $filters['cliente_id'];
+                $cliIds = $filters['cliente_id'];
+                
+                // Si es un string, intentar decodificarlo como JSON
+                if (is_string($cliIds)) {
+                    $decoded = json_decode($cliIds, true);
+                    if (json_last_error() === JSON_ERROR_NONE && $decoded !== null) {
+                        $cliIds = $decoded;
+                    }
                 }
+                
                 // Asegurar que sea un array
                 if (!is_array($cliIds)) {
                     $cliIds = [$cliIds];
                 }
+                
                 // Filtrar valores válidos (solo números enteros)
                 $cliIds = array_filter(array_map('intval', $cliIds), function($id) {
                     return $id > 0;

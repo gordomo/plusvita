@@ -68,9 +68,15 @@
                         <a class="text-white dropdown-item" href="{{ path('booking_calendar') }}">
                             <i class="fas fa-calendar"></i> Calendario General
                         </a>
-                        <a class="text-white dropdown-item" href="{{ path('doctor_agenda', {'periodo': 'dia'}) }}">
-                            <i class="fas fa-user-md"></i> Mi Agenda
-                        </a>
+                        {% if is_granted('agenda.manage') or is_granted('ROLE_ADMIN') %}
+                            <a class="text-white dropdown-item" href="{{ path('booking_index') }}">
+                                <i class="fas fa-list"></i> Todos los turnos
+                            </a>
+                        {% else %}
+                            <a class="text-white dropdown-item" href="{{ path('doctor_agenda', {'periodo': 'dia'}) }}">
+                                <i class="fas fa-user-md"></i> Mi Agenda
+                            </a>
+                        {% endif %}
                     </div>
                 </div>
             {% endif %}
