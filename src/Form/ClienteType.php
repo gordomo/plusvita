@@ -155,6 +155,9 @@ class ClienteType extends AbstractType
                 ->add('docReferente', EntityType::class, [
                     'class' => User::class,
                     'choice_label' => 'NombreApellido',
+                    'choice_value' => function(?User $user) {
+                        return $user ? $user->getId() : '';
+                    },
                     'query_builder' => function (EntityRepository $er) {
                         // Obtener usuarios con roles de Fisiatra, Director Médico o Sub Director Médico
                         return $er->createQueryBuilder('u')

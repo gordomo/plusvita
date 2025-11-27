@@ -62,6 +62,9 @@ class NovedadUbicacionType extends AbstractType
                 'choice_label' => function(User $user) {
                     return $user->getNombreApellido() ?: $user->getEmail();
                 },
+                'choice_value' => function(?User $user) {
+                    return $user ? $user->getId() : '';
+                },
                 'query_builder' => function(\Doctrine\ORM\EntityRepository $er) {
                     return $er->createQueryBuilder('u')
                         ->where('u.nombre IS NOT NULL')

@@ -5,6 +5,7 @@ namespace App\Form;
 use App\Entity\Booking;
 use App\Entity\Cliente;
 use App\Entity\Doctor;
+use App\Entity\User;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
@@ -44,16 +45,19 @@ class BookingType extends AbstractType
             ])
             ->add('title', TextType::class, ['label' => 'Titulo'])
             ->add('doctor', EntityType::class, [
-                'class' => Doctor::class,
+                'class' => User::class,
                 'choice_label' => 'NombreApellido',
+                'choice_value' => function(?User $user) {
+                    return $user ? $user->getId() : '';
+                },
                 'label' => 'Profesional',
                 'attr' => ['class' => 'predictivo'],
                 'query_builder' => function (EntityRepository $er) {
-                    $qb = $er->createQueryBuilder('d')->where("JSON_CONTAINS (d.modalidad, '\"$this->pctr\"', '$') = 1");
+                    $qb = $er->createQueryBuilder('u')->where("JSON_CONTAINS (u.modalidad, '\"$this->pctr\"', '$') = 1");
                     if ( $this->pctr != '' ) {
                         return $qb;
                     } else {
-                        return $er->createQueryBuilder('d')->where("1 = 1");
+                        return $er->createQueryBuilder('u')->where("1 = 1");
                     }
                 },
             ])

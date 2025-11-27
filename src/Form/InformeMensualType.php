@@ -24,6 +24,9 @@ class InformeMensualType extends AbstractType
                 'choice_label' => function ($user) {
                     return $user->getApellido() . ', ' . $user->getNombre();
                 },
+                'choice_value' => function(?User $user) {
+                    return $user ? $user->getId() : '';
+                },
                 'label' => 'Doctor responsable',
                 'required' => true,
                 'placeholder' => 'Seleccione un doctor',
