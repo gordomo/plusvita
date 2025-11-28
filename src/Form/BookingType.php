@@ -5,6 +5,7 @@ namespace App\Form;
 use App\Entity\Booking;
 use App\Entity\Cliente;
 use App\Entity\Doctor;
+use App\Entity\Role;
 use App\Entity\User;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
@@ -15,6 +16,8 @@ use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Choice;
 
@@ -47,8 +50,39 @@ class BookingType extends AbstractType
 
         // Si es un doctor editando, solo mostrar fecha/hora (no mostrar otros campos)
         if (!$doctorEdit) {
+            // Campo de filtro por rol (no mapeado, solo para filtrar)
+            // Los roles se obtienen directamente de la base de datos y se agrupan por categoría
             $builder
                 ->add('title', TextType::class, ['label' => 'Titulo'])
+                ->add('roleFilter', EntityType::class, [
+                    'class' => Role::class,
+                    'choice_label' => 'displayName',
+                    'choice_value' => function(?Role $role) {
+                        return $role ? $role->getId() : '';
+                    },
+                    'label' => 'Filtrar por Rol',
+                    'required' => false,
+                    'mapped' => false,
+                    'placeholder' => 'Todos los roles',
+                    'query_builder' => function (\Doctrine\ORM\EntityRepository $er) {
+                        return $er->createQueryBuilder('r')
+                            ->where('r.isActive = :active')
+                            ->setParameter('active', true)
+                            ->orderBy('r.category', 'ASC')
+                            ->addOrderBy('r.displayName', 'ASC');
+                    },
+                    'group_by' => function(Role $role) {
+                        $category = $role->getCategory();
+                        $categories = Role::getCategories();
+                        return $category && isset($categories[$category]) 
+                            ? $categories[$category] 
+                            : 'Sin Categoría';
+                    },
+                    'attr' => [
+                        'class' => 'form-control',
+                        'id' => 'role-filter-select'
+                    ],
+                ])
                 ->add('doctor', EntityType::class, [
                     'class' => User::class,
                     'choice_label' => 'NombreApellido',
@@ -56,7 +90,7 @@ class BookingType extends AbstractType
                         return $user ? $user->getId() : '';
                     },
                     'label' => 'Profesional',
-                    'attr' => ['class' => 'predictivo'],
+                    'attr' => ['class' => 'predictivo', 'id' => 'booking-doctor-select'],
                     'query_builder' => function (EntityRepository $er) {
                         $qb = $er->createQueryBuilder('u')->where("JSON_CONTAINS (u.modalidad, '\"$this->pctr\"', '$') = 1");
                         if ( $this->pctr != '' ) {

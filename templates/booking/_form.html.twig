@@ -42,9 +42,20 @@
             {{ form_widget(form.title) }}
         </div>
         <div class="col-sm">
+            {% if form.roleFilter is defined %}
+                {{ form_label(form.roleFilter, 'Filtrar por Rol') }}
+                {{ form_widget(form.roleFilter, {'attr': {'id': 'role-filter-select'}}) }}
+            {% endif %}
+        </div>
+        <div class="col-sm"></div>
+    </div>
+    <br>
+    <div class="form-row">
+        <div class="col-sm">
             {{ form_label(form.doctor, 'Profesional') }}
             {{ form_widget(form.doctor, {'attr': {'id': 'booking-doctor-select', 'class': 'predictivo'}}) }}
         </div>
+        <div class="col-sm"></div>
         <div class="col-sm"></div>
     </div>
     <br>

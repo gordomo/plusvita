@@ -9,6 +9,8 @@ use App\Repository\BookingRepository;
 use App\Repository\ClienteRepository;
 use App\Repository\DoctorRepository;
 use App\Repository\ObraSocialRepository;
+use App\Repository\RoleRepository;
+use App\Repository\UserRepository;
 use DateInterval;
 use PhpParser\Comment\Doc;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -305,6 +307,7 @@ class BookingController extends AbstractController
 
         $ctr = !empty($request->get('ctr')) ? $request->get('ctr') : '';
 
+        // Los roles se obtienen directamente de la base de datos en el formulario
         $form = $this->createForm(BookingType::class, $booking, ['ctr' => $ctr, 'isNew' => true]);
         $form->handleRequest($request);
 
@@ -479,6 +482,53 @@ class BookingController extends AbstractController
             'error' => $error ?? 0,
             'allDoctorsBusinessHours' => $allDoctorsBusinessHours,
         ]);
+    }
+
+    /**
+     * @Route("/profesionales-por-rol", name="booking_profesionales_por_rol", methods={"GET"})
+     */
+    public function profesionalesPorRol(Request $request, UserRepository $userRepository): JsonResponse
+    {
+        $roleId = $request->query->get('role_id');
+        $ctr = $request->query->get('ctr', '');
+
+        $qb = $userRepository->createQueryBuilder('u');
+
+        $hasWhere = false;
+
+        // Filtrar por modalidad si se proporciona
+        if ($ctr != '') {
+            $qb->where("JSON_CONTAINS (u.modalidad, '\"$ctr\"', '$') = 1");
+            $hasWhere = true;
+        }
+
+        // Filtrar por rol si se proporciona
+        if ($roleId && $roleId != '') {
+            if ($hasWhere) {
+                $qb->innerJoin('u.roles', 'r')
+                   ->andWhere('r.id = :roleId')
+                   ->setParameter('roleId', $roleId);
+            } else {
+                $qb->innerJoin('u.roles', 'r')
+                   ->where('r.id = :roleId')
+                   ->setParameter('roleId', $roleId);
+            }
+        }
+
+        $qb->orderBy('u.nombre', 'ASC')
+           ->addOrderBy('u.apellido', 'ASC');
+
+        $profesionales = $qb->getQuery()->getResult();
+
+        $result = [];
+        foreach ($profesionales as $profesional) {
+            $result[] = [
+                'id' => $profesional->getId(),
+                'nombre' => $profesional->getNombreApellido(),
+            ];
+        }
+
+        return new JsonResponse($result);
     }
 
     /**

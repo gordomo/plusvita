@@ -1,5 +1,179 @@
 $('.predictivo').chosen();
 
+// Filtro por rol para profesionales
+var originalDoctorOptions = [];
+
+// Guardar opciones originales antes de que chosen las modifique
+$(document).ready(function() {
+    // Esperar un momento para que el DOM esté completamente cargado
+    setTimeout(function() {
+        var $doctorSelect = encontrarCampoProfesional();
+        
+        if ($doctorSelect.length) {
+            $doctorSelect.find('option').each(function() {
+                originalDoctorOptions.push({
+                    value: $(this).val(),
+                    text: $(this).text(),
+                    selected: $(this).prop('selected')
+                });
+            });
+        }
+    }, 500);
+});
+
+// Función auxiliar para encontrar el campo de profesional
+function encontrarCampoProfesional() {
+    // Intentar múltiples selectores para encontrar el campo de profesional
+    var $doctorSelect = $('#booking-doctor-select');
+    if (!$doctorSelect.length) {
+        $doctorSelect = $('#booking_doctor');
+    }
+    if (!$doctorSelect.length) {
+        $doctorSelect = $('select[name="booking[doctor]"]');
+    }
+    if (!$doctorSelect.length) {
+        $doctorSelect = $('select[name*="[doctor]"]');
+    }
+    if (!$doctorSelect.length) {
+        // Buscar todos los selects predictivo y excluir el de rol
+        $('select.predictivo').each(function() {
+            var $select = $(this);
+            var id = $select.attr('id') || '';
+            var name = $select.attr('name') || '';
+            if (id.indexOf('role') === -1 && name.indexOf('role') === -1 && 
+                (id.indexOf('doctor') !== -1 || name.indexOf('doctor') !== -1)) {
+                $doctorSelect = $select;
+                return false; // break
+            }
+        });
+    }
+    if (!$doctorSelect.length) {
+        // Último intento: buscar el segundo select.predictivo (el primero debería ser paciente)
+        var $allPredictivos = $('select.predictivo');
+        if ($allPredictivos.length >= 2) {
+            $doctorSelect = $allPredictivos.eq(1); // Segundo elemento
+        }
+    }
+    
+    return $doctorSelect;
+}
+
+// Función para filtrar profesionales por rol
+function filtrarProfesionalesPorRol(roleId) {
+    var ctr = getParams(window.location.href).ctr || '';
+    
+    // Encontrar el campo de profesional
+    var $doctorSelect = encontrarCampoProfesional();
+    
+    if (!$doctorSelect.length) {
+        return;
+    }
+    
+    if (roleId && roleId !== '') {
+        
+        // Mostrar indicador de carga
+        $doctorSelect.prop('disabled', true);
+        
+        // Filtrar por rol usando AJAX
+        $.ajax({
+            url: '/booking/profesionales-por-rol',
+            method: 'GET',
+            data: {
+                role_id: roleId,
+                ctr: ctr
+            },
+                success: function(profesionales) {
+                    // Limpiar el select
+                $doctorSelect.empty();
+                
+                // Agregar opción por defecto
+                $doctorSelect.append('<option value="">Seleccione un Profesional</option>');
+                
+                // Agregar profesionales filtrados
+                $.each(profesionales, function(index, profesional) {
+                    var option = $('<option></option>')
+                        .attr('value', profesional.id)
+                        .text(profesional.nombre);
+                    $doctorSelect.append(option);
+                });
+                
+                // Re-inicializar chosen
+                $doctorSelect.prop('disabled', false);
+                $doctorSelect.trigger('chosen:updated');
+            },
+            error: function(xhr, status, error) {
+                $doctorSelect.prop('disabled', false);
+                alert('Error al cargar los profesionales. Por favor, intente nuevamente.');
+            }
+        });
+        } else {
+            // Buscar el campo nuevamente por si acaso cambió
+            $doctorSelect = encontrarCampoProfesional();
+            if (!$doctorSelect.length) {
+                return;
+            }
+            
+            // Restaurar opciones originales
+            $doctorSelect.empty();
+            $.each(originalDoctorOptions, function(index, option) {
+                var $option = $('<option></option>')
+                    .attr('value', option.value)
+                    .text(option.text);
+                if (option.selected) {
+                    $option.prop('selected', true);
+                }
+                $doctorSelect.append($option);
+            });
+            
+            // Re-inicializar chosen
+            $doctorSelect.prop('disabled', false);
+            $doctorSelect.trigger('chosen:updated');
+        }
+}
+
+// Capturar cambios en el filtro de rol - múltiples métodos para asegurar que funcione
+function setupRoleFilter() {
+    // Método 1: Delegación de eventos en document
+    $(document).off('change', '#role-filter-select').on('change', '#role-filter-select', function() {
+        var roleId = $(this).val();
+        filtrarProfesionalesPorRol(roleId);
+    });
+    
+    // Método 2: Por nombre del campo
+    $(document).off('change', 'select[name*="roleFilter"]').on('change', 'select[name*="roleFilter"]', function() {
+        var roleId = $(this).val();
+        filtrarProfesionalesPorRol(roleId);
+    });
+    
+    // Método 3: Directamente en el elemento si existe
+    setTimeout(function() {
+        var $roleFilter = $('#role-filter-select');
+        if ($roleFilter.length) {
+            $roleFilter.off('change').on('change', function() {
+                var roleId = $(this).val();
+                filtrarProfesionalesPorRol(roleId);
+            });
+        } else {
+            // Intentar buscar por nombre
+            $roleFilter = $('select[name*="roleFilter"]');
+            if ($roleFilter.length) {
+                $roleFilter.off('change').on('change', function() {
+                    var roleId = $(this).val();
+                    filtrarProfesionalesPorRol(roleId);
+                });
+            }
+        }
+    }, 1000);
+}
+
+// Ejecutar cuando el documento esté listo
+$(document).ready(function() {
+    setupRoleFilter();
+});
+
+// También ejecutar después de un delay por si acaso
+setTimeout(setupRoleFilter, 2000);
+
 var getParams = function (url) {
     var params = {};
     var parser = document.createElement('a');
