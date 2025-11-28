@@ -400,18 +400,24 @@ class BookingController extends AbstractController
                 }
 
             } else {
-                for($date = $desde; $date <= $hasta; $date->modify('+1 day')) {
-
+                // Calcular la duración del turno original (diferencia entre beginAt y endAt)
+                $duracionTurno = $newBeginAt->diff($newEndAt);
+                
+                // Crear una copia de $desde para iterar sin modificar el original
+                $dateIterator = clone $desde;
+                
+                for($dateIterator; $dateIterator <= $hasta; $dateIterator->modify('+1 day')) {
+                    // Crear una copia de la fecha para cada iteración
+                    $date = clone $dateIterator;
                     $date->setTime($horaTurno, $minutosTurno, $segundosTurno);
-                    $end = $newEndAt->format(DATE_ATOM);
                     $start = $date->format(DATE_ATOM);
 
                     if(in_array($date->format('N'), $dias)) {
-                        $bookings = $bookingRepository->findBy(['doctor' => $doctor, 'beginAt' => $desde, 'cliente' => $cliente]);
+                        $bookings = $bookingRepository->findBy(['doctor' => $doctor, 'beginAt' => $date, 'cliente' => $cliente]);
                         if(count($bookings) > 0) {
                             $error = true;
                             $yaTieneTurno = true;
-                            $arrayDeErrores[] = $desde->format(DATE_ATOM);
+                            $arrayDeErrores[] = $date->format(DATE_ATOM);
                         } else {
                             $bookings = $bookingRepository->findBy(['doctor' => $doctor, 'beginAt' => $date]);
                             $maxCliTurno = $doctorData ? $doctorData->getMaxCliTurno() : null;
@@ -421,8 +427,11 @@ class BookingController extends AbstractController
                             } else {
                                 $book = new Booking();
                                 $book->setBeginAt(new \DateTime($start));
-                                $book->setEndAt(new \DateTime($end));
-                                $newEndAt->modify('+1 day');
+                                
+                                // Calcular la fecha de fin basándose en la fecha de inicio y la duración original
+                                $endDate = clone $date;
+                                $endDate->add($duracionTurno);
+                                $book->setEndAt($endDate);
 
                                 $book->setDoctor($doctor);
                                 $book->setCliente($booking->getCliente());
@@ -525,6 +534,39 @@ class BookingController extends AbstractController
             $result[] = [
                 'id' => $profesional->getId(),
                 'nombre' => $profesional->getNombreApellido(),
+            ];
+        }
+
+        return new JsonResponse($result);
+    }
+
+    /**
+     * @Route("/pacientes-por-modalidad", name="booking_pacientes_por_modalidad", methods={"GET"})
+     */
+    public function pacientesPorModalidad(Request $request, ClienteRepository $clienteRepository): JsonResponse
+    {
+        $modalidad = $request->query->get('modalidad', '');
+
+        $qb = $clienteRepository->createQueryBuilder('c')
+            ->andWhere('c.fEgreso > :val')->setParameter('val', new \DateTime())
+            ->orWhere('c.fEgreso IS NULL');
+
+        // Filtrar por modalidad si se proporciona
+        if ($modalidad && $modalidad !== '') {
+            $qb->andWhere('c.modalidad = :modalidad')
+               ->setParameter('modalidad', $modalidad);
+        }
+
+        $qb->orderBy('c.nombre', 'ASC')
+           ->addOrderBy('c.apellido', 'ASC');
+
+        $pacientes = $qb->getQuery()->getResult();
+
+        $result = [];
+        foreach ($pacientes as $paciente) {
+            $result[] = [
+                'id' => $paciente->getId(),
+                'nombre' => $paciente->getNombreApellido(),
             ];
         }
 

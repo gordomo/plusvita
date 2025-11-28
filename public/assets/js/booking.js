@@ -3,6 +3,9 @@ $('.predictivo').chosen();
 // Filtro por rol para profesionales
 var originalDoctorOptions = [];
 
+// Filtro por modalidad para pacientes
+var originalClienteOptions = [];
+
 // Guardar opciones originales antes de que chosen las modifique
 $(document).ready(function() {
     // Esperar un momento para que el DOM esté completamente cargado
@@ -12,6 +15,22 @@ $(document).ready(function() {
         if ($doctorSelect.length) {
             $doctorSelect.find('option').each(function() {
                 originalDoctorOptions.push({
+                    value: $(this).val(),
+                    text: $(this).text(),
+                    selected: $(this).prop('selected')
+                });
+            });
+        }
+        
+        // Guardar opciones originales del campo de pacientes
+        var $clienteSelect = $('#booking-cliente-select, select[name*="cliente"]').not('#modalidad-filter-select, select[name*="modalidadFilter"]').first();
+        if (!$clienteSelect.length) {
+            $clienteSelect = $('select.predictivo').not('#role-filter-select, select[name*="roleFilter"], #modalidad-filter-select, select[name*="modalidadFilter"]').eq(0);
+        }
+        
+        if ($clienteSelect.length) {
+            $clienteSelect.find('option').each(function() {
+                originalClienteOptions.push({
                     value: $(this).val(),
                     text: $(this).text(),
                     selected: $(this).prop('selected')
@@ -173,6 +192,142 @@ $(document).ready(function() {
 
 // También ejecutar después de un delay por si acaso
 setTimeout(setupRoleFilter, 2000);
+
+// Función para encontrar el campo de paciente
+function encontrarCampoPaciente() {
+    var $clienteSelect = $('#booking-cliente-select');
+    if (!$clienteSelect.length) {
+        $clienteSelect = $('select[name="booking[cliente]"]');
+    }
+    if (!$clienteSelect.length) {
+        $clienteSelect = $('select[name*="[cliente]"]');
+    }
+    if (!$clienteSelect.length) {
+        // Buscar en los selects predictivo que no sean los filtros
+        $('select.predictivo').each(function() {
+            var $select = $(this);
+            var id = $select.attr('id') || '';
+            var name = $select.attr('name') || '';
+            if (id.indexOf('role') === -1 && name.indexOf('role') === -1 && 
+                id.indexOf('modalidad') === -1 && name.indexOf('modalidad') === -1 &&
+                (id.indexOf('cliente') !== -1 || name.indexOf('cliente') !== -1 || id.indexOf('paciente') !== -1 || name.indexOf('paciente') !== -1)) {
+                $clienteSelect = $select;
+                return false; // break
+            }
+        });
+    }
+    if (!$clienteSelect.length) {
+        // Último intento: buscar el primer select.predictivo que no sea filtro
+        var $allPredictivos = $('select.predictivo').not('#role-filter-select, #modalidad-filter-select, select[name*="roleFilter"], select[name*="modalidadFilter"]');
+        if ($allPredictivos.length >= 1) {
+            $clienteSelect = $allPredictivos.eq(0); // Primer elemento (debería ser paciente)
+        }
+    }
+    
+    return $clienteSelect;
+}
+
+// Función para filtrar pacientes por modalidad
+function filtrarPacientesPorModalidad(modalidad) {
+    var $clienteSelect = encontrarCampoPaciente();
+    
+    if (!$clienteSelect.length) {
+        return;
+    }
+    
+    if (modalidad && modalidad !== '') {
+        // Filtrar por modalidad usando AJAX
+        $.ajax({
+            url: '/booking/pacientes-por-modalidad',
+            method: 'GET',
+            data: {
+                modalidad: modalidad
+            },
+            success: function(pacientes) {
+                // Limpiar el select
+                $clienteSelect.empty();
+                
+                // Agregar opción por defecto
+                $clienteSelect.append('<option value="">Seleccione un Paciente</option>');
+                
+                // Agregar pacientes filtrados
+                $.each(pacientes, function(index, paciente) {
+                    var option = $('<option></option>')
+                        .attr('value', paciente.id)
+                        .text(paciente.nombre);
+                    $clienteSelect.append(option);
+                });
+                
+                // Re-inicializar chosen
+                $clienteSelect.prop('disabled', false);
+                $clienteSelect.trigger('chosen:updated');
+            },
+            error: function(xhr, status, error) {
+                $clienteSelect.prop('disabled', false);
+                alert('Error al cargar los pacientes. Por favor, intente nuevamente.');
+            }
+        });
+    } else {
+        // Restaurar opciones originales
+        $clienteSelect.empty();
+        $.each(originalClienteOptions, function(index, option) {
+            var $option = $('<option></option>')
+                .attr('value', option.value)
+                .text(option.text);
+            if (option.selected) {
+                $option.prop('selected', true);
+            }
+            $clienteSelect.append($option);
+        });
+        
+        // Re-inicializar chosen
+        $clienteSelect.prop('disabled', false);
+        $clienteSelect.trigger('chosen:updated');
+    }
+}
+
+// Capturar cambios en el filtro de modalidad
+function setupModalidadFilter() {
+    // Método 1: Delegación de eventos en document
+    $(document).off('change', '#modalidad-filter-select').on('change', '#modalidad-filter-select', function() {
+        var modalidad = $(this).val();
+        filtrarPacientesPorModalidad(modalidad);
+    });
+    
+    // Método 2: Por nombre del campo
+    $(document).off('change', 'select[name*="modalidadFilter"]').on('change', 'select[name*="modalidadFilter"]', function() {
+        var modalidad = $(this).val();
+        filtrarPacientesPorModalidad(modalidad);
+    });
+    
+    // Método 3: Directamente en el elemento si existe
+    setTimeout(function() {
+        var $modalidadFilter = $('#modalidad-filter-select');
+        if ($modalidadFilter.length) {
+            $modalidadFilter.off('change').on('change', function() {
+                var modalidad = $(this).val();
+                filtrarPacientesPorModalidad(modalidad);
+            });
+        } else {
+            // Intentar buscar por nombre
+            $modalidadFilter = $('select[name*="modalidadFilter"]');
+            if ($modalidadFilter.length) {
+                $modalidadFilter.off('change').on('change', function() {
+                    var modalidad = $(this).val();
+                    filtrarPacientesPorModalidad(modalidad);
+                });
+            }
+        }
+    }, 1000);
+}
+
+// Ejecutar cuando el documento esté listo
+$(document).ready(function() {
+    setupModalidadFilter();
+});
+
+// También ejecutar después de un delay por si acaso
+setTimeout(setupModalidadFilter, 2000);
 
 var getParams = function (url) {
     var params = {};

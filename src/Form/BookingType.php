@@ -100,11 +100,28 @@ class BookingType extends AbstractType
                         }
                     },
                 ])
+                ->add('modalidadFilter', ChoiceType::class, [
+                    'label' => 'Filtrar por Modalidad',
+                    'choices' => [
+                        'Todos' => '',
+                        'Ambulatorio' => '1',
+                        'Internación' => '2',
+                        'Hospital de día' => '3',
+                        'ART' => '4',
+                    ],
+                    'required' => false,
+                    'mapped' => false,
+                    'attr' => [
+                        'class' => 'form-control',
+                        'id' => 'modalidad-filter-select'
+                    ],
+                    'placeholder' => 'Todas las modalidades',
+                ])
                 ->add('cliente', EntityType::class, [
                     'class' => Cliente::class,
                     'choice_label' => 'NombreApellido',
                     'label' => 'Paciente',
-                    'attr' => ['class' => 'predictivo'],
+                    'attr' => ['class' => 'predictivo', 'id' => 'booking-cliente-select'],
                     'query_builder' => function (EntityRepository $er) {
                         return $er->createQueryBuilder('c')
                             ->andWhere('c.fEgreso > :val')->setParameter('val', new \DateTime())
