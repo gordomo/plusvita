@@ -68,6 +68,7 @@ class ClienteType extends AbstractType
                     'choice_label' => 'nombre',
                     'label' => 'Obra Social',
                     'placeholder' => 'Seleccione una Obra Social',
+                    'required' => false,
                     'query_builder' => function (EntityRepository $er) {
                         return $er->createQueryBuilder('o')
                             ->orderBy('o.nombre', 'ASC');

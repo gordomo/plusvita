@@ -339,6 +339,7 @@ class Cliente
 
     /**
      * @ORM\ManyToOne(targetEntity=ObraSocial::class, inversedBy="clientes")
+     * @ORM\JoinColumn(nullable=true)
      */
     private $obraSocial;
 
@@ -353,7 +354,7 @@ class Cliente
     private $presentes;
 
     /**
-     * @ORM\Column(type="text")
+     * @ORM\Column(type="text", nullable=true)
      */
     private $epicrisis_ingreso;
 
@@ -1350,7 +1351,7 @@ class Cliente
         return $this->epicrisis_ingreso;
     }
 
-    public function setEpicrisisIngreso(string $epicrisis_ingreso): self
+    public function setEpicrisisIngreso(?string $epicrisis_ingreso): self
     {
         $this->epicrisis_ingreso = $epicrisis_ingreso;
 
