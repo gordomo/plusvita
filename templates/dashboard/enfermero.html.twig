@@ -60,19 +60,19 @@
 
         <!-- Accesos Rápidos -->
         <div class="row">
-            <!-- Prescripciones -->
+            <!-- Kardex General -->
             <div class="col-md-6 mb-4">
-                <a href="{{ path('prescripcion_index', {'id': app.user.id}) }}" class="text-decoration-none">
+                <a href="{{ path('medicacion_enfermeria_index') }}" class="text-decoration-none">
                     <div class="dashboard-card">
                         <div class="dashboard-card-header bg-primary text-white">
-                            <i class="fas fa-pills"></i> Prescripciones
+                            <i class="fas fa-syringe"></i> Kardex
                         </div>
                         <div class="dashboard-card-body">
                             <p class="card-text text-muted">
-                                <i class="fas fa-file-medical mr-2"></i> Administre prescripciones médicas por paciente
+                                <i class="fas fa-clipboard-list mr-2"></i> Acceda al kardex de medicación de todos los pacientes
                             </p>
                             <small class="text-primary">
-                                <i class="fas fa-arrow-right"></i> Ir a prescripciones
+                                <i class="fas fa-arrow-right"></i> Ver Kardex General
                             </small>
                         </div>
                     </div>
@@ -88,7 +88,7 @@
                         </div>
                         <div class="dashboard-card-body">
                             <p class="card-text text-muted">
-                                <i class="fas fa-hospital-user mr-2"></i> Acceda al listado de pacientes
+                                <i class="fas fa-hospital-user mr-2"></i> Acceda al listado completo de pacientes
                             </p>
                             <small class="text-success">
                                 <i class="fas fa-arrow-right"></i> Ver pacientes
@@ -99,23 +99,101 @@
             </div>
         </div>
 
-        <!-- Sección adicional: Aquí puedes agregar más widgets según necesites -->
+        <!-- Indicaciones Próximas -->
         <div class="row mt-4">
             <div class="col-12">
                 <h5 class="text-muted mb-3">
-                    <i class="fas fa-tasks"></i> Tareas Pendientes
+                    <i class="fas fa-clock"></i> Indicaciones Próximas
                 </h5>
             </div>
             
-            <!-- Aquí puedes agregar más tarjetas según necesites -->
-            <!-- Por ejemplo: Medicaciones pendientes, Controles vitales, Rondas, etc. -->
-            
-            <div class="col-md-12">
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle mr-2"></i>
-                    <strong>Próximamente:</strong> Aquí se mostrarán las tareas y recordatorios del día.
+            {% if indicacionesProximas is defined and indicacionesProximas|length > 0 %}
+                <div class="col-12">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Paciente</th>
+                                    <th>Medicamento/Indicación</th>
+                                    <th>Dosis</th>
+                                    <th>Fecha/Hora</th>
+                                    <th>Estado</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in indicacionesProximas %}
+                                    <tr class="{% if item.enVentana %}table-warning{% elseif item.estado == 'vencido' %}table-danger{% endif %}">
+                                        <td>
+                                            <strong>{{ item.cliente.nombre }} {{ item.cliente.apellido }}</strong><br>
+                                            <small class="text-muted">H.C.: {{ item.cliente.hClinica }}</small>
+                                        </td>
+                                        <td>
+                                            {{ item.nombreMedicamento }}
+                                            {% if item.indicacion.frecuencia %}
+                                                <br><small class="text-muted">Frecuencia: {{ item.indicacion.frecuencia }}</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if item.indicacion.cantidad %}
+                                                {{ item.indicacion.cantidad }} 
+                                                {% if item.indicacion.unidadMedida %}{{ item.indicacion.unidadMedida }}{% endif %}
+                                            {% else %}
+                                                --
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {{ item.fechaHora|date('d/m/Y H:i') }}
+                                            {% if item.enVentana %}
+                                                <br><small class="text-warning"><i class="fas fa-exclamation-circle"></i> En ventana</small>
+                                            {% elseif item.estado == 'vencido' %}
+                                                <br><small class="text-danger">
+                                                    {% set horasVencidas = (item.minutosDiferencia / 60)|round %}
+                                                    Vencida hace {{ horasVencidas|abs }}h
+                                                </small>
+                                            {% else %}
+                                                <br><small class="text-info">
+                                                    {% set horasRestantes = (item.minutosDiferencia / 60)|round %}
+                                                    En {{ horasRestantes }}h
+                                                </small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if item.enVentana %}
+                                                <span class="badge badge-warning">
+                                                    <i class="fas fa-clock"></i> En Ventana
+                                                </span>
+                                            {% elseif item.estado == 'vencido' %}
+                                                <span class="badge badge-danger">
+                                                    <i class="fas fa-exclamation-triangle"></i> Pendiente
+                                                </span>
+                                            {% else %}
+                                                <span class="badge badge-info">
+                                                    <i class="fas fa-hourglass-half"></i> Próxima
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{{ path('medicacion_enfermeria', {'id': item.cliente.id}) }}" 
+                                               class="btn btn-sm btn-primary" 
+                                               title="Ir al Kardex del paciente">
+                                                <i class="fas fa-syringe"></i> Kardex
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
+            {% else %}
+                <div class="col-md-12">
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        <strong>¡Excelente!</strong> No hay indicaciones pendientes en este momento.
+                    </div>
+                </div>
+            {% endif %}
         </div>
     </div>
 {% endblock %}

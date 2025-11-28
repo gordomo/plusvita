@@ -132,4 +132,73 @@ class HorarioTomaRepository extends ServiceEntityRepository
             ->getQuery()
             ->execute();
     }
+
+    /**
+     * Obtiene indicaciones próximas y pendientes para el dashboard de enfermeros
+     * Incluye: horarios en ventana de administración, próximos 8 horas y pendientes de últimas 8 horas
+     */
+    public function findIndicacionesProximasParaDashboard(\DateTime $ahora = null, int $limite = 20): array
+    {
+        if (!$ahora) {
+            $ahora = new \DateTime();
+        }
+
+        $fechaActual = $ahora->format('Y-m-d');
+        $horaActual = $ahora->format('H:i:s');
+        
+        // Calcular ventanas de tiempo
+        $hace8Horas = clone $ahora;
+        $hace8Horas->modify('-8 hours');
+        $en8Horas = clone $ahora;
+        $en8Horas->modify('+8 hours');
+        
+        $fechaHace8Horas = $hace8Horas->format('Y-m-d');
+        $fechaEn8Horas = $en8Horas->format('Y-m-d');
+        $horaHace8Horas = $hace8Horas->format('H:i:s');
+        $horaEn8Horas = $en8Horas->format('H:i:s');
+        
+        // Ventana de administración: 2 horas antes y después
+        $ventanaInicio = clone $ahora;
+        $ventanaInicio->modify('-2 hours');
+        $ventanaFin = clone $ahora;
+        $ventanaFin->modify('+2 hours');
+        
+        $horaVentanaInicio = $ventanaInicio->format('H:i:s');
+        $horaVentanaFin = $ventanaFin->format('H:i:s');
+
+        // Obtener horarios que cumplen los criterios:
+        // 1. En ventana de administración del día actual (2 horas antes/después)
+        // 2. Próximos 8 horas (hoy o mañana)
+        // 3. Pendientes de últimas 8 horas
+        return $this->createQueryBuilder('h')
+            ->join('h.indicacion', 'i')
+            ->where('h.administrado = false')
+            ->andWhere('h.habilitado = true')
+            ->andWhere('i.activo = true')
+            ->andWhere('i.estadoSuspendido = false')
+            ->andWhere(
+                // En ventana de administración del día actual
+                '(h.fecha = :fechaActual AND (h.horario BETWEEN :horaVentanaInicio AND :horaVentanaFin OR i.frecuencia = :sos)) OR ' .
+                // Próximas 8 horas: hoy con horario futuro o mañana dentro de la ventana
+                '(h.fecha = :fechaActual AND h.horario >= :horaActual AND h.horario <= :horaEn8Horas) OR ' .
+                '(h.fecha = :fechaEn8Horas AND h.horario <= :horaEn8Horas) OR ' .
+                // Pendientes de últimas 8 horas
+                '(h.fecha = :fechaHace8Horas AND h.horario >= :horaHace8Horas) OR ' .
+                '(h.fecha = :fechaActual AND h.horario < :horaActual AND h.horario >= :horaHace8Horas)'
+            )
+            ->setParameter('fechaActual', $fechaActual)
+            ->setParameter('horaActual', $horaActual)
+            ->setParameter('horaVentanaInicio', $horaVentanaInicio)
+            ->setParameter('horaVentanaFin', $horaVentanaFin)
+            ->setParameter('sos', 'sos')
+            ->setParameter('fechaHace8Horas', $fechaHace8Horas)
+            ->setParameter('fechaEn8Horas', $fechaEn8Horas)
+            ->setParameter('horaHace8Horas', $horaHace8Horas)
+            ->setParameter('horaEn8Horas', $horaEn8Horas)
+            ->orderBy('h.fecha', 'ASC')
+            ->addOrderBy('h.horario', 'ASC')
+            ->setMaxResults($limite)
+            ->getQuery()
+            ->getResult();
+    }
 }

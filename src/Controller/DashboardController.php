@@ -8,10 +8,12 @@ use App\Entity\Habitacion;
 use App\Controller\ExportToExcel;
 use App\Entity\HistoriaPaciente;
 use App\Repository\ClienteRepository;
+use App\Repository\ConsumibleRepository;
 use App\Repository\DoctorRepository;
 use App\Repository\HabitacionRepository;
 use App\Repository\HistoriaHabitacionesRepository;
 use App\Repository\HistoriaPacienteRepository;
+use App\Repository\HorarioTomaRepository;
 use App\Repository\ObraSocialRepository;
 use App\Repository\PresentesRepository;
 use DateTime;
@@ -61,7 +63,9 @@ class DashboardController extends AbstractController
         } elseif ($this->isDoctor()) {
             return $this->dashboardDoctor();
         } elseif ($this->isEnfermero()) {
-            return $this->dashboardEnfermero();
+            $horarioTomaRepository = $this->getDoctrine()->getRepository(\App\Entity\HorarioToma::class);
+            $consumibleRepository = $this->getDoctrine()->getRepository(\App\Entity\Consumible::class);
+            return $this->dashboardEnfermero($horarioTomaRepository, $consumibleRepository, $clienteRepository);
         }
 
         // Dashboard por defecto para otros usuarios autenticados
@@ -165,17 +169,98 @@ class DashboardController extends AbstractController
     /**
      * Dashboard para enfermeros
      */
-    private function dashboardEnfermero(): Response
+    private function dashboardEnfermero(HorarioTomaRepository $horarioTomaRepository = null, ConsumibleRepository $consumibleRepository = null, ClienteRepository $clienteRepository = null): Response
     {
         $user = $this->getUser();
         
-        // Aquí puedes agregar lógica específica para enfermeros
-        // Por ejemplo: prescripciones pendientes, rondas del día, etc.
+        // Obtener indicaciones próximas y pendientes para el dashboard
+        $indicacionesProximas = [];
+        $consumiblesArray = [];
+        
+        if ($horarioTomaRepository && $consumibleRepository && $clienteRepository) {
+            // Obtener horarios próximos/pendientes
+            $horarios = $horarioTomaRepository->findIndicacionesProximasParaDashboard(new \DateTime(), 30);
+            
+            // Organizar datos para el template
+            foreach ($horarios as $horario) {
+                $indicacion = $horario->getIndicacion();
+                $clienteId = $indicacion->getClienteId();
+                
+                // Obtener cliente
+                $cliente = $clienteRepository->find($clienteId);
+                if (!$cliente) {
+                    continue;
+                }
+                
+                // Obtener nombre del consumible si es medicamento
+                $nombreMedicamento = 'N/D';
+                if ($indicacion->getConsumibleId()) {
+                    if (!isset($consumiblesArray[$indicacion->getConsumibleId()])) {
+                        $consumible = $consumibleRepository->find($indicacion->getConsumibleId());
+                        if ($consumible) {
+                            $consumiblesArray[$indicacion->getConsumibleId()] = $consumible->getNombre();
+                        }
+                    }
+                    $nombreMedicamento = $consumiblesArray[$indicacion->getConsumibleId()] ?? 'N/D';
+                } elseif ($indicacion->getProcedimientoPersonalizado()) {
+                    $nombreMedicamento = $indicacion->getProcedimientoPersonalizado();
+                }
+                
+                // Verificar si está en ventana de administración
+                $enVentana = $horario->estaEnVentanaAdministracion();
+                
+                // Determinar estado
+                $ahora = new \DateTime();
+                $fechaHoraProgramada = clone $horario->getFecha();
+                $horarioTime = $horario->getHorario();
+                $fechaHoraProgramada->setTime(
+                    (int)$horarioTime->format('H'),
+                    (int)$horarioTime->format('i'),
+                    (int)$horarioTime->format('s')
+                );
+                
+                $diferencia = $ahora->diff($fechaHoraProgramada);
+                $minutosDiferencia = ($diferencia->days * 24 * 60) + ($diferencia->h * 60) + $diferencia->i;
+                
+                $estado = 'pendiente';
+                if ($enVentana) {
+                    $estado = 'en_ventana';
+                } elseif ($minutosDiferencia < 0 && abs($minutosDiferencia) <= 480) { // 8 horas = 480 minutos
+                    $estado = 'vencido';
+                }
+                
+                $indicacionesProximas[] = [
+                    'horario' => $horario,
+                    'indicacion' => $indicacion,
+                    'cliente' => $cliente,
+                    'nombreMedicamento' => $nombreMedicamento,
+                    'fechaHora' => $fechaHoraProgramada,
+                    'enVentana' => $enVentana,
+                    'estado' => $estado,
+                    'minutosDiferencia' => $minutosDiferencia,
+                ];
+            }
+            
+            // Ordenar por fecha/hora (más urgentes primero)
+            usort($indicacionesProximas, function($a, $b) {
+                // Primero por estado (en_ventana > vencido > pendiente)
+                $prioridadEstado = ['en_ventana' => 1, 'vencido' => 2, 'pendiente' => 3];
+                $prioridadA = $prioridadEstado[$a['estado']] ?? 3;
+                $prioridadB = $prioridadEstado[$b['estado']] ?? 3;
+                
+                if ($prioridadA !== $prioridadB) {
+                    return $prioridadA <=> $prioridadB;
+                }
+                
+                // Luego por fecha/hora
+                return $a['fechaHora'] <=> $b['fechaHora'];
+            });
+        }
         
         return $this->render('dashboard/enfermero.html.twig', [
             'dashboardActive' => 'active',
             'user' => $user,
-            // Agrega aquí las variables que necesites para el dashboard del enfermero
+            'indicacionesProximas' => $indicacionesProximas,
         ]);
     }
 

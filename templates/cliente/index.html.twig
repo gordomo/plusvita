@@ -511,7 +511,7 @@
                                             <i class="far fa-calendar-alt"></i> Historia de Ingreso
                                         </a>
                                         {% endif %}
-                                        {% if is_granted('patient.prescription') %}
+                                        {% if is_granted('patient.indication') %}
                                         <a class="dropdown-item" href="{{ path('consumible_indicar_view', {'id': cliente.id}) }}">
                                             <i class="fas fa-pills"></i> Indicaciones
                                         </a>

@@ -723,9 +723,9 @@
                 <div class="col-lg-9 col-sm-12 col-md-9">
                     <div class="text-right">
                         <a href="{{ path('cardex_paciente', {'id': cliente.id}) }}" class="btn btn-info">
-                            <i class="fas fa-clipboard-list"></i> Ver Cardex Completo
+                            <i class="fas fa-clipboard-list"></i> Ver Kardex Completo
                         </a>
-                        {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_DOCTOR') %}
+                        {% if is_granted('patient.indication') %}
                             <a href="{{ path('consumible_indicar_view', {'id': cliente.id}) }}" class="btn btn-primary">
                                 <i class="fas fa-plus"></i> Nueva Indicación
                             </a>

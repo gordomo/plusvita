@@ -266,6 +266,9 @@ class ConsumibleController extends AbstractController
      */
     public function indicarView(Cliente $cliente, ConsumibleRepository $consumibleRepository, ConsumiblesClientesRepository $consumiblesClientesRepository): Response
     {
+        // Verificar permiso para ver y gestionar indicaciones médicas (solo médicos)
+        $this->denyAccessUnlessGranted('patient.indication', null, 'No tienes permisos para ver indicaciones médicas.');
+        
         $consumibles = $consumibleRepository->findBy([], ['nombre' => 'ASC']);
         
         // Crear array asociativo para acceso más eficiente en el template
@@ -355,6 +358,11 @@ class ConsumibleController extends AbstractController
      */
     public function extenderIndicacion(Request $request, EntityManagerInterface $entityManager)
     {
+        // Verificar permiso para gestionar indicaciones médicas
+        if (!$this->isGranted('patient.indication')) {
+            return $this->json(['success' => false, 'message' => 'No tienes permisos para extender indicaciones médicas'], 403);
+        }
+        
         $indicacionId = $request->request->get('indicacionId');
         $nuevaFechaFin = $request->request->get('nuevaFechaFin');
         
@@ -386,6 +394,11 @@ class ConsumibleController extends AbstractController
      */
     public function reactivarIndicacion(Request $request, EntityManagerInterface $entityManager)
     {
+        // Verificar permiso para gestionar indicaciones médicas
+        if (!$this->isGranted('patient.indication')) {
+            return $this->json(['success' => false, 'message' => 'No tienes permisos para reactivar indicaciones médicas'], 403);
+        }
+        
         $indicacionId = $request->request->get('indicacionId');
         $fechaInicio = $request->request->get('fechaInicio');
         $fechaFin = $request->request->get('fechaFin');
@@ -679,6 +692,11 @@ class ConsumibleController extends AbstractController
      */
     public function guardarIndicaciones($id, Request $request, HorarioTomaCalculatorService $horarioCalculator): Response
     {
+        // Verificar permiso para gestionar indicaciones médicas
+        if (!$this->isGranted('patient.indication')) {
+            return $this->json(['success' => false, 'message' => 'No tienes permisos para crear indicaciones médicas'], 403);
+        }
+        
         $entityManager = $this->getDoctrine()->getManager();
         $cliente = $entityManager->getRepository(Cliente::class)->find($id);
         
@@ -873,6 +891,11 @@ class ConsumibleController extends AbstractController
      */
     public function editarIndicacion($id, Request $request): Response
     {
+        // Verificar permiso para gestionar indicaciones médicas
+        if (!$this->isGranted('patient.indication')) {
+            return $this->json(['success' => false, 'message' => 'No tienes permisos para editar indicaciones médicas'], 403);
+        }
+        
         $entityManager = $this->getDoctrine()->getManager();
         $indicacion = $entityManager->getRepository(ConsumiblesClientes::class)->find($id);
         
@@ -948,6 +971,11 @@ class ConsumibleController extends AbstractController
      */
     public function suspenderIndicacion($id, Request $request): Response
     {
+        // Verificar permiso para gestionar indicaciones médicas
+        if (!$this->isGranted('patient.indication')) {
+            return $this->json(['success' => false, 'message' => 'No tienes permisos para suspender indicaciones médicas'], 403);
+        }
+        
         $entityManager = $this->getDoctrine()->getManager();
         $indicacion = $entityManager->getRepository(ConsumiblesClientes::class)->find($id);
         
@@ -972,6 +1000,11 @@ class ConsumibleController extends AbstractController
      */
     public function reanudarIndicacion($id, Request $request): Response
     {
+        // Verificar permiso para gestionar indicaciones médicas
+        if (!$this->isGranted('patient.indication')) {
+            return $this->json(['success' => false, 'message' => 'No tienes permisos para reanudar indicaciones médicas'], 403);
+        }
+        
         $entityManager = $this->getDoctrine()->getManager();
         $indicacion = $entityManager->getRepository(ConsumiblesClientes::class)->find($id);
         
@@ -996,6 +1029,11 @@ class ConsumibleController extends AbstractController
      */
     public function cancelarIndicacion($id, Request $request): Response
     {
+        // Verificar permiso para gestionar indicaciones médicas
+        if (!$this->isGranted('patient.indication')) {
+            return $this->json(['success' => false, 'message' => 'No tienes permisos para cancelar indicaciones médicas'], 403);
+        }
+        
         $entityManager = $this->getDoctrine()->getManager();
         $indicacion = $entityManager->getRepository(ConsumiblesClientes::class)->find($id);
         

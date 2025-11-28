@@ -206,6 +206,11 @@
         <a href="{{ path('consumible_indicar_view', {'id': cliente.id}) }}" class="btn btn-outline-primary mr-2">
             <i class="fas fa-pills"></i> Ver Indicaciones
         </a>
+        {% if is_granted('patient.indication') %}
+        <a href="{{ path('consumible_indicar_view', {'id': cliente.id}) }}" class="btn btn-outline-success mr-2">
+            <i class="fas fa-plus"></i> Agregar Indicación
+        </a>
+        {% endif %}
         <button class="btn btn-outline-warning mr-2" onclick="regenerarHorarios({{ cliente.id }})">
             <i class="fas fa-cogs"></i> Regenerar Horarios
         </button>
@@ -446,9 +451,11 @@
             <p class="text-muted">
                 Este paciente no tiene horarios de medicación programados para el día {{ fechaHoy|date('d/m/Y') }}.
             </p>
+            {% if is_granted('patient.indication') %}
             <a href="{{ path('consumible_indicar_view', {'id': cliente.id}) }}" class="btn btn-primary">
                 <i class="fas fa-plus"></i> Agregar Indicación
             </a>
+            {% endif %}
         </div>
     {% endif %}
 

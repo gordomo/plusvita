@@ -31,9 +31,11 @@
             <button class="tab-btn active" id="mostrarActivas">Activas</button>
             <button class="tab-btn" id="mostrarProximas">Próximas a vencer</button>
             <button class="tab-btn" id="mostrarHistoricas">Históricas</button>
+            {% if is_granted('patient.indication') %}
             <button class="btn btn-sm btn-primary ml-auto" id="agregarItem">
                 <i class="fas fa-plus"></i> Nueva
             </button>
+            {% endif %}
         </div>
         
         <!-- Área para indicaciones existentes -->
@@ -90,6 +92,7 @@
                                                 {% endif %}
                                             </td>
                                             <td>
+                                                {% if is_granted('patient.indication') %}
                                                 <div class="btn-group btn-group-sm" role="group">
                                                     <button type="button" class="btn btn-outline-primary btn-sm" 
                                                             onclick="editarIndicacion({{ indicacion.id }})" 
@@ -115,6 +118,9 @@
                                                         <i class="fas fa-times"></i>
                                                     </button>
                                                 </div>
+                                                {% else %}
+                                                    <span class="text-muted">Solo lectura</span>
+                                                {% endif %}
                                             </td>
                                         </tr>
                                     {% endfor %}
@@ -250,6 +256,7 @@
     </div>
     
     <!-- Formulario para nueva indicación (simplificado y organizado) -->
+    {% if is_granted('patient.indication') %}
     <div class="indicacion-form" id="nuevaIndicacionForm" style="display: none;">
         <h5>Nueva Indicación Médica</h5>
         
@@ -393,6 +400,7 @@
             <button type="button" class="btn btn-primary" id="agregarNuevaIndicacion">Guardar Indicación</button>
         </div>
     </div>
+    {% endif %}
     
     <!-- Input oculto para ID cliente -->
     <input type="hidden" id="clienteId" value="{{ cliente.id }}">

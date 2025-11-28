@@ -32,6 +32,42 @@
         .role-card:hover {
             transform: translateY(-2px);
         }
+        
+        .category-header {
+            user-select: none;
+            transition: background-color 0.2s ease;
+        }
+        
+        .category-header:hover {
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            padding: 0.25rem 0.5rem;
+            margin: -0.25rem -0.5rem;
+        }
+        
+        .category-header h5 {
+            transition: color 0.2s ease;
+        }
+        
+        .category-header:hover h5 {
+            color: #007bff;
+        }
+        
+        .collapse-icon {
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+        
+        .category-header[aria-expanded="true"] .collapse-icon {
+            transform: rotate(90deg);
+        }
+        
+        .category-section {
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 1rem;
+            background-color: #fff;
+        }
     </style>
 {% endblock %}
 
@@ -56,71 +92,125 @@
         </div>
     </div>
     
-    <div class="row">
-        {% for role in roles %}
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card role-card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="fas fa-user-tag mr-2"></i>
-                        {{ role.displayName }}
-                    </h5>
-                    <div class="d-flex">
-                        <a href="{{ path('role_permissions', {'id': role.id}) }}" class="btn btn-sm btn-outline-info mr-1" title="Gestionar permisos">
-                            <i class="fas fa-key"></i>
-                        </a>
-                        <a href="{{ path('role_edit', {'id': role.id}) }}" class="btn btn-sm btn-outline-primary mr-1" title="Editar">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                        {% if not role.isSystem %}
-                        <a href="{{ path('role_delete', {'id': role.id}) }}" class="btn btn-sm btn-outline-danger" title="Eliminar" 
-                           onclick="return confirm('¿Estás seguro de que quieres eliminar este rol?')">
-                            <i class="fas fa-trash"></i>
-                        </a>
-                        {% endif %}
-                    </div>
-                </div>
-                <div class="card-body">
-                    <p class="text-muted mb-3">{{ role.description }}</p>
-                    
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            {% if role.isSystem %}
-                                <span class="badge badge-warning badge-sm">
-                                    <i class="fas fa-cog"></i> Sistema
-                                </span>
-                            {% endif %}
-                            {% if role.isActive %}
-                                <span class="badge badge-success badge-sm">
-                                    <i class="fas fa-check"></i> Activo
-                                </span>
+    {% if rolesByCategory is defined and rolesByCategory|length > 0 %}
+        {% for categoryKey, categoryData in rolesByCategory %}
+            <div class="category-section mb-3">
+                <div class="category-header" data-toggle="collapse" data-target="#category-{{ categoryKey }}" aria-expanded="false" aria-controls="category-{{ categoryKey }}" style="cursor: pointer;">
+                    <h5 class="mb-0 pb-2 border-bottom d-flex justify-content-between align-items-center">
+                        <span>
+                            <i class="fas fa-chevron-right collapse-icon mr-2 text-muted" style="transition: transform 0.3s;"></i>
+                            {% if categoryKey == 'medical' %}
+                                <i class="fas fa-stethoscope text-danger mr-2"></i>
+                            {% elseif categoryKey == 'nursing' %}
+                                <i class="fas fa-user-nurse text-primary mr-2"></i>
+                            {% elseif categoryKey == 'administrative' %}
+                                <i class="fas fa-briefcase text-info mr-2"></i>
+                            {% elseif categoryKey == 'maintenance' %}
+                                <i class="fas fa-tools text-warning mr-2"></i>
+                            {% elseif categoryKey == 'kitchen' %}
+                                <i class="fas fa-utensils text-success mr-2"></i>
                             {% else %}
-                                <span class="badge badge-danger badge-sm">
-                                    <i class="fas fa-times"></i> Inactivo
-                                </span>
+                                <i class="fas fa-tag text-secondary mr-2"></i>
                             {% endif %}
+                            {{ categoryData.name }}
+                            <span class="badge badge-secondary ml-2">{{ categoryData.roles|length }}</span>
+                        </span>
+                    </h5>
+                </div>
+                <div class="collapse" id="category-{{ categoryKey }}">
+                    <div class="row mt-3">
+                        {% for role in categoryData.roles %}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card role-card h-100">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-user-tag mr-2"></i>
+                                        {{ role.displayName }}
+                                    </h5>
+                                    <div class="d-flex">
+                                        <a href="{{ path('role_permissions', {'id': role.id}) }}" class="btn btn-sm btn-outline-info mr-1" title="Gestionar permisos">
+                                            <i class="fas fa-key"></i>
+                                        </a>
+                                        <a href="{{ path('role_edit', {'id': role.id}) }}" class="btn btn-sm btn-outline-primary mr-1" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        {% if not role.isSystem %}
+                                        <a href="{{ path('role_delete', {'id': role.id}) }}" class="btn btn-sm btn-outline-danger" title="Eliminar" 
+                                           onclick="return confirm('¿Estás seguro de que quieres eliminar este rol?')">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <p class="text-muted mb-3">{{ role.description }}</p>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            {% if role.isSystem %}
+                                                <span class="badge badge-warning badge-sm">
+                                                    <i class="fas fa-cog"></i> Sistema
+                                                </span>
+                                            {% endif %}
+                                            {% if role.isActive %}
+                                                <span class="badge badge-success badge-sm">
+                                                    <i class="fas fa-check"></i> Activo
+                                                </span>
+                                            {% else %}
+                                                <span class="badge badge-danger badge-sm">
+                                                    <i class="fas fa-times"></i> Inactivo
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                        <small class="text-muted">
+                                            {{ role.createdAt|date('d/m/Y') }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <small class="text-muted">
-                            {{ role.createdAt|date('d/m/Y') }}
-                        </small>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-user-tag fa-3x text-muted mb-3"></i>
+                        <h4>No hay roles configurados</h4>
+                        <p class="text-muted">Comienza creando tu primer rol del sistema.</p>
+                        <a href="{{ path('role_new') }}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Crear Primer Rol
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
-        {% else %}
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body text-center py-5">
-                    <i class="fas fa-user-tag fa-3x text-muted mb-3"></i>
-                    <h4>No hay roles configurados</h4>
-                    <p class="text-muted">Comienza creando tu primer rol del sistema.</p>
-                    <a href="{{ path('role_new') }}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Crear Primer Rol
-                    </a>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
+    {% endif %}
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Manejar la rotación del icono cuando se expande/colapsa
+    document.querySelectorAll('.category-header').forEach(function(header) {
+        header.addEventListener('click', function() {
+            const icon = this.querySelector('.collapse-icon');
+            const target = this.getAttribute('data-target');
+            const collapseElement = document.querySelector(target);
+            
+            // Esperar a que Bootstrap complete la animación
+            collapseElement.addEventListener('shown.bs.collapse', function() {
+                if (icon) icon.style.transform = 'rotate(90deg)';
+            });
+            
+            collapseElement.addEventListener('hidden.bs.collapse', function() {
+                if (icon) icon.style.transform = 'rotate(0deg)';
+            });
+        });
+    });
+});
+</script>
 {% endblock %}

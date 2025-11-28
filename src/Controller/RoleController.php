@@ -37,9 +37,43 @@ class RoleController extends AbstractController
         }
 
         $roles = $roleRepository->findWithPermissions();
+        
+        // Agrupar roles por categoría
+        $rolesByCategory = [];
+        $categories = Role::getCategories();
+        
+        // Inicializar arrays para cada categoría
+        foreach ($categories as $categoryKey => $categoryName) {
+            $rolesByCategory[$categoryKey] = [
+                'name' => $categoryName,
+                'roles' => []
+            ];
+        }
+        
+        // Agregar categoría "Sin categoría" para roles sin categoría asignada
+        $rolesByCategory['uncategorized'] = [
+            'name' => 'Sin Categoría',
+            'roles' => []
+        ];
+        
+        // Agrupar roles por categoría
+        foreach ($roles as $role) {
+            $category = $role->getCategory();
+            if ($category && isset($rolesByCategory[$category])) {
+                $rolesByCategory[$category]['roles'][] = $role;
+            } else {
+                $rolesByCategory['uncategorized']['roles'][] = $role;
+            }
+        }
+        
+        // Eliminar categorías vacías
+        $rolesByCategory = array_filter($rolesByCategory, function($categoryData) {
+            return !empty($categoryData['roles']);
+        });
 
         return $this->render('role/index.html.twig', [
-            'roles' => $roles,
+            'rolesByCategory' => $rolesByCategory,
+            'categories' => $categories,
         ]);
     }
 

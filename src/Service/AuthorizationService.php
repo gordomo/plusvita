@@ -156,7 +156,7 @@ class AuthorizationService
     /**
      * Create a new role
      */
-    public function createRole(string $name, string $displayName, ?string $description = null): Role
+    public function createRole(string $name, string $displayName, ?string $description = null, ?string $category = null): Role
     {
         $role = new Role();
         $role->setName($name);
@@ -164,11 +164,81 @@ class AuthorizationService
         $role->setDescription($description);
         $role->setIsActive(true);
         $role->setIsSystem(false);
+        
+        // Asignar categoría si se proporciona
+        if ($category) {
+            $role->setCategory($category);
+        } else {
+            // Intentar asignar categoría automáticamente basándose en el nombre
+            $role->setCategory($this->guessCategoryFromName($name));
+        }
 
         $this->entityManager->persist($role);
         $this->entityManager->flush();
 
         return $role;
+    }
+    
+    /**
+     * Guess category from role name
+     */
+    private function guessCategoryFromName(string $name): ?string
+    {
+        $nameLower = strtolower($name);
+        
+        // Roles médicos
+        if (strpos($nameLower, 'medico') !== false || 
+            strpos($nameLower, 'director_medico') !== false ||
+            strpos($nameLower, 'sub_director_medico') !== false ||
+            strpos($nameLower, 'psiquiatra') !== false ||
+            strpos($nameLower, 'infectologo') !== false ||
+            strpos($nameLower, 'neurologo') !== false ||
+            strpos($nameLower, 'cardiologo') !== false ||
+            strpos($nameLower, 'urologo') !== false ||
+            strpos($nameLower, 'hematologo') !== false ||
+            strpos($nameLower, 'neumonologo') !== false ||
+            strpos($nameLower, 'cirujano') !== false ||
+            strpos($nameLower, 'traumatologo') !== false ||
+            strpos($nameLower, 'fisiatra') !== false ||
+            strpos($nameLower, 'medico_guardia') !== false ||
+            strpos($nameLower, 'medico_clinico') !== false) {
+            return Role::CATEGORY_MEDICAL;
+        }
+        
+        // Roles de enfermería
+        if (strpos($nameLower, 'enfermer') !== false || 
+            strpos($nameLower, 'coordinador_enfermeria') !== false) {
+            return Role::CATEGORY_NURSING;
+        }
+        
+        // Roles administrativos
+        if (strpos($nameLower, 'admin') !== false ||
+            strpos($nameLower, 'administrativo') !== false ||
+            strpos($nameLower, 'recepcionista') !== false ||
+            strpos($nameLower, 'coordinador_general') !== false ||
+            strpos($nameLower, 'coordinador_pisos') !== false ||
+            strpos($nameLower, 'directivo') !== false ||
+            strpos($nameLower, 'contador') !== false ||
+            strpos($nameLower, 'abogado') !== false ||
+            strpos($nameLower, 'estudio_contable') !== false ||
+            strpos($nameLower, 'programador') !== false) {
+            return Role::CATEGORY_ADMINISTRATIVE;
+        }
+        
+        // Roles de cocina
+        if (strpos($nameLower, 'cocin') !== false || 
+            strpos($nameLower, 'ayudante_cocina') !== false) {
+            return Role::CATEGORY_KITCHEN;
+        }
+        
+        // Roles de mantenimiento
+        if (strpos($nameLower, 'mantenimiento') !== false || 
+            strpos($nameLower, 'mucamo') !== false) {
+            return Role::CATEGORY_MAINTENANCE;
+        }
+        
+        // Por defecto, categoría "Otro"
+        return Role::CATEGORY_OTHER;
     }
 
     /**
@@ -289,7 +359,8 @@ class AuthorizationService
             ['patient.edit_evolve', 'Editar Evoluciones Médicas', 'Pacientes', 'Permite editar evoluciones médicas existentes'],
             ['patient.evolve_without_presence', 'Evolucionar sin Presente', 'Pacientes', 'Permite crear evoluciones sin necesidad de tener presente del día'],
             ['patient.prescription', 'Prescripciones', 'Pacientes', 'Permite gestionar prescripciones médicas'],
-            ['patient.cardex', 'Completar Cardex', 'Pacientes', 'Permite completar el cardex del paciente (signos vitales, medicación, cuidados)'],
+            ['patient.cardex', 'Completar Kardex', 'Pacientes', 'Permite completar el kardex del paciente (signos vitales, medicación, cuidados)'],
+            ['patient.indication', 'Gestionar Indicaciones Médicas', 'Pacientes', 'Permite crear, editar y gestionar indicaciones médicas (medicamentos, procedimientos, controles)'],
             ['patient.discharge', 'Egresar Pacientes', 'Pacientes', 'Permite egresar pacientes del sistema'],
             ['patient.refer', 'Derivar Pacientes', 'Pacientes', 'Permite derivar pacientes a otros centros'],
             ['patient.permission', 'Dar Permisos', 'Pacientes', 'Permite otorgar permisos de salida a pacientes'],
@@ -503,7 +574,7 @@ class AuthorizationService
                 'permissions' => [
                     'user.read', 'patient.view', 'patient.create', 'patient.edit', 'patient.history',
                     'patient.evolve', 'patient.edit_evolve', 'patient.evolve_without_presence',
-                    'patient.prescription', 'patient.discharge', 'patient.refer', 'patient.permission',
+                    'patient.prescription', 'patient.indication', 'patient.discharge', 'patient.refer', 'patient.permission',
                     'doctor.read', 'doctor.create', 'doctor.update', 'nurse.read',
                     'agenda.view', 'agenda.manage', 'liquidations.view', 'liquidations.manage',
                     'informe_mensual.view', 'informe_mensual.manage', 'stats.view',
@@ -516,7 +587,7 @@ class AuthorizationService
                 'description' => 'Sub director médico',
                 'permissions' => [
                     'patient.view', 'patient.create', 'patient.edit', 'patient.history',
-                    'patient.evolve', 'patient.edit_evolve', 'patient.prescription',
+                    'patient.evolve', 'patient.edit_evolve', 'patient.prescription', 'patient.indication',
                     'patient.discharge', 'patient.refer', 'patient.permission',
                     'doctor.read', 'nurse.read',
                     'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view',
@@ -537,7 +608,7 @@ class AuthorizationService
                 'displayName' => 'Psiquiatra',
                 'description' => 'Médico psiquiatra',
                 'permissions' => [
-                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription',
+                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription', 'patient.indication',
                     'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view'
                 ]
             ],
@@ -546,7 +617,7 @@ class AuthorizationService
                 'displayName' => 'Infectólogo',
                 'description' => 'Médico infectólogo',
                 'permissions' => [
-                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription',
+                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription', 'patient.indication',
                     'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view'
                 ]
             ],
@@ -606,7 +677,7 @@ class AuthorizationService
                 'displayName' => 'Médico Clínico',
                 'description' => 'Médico clínico',
                 'permissions' => [
-                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription',
+                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription', 'patient.indication',
                     'patient.discharge', 'patient.refer',
                     'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view'
                 ]
@@ -625,7 +696,7 @@ class AuthorizationService
                 'displayName' => 'Médico de Guardia',
                 'description' => 'Médico de guardia',
                 'permissions' => [
-                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription',
+                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription', 'patient.indication',
                     'agenda.view', 'stats.view'
                 ]
             ],
@@ -679,7 +750,7 @@ class AuthorizationService
                 'displayName' => 'Fisiatra',
                 'description' => 'Médico fisiatra - puede ser doctor referente',
                 'permissions' => [
-                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription',
+                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription', 'patient.indication',
                     'patient.discharge', 'patient.refer', 'patient.permission',
                     'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view'
                 ]
@@ -689,7 +760,7 @@ class AuthorizationService
                 'displayName' => 'Neurólogo',
                 'description' => 'Médico neurólogo',
                 'permissions' => [
-                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription',
+                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription', 'patient.indication',
                     'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view'
                 ]
             ],
@@ -698,7 +769,7 @@ class AuthorizationService
                 'displayName' => 'Cardiólogo',
                 'description' => 'Médico cardiólogo',
                 'permissions' => [
-                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription',
+                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription', 'patient.indication',
                     'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view'
                 ]
             ],
@@ -707,7 +778,7 @@ class AuthorizationService
                 'displayName' => 'Urólogo',
                 'description' => 'Médico urólogo',
                 'permissions' => [
-                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription',
+                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription', 'patient.indication',
                     'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view'
                 ]
             ],
@@ -716,7 +787,7 @@ class AuthorizationService
                 'displayName' => 'Hematólogo',
                 'description' => 'Médico hematólogo',
                 'permissions' => [
-                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription',
+                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription', 'patient.indication',
                     'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view'
                 ]
             ],
@@ -725,7 +796,7 @@ class AuthorizationService
                 'displayName' => 'Neumónologo',
                 'description' => 'Médico neumónologo',
                 'permissions' => [
-                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription',
+                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription', 'patient.indication',
                     'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view'
                 ]
             ],
@@ -736,7 +807,7 @@ class AuthorizationService
                 'displayName' => 'Cirujano',
                 'description' => 'Médico cirujano',
                 'permissions' => [
-                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription',
+                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription', 'patient.indication',
                     'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view'
                 ]
             ],
@@ -745,7 +816,7 @@ class AuthorizationService
                 'displayName' => 'Traumatólogo',
                 'description' => 'Médico traumatólogo',
                 'permissions' => [
-                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription',
+                    'patient.view', 'patient.history', 'patient.evolve', 'patient.prescription', 'patient.indication',
                     'agenda.view', 'liquidations.view', 'informe_mensual.view', 'stats.view'
                 ]
             ],
