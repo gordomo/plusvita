@@ -25,7 +25,7 @@ class MedicacionEnfermeriaController extends AbstractController
      */
     public function indexGeneral(HorarioTomaRepository $horarioTomaRepository, EntityManagerInterface $entityManager): Response
     {
-        if (!$this->isGranted('patient.cardex') && !$this->isGranted('ROLE_NURSE')) {
+        if (!$this->isGranted('patient.kardex') && !$this->isGranted('ROLE_NURSE')) {
             throw $this->createAccessDeniedException('No tienes permisos para acceder al Kardex');
         }
         

@@ -1,60 +1,60 @@
 /**
- * Cardex System for Medical Indications
+ * Kardex System for Medical Indications
  */
 // Variable global para evitar que se ejecuten filtros automáticos
 var disableAutoFilters = true;
 
 $(document).ready(function() {
-    console.log("DOM listo, iniciando cardex...");
+    console.log("DOM listo, iniciando kardex...");
     
     // Forzar mostrar todas las categorías y elementos al inicio
-    $('.cardex-category-content').show();
-    $('.cardex-item').show();
+    $('.kardex-category-content').show();
+    $('.kardex-item').show();
     
     // Establecer los filtros en 'all' antes de inicializar
-    $('#cardex-filter-year').val('all');
-    $('#cardex-filter-month').val('all');
-    if ($('#cardex-filter-category').length) {
-        $('#cardex-filter-category').val('all');
+    $('#kardex-filter-year').val('all');
+    $('#kardex-filter-month').val('all');
+    if ($('#kardex-filter-category').length) {
+        $('#kardex-filter-category').val('all');
     }
     
-    // Inicializar filtros y elementos del Cardex después de un pequeño retraso
+    // Inicializar filtros y elementos del Kardex después de un pequeño retraso
     setTimeout(function() {
-        initCardex();
-        console.log("Cardex inicializado con retraso");
+        initKardex();
+        console.log("Kardex inicializado con retraso");
     }, 200);
     
     // Manejar cambio de filtro por año
-    $('#cardex-filter-year').on('change', function() {
+    $('#kardex-filter-year').on('change', function() {
         disableAutoFilters = false; // Ahora el usuario está filtrando explícitamente
-        filterCardexItems();
+        filterKardexItems();
     });
     
     // Manejar cambio de filtro por mes
-    $('#cardex-filter-month').on('change', function() {
+    $('#kardex-filter-month').on('change', function() {
         disableAutoFilters = false;
-        filterCardexItems();
+        filterKardexItems();
     });
     
     // Manejar cambio de filtro por categoría
-    $('#cardex-filter-category').on('change', function() {
+    $('#kardex-filter-category').on('change', function() {
         disableAutoFilters = false;
-        filterCardexItems();
+        filterKardexItems();
     });
     
     // Botón para limpiar filtros
-    $('#cardex-clear-filters').on('click', function() {
-        $('#cardex-filter-year').val('all');
-        $('#cardex-filter-month').val('all');
-        $('#cardex-filter-category').val('all');
+    $('#kardex-clear-filters').on('click', function() {
+        $('#kardex-filter-year').val('all');
+        $('#kardex-filter-month').val('all');
+        $('#kardex-filter-category').val('all');
         disableAutoFilters = true;
-        filterCardexItems();
+        filterKardexItems();
     });
     
     // Toggle para las categorías
-    $(document).on('click', '.cardex-category-toggle', function() {
+    $(document).on('click', '.kardex-category-toggle', function() {
         $(this).toggleClass('collapsed');
-        let content = $(this).next('.cardex-category-content');
+        let content = $(this).next('.kardex-category-content');
         
         // Eliminar cualquier estilo inline antes de hacer el toggle
         if (content.is(':visible')) {
@@ -68,24 +68,24 @@ $(document).ready(function() {
     });
     
     // Mostramos todas las categorías al inicio de nuevo
-    $('.cardex-category-content').attr('style', '').show();
-    $('.cardex-item').attr('style', '').show();
-    $('.cardex-empty').hide();
+    $('.kardex-category-content').attr('style', '').show();
+    $('.kardex-item').attr('style', '').show();
+    $('.kardex-empty').hide();
     
-    console.log("Cardex inicializado correctamente - Mostrando todas las indicaciones");
+    console.log("Kardex inicializado correctamente - Mostrando todas las indicaciones");
 });
 
 /**
- * Inicializar el sistema de Cardex
+ * Inicializar el sistema de Kardex
  */
-function initCardex() {
-    console.log("Inicializando el sistema de Cardex");
+function initKardex() {
+    console.log("Inicializando el sistema de Kardex");
     
     // Asegurarnos de que los filtros estén en 'all' al inicio
-    $('#cardex-filter-year').val('all');
-    $('#cardex-filter-month').val('all');
-    if ($('#cardex-filter-category').length) {
-        $('#cardex-filter-category').val('all');
+    $('#kardex-filter-year').val('all');
+    $('#kardex-filter-month').val('all');
+    if ($('#kardex-filter-category').length) {
+        $('#kardex-filter-category').val('all');
     }
     
     // Actualizar contador de indicaciones
@@ -95,14 +95,14 @@ function initCardex() {
     // Usamos setTimeout para asegurar que se aplique después de que el DOM esté listo
     setTimeout(function() {
         // Eliminar cualquier estilo inline que oculte elementos
-        $('.cardex-category-content').attr('style', '').css('display', 'block');
-        $('.cardex-item').attr('style', '').show();
+        $('.kardex-category-content').attr('style', '').css('display', 'block');
+        $('.kardex-item').attr('style', '').show();
         
         // Asegurarnos de que todas las categorías estén desplegadas
-        $('.cardex-category-toggle').removeClass('collapsed');
+        $('.kardex-category-toggle').removeClass('collapsed');
         
         // Filtrar para asegurarnos que se apliquen correctamente los filtros (que están en 'all')
-        filterCardexItems();
+        filterKardexItems();
         console.log("Inicialización completada - Se han mostrado todas las indicaciones");
     }, 100);
 }
@@ -110,10 +110,10 @@ function initCardex() {
 /**
  * Filtrar indicaciones según los criterios seleccionados
  */
-function filterCardexItems() {
-    const selectedYear = $('#cardex-filter-year').val();
-    const selectedMonth = $('#cardex-filter-month').val();
-    const selectedCategory = $('#cardex-filter-category').val();
+function filterKardexItems() {
+    const selectedYear = $('#kardex-filter-year').val();
+    const selectedMonth = $('#kardex-filter-month').val();
+    const selectedCategory = $('#kardex-filter-category').val();
     
     console.log("Filtrando indicaciones - Año: " + selectedYear + ", Mes: " + selectedMonth + ", Categoría: " + selectedCategory + ", autoFilters: " + (disableAutoFilters ? "deshabilitados" : "habilitados"));
     
@@ -124,15 +124,15 @@ function filterCardexItems() {
     if (disableAutoFilters && selectedYear === 'all' && selectedMonth === 'all' && 
         (selectedCategory === 'all' || selectedCategory === undefined)) {
         console.log("Auto-filtros deshabilitados y filtros en 'all' - Mostrando todas las indicaciones");
-        $('.cardex-item').attr('style', '').show();
+        $('.kardex-item').attr('style', '').show();
         // Forzamos mostrar categorías desplegadas
-        $('.cardex-category-content').attr('style', '').show();
+        $('.kardex-category-content').attr('style', '').show();
         updateIndicationCounter();
-        $('.cardex-empty').hide();
+        $('.kardex-empty').hide();
         return;
     }
     
-    $('.cardex-item').each(function() {
+    $('.kardex-item').each(function() {
         const itemYear = $(this).data('year');
         const itemMonth = $(this).data('month');
         const itemCategory = $(this).data('category');
@@ -181,19 +181,19 @@ function filterCardexItems() {
  * Actualizar el contador de indicaciones visibles
  */
 function updateIndicationCounter() {
-    const visibleItems = $('.cardex-item:visible').length;
-    const totalItems = $('.cardex-item').length;
+    const visibleItems = $('.kardex-item:visible').length;
+    const totalItems = $('.kardex-item').length;
     
     console.log("Actualizando contador: " + visibleItems + " / " + totalItems + " indicaciones");
     
-    $('#cardex-counter').text(visibleItems);
-    $('#cardex-total-counter').text(totalItems);
+    $('#kardex-counter').text(visibleItems);
+    $('#kardex-total-counter').text(totalItems);
     
     // Actualizar también la clase CSS según si hay filtros aplicados
     if (visibleItems < totalItems) {
-        $('.cardex-badge').addClass('filtered');
+        $('.kardex-badge').addClass('filtered');
     } else {
-        $('.cardex-badge').removeClass('filtered');
+        $('.kardex-badge').removeClass('filtered');
     }
 }
 
@@ -201,15 +201,15 @@ function updateIndicationCounter() {
  * Verificar si no hay indicaciones para mostrar mensaje vacío
  */
 function checkEmptyState() {
-    console.log("Verificando estado vacío - Indicaciones visibles: " + $('.cardex-item:visible').length);
+    console.log("Verificando estado vacío - Indicaciones visibles: " + $('.kardex-item:visible').length);
     
-    if ($('.cardex-item:visible').length === 0) {
+    if ($('.kardex-item:visible').length === 0) {
         console.log("No hay indicaciones visibles, mostrando mensaje vacío");
         
         // No creamos un nuevo elemento, usamos el que ya está en el HTML
-        $('.cardex-empty').show();
+        $('.kardex-empty').show();
     } else {
         console.log("Hay indicaciones visibles, ocultando mensaje vacío");
-        $('.cardex-empty').hide();
+        $('.kardex-empty').hide();
     }
 }

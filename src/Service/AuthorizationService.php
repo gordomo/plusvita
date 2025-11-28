@@ -359,7 +359,7 @@ class AuthorizationService
             ['patient.edit_evolve', 'Editar Evoluciones Médicas', 'Pacientes', 'Permite editar evoluciones médicas existentes'],
             ['patient.evolve_without_presence', 'Evolucionar sin Presente', 'Pacientes', 'Permite crear evoluciones sin necesidad de tener presente del día'],
             ['patient.prescription', 'Prescripciones', 'Pacientes', 'Permite gestionar prescripciones médicas'],
-            ['patient.cardex', 'Completar Kardex', 'Pacientes', 'Permite completar el kardex del paciente (signos vitales, medicación, cuidados)'],
+            ['patient.kardex', 'Completar Kardex', 'Pacientes', 'Permite completar el kardex del paciente (signos vitales, medicación, cuidados)'],
             ['patient.indication', 'Gestionar Indicaciones Médicas', 'Pacientes', 'Permite crear, editar y gestionar indicaciones médicas (medicamentos, procedimientos, controles)'],
             ['patient.discharge', 'Egresar Pacientes', 'Pacientes', 'Permite egresar pacientes del sistema'],
             ['patient.refer', 'Derivar Pacientes', 'Pacientes', 'Permite derivar pacientes a otros centros'],
@@ -451,7 +451,7 @@ class AuthorizationService
                 'displayName' => 'Enfermero/a',
                 'description' => 'Personal de enfermería profesional',
                 'permissions' => [
-                    'patient.view', 'patient.history', 'patient.cardex', 'patient.attendance', 'patient.prescription',
+                    'patient.view', 'patient.history', 'patient.kardex', 'patient.attendance', 'patient.prescription',
                     'agenda.view', 'consumables.view', 'stats.view'
                 ]
             ],
@@ -460,7 +460,7 @@ class AuthorizationService
                 'displayName' => 'Auxiliar de Enfermería',
                 'description' => 'Asistente de enfermería',
                 'permissions' => [
-                    'patient.view', 'patient.history', 'patient.cardex', 'patient.attendance',
+                    'patient.view', 'patient.history', 'patient.kardex', 'patient.attendance',
                     'agenda.view', 'consumables.view', 'stats.view'
                 ]
             ],
@@ -469,7 +469,7 @@ class AuthorizationService
                 'displayName' => 'Asistente de Enfermería',
                 'description' => 'Asistente de enfermería',
                 'permissions' => [
-                    'patient.view', 'patient.history', 'patient.cardex', 'patient.attendance',
+                    'patient.view', 'patient.history', 'patient.kardex', 'patient.attendance',
                     'consumables.view', 'stats.view'
                 ]
             ],
@@ -513,7 +513,7 @@ class AuthorizationService
                 'displayName' => 'Coordinador de Pisos',
                 'description' => 'Coordinador de pisos',
                 'permissions' => [
-                    'patient.view', 'patient.history', 'patient.cardex', 'patient.attendance',
+                    'patient.view', 'patient.history', 'patient.kardex', 'patient.attendance',
                     'nurse.read', 'stats.view', 'config.rooms'
                 ]
             ],
@@ -532,7 +532,7 @@ class AuthorizationService
                 'displayName' => 'Coordinador de Enfermería',
                 'description' => 'Coordinador del equipo de enfermería',
                 'permissions' => [
-                    'patient.view', 'patient.history', 'patient.cardex', 'patient.attendance',
+                    'patient.view', 'patient.history', 'patient.kardex', 'patient.attendance',
                     'nurse.read', 'nurse.create', 'nurse.update', 'consumables.view', 'consumables.manage',
                     'stats.view'
                 ]

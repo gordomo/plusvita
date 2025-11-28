@@ -516,7 +516,7 @@
                                             <i class="fas fa-pills"></i> Indicaciones
                                         </a>
                                         {% endif %}
-                                        {% if is_granted('patient.cardex') %}
+                                        {% if is_granted('patient.kardex') %}
                                         <a class="dropdown-item" href="{{ path('medicacion_enfermeria', {'id': cliente.id}) }}">
                                             <i class="fas fa-syringe"></i> Kardex
                                         </a>

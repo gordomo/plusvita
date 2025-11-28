@@ -195,12 +195,12 @@
                 </div>
             {% endif %}
             
-            {# Kardex - Basado en permisos de cardex #}
-            {% if is_granted('patient.cardex') %}
+            {# Kardex - Basado en permisos de kardex #}
+            {% if is_granted('patient.kardex') %}
                 <div class="dropdown show dropright">
-                    <div class="dropdown-menu" aria-labelledby="dropdownCardexLink">
+                    <div class="dropdown-menu" aria-labelledby="dropdownKardexLink">
                         {% if app.request.get('_route') == 'cliente_historia' and app.request.get('id') %}
-                            <a class="text-white dropdown-item" href="{{ path('cardex_paciente', {'id': app.request.get('id')}) }}">
+                            <a class="text-white dropdown-item" href="{{ path('kardex_paciente', {'id': app.request.get('id')}) }}">
                                 Kardex del paciente actual
                             </a>
                         {% endif %}

@@ -1,4 +1,4 @@
-.cardex-container {
+.kardex-container {
     background-color: #f9f9f9;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -6,7 +6,7 @@
     margin-bottom: 30px;
 }
 
-.cardex-header {
+.kardex-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -15,18 +15,18 @@
     margin-bottom: 15px;
 }
 
-.cardex-header h4 {
+.kardex-header h4 {
     margin: 0;
     color: #2c5282;
     font-weight: 600;
 }
 
-.cardex-body {
+.kardex-body {
     max-height: 400px;
     overflow-y: auto;
 }
 
-.cardex-item {
+.kardex-item {
     border-left: 4px solid #4a90e2;
     padding: 10px 15px;
     margin-bottom: 10px;
@@ -36,12 +36,12 @@
     transition: all 0.2s ease;
 }
 
-.cardex-item:hover {
+.kardex-item:hover {
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
     transform: translateY(-2px);
 }
 
-.cardex-item-header {
+.kardex-item-header {
     display: flex;
     justify-content: space-between;
     margin-bottom: 5px;
@@ -49,16 +49,16 @@
     color: #666;
 }
 
-.cardex-item-date {
+.kardex-item-date {
     font-weight: 500;
     color: #4a90e2;
 }
 
-.cardex-item-content {
+.kardex-item-content {
     margin-top: 8px;
 }
 
-.cardex-item-footer {
+.kardex-item-footer {
     margin-top: 8px;
     font-size: 0.85rem;
     color: #888;
@@ -66,7 +66,7 @@
     justify-content: space-between;
 }
 
-.cardex-badge {
+.kardex-badge {
     display: inline-block;
     padding: 3px 8px;
     border-radius: 12px;
@@ -78,27 +78,27 @@
     transition: all 0.3s ease;
 }
 
-.cardex-badge.filtered {
+.kardex-badge.filtered {
     background-color: #fed7d7;
     color: #e53e3e;
 }
 
-.cardex-badge-new {
+.kardex-badge-new {
     background-color: #ebf8ff;
     color: #3182ce;
 }
 
-.cardex-badge-month {
+.kardex-badge-month {
     background-color: #e6fffa;
     color: #319795;
 }
 
-.cardex-badge-year {
+.kardex-badge-year {
     background-color: #faf5ff;
     color: #805ad5;
 }
 
-.cardex-filter-bar {
+.kardex-filter-bar {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
@@ -108,20 +108,20 @@
     border-radius: 6px;
 }
 
-.cardex-filter-bar select,
-.cardex-filter-bar button {
+.kardex-filter-bar select,
+.kardex-filter-bar button {
     padding: 6px 12px;
     border-radius: 4px;
     border: 1px solid #cbd5e0;
     font-size: 0.9rem;
 }
 
-.cardex-filter-bar select {
+.kardex-filter-bar select {
     background-color: white;
     min-width: 120px;
 }
 
-.cardex-filter-bar button {
+.kardex-filter-bar button {
     background-color: #4a90e2;
     color: white;
     border: none;
@@ -129,11 +129,11 @@
     transition: background-color 0.2s ease;
 }
 
-.cardex-filter-bar button:hover {
+.kardex-filter-bar button:hover {
     background-color: #3a7cc7;
 }
 
-.cardex-empty {
+.kardex-empty {
     padding: 30px;
     text-align: center;
     color: #718096;
@@ -141,7 +141,7 @@
 }
 
 /* Indicaciones categorías */
-.cardex-category-toggle {
+.kardex-category-toggle {
     cursor: pointer;
     padding: 10px;
     background-color: #edf2f7;
@@ -150,27 +150,27 @@
     font-weight: 600;
 }
 
-.cardex-category-toggle:hover {
+.kardex-category-toggle:hover {
     background-color: #e2e8f0;
 }
 
-.cardex-category-toggle i {
+.kardex-category-toggle i {
     margin-right: 8px;
     transition: transform 0.2s ease;
 }
 
-.cardex-category-toggle.collapsed i {
+.kardex-category-toggle.collapsed i {
     transform: rotate(-90deg);
 }
 
-.cardex-category-content {
+.kardex-category-content {
     padding-left: 15px;
     border-left: 2px solid #e2e8f0;
     margin-bottom: 15px;
 }
 
 /* Estilo para el mensaje vacío */
-.cardex-empty {
+.kardex-empty {
     padding: 20px;
     text-align: center;
     color: #718096;
@@ -188,16 +188,16 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-    .cardex-header {
+    .kardex-header {
         flex-direction: column;
         align-items: flex-start;
     }
     
-    .cardex-header h4 {
+    .kardex-header h4 {
         margin-bottom: 10px;
     }
     
-    .cardex-filter-bar {
+    .kardex-filter-bar {
         flex-direction: column;
     }
 }

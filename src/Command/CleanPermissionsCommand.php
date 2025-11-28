@@ -61,7 +61,7 @@ class CleanPermissionsCommand extends Command
             $io->text('Cambios realizados:');
             $io->listing([
                 '✅ Eliminados permisos obsoletos (vitals, medication, care)',
-                '✅ Agregado nuevo permiso: patient.cardex',
+                '✅ Agregado nuevo permiso: patient.kardex',
                 '✅ Limpiados duplicados',
                 '✅ Reorganizados por categorías',
                 '✅ Actualizados roles con nuevos permisos'

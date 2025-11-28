@@ -11,12 +11,12 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * @Route("/cardex")
+ * @Route("/kardex")
  */
-class CardexController extends AbstractController
+class KardexController extends AbstractController
 {
     /**
-     * @Route("/paciente/{id}", name="cardex_paciente", methods={"GET"})
+     * @Route("/paciente/{id}", name="kardex_paciente", methods={"GET"})
      */
     public function index(Request $request, Cliente $cliente, ConsumiblesClientesRepository $consumiblesClientesRepository, HistoriaIngresoRepository $historiaIngresoRepository): Response
     {
@@ -78,7 +78,7 @@ class CardexController extends AbstractController
             $isDoctor = true;
         }
         
-        return $this->render('cardex/index.html.twig', [
+        return $this->render('kardex/index.html.twig', [
             'cliente' => $cliente,
             'indicaciones' => $indicaciones,
             'historiaIngreso' => $historiaIngreso,

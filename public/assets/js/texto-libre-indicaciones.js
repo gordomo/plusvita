@@ -62,7 +62,7 @@ function checkIfTextoLibre(select) {
             // Agregar la descripción
             const descripcion = document.createElement('small');
             descripcion.className = 'text-muted';
-            descripcion.textContent = 'Esta indicación se mostrará en el Cardex con el texto personalizado.';
+            descripcion.textContent = 'Esta indicación se mostrará en el Kardex con el texto personalizado.';
             
             // Agregar elementos al contenedor
             textoLibreContainer.appendChild(textarea);
