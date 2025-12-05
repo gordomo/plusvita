@@ -99,9 +99,10 @@ class ImprimirController extends AbstractController
         @page{
             margin-top: 140px; /* create space for header */
             margin-bottom: 10px; /* create space for footer */
-            margin-right: 35px;
-            margin-left: 10px;
+            margin-right: 15mm; /* Márgenes reducidos para A4 vertical */
+            margin-left: 15mm; /* Márgenes reducidos para A4 vertical */
             font-size: 12px;
+            size: A4 portrait;
         }
         header, footer{
             position: fixed;
@@ -116,6 +117,53 @@ class ImprimirController extends AbstractController
             bottom: 0;
         }
         #footer .page:after { content: counter(page, decimal); }
+        /* Contenedor principal que use todo el ancho disponible */
+        main {
+            width: 100%;
+            max-width: 100%;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        /* Eliminar padding de Bootstrap row y col */
+        main .row {
+            margin: 0;
+            width: 100%;
+        }
+        main .col-12 {
+            padding: 0;
+            width: 100%;
+        }
+        /* Asegurar que las tablas usen todo el ancho disponible */
+        main .table {
+            width: 100% !important;
+            max-width: 100% !important;
+            table-layout: auto !important;
+            border-collapse: collapse;
+            margin: 0;
+        }
+        /* Las celdas deben ocupar el 100% del ancho disponible */
+        main .table td {
+            width: 100% !important;
+            max-width: 100% !important;
+            padding: 8px 5px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            box-sizing: border-box;
+            white-space: normal;
+        }
+        /* Optimizar las firmas para que quepan */
+        main .table td img {
+            max-width: 120px !important;
+            max-height: 70px !important;
+            object-fit: contain;
+            display: block;
+            margin-left: auto;
+        }
+        /* Evitar que las evoluciones se corten entre páginas */
+        main .table tr {
+            page-break-inside: avoid;
+        }
     </style>
       
 </head>
@@ -429,29 +477,40 @@ HTML;
         }
 
         foreach ($evArray as $evolucion) {
-
+            // Estructura: Fecha/Tipo/Usuario en una fila
             $evolucionesHTML .= "<tr style='background-color: #dee2e6'>";
-                $evolucionesHTML .= "<td>". $evolucion['evolucion']->getFecha()->format('Y-m-d') ."</td>";
-                $evolucionesHTML .= "<td>". $evolucion['evolucion']->getTipo()."</td>";
-                $evolucionesHTML .= "<td>". $evolucion['evolucion']->getUser()."</td>";
+                $evolucionesHTML .= "<td colspan='1' style='width: 100%; padding: 8px;'>";
+                $evolucionesHTML .= "<strong>". $evolucion['evolucion']->getFecha()->format('Y-m-d') ." - ". $evolucion['evolucion']->getTipo() ." - ". $evolucion['evolucion']->getUser() ."</strong>";
+                $evolucionesHTML .= "</td>";
             $evolucionesHTML .= "</tr>";
+            
+            // Descripción en una fila completa
             $evolucionesHTML .= "<tr>";
-                $evolucionesHTML .= "<td colspan='3'>". $evolucion['evolucion']->getDescription()."</td>";
+                $evolucionesHTML .= "<td colspan='1' style='width: 100%; padding: 8px; word-wrap: break-word;'>";
+                $evolucionesHTML .= $evolucion['evolucion']->getDescription();
+                $evolucionesHTML .= "</td>";
             $evolucionesHTML .= "</tr>";
-            $evolucionesHTML .= "<tr>";
-            if (!empty($evolucion['firma'])) {
-                $evolucionesHTML .= "<td colspan='3'><img style='max-width: 140px;' src='http://plusvita.creandosoluciones.com.ar/uploads/firmas/". $evolucion['firma'] ."'></td>";
-            } else {
-                $evolucionesHTML .= "<td colspan='3'>Firma no Registrada</td>";
-            }
+            
+            // Firma debajo del texto, en una fila separada
+            $evolucionesHTML .= "<tr style='page-break-inside: avoid;'>";
+                $evolucionesHTML .= "<td colspan='1' style='width: 100%; padding: 10px 5px; text-align: right;'>";
+                if (!empty($evolucion['firma'])) {
+                    $evolucionesHTML .= "<img style='max-width: 120px; max-height: 70px; display: block; margin-left: auto; object-fit: contain;' src='http://plusvita.creandosoluciones.com.ar/uploads/firmas/". $evolucion['firma'] ."'>";
+                } else {
+                    $evolucionesHTML .= "<em>Firma no Registrada</em>";
+                }
+                $evolucionesHTML .= "</td>";
             $evolucionesHTML .= "</tr>";
+            
+            // Espaciado entre evoluciones
+            $evolucionesHTML .= "<tr><td colspan='1' style='padding: 10px 0; border-bottom: 1px solid #ddd;'></td></tr>";
         }
 
         $row = <<<HTML
-<div class="row">
-        <div class="col-12" >
-            <h4 style="border-top: 1px solid; padding-top: 10px">Evoluciones</h4>
-            <table class="table" style="text-align: left">
+<div class="row" style="margin: 0; width: 100%;">
+        <div class="col-12" style="padding: 0; width: 100%;">
+            <h4 style="border-top: 1px solid; padding-top: 10px; margin: 0;">Evoluciones</h4>
+            <table class="table" style="text-align: left; width: 100% !important; max-width: 100% !important; table-layout: auto; margin: 0;">
                 $evolucionesHTML
             </table>
         </div>
