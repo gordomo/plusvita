@@ -186,17 +186,20 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
             $query->andWhere('c.hClinica = :hc')->setParameter('hc', $hc);
         }
 
-        if ( $modalidad || $prof || $obraSocial) {
+        // Aplicar filtro de modalidad directamente en la consulta DQL
+        if ( $modalidad && $modalidad != 0 ) { 
+            if ( $modalidad == 1 ) { 
+                // Ambulatorios incluye modalidad 1 y 4 (ART)
+                $query->andWhere('(h.modalidad = 1 OR h.modalidad = 4)');
+            } else {
+                $query->andWhere('h.modalidad = :modalidad')->setParameter('modalidad', $modalidad);
+            }
+        }
+
+        // Para filtros de prof y obraSocial, usar consulta SQL si es necesario
+        if ( $prof || $obraSocial) {
             $newQuery = "Select DISTINCT historia_paciente.cliente_id from historia_paciente where fecha_ingreso <= '" . $hasta->format('Y-m-d') . "' and ( fecha_ingreso >= '". $desde->format('Y-m-d') . "' or fecha_ingreso is not null )";
             
-            
-            if ( $modalidad ) { 
-                if ( $modalidad == 1 ) { 
-                    $newQuery .= " and ( modalidad = 1 or modalidad = 4)";
-                } else {
-                    $newQuery .= " and modalidad = " . $modalidad;
-                }
-            }
             if ( $prof ) { 
                 $prof = '%'.$prof.'%';
                 $newQuery .= " and doc_referente like '" . $prof ."'";
@@ -215,7 +218,12 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
             
             $ids = $this->em->getConnection()->prepare($newQuery)->executeQuery()->fetchFirstColumn();
             
-            $query->andWhere('c.id in (:newQuery)')->setParameter('newQuery', $ids);
+            if (!empty($ids)) {
+                $query->andWhere('c.id in (:newQuery)')->setParameter('newQuery', $ids);
+            } else {
+                // Si no hay IDs que coincidan, devolver resultado vacío
+                $query->andWhere('1 = 0');
+            }
         }
 
         return $query->getQuery()->getResult();

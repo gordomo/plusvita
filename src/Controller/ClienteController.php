@@ -541,8 +541,17 @@ class ClienteController extends AbstractController
                     $cliente = null;
                     
                     // FILTRO IMPORTANTE: Si se seleccionó una modalidad específica, solo mostrar esa modalidad
-                    if ($modalidad != 0 && $historia->getModalidad() != $modalidad) {
-                        continue; // Saltar esta fecha si no coincide con la modalidad filtrada
+                    if ($modalidad != 0) {
+                        if ($modalidad == 1) {
+                            // Ambulatorios incluye modalidad 1 y 4 (ART)
+                            if ($historia->getModalidad() != 1 && $historia->getModalidad() != 4) {
+                                continue; // Saltar esta fecha si no coincide con la modalidad filtrada
+                            }
+                        } else {
+                            if ($historia->getModalidad() != $modalidad) {
+                                continue; // Saltar esta fecha si no coincide con la modalidad filtrada
+                            }
+                        }
                     }
                     
                     
