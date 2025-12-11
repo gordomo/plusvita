@@ -355,6 +355,11 @@ class ClienteController extends AbstractController
         $hc = $request->query->get('hc', null);
         $hab = $request->query->get('hab') ?? null;
         $obraSocial = $request->query->get('obraSocial');
+        // Incluir derivados: por defecto true (primera carga), luego según el checkbox
+        // El template usa un campo hidden con valor "0" y el checkbox con valor "1"
+        // Si el checkbox está marcado, se envía "1", si no está marcado, se envía "0" del hidden
+        $incluirDerivadosParam = $request->query->get('incluirDerivados', '1'); // Por defecto '1' si no existe (primera carga)
+        $incluirDerivados = ($incluirDerivadosParam === '1' || $incluirDerivadosParam === 'true' || $incluirDerivadosParam === true);
         // Si obraSocial está definido y es un array vacío, establecerlo como null
         if ($obraSocial !== null && (empty($obraSocial) || (is_array($obraSocial) && count($obraSocial) === 0))) {
             $obraSocial = null;
@@ -585,24 +590,29 @@ class ClienteController extends AbstractController
                     // Obtener la modalidad de la historia (última modalidad activa antes de derivarse)
                     $historiaModalidad = $historia->getModalidad();
                     
+                    // Si está derivado y NO se quiere incluir derivados, excluirlo
+                    if ($estaDerivado && !$incluirDerivados) {
+                        continue; // Excluir derivados cuando el checkbox no está marcado
+                    }
+                    
                     // FILTRO IMPORTANTE: Si se seleccionó una modalidad específica, usar la última modalidad activa
-                    // Si el paciente está derivado, usar su última modalidad antes de derivarse para el filtro
+                    // Si el paciente está derivado y se quiere incluir, usar su última modalidad antes de derivarse para el filtro
                     if ($modalidad != 0) {
                         if ($modalidad == 1) {
                             // Ambulatorios incluye modalidad 1 y 4 (ART)
-                            // Si está derivado pero su última modalidad era ambulatoria, incluirlo
+                            // Si está derivado pero su última modalidad era ambulatoria, incluirlo (si incluirDerivados está activado)
                             if ($historiaModalidad != 1 && $historiaModalidad != 4) {
                                 continue; // Saltar esta fecha si no coincide con la modalidad filtrada
                             }
                         } elseif ($modalidad == 2) {
                             // Internados: solo modalidad 2
-                            // Si está derivado pero su última modalidad era internado, incluirlo
+                            // Si está derivado pero su última modalidad era internado, incluirlo (si incluirDerivados está activado)
                             if ($historiaModalidad != 2) {
                                 continue; // Saltar esta fecha si no coincide con la modalidad filtrada
                             }
                         } elseif ($modalidad == 4) {
                             // ART: solo modalidad 4
-                            // Si está derivado pero su última modalidad era ART, incluirlo
+                            // Si está derivado pero su última modalidad era ART, incluirlo (si incluirDerivados está activado)
                             if ($historiaModalidad != 4) {
                                 continue; // Saltar esta fecha si no coincide con la modalidad filtrada
                             }
@@ -1060,6 +1070,7 @@ class ClienteController extends AbstractController
             'hab'                           => $hab,
             'paginaImprimible'              => false, // Activamos el botón global
             'hc'                            => $hc,
+            'incluirDerivados'              => $incluirDerivados,
             'habitacionRepository'          => $habitacionRepository,
             'doctorRepository'              => $doctorRepository,
             'range'                         => $range,

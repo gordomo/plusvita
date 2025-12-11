@@ -254,6 +254,17 @@
                         </div>
                     </div>
                     <div class="row mb-3">
+                        <div class="col-md-12">
+                            <div class="form-check">
+                                <input type="hidden" name="incluirDerivados" value="0">
+                                <input class="form-check-input" type="checkbox" name="incluirDerivados" id="incluirDerivados" value="1" {{ incluirDerivados ? 'checked' : '' }}>
+                                <label class="form-check-label" for="incluirDerivados">
+                                    Incluir derivados (se agrupan según su última modalidad activa)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
                         <div class="col-md-4 col-sm-6">
                             <label for="nombre">Nombre / Apellido</label>
                             <input class="form-control" type="text" id="nombre" name="nombre" value="{{ nombre }}" autocomplete="off">
