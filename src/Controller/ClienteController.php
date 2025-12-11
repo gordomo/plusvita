@@ -540,7 +540,67 @@ class ClienteController extends AbstractController
                     $texto = '';
                     $cliente = null;
                     
+                    // Buscar cliente en la lista ya cargada
+                    foreach ($todosClientesInvolucrados as $posibleCliente) {
+                        if ($posibleCliente->getId() == $clienteId) {
+                            $cliente = $posibleCliente;
+                            break;
+                        }
+                    }
+                    
+                    if (!$cliente) continue;
+                    
+                    // Verificar si hay registro de presentes para esta fecha y cliente
+                    $estaPresenteHoy = isset($presentes[$clienteId][$fechaStr]) ? $presentes[$clienteId][$fechaStr] : null;
+                    
+                    
+                    // Si está marcado explícitamente como ausente, no lo mostramos
+                    if ($estaPresenteHoy === false) {
+                        continue; // Saltamos a la siguiente fecha
+                    }
+                    
+                    // Verificar primero si está derivado en esta fecha
+                    // LÓGICA CORREGIDA:
+                    // Un paciente está DERIVADO si tiene fecha_derivacion Y:
+                    // - NO tiene fecha_reingreso, O
+                    // - fecha_reingreso es ANTERIOR a fecha_derivacion (reingreso de ciclo anterior, no del actual), O
+                    // - la fecha actual es ANTES de la fecha_reingreso (aún no ha reingresado)
+                    $estaDerivado = false;
+                    if ($historia->getFechaDerivacion() && $fecha >= $historia->getFechaDerivacion()) {
+                        // Si no hay fecha de reingreso, está derivado
+                        if (!$historia->getFechaReingresoDerivacion()) {
+                            $estaDerivado = true;
+                        }
+                        // Si fecha_reingreso es ANTERIOR a fecha_derivacion, es de un ciclo anterior
+                        // Por lo tanto, para esta derivación actual, aún no ha reingresado
+                        else if ($historia->getFechaReingresoDerivacion() < $historia->getFechaDerivacion()) {
+                            $estaDerivado = true;
+                        }
+                        // Si fecha_reingreso es posterior a fecha_derivacion, verificar si ya ocurrió
+                        else if ($fecha < $historia->getFechaReingresoDerivacion()) {
+                            $estaDerivado = true;
+                        }
+                    }
+                    
+                    // Si está derivado y se está filtrando por modalidad específica (no "Todos"), excluirlo
+                    // Los derivados solo aparecen cuando modalidad = 0 (Todos) o cuando se filtra específicamente por derivados
+                    if ($estaDerivado && $modalidad != 0) {
+                        continue; // Excluir derivados cuando se filtra por modalidad específica
+                    }
+                    
+                    // Si es día de egreso
+                    if ($cliente->getFEgreso() && $fecha->format('Y-m-d') === $cliente->getFEgreso()->format('Y-m-d')) {
+                        $texto = 'Egreso';
+                        $egresos[$fechaStr][$clienteId] = '1';
+                    }
+                    // Si está derivado en esta fecha
+                    else if ($estaDerivado) {
+                        $texto = 'Derivado';
+                        $derivados[$fechaStr][$clienteId] = '1';
+                    }
+                    
                     // FILTRO IMPORTANTE: Si se seleccionó una modalidad específica, solo mostrar esa modalidad
+                    // Este filtro se aplica DESPUÉS de verificar derivados para excluirlos correctamente
                     if ($modalidad != 0) {
                         $historiaModalidad = $historia->getModalidad();
                         if ($modalidad == 1) {
@@ -563,60 +623,6 @@ class ClienteController extends AbstractController
                             if ($historiaModalidad != $modalidad) {
                                 continue; // Saltar esta fecha si no coincide con la modalidad filtrada
                             }
-                        }
-                    }
-                    
-                    
-                    // Buscar cliente en la lista ya cargada
-                    foreach ($todosClientesInvolucrados as $posibleCliente) {
-                        if ($posibleCliente->getId() == $clienteId) {
-                            $cliente = $posibleCliente;
-                            break;
-                        }
-                    }
-                    
-                    if (!$cliente) continue;
-                    
-                    // Verificar si hay registro de presentes para esta fecha y cliente
-                    $estaPresenteHoy = isset($presentes[$clienteId][$fechaStr]) ? $presentes[$clienteId][$fechaStr] : null;
-                    
-                    
-                    // Si está marcado explícitamente como ausente, no lo mostramos
-                    if ($estaPresenteHoy === false) {
-                        continue; // Saltamos a la siguiente fecha
-                    }
-                    
-                    // Si es día de egreso
-                    if ($cliente->getFEgreso() && $fecha->format('Y-m-d') === $cliente->getFEgreso()->format('Y-m-d')) {
-                        $texto = 'Egreso';
-                        $egresos[$fechaStr][$clienteId] = '1';
-                    }
-                    // Si está derivado en esta fecha
-                    // LÓGICA CORREGIDA:
-                    // Un paciente está DERIVADO si tiene fecha_derivacion Y:
-                    // - NO tiene fecha_reingreso, O
-                    // - fecha_reingreso es ANTERIOR a fecha_derivacion (reingreso de ciclo anterior, no del actual), O
-                    // - la fecha actual es ANTES de la fecha_reingreso (aún no ha reingresado)
-                    else if ($historia->getFechaDerivacion() && $fecha >= $historia->getFechaDerivacion()) {
-                        $estaDerivado = false;
-                        
-                        // Si no hay fecha de reingreso, está derivado
-                        if (!$historia->getFechaReingresoDerivacion()) {
-                            $estaDerivado = true;
-                        }
-                        // Si fecha_reingreso es ANTERIOR a fecha_derivacion, es de un ciclo anterior
-                        // Por lo tanto, para esta derivación actual, aún no ha reingresado
-                        else if ($historia->getFechaReingresoDerivacion() < $historia->getFechaDerivacion()) {
-                            $estaDerivado = true;
-                        }
-                        // Si fecha_reingreso es posterior a fecha_derivacion, verificar si ya ocurrió
-                        else if ($fecha < $historia->getFechaReingresoDerivacion()) {
-                            $estaDerivado = true;
-                        }
-                        
-                        if ($estaDerivado) {
-                            $texto = 'Derivado';
-                            $derivados[$fechaStr][$clienteId] = '1';
                         }
                     }
                     
