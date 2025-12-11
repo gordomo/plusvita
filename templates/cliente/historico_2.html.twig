@@ -1131,30 +1131,6 @@ function createCompactTableForPrint(checkboxes) {
                     html += '<td rowspan="' + (paciente.periodos.length + 1) + '">' + (paciente.hc || '') + '</td>';
                 }
                 
-                // Si es el último período, agregar una fila de resumen
-                if (idx === paciente.periodos.length - 1) {
-                    html += '</tr><tr>';
-                    html += '<td colspan="4" style="border-top: 1px solid #999; padding-top: 5px;">';
-                    html += '<strong>Total: ' + totalDiasPaciente + ' días</strong>';
-                    
-                    // Agregar el profesional si todos los períodos tienen el mismo
-                    let profesionalComun = null;
-                    let todosMismoProfesional = true;
-                    
-                    paciente.periodos.forEach(function(p) {
-                        if (!profesionalComun && p.profesional && p.profesional !== 'sin profesional asignado') {
-                            profesionalComun = p.profesional;
-                        } else if (profesionalComun !== p.profesional) {
-                            todosMismoProfesional = false;
-                        }
-                    });
-                    
-                    if (todosMismoProfesional && profesionalComun) {
-                        html += ' | <strong>Profesional:</strong> ' + profesionalComun;
-                    }
-                    
-                    html += '</td>';
-                }
                 // Estado y detalles
                 let estado = periodo.estado || '';
                 let detalles = [];
@@ -1176,19 +1152,46 @@ function createCompactTableForPrint(checkboxes) {
                     detalles.push(periodo.profesional);
                 }
                 
-                // Construir el HTML
+                // Construir el HTML del estado
                 let estadoHtml = estado;
                 if (detalles.length > 0) {
-                    estadoHtml += '<br>' + detalles.join('<br>');
+                    estadoHtml += ' ' + detalles.join(' ');
                 }
                 
                 html += '<td>' + estadoHtml + '</td>';
+                
                 // Periodo
                 let desde = periodo.desde ? periodo.desde : '';
                 let hasta = periodo.hasta ? periodo.hasta : '';
                 let dias = periodo.dias ? periodo.dias : '';
                 html += '<td>' + desde + ' al ' + hasta + (dias ? ' (' + dias + ' días)' : '') + '</td>';
                 html += '</tr>';
+                
+                // Si es el último período, agregar una fila de resumen DESPUÉS de cerrar la fila del período
+                if (idx === paciente.periodos.length - 1) {
+                    html += '<tr>';
+                    html += '<td colspan="4" style="border-top: 1px solid #999; padding-top: 5px;">';
+                    html += '<strong>Total: ' + totalDiasPaciente + ' días</strong>';
+                    
+                    // Agregar el profesional si todos los períodos tienen el mismo
+                    let profesionalComun = null;
+                    let todosMismoProfesional = true;
+                    
+                    paciente.periodos.forEach(function(p) {
+                        if (!profesionalComun && p.profesional && p.profesional !== 'sin profesional asignado') {
+                            profesionalComun = p.profesional;
+                        } else if (profesionalComun !== p.profesional) {
+                            todosMismoProfesional = false;
+                        }
+                    });
+                    
+                    if (todosMismoProfesional && profesionalComun) {
+                        html += ' | <strong>Profesional:</strong> ' + profesionalComun;
+                    }
+                    
+                    html += '</td>';
+                    html += '</tr>';
+                }
             });
         });
     } else {
