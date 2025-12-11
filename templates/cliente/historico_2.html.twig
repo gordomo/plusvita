@@ -451,7 +451,7 @@
                 </thead>
                 <tbody>
                     {% for clienteId, pacienteData in pacientes %}
-                        <tr>                            <td class="sticky-first-col">                                <a href="{{ path('cliente_edit', {'id': clienteId}) }}" class="text-truncate d-block" data-toggle="tooltip" title="{{ clientesData[clienteId].apellido|upper }} {{ clientesData[clienteId].nombre }}">
+                        <tr>                            <td class="sticky-first-col">                                <a href="{{ path('cliente_historial', {'id': clienteId}) }}" class="text-truncate d-block" data-toggle="tooltip" title="{{ clientesData[clienteId].apellido|upper }} {{ clientesData[clienteId].nombre }}">
                                     {{ clientesData[clienteId].apellido|upper }} {{ clientesData[clienteId].nombre }}
                                 </a>
                                 <small class="d-block">HC: {{ clientesData[clienteId].hClinica }} | <span class="obra-social-badge" data-toggle="tooltip" title="{{ clientesData[clienteId].obraSocialNombre|default('Sin OS') }}"><i class="fas fa-id-card-alt mr-1"></i>{{ (clientesData[clienteId].obraSocialNombre|default('Sin OS'))|length > 18 ? (clientesData[clienteId].obraSocialNombre|default('Sin OS'))|slice(0, 18) ~ '...' : (clientesData[clienteId].obraSocialNombre|default('Sin OS')) }}</span></small>
