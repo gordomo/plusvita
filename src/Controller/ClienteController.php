@@ -582,10 +582,36 @@ class ClienteController extends AbstractController
                         }
                     }
                     
-                    // Si está derivado y se está filtrando por modalidad específica (no "Todos"), excluirlo
-                    // Los derivados solo aparecen cuando modalidad = 0 (Todos) o cuando se filtra específicamente por derivados
-                    if ($estaDerivado && $modalidad != 0) {
-                        continue; // Excluir derivados cuando se filtra por modalidad específica
+                    // Obtener la modalidad de la historia (última modalidad activa antes de derivarse)
+                    $historiaModalidad = $historia->getModalidad();
+                    
+                    // FILTRO IMPORTANTE: Si se seleccionó una modalidad específica, usar la última modalidad activa
+                    // Si el paciente está derivado, usar su última modalidad antes de derivarse para el filtro
+                    if ($modalidad != 0) {
+                        if ($modalidad == 1) {
+                            // Ambulatorios incluye modalidad 1 y 4 (ART)
+                            // Si está derivado pero su última modalidad era ambulatoria, incluirlo
+                            if ($historiaModalidad != 1 && $historiaModalidad != 4) {
+                                continue; // Saltar esta fecha si no coincide con la modalidad filtrada
+                            }
+                        } elseif ($modalidad == 2) {
+                            // Internados: solo modalidad 2
+                            // Si está derivado pero su última modalidad era internado, incluirlo
+                            if ($historiaModalidad != 2) {
+                                continue; // Saltar esta fecha si no coincide con la modalidad filtrada
+                            }
+                        } elseif ($modalidad == 4) {
+                            // ART: solo modalidad 4
+                            // Si está derivado pero su última modalidad era ART, incluirlo
+                            if ($historiaModalidad != 4) {
+                                continue; // Saltar esta fecha si no coincide con la modalidad filtrada
+                            }
+                        } else {
+                            // Cualquier otra modalidad específica
+                            if ($historiaModalidad != $modalidad) {
+                                continue; // Saltar esta fecha si no coincide con la modalidad filtrada
+                            }
+                        }
                     }
                     
                     // Si es día de egreso
@@ -597,33 +623,6 @@ class ClienteController extends AbstractController
                     else if ($estaDerivado) {
                         $texto = 'Derivado';
                         $derivados[$fechaStr][$clienteId] = '1';
-                    }
-                    
-                    // FILTRO IMPORTANTE: Si se seleccionó una modalidad específica, solo mostrar esa modalidad
-                    // Este filtro se aplica DESPUÉS de verificar derivados para excluirlos correctamente
-                    if ($modalidad != 0) {
-                        $historiaModalidad = $historia->getModalidad();
-                        if ($modalidad == 1) {
-                            // Ambulatorios incluye modalidad 1 y 4 (ART)
-                            if ($historiaModalidad != 1 && $historiaModalidad != 4) {
-                                continue; // Saltar esta fecha si no coincide con la modalidad filtrada
-                            }
-                        } elseif ($modalidad == 2) {
-                            // Internados: solo modalidad 2
-                            if ($historiaModalidad != 2) {
-                                continue; // Saltar esta fecha si no coincide con la modalidad filtrada
-                            }
-                        } elseif ($modalidad == 4) {
-                            // ART: solo modalidad 4
-                            if ($historiaModalidad != 4) {
-                                continue; // Saltar esta fecha si no coincide con la modalidad filtrada
-                            }
-                        } else {
-                            // Cualquier otra modalidad específica
-                            if ($historiaModalidad != $modalidad) {
-                                continue; // Saltar esta fecha si no coincide con la modalidad filtrada
-                            }
-                        }
                     }
                     
                     // Si tiene una modalidad ambulatoria (no es internación) y no está derivado
