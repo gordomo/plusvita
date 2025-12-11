@@ -349,7 +349,7 @@ class ClienteController extends AbstractController
         $nombre = $request->query->get('nombre') ?? '';
         $nombre = (!empty($nombre)) ? $nombre : null;
         $prof = $request->query->get('prof') ?? null;
-        $modalidad = $request->query->get('modalidad', 0);
+        $modalidad = (int)$request->query->get('modalidad', 0);
         $limit = $request->query->get('limit', 10);
         $currentPage = $request->query->get('currentPage', 1);
         $hc = $request->query->get('hc', null);
@@ -542,13 +542,25 @@ class ClienteController extends AbstractController
                     
                     // FILTRO IMPORTANTE: Si se seleccionó una modalidad específica, solo mostrar esa modalidad
                     if ($modalidad != 0) {
+                        $historiaModalidad = $historia->getModalidad();
                         if ($modalidad == 1) {
                             // Ambulatorios incluye modalidad 1 y 4 (ART)
-                            if ($historia->getModalidad() != 1 && $historia->getModalidad() != 4) {
+                            if ($historiaModalidad != 1 && $historiaModalidad != 4) {
+                                continue; // Saltar esta fecha si no coincide con la modalidad filtrada
+                            }
+                        } elseif ($modalidad == 2) {
+                            // Internados: solo modalidad 2
+                            if ($historiaModalidad != 2) {
+                                continue; // Saltar esta fecha si no coincide con la modalidad filtrada
+                            }
+                        } elseif ($modalidad == 4) {
+                            // ART: solo modalidad 4
+                            if ($historiaModalidad != 4) {
                                 continue; // Saltar esta fecha si no coincide con la modalidad filtrada
                             }
                         } else {
-                            if ($historia->getModalidad() != $modalidad) {
+                            // Cualquier otra modalidad específica
+                            if ($historiaModalidad != $modalidad) {
                                 continue; // Saltar esta fecha si no coincide con la modalidad filtrada
                             }
                         }

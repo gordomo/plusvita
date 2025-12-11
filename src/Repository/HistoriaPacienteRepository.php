@@ -191,7 +191,14 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
             if ( $modalidad == 1 ) { 
                 // Ambulatorios incluye modalidad 1 y 4 (ART)
                 $query->andWhere('(h.modalidad = 1 OR h.modalidad = 4)');
+            } elseif ( $modalidad == 2 ) {
+                // Internados: solo modalidad 2
+                $query->andWhere('h.modalidad = 2');
+            } elseif ( $modalidad == 4 ) {
+                // ART: solo modalidad 4
+                $query->andWhere('h.modalidad = 4');
             } else {
+                // Cualquier otra modalidad específica
                 $query->andWhere('h.modalidad = :modalidad')->setParameter('modalidad', $modalidad);
             }
         }
