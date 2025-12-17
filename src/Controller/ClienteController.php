@@ -10,6 +10,7 @@ use App\Entity\HistoriaEgreso;
 use App\Entity\HistoriaHabitaciones;
 use App\Entity\HistoriaPaciente;
 use App\Entity\ObraSocial;
+use App\Entity\User;
 use App\Form\ClienteType;
 use App\Form\ReingresoType;
 use App\Repository\AdjuntosPacientesRepository;
