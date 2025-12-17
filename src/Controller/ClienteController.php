@@ -151,7 +151,9 @@ class ClienteController extends AbstractController
         $clientes = $clientes['paginator'];
         $maxPages = intval(ceil($clientes->count() / $limit));
 
-        $habitaciones = $habitacionRepository->getHabitacionesConPacientes();
+        // Obtener TODAS las habitaciones para el array, no solo las que tienen pacientes
+        // Esto asegura que todas las habitaciones estén disponibles para mostrar en el template
+        $habitaciones = $habitacionRepository->findAll();
 
         $habitacionesArray = [];
         foreach ($habitaciones as $habitacion) {
@@ -1163,7 +1165,9 @@ class ClienteController extends AbstractController
 
             }
 
-        $habitaciones = $habitacionRepository->getHabitacionesConPacientes();
+        // Obtener TODAS las habitaciones para el array, no solo las que tienen pacientes
+        // Esto asegura que todas las habitaciones estén disponibles para mostrar en el template
+        $habitaciones = $habitacionRepository->findAll();
 
         $habitacionesArray = [];
         foreach ($habitaciones as $habitacion) {
@@ -1284,14 +1288,22 @@ class ClienteController extends AbstractController
             }
 
             $entityManager = $this->getDoctrine()->getManager();
-            $doctoresReferentes = $cliente->getDocReferente();
-
-            foreach ($doctoresReferentes as $doctor) {
-                $doctor->addCliente($cliente);
-                $entityManager->persist($doctor);
-            }
-
+            
+            // Primero persistir el cliente para que tenga un ID
             $entityManager->persist($cliente);
+            $entityManager->flush(); // Flush para obtener el ID del cliente
+            
+            // Luego manejar la relación bidireccional con los doctores referentes
+            $doctoresReferentes = $cliente->getDocReferente();
+            
+            // Asegurar que la relación se establece correctamente
+            foreach ($doctoresReferentes as $doctor) {
+                if ($doctor instanceof User) {
+                    // Usar addCliente que maneja la relación bidireccional
+                    $doctor->addCliente($cliente);
+                    $entityManager->persist($doctor);
+                }
+            }
 
             $familiarResponsableExtraNombres = $familiarResponsableExtraNombres ?? [];
             foreach ($familiarResponsableExtraNombres as $key => $item) {
@@ -1756,6 +1768,97 @@ class ClienteController extends AbstractController
     }
 
     /**
+     * @Route("/cambiar-habitacion/{id}", name="cliente_cambiar_habitacion", methods={"GET"})
+     */
+    public function cambiarHabitacionForm(Cliente $cliente, HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository): Response
+    {
+        // Verificar que el paciente está internado
+        if (!$cliente->getHabitacion()) {
+            return $this->json(['error' => 'El paciente no está internado'], 400);
+        }
+
+        $habitacionActual = $habitacionRepository->find($cliente->getHabitacion());
+        if (!$habitacionActual) {
+            return $this->json(['error' => 'Habitación actual no encontrada'], 400);
+        }
+
+        // Obtener todas las habitaciones con camas disponibles
+        $todasHabitaciones = $habitacionRepository->findAll();
+        $habitacionesDisponibles = [];
+
+        foreach ($todasHabitaciones as $habitacion) {
+            $pacientesEnHabitacion = $clienteRepository->findClienteEnHabitacion($habitacion, true, true);
+            $camasOcupadas = [];
+            foreach ($pacientesEnHabitacion as $paciente) {
+                // Excluir al paciente actual si está en esta habitación
+                if ($paciente->getId() != $cliente->getId() && $paciente->getNCama() > 0) {
+                    $camasOcupadas[$paciente->getNCama()] = $paciente->getNCama();
+                }
+            }
+
+            $camasDisponibles = [];
+            for ($i = 1; $i <= $habitacion->getCamasDisponibles(); $i++) {
+                if (!isset($camasOcupadas[$i])) {
+                    $camasDisponibles[$i] = $i;
+                }
+            }
+
+            // Incluir la habitación si tiene camas disponibles o si es la habitación actual
+            if (count($camasDisponibles) > 0 || $habitacion->getId() == $habitacionActual->getId()) {
+                $habitacionesDisponibles[] = [
+                    'id' => $habitacion->getId(),
+                    'nombre' => $habitacion->getNombre(),
+                    'camasDisponibles' => $camasDisponibles,
+                    'camasTotales' => $habitacion->getCamasDisponibles(),
+                    'camasOcupadas' => count($camasOcupadas),
+                    'esActual' => $habitacion->getId() == $habitacionActual->getId(),
+                ];
+            }
+        }
+
+        return $this->render('cliente/cambiar_habitacion_modal.html.twig', [
+            'cliente' => $cliente,
+            'habitacionActual' => $habitacionActual,
+            'camaActual' => $cliente->getNCama(),
+            'habitacionesDisponibles' => $habitacionesDisponibles,
+        ]);
+    }
+
+    /**
+     * @Route("/cambiar-habitacion/{id}", name="cliente_guardar_cambio_habitacion", methods={"POST"})
+     */
+    public function guardarCambioHabitacion(Cliente $cliente, Request $request): Response
+    {
+        $user = $this->security->getUser();
+        
+        $nuevaHabitacionId = $request->request->get('habitacion');
+        $nuevaCamaId = $request->request->get('cama');
+        $habPrivada = $request->request->get('habPrivada', 0);
+
+        if (!$nuevaHabitacionId || !$nuevaCamaId) {
+            $this->addFlash('error', 'Debe seleccionar una habitación y una cama');
+            return $this->redirectToRoute('cliente_index');
+        }
+
+        try {
+            $this->patientStateService->cambiarHabitacion(
+                $cliente,
+                $user,
+                (int)$nuevaHabitacionId,
+                (int)$nuevaCamaId,
+                (int)$habPrivada
+            );
+
+            $habitacion = $this->getDoctrine()->getRepository(\App\Entity\Habitacion::class)->find($nuevaHabitacionId);
+            $this->addFlash('success', "Paciente movido a habitación {$habitacion->getNombre()}, cama {$nuevaCamaId}");
+        } catch (\Exception $e) {
+            $this->addFlash('error', $e->getMessage());
+        }
+
+        return $this->redirectToRoute('cliente_index');
+    }
+
+    /**
      * @Route("/permiso/reingresar/{id}", name="cliente_reingreso_permiso", methods={"GET", "POST"})
      */
     public function reingresarPermiso(Cliente $cliente, Request $request): Response
@@ -2001,11 +2104,17 @@ class ClienteController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
 
             $entityManager = $this->getDoctrine()->getManager();
+            
+            // Manejar la relación bidireccional con los doctores referentes
             $doctoresReferentes = $cliente->getDocReferente();
-
+            
+            // Asegurar que la relación se establece correctamente
             foreach ($doctoresReferentes as $doctor) {
-                $doctor->addCliente($cliente);
-                $entityManager->persist($doctor);
+                if ($doctor instanceof User) {
+                    // Usar addCliente que maneja la relación bidireccional
+                    $doctor->addCliente($cliente);
+                    $entityManager->persist($doctor);
+                }
             }
             if ($form->has('fEgreso') && !empty($form->get('fEgreso')->getData())) {
                 $cliente->setFEgreso($form->get('fEgreso')->getData());

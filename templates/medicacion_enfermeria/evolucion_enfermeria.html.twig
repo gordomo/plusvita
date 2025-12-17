@@ -1,0 +1,147 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Evolución de Enfermería - {{ cliente.nombre }} {{ cliente.apellido }}{% endblock %}
+
+{% block panelTitle %}
+    <div id="head">
+        <h4>
+            <i class="fas fa-heartbeat mr-2"></i>
+            Evolución de Enfermería
+        </h4>
+        <p class="mb-0">
+            Paciente: <strong class="text-capitalize">{{ cliente.nombre }} {{ cliente.apellido }}</strong> - 
+            H.C.: <strong>{{ cliente.hClinica }}</strong>
+        </p>
+    </div>
+{% endblock %}
+
+{% block body %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-file-medical mr-2"></i>
+                            Nueva Evolución de Enfermería
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="formEvolucionEnfermeria">
+                            <input type="hidden" id="clienteId" value="{{ cliente.id }}">
+                            
+                            <div class="form-group">
+                                <label for="evolucionDescripcion">
+                                    <strong>Evolución de Enfermería:</strong>
+                                    <span class="text-muted">(Campo obligatorio)</span>
+                                </label>
+                                <textarea
+                                    class="form-control"
+                                    id="evolucionDescripcion"
+                                    name="descripcion"
+                                    rows="8"
+                                    required
+                                    placeholder="Ingrese la evolución de enfermería del paciente..."></textarea>
+                                <small class="form-text text-muted">
+                                    La evolución será guardada con el prefijo "[Evolución de Enfermería]" automáticamente.
+                                </small>
+                            </div>
+                            
+                            <div class="form-group mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg" id="btnGuardarEvolucion">
+                                    <i class="fas fa-save mr-2"></i>
+                                    Guardar Evolución
+                                </button>
+                                <a href="{{ path('cliente_index') }}" class="btn btn-secondary btn-lg ml-2">
+                                    <i class="fas fa-times mr-2"></i>
+                                    Cancelar
+                                </a>
+                            </div>
+                        </form>
+                        
+                        <div id="mensajeResultado" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#formEvolucionEnfermeria').on('submit', function(e) {
+                e.preventDefault();
+                guardarEvolucionEnfermeria();
+            });
+        });
+        
+        function guardarEvolucionEnfermeria() {
+            const clienteId = $('#clienteId').val();
+            const descripcion = $('#evolucionDescripcion').val();
+            
+            if (!descripcion || descripcion.trim() === '') {
+                mostrarMensaje('error', 'Debe ingresar la evolución de enfermería');
+                return;
+            }
+            
+            // Deshabilitar botón mientras se guarda
+            $('#btnGuardarEvolucion').prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Guardando...');
+            
+            $.ajax({
+                url: `{{ path('medicacion_guardar_evolucion_enfermeria', {'id': '__ID__'}) }}`.replace('__ID__', clienteId),
+                method: 'POST',
+                data: {
+                    descripcion: descripcion
+                },
+                success: function(response) {
+                    if (response.success) {
+                        mostrarMensaje('success', response.message);
+                        // Redirigir a la lista de pacientes después de 2 segundos
+                        setTimeout(() => {
+                            window.location.href = '{{ path('cliente_index') }}';
+                        }, 2000);
+                    } else {
+                        mostrarMensaje('error', response.message);
+                        $('#btnGuardarEvolucion').prop('disabled', false).html('<i class="fas fa-save mr-2"></i>Guardar Evolución');
+                    }
+                },
+                error: function(xhr) {
+                    let mensaje = 'Error de comunicación con el servidor';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        mensaje = xhr.responseJSON.message;
+                    }
+                    mostrarMensaje('error', mensaje);
+                    $('#btnGuardarEvolucion').prop('disabled', false).html('<i class="fas fa-save mr-2"></i>Guardar Evolución');
+                }
+            });
+        }
+        
+        function mostrarMensaje(tipo, mensaje) {
+            let alertClass, icono;
+            if (tipo === 'success') {
+                alertClass = 'alert-success';
+                icono = 'fa-check-circle';
+            } else {
+                alertClass = 'alert-danger';
+                icono = 'fa-exclamation-circle';
+            }
+            
+            const alert = $(`
+                <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                    <i class="fas ${icono} mr-2"></i>
+                    ${mensaje}
+                    <button type="button" class="close" data-dismiss="alert">
+                        <span>&times;</span>
+                    </button>
+                </div>
+            `);
+            
+            $('#mensajeResultado').html(alert);
+            
+            // Auto-remover después de 5 segundos
+            setTimeout(() => {
+                alert.fadeOut();
+            }, 5000);
+        }
+    </script>
+{% endblock %}
+

@@ -356,6 +356,7 @@ class AuthorizationService
             ['patient.delete', 'Eliminar Pacientes', 'Pacientes', 'Permite eliminar pacientes'],
             ['patient.history', 'Historia Clínica', 'Pacientes', 'Permite acceder a historias clínicas'],
             ['patient.evolve', 'Evolucionar Pacientes', 'Pacientes', 'Permite crear evoluciones médicas'],
+            ['patient.evolve.enfermeria', 'Evolución de Enfermería', 'Pacientes', 'Permite crear evoluciones de enfermería'],
             ['patient.edit_evolve', 'Editar Evoluciones Médicas', 'Pacientes', 'Permite editar evoluciones médicas existentes'],
             ['patient.evolve_without_presence', 'Evolucionar sin Presente', 'Pacientes', 'Permite crear evoluciones sin necesidad de tener presente del día'],
             ['patient.prescription', 'Prescripciones', 'Pacientes', 'Permite gestionar prescripciones médicas'],
@@ -452,6 +453,7 @@ class AuthorizationService
                 'description' => 'Personal de enfermería profesional',
                 'permissions' => [
                     'patient.view', 'patient.history', 'patient.kardex', 'patient.attendance', 'patient.prescription',
+                    'patient.evolve.enfermeria',
                     'agenda.view', 'consumables.view', 'stats.view'
                 ]
             ],
@@ -461,6 +463,7 @@ class AuthorizationService
                 'description' => 'Asistente de enfermería',
                 'permissions' => [
                     'patient.view', 'patient.history', 'patient.kardex', 'patient.attendance',
+                    'patient.evolve.enfermeria',
                     'agenda.view', 'consumables.view', 'stats.view'
                 ]
             ],
@@ -470,6 +473,7 @@ class AuthorizationService
                 'description' => 'Asistente de enfermería',
                 'permissions' => [
                     'patient.view', 'patient.history', 'patient.kardex', 'patient.attendance',
+                    'patient.evolve.enfermeria',
                     'consumables.view', 'stats.view'
                 ]
             ],

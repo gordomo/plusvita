@@ -531,6 +531,8 @@ class Cliente
     {
         if (!$this->docReferente->contains($docReferente)) {
             $this->docReferente[] = $docReferente;
+            // No llamar a addCliente aquí para evitar recursión infinita
+            // La relación inversa se maneja desde User->addCliente()
         }
 
         return $this;
@@ -540,6 +542,8 @@ class Cliente
     {
         if ($this->docReferente->contains($docReferente)) {
             $this->docReferente->removeElement($docReferente);
+            // No llamar a removeCliente aquí para evitar recursión infinita
+            // La relación inversa se maneja desde User->removeCliente()
         }
 
         return $this;

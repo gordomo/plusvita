@@ -4,10 +4,17 @@ namespace App\Controller;
 
 use App\Entity\Cliente;
 use App\Entity\HorarioToma;
+use App\Entity\SignosVitales;
+use App\Entity\ConsumiblesClientes;
+use App\Entity\Evolucion;
 use App\Repository\HorarioTomaRepository;
 use App\Repository\ConsumiblesClientesRepository;
 use App\Repository\ConsumibleRepository;
+use App\Repository\SignosVitalesRepository;
+use App\Repository\UserRepository;
 use App\Service\HorarioTomaCalculatorService;
+use App\Service\TurnoService;
+use App\Service\PatientStateService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -50,10 +57,63 @@ class MedicacionEnfermeriaController extends AbstractController
     /**
      * @Route("/{id}", name="medicacion_enfermeria", methods={"GET"})
      */
-    public function index(Cliente $cliente, HorarioTomaRepository $horarioTomaRepository, ConsumiblesClientesRepository $consumiblesRepository, ConsumibleRepository $consumibleRepository): Response
+    public function index(
+        Cliente $cliente, 
+        HorarioTomaRepository $horarioTomaRepository, 
+        ConsumiblesClientesRepository $consumiblesRepository, 
+        ConsumibleRepository $consumibleRepository,
+        SignosVitalesRepository $signosVitalesRepository,
+        TurnoService $turnoService,
+        PatientStateService $patientStateService,
+        UserRepository $userRepository
+    ): Response
     {
         $fechaHoy = new \DateTime();
         $fechaHoy->setTime(0, 0, 0); // Resetear a medianoche para comparaciones de fecha
+        
+        // Verificar si el paciente está internado
+        $estaInternado = $patientStateService->getEstadoActual($cliente) === PatientStateService::ESTADO_INTERNADO;
+        
+        // Obtener turno actual y datos de signos vitales
+        $turnoActual = null;
+        $signosVitalesCompletados = false;
+        $signosVitalesBloqueados = false;
+        $indicacionesPendientesEnTurno = [];
+        $fechaBaseTurno = null;
+        $signosVitalesDelTurno = [];
+        
+        if ($estaInternado) {
+            $ahora = new \DateTime();
+            $turnoActual = $turnoService->obtenerTurnoActual($ahora);
+            $fechaBaseTurno = $turnoService->obtenerFechaBaseTurno($ahora, $turnoActual);
+            
+            // Obtener todas las tomas de signos vitales del turno actual
+            $signosVitalesDelTurno = $signosVitalesRepository->findTodasPorPacienteFechaTurno($cliente, $fechaBaseTurno, $turnoActual);
+            
+            // Obtener información de los usuarios que registraron los signos vitales
+            $usuariosSignosVitales = [];
+            foreach ($signosVitalesDelTurno as $sv) {
+                if ($sv->getRegistradoPorUserId()) {
+                    $usuario = $userRepository->find($sv->getRegistradoPorUserId());
+                    if ($usuario) {
+                        $usuariosSignosVitales[$sv->getId()] = $usuario;
+                    }
+                }
+            }
+            
+            // Verificar si hay al menos una toma completada para este turno
+            $signosVitalesCompletados = !empty($signosVitalesDelTurno);
+            
+            // Verificar si hay indicaciones pendientes en el turno actual
+            $indicacionesPendientesEnTurno = $horarioTomaRepository->findIndicacionesPendientesEnTurno(
+                $cliente->getId(), 
+                $turnoActual, 
+                $fechaBaseTurno
+            );
+            
+            // Los signos vitales están bloqueados si hay indicaciones pendientes en el turno Y no hay ninguna toma registrada
+            $signosVitalesBloqueados = !empty($indicacionesPendientesEnTurno) && empty($signosVitalesDelTurno);
+        }
         
         // Obtener horarios programados para hoy
         $horariosHoy = $horarioTomaRepository->findHorariosPorClienteYFecha($cliente->getId(), $fechaHoy);
@@ -125,7 +185,16 @@ class MedicacionEnfermeriaController extends AbstractController
             'consumiblesArray' => $consumiblesArray,
             'fechaHoy' => $fechaHoy,
             'horariosEnVentanaIds' => $horariosEnVentanaIds,
-            'ventanasHorarias' => $ventanasHorarias
+            'ventanasHorarias' => $ventanasHorarias,
+            'estaInternado' => $estaInternado,
+            'turnoActual' => $turnoActual,
+            'signosVitalesCompletados' => $signosVitalesCompletados,
+            'signosVitalesBloqueados' => $signosVitalesBloqueados,
+            'indicacionesPendientesEnTurno' => $indicacionesPendientesEnTurno,
+            'turnoService' => $turnoService,
+            'fechaBaseTurno' => $fechaBaseTurno,
+            'signosVitalesDelTurno' => $signosVitalesDelTurno ?? [],
+            'usuariosSignosVitales' => $usuariosSignosVitales ?? []
         ]);
     }
     
@@ -259,6 +328,177 @@ class MedicacionEnfermeriaController extends AbstractController
                 'success' => false,
                 'message' => 'Error al registrar primera toma: ' . $e->getMessage()
             ]);
+        }
+    }
+
+    /**
+     * @Route("/registrar-signos-vitales/{id}", name="medicacion_registrar_signos_vitales", methods={"POST"})
+     */
+    public function registrarSignosVitales(
+        Cliente $cliente, 
+        Request $request, 
+        EntityManagerInterface $entityManager,
+        SignosVitalesRepository $signosVitalesRepository,
+        TurnoService $turnoService,
+        HorarioTomaRepository $horarioTomaRepository,
+        PatientStateService $patientStateService
+    ): JsonResponse
+    {
+        try {
+            // Verificar que el paciente esté internado
+            $estaInternado = $patientStateService->getEstadoActual($cliente) === PatientStateService::ESTADO_INTERNADO;
+            if (!$estaInternado) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Los signos vitales solo se registran para pacientes internados'
+                ], 400);
+            }
+
+            $notas = $request->request->get('notas', '');
+            if (empty($notas)) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Debe ingresar las notas de los signos vitales'
+                ], 400);
+            }
+
+            $ahora = new \DateTime();
+            $turnoActual = $turnoService->obtenerTurnoActual($ahora);
+            $fechaBaseTurno = $turnoService->obtenerFechaBaseTurno($ahora, $turnoActual);
+
+            // Ya no bloqueamos si hay una toma previa, permitimos múltiples tomas
+
+            // Verificar si hay indicaciones pendientes en el turno
+            $indicacionesPendientes = $horarioTomaRepository->findIndicacionesPendientesEnTurno(
+                $cliente->getId(), 
+                $turnoActual, 
+                $fechaBaseTurno
+            );
+
+            if (!empty($indicacionesPendientes)) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Debe completar primero todas las indicaciones pendientes del turno antes de registrar los signos vitales',
+                    'indicaciones_pendientes' => count($indicacionesPendientes)
+                ], 400);
+            }
+
+            // Verificar si es la primera toma del turno
+            $tomasExistentes = $signosVitalesRepository->findTodasPorPacienteFechaTurno($cliente, $fechaBaseTurno, $turnoActual);
+            $esPrimeraToma = empty($tomasExistentes);
+            
+            // Crear nuevo registro (siempre se crea uno nuevo, no se modifica el existente)
+            $signosVitales = new SignosVitales();
+            $signosVitales->setPaciente($cliente);
+            $signosVitales->setFecha($fechaBaseTurno);
+            $signosVitales->setTurno($turnoActual);
+            $signosVitales->setNotas($notas);
+            $signosVitales->setFechaHoraRegistro($ahora);
+            $signosVitales->setRegistradoPorUserId($this->getUser() ? $this->getUser()->getId() : null);
+            $signosVitales->setCompletado(true);
+
+            $entityManager->persist($signosVitales);
+            $entityManager->flush();
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Signos vitales registrados correctamente. Debe ingresar una evolución de enfermería.',
+                'requiere_evolucion' => true // Siempre requiere evolución después de registrar signos vitales
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Error al registrar signos vitales: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * @Route("/evolucion-enfermeria/{id}", name="medicacion_evolucion_enfermeria", methods={"GET"})
+     */
+    public function evolucionEnfermeria(Cliente $cliente): Response
+    {
+        if (!$this->isGranted('patient.evolve.enfermeria')) {
+            throw $this->createAccessDeniedException('No tienes permisos para crear evoluciones de enfermería');
+        }
+
+        return $this->render('medicacion_enfermeria/evolucion_enfermeria.html.twig', [
+            'cliente' => $cliente,
+        ]);
+    }
+
+    /**
+     * @Route("/guardar-evolucion-enfermeria/{id}", name="medicacion_guardar_evolucion_enfermeria", methods={"POST"})
+     */
+    public function guardarEvolucionEnfermeria(
+        Cliente $cliente,
+        Request $request,
+        EntityManagerInterface $entityManager
+    ): JsonResponse
+    {
+        try {
+            $user = $this->getUser();
+            if (!$user) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Usuario no autenticado'
+                ], 401);
+            }
+
+            $descripcion = $request->request->get('descripcion', '');
+            if (empty(trim($descripcion))) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Debe ingresar la evolución de enfermería'
+                ], 400);
+            }
+
+            // Agregar prefijo para identificar que es una evolución de enfermería
+            $descripcionConPrefijo = '[Evolución de Enfermería] ' . trim($descripcion);
+
+            // Crear nueva evolución
+            $evolucion = new Evolucion();
+            $evolucion->setPaciente($cliente);
+            $evolucion->setUser($user->getEmail());
+            $evolucion->setFecha(new \DateTime());
+            $evolucion->setDescription($descripcionConPrefijo);
+            
+            // Determinar tipo: usar el tipo de contrato del usuario si existe, sino usar tipo de profesional
+            $tipoEvolucion = null;
+            $contratoActivo = $user->getActiveContract();
+            if ($contratoActivo) {
+                $tipoEvolucion = $contratoActivo->getTipoLabel();
+            } else {
+                // Fallback al tipo de profesional si no hay contrato activo
+                $tipoEvolucion = $user->getTipoProfesional();
+            }
+            $evolucion->setTipo($tipoEvolucion);
+
+            // Guardar datos del usuario que firma
+            $evolucion->setFirmaDoctorNombre($user->getNombre());
+            $evolucion->setFirmaDoctorApellido($user->getApellido());
+            $evolucion->setFirmaDoctorMatricula($user->getLegajo());
+
+            // Obtener la firma activa si existe
+            $firmaActiva = $user->getActiveFirma();
+            if ($firmaActiva) {
+                $evolucion->setFirmaDoctorPath($firmaActiva->getFilePath());
+            }
+
+            $entityManager->persist($evolucion);
+            $entityManager->flush();
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Evolución de enfermería guardada correctamente'
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Error al guardar la evolución: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

@@ -44,6 +44,27 @@
         padding: 2rem;
         margin-bottom: 2rem;
     }
+    
+    .patient-header-row {
+        border-top: 2px solid #dee2e6;
+    }
+    
+    .patient-header-row:first-child {
+        border-top: none;
+    }
+    
+    .patient-cell {
+        background-color: #f8f9fa;
+        font-weight: 600;
+    }
+    
+    .table tbody tr.patient-header-row td {
+        border-top: 2px solid #dee2e6;
+    }
+    
+    .table tbody tr:not(.patient-header-row) td {
+        border-top: 1px solid #dee2e6;
+    }
 </style>
 {% endblock %}
 
@@ -107,65 +128,131 @@
                 </h5>
             </div>
             
-            {% if indicacionesProximas is defined and indicacionesProximas|length > 0 %}
+            {% if indicacionesPorPaciente is defined and indicacionesPorPaciente|length > 0 %}
                 <div class="col-12">
                     <div class="table-responsive">
-                        <table class="table table-hover table-striped">
+                        <table class="table table-hover">
                             <thead class="thead-light">
                                 <tr>
-                                    <th>Paciente</th>
-                                    <th>Medicamento/Indicación</th>
-                                    <th>Dosis</th>
-                                    <th>Fecha/Hora</th>
-                                    <th>Estado</th>
-                                    <th>Acción</th>
+                                    <th style="width: 25%;">Paciente</th>
+                                    <th style="width: 40%;">Resumen</th>
+                                    <th style="width: 20%;">Fecha/Hora</th>
+                                    <th style="width: 10%;">Estado</th>
+                                    <th style="width: 5%;">Acción</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for item in indicacionesProximas %}
-                                    <tr class="{% if item.enVentana %}table-warning{% elseif item.estado == 'vencido' %}table-danger{% endif %}">
+                                {% for pacienteId, pacienteData in indicacionesPorPaciente %}
+                                    {% set cliente = pacienteData.cliente %}
+                                    {% set totalIndicaciones = pacienteData.totalIndicaciones %}
+                                    {% set tieneSignosVitales = pacienteData.tieneSignosVitales %}
+                                    {% set signosVitalesBloqueados = pacienteData.signosVitalesBloqueados %}
+                                    {% set indicacionesEnVentana = pacienteData.indicacionesEnVentana %}
+                                    {% set indicacionesVencidas = pacienteData.indicacionesVencidas %}
+                                    {% set estadoGeneral = pacienteData.estadoGeneral %}
+                                    
+                                    <tr class="{% if tieneSignosVitales and not signosVitalesBloqueados %}table-info{% elseif estadoGeneral == 'en_ventana' %}table-warning{% elseif estadoGeneral == 'vencido' %}table-danger{% elseif estadoGeneral == 'bloqueado' %}table-secondary{% endif %}">
                                         <td>
-                                            <strong>{{ item.cliente.nombre }} {{ item.cliente.apellido }}</strong><br>
-                                            <small class="text-muted">H.C.: {{ item.cliente.hClinica }}</small>
+                                            <strong>{{ cliente.nombre }} {{ cliente.apellido }}</strong><br>
+                                            <small class="text-muted">H.C.: {{ cliente.hClinica }}</small>
                                         </td>
+                                        
                                         <td>
-                                            {{ item.nombreMedicamento }}
-                                            {% if item.indicacion.frecuencia %}
-                                                <br><small class="text-muted">Frecuencia: {{ item.indicacion.frecuencia }}</small>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if item.indicacion.cantidad %}
-                                                {{ item.indicacion.cantidad }} 
-                                                {% if item.indicacion.unidadMedida %}{{ item.indicacion.unidadMedida }}{% endif %}
+                                            {% if totalIndicaciones == 1 %}
+                                                {% set item = pacienteData.indicaciones[0] %}
+                                                {% if item.tipo == 'signos_vitales' %}
+                                                    <i class="fas fa-heartbeat text-danger mr-2"></i>
+                                                    <strong>Medir Signos Vitales</strong>
+                                                    {% if item.turno %}
+                                                        <br><small class="text-muted">Turno: {{ item.turno|capitalize }}</small>
+                                                    {% endif %}
+                                                {% else %}
+                                                    {{ item.nombreMedicamento }}
+                                                    {% if item.indicacion and item.indicacion.frecuencia %}
+                                                        <br><small class="text-muted">Frecuencia: {{ item.indicacion.frecuencia }}</small>
+                                                    {% endif %}
+                                                {% endif %}
                                             {% else %}
-                                                --
+                                                <i class="fas fa-list text-primary mr-2"></i>
+                                                <strong>{{ totalIndicaciones }} indicación(es) pendiente(s)</strong>
+                                                {% if tieneSignosVitales %}
+                                                    <br><small class="text-muted">
+                                                        <i class="fas fa-heartbeat text-danger"></i> 
+                                                        Incluye signos vitales
+                                                        {% if signosVitalesBloqueados %}
+                                                            <span class="">(bloqueado)</span>
+                                                        {% endif %}
+                                                    </small>
+                                                {% endif %}
+                                                {% if indicacionesVencidas > 0 %}
+                                                    <br><small class="text-danger">
+                                                        <i class="fas fa-exclamation-triangle"></i> 
+                                                        {{ indicacionesVencidas }} vencida(s)
+                                                    </small>
+                                                {% endif %}
+                                                {% if indicacionesEnVentana > 0 %}
+                                                    <br><small class="text-warning">
+                                                        <i class="fas fa-clock"></i> 
+                                                        {{ indicacionesEnVentana }} en ventana
+                                                    </small>
+                                                {% endif %}
                                             {% endif %}
                                         </td>
+                                        
                                         <td>
-                                            {{ item.fechaHora|date('d/m/Y H:i') }}
-                                            {% if item.enVentana %}
-                                                <br><small class="text-warning"><i class="fas fa-exclamation-circle"></i> En ventana</small>
-                                            {% elseif item.estado == 'vencido' %}
-                                                <br><small class="text-danger">
-                                                    {% set horasVencidas = (item.minutosDiferencia / 60)|round %}
-                                                    Vencida hace {{ horasVencidas|abs }}h
-                                                </small>
+                                            {% if totalIndicaciones == 1 %}
+                                                {% set item = pacienteData.indicaciones[0] %}
+                                                {% if item.tipo == 'signos_vitales' %}
+                                                    {{ item.fechaHora|date('d/m/Y') }}
+                                                    <br><small class="text-info">
+                                                        <i class="fas fa-info-circle"></i> 
+                                                        {% if item.bloqueado %}
+                                                            Pendiente de indicaciones
+                                                        {% else %}
+                                                            Disponible ahora
+                                                        {% endif %}
+                                                    </small>
+                                                {% else %}
+                                                    {{ item.fechaHora|date('d/m/Y H:i') }}
+                                                    {% if item.enVentana %}
+                                                        <br><small class="text-warning"><i class="fas fa-exclamation-circle"></i> En ventana</small>
+                                                    {% elseif item.estado == 'vencido' %}
+                                                        <br><small class="text-danger">
+                                                            {% set horasVencidas = (item.minutosDiferencia / 60)|round %}
+                                                            Vencida hace {{ horasVencidas|abs }}h
+                                                        </small>
+                                                    {% else %}
+                                                        <br><small class="text-info">
+                                                            {% set horasRestantes = (item.minutosDiferencia / 60)|round %}
+                                                            En {{ horasRestantes }}h
+                                                        </small>
+                                                    {% endif %}
+                                                {% endif %}
                                             {% else %}
-                                                <br><small class="text-info">
-                                                    {% set horasRestantes = (item.minutosDiferencia / 60)|round %}
-                                                    En {{ horasRestantes }}h
+                                                {{ pacienteData.fechaHoraMinima|date('d/m/Y') }}
+                                                <br><small class="text-muted">
+                                                    <i class="fas fa-info-circle"></i> 
+                                                    Ver detalle en Kardex
                                                 </small>
                                             {% endif %}
                                         </td>
+                                        
                                         <td>
-                                            {% if item.enVentana %}
+                                            {% if tieneSignosVitales and not signosVitalesBloqueados %}
+                                                <span class="badge badge-info">
+                                                    <i class="fas fa-heartbeat"></i> Disponible
+                                                </span>
+                                            {% elseif estadoGeneral == 'en_ventana' %}
                                                 <span class="badge badge-warning">
                                                     <i class="fas fa-clock"></i> En Ventana
                                                 </span>
-                                            {% elseif item.estado == 'vencido' %}
+                                            {% elseif estadoGeneral == 'vencido' %}
                                                 <span class="badge badge-danger">
                                                     <i class="fas fa-exclamation-triangle"></i> Pendiente
+                                                </span>
+                                            {% elseif estadoGeneral == 'bloqueado' %}
+                                                <span class="badge badge-secondary">
+                                                    <i class="fas fa-lock"></i> Bloqueado
                                                 </span>
                                             {% else %}
                                                 <span class="badge badge-info">
@@ -173,8 +260,9 @@
                                                 </span>
                                             {% endif %}
                                         </td>
+                                        
                                         <td>
-                                            <a href="{{ path('medicacion_enfermeria', {'id': item.cliente.id}) }}" 
+                                            <a href="{{ path('medicacion_enfermeria', {'id': cliente.id}) }}" 
                                                class="btn btn-sm btn-primary" 
                                                title="Ir al Kardex del paciente">
                                                 <i class="fas fa-syringe"></i> Kardex

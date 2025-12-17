@@ -521,6 +521,11 @@
                                             <i class="fas fa-syringe"></i> Kardex
                                         </a>
                                         {% endif %}
+                                        {% if is_granted('patient.evolve.enfermeria') %}
+                                        <a class="dropdown-item" href="{{ path('medicacion_evolucion_enfermeria', {'id': cliente.id}) }}">
+                                            <i class="fas fa-heartbeat"></i> Evolución de Enfermería
+                                        </a>
+                                        {% endif %}
                                         
                                         <div class="dropdown-divider"></div>
                                         <h6 class="dropdown-header">Informes</h6>
@@ -546,6 +551,11 @@
                                             </a>
                                             {% endif %}
                                         {% elseif pestana == 'activos' %}
+                                            {% if cliente.habitacion and is_granted('patient.edit') %}
+                                            <a class="dropdown-item cambiar-habitacion-link" href="#" data-cliente-id="{{ cliente.id }}">
+                                                <i class="fas fa-bed"></i> Cambiar habitación
+                                            </a>
+                                            {% endif %}
                                             {% if is_granted('patient.discharge') %}
                                             <a class="dropdown-item" href="{{ path('cliente_egreso', {'id': cliente.id}) }}">
                                                 <i class="fas fa-sign-out-alt"></i> Egresar
@@ -832,77 +842,147 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Función para buscar por nombre
-            document.getElementById('buscarPorNombre').addEventListener('click', function() {
-                let inactivo = this.getAttribute('data-inactivo') === 'true';
-                let url = this.getAttribute('data-url');
-                let search = document.getElementById('nombreInput').value;
-                
-                if (search.length > 0) {
-                    window.location.href = url + (url.includes('?') ? '&' : '?') + 'nombreInput=' + encodeURIComponent(search);
-                } else {
-                    window.location.href = url;
-                }
-            });
+            const buscarPorNombre = document.getElementById('buscarPorNombre');
+            if (buscarPorNombre) {
+                buscarPorNombre.addEventListener('click', function() {
+                    let inactivo = this.getAttribute('data-inactivo') === 'true';
+                    let url = this.getAttribute('data-url');
+                    const nombreInput = document.getElementById('nombreInput');
+                    let search = nombreInput ? nombreInput.value : '';
+                    
+                    if (search.length > 0) {
+                        window.location.href = url + (url.includes('?') ? '&' : '?') + 'nombreInput=' + encodeURIComponent(search);
+                    } else {
+                        window.location.href = url;
+                    }
+                });
+            }
             
             // Permitir búsqueda por Enter
-            document.getElementById('nombreInput').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    document.getElementById('buscarPorNombre').click();
-                }
-            });
+            const nombreInput = document.getElementById('nombreInput');
+            if (nombreInput) {
+                nombreInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        const buscarBtn = document.getElementById('buscarPorNombre');
+                        if (buscarBtn) {
+                            buscarBtn.click();
+                        }
+                    }
+                });
+            }
             
             // Selector de límite
-            document.getElementById('limit-selector').addEventListener('change', function() {
-                let limit = this.value;
-                let currentUrl = new URL(window.location.href);
-                currentUrl.searchParams.set('limit', limit);
-                window.location.href = currentUrl.toString();
-            });
+            const limitSelector = document.getElementById('limit-selector');
+            if (limitSelector) {
+                limitSelector.addEventListener('change', function() {
+                    let limit = this.value;
+                    let currentUrl = new URL(window.location.href);
+                    currentUrl.searchParams.set('limit', limit);
+                    window.location.href = currentUrl.toString();
+                });
+            }
             
             // Gestión de campos visibles
             const updateCamposBtn = document.getElementById('updateCamposForView');
-            updateCamposBtn.addEventListener('click', function() {
-                const checkboxes = document.querySelectorAll('.checkForView:checked');
-                const camposAMostrar = Array.from(checkboxes).map(cb => cb.value);
-                
-                // Ocultar todas las columnas
-                document.querySelectorAll('th, td').forEach(cell => {
-                    if (!cell.classList.contains('acciones')) {
-                        cell.style.display = 'none';
-                    }
-                });
-                
-                // Mostrar columnas seleccionadas
-                camposAMostrar.forEach(campo => {
-                    document.querySelectorAll('.' + campo).forEach(cell => {
-                        cell.style.display = '';
+            if (updateCamposBtn) {
+                updateCamposBtn.addEventListener('click', function() {
+                    const checkboxes = document.querySelectorAll('.checkForView:checked');
+                    const camposAMostrar = Array.from(checkboxes).map(cb => cb.value);
+                    
+                    // Ocultar todas las columnas
+                    document.querySelectorAll('th, td').forEach(cell => {
+                        if (!cell.classList.contains('acciones')) {
+                            cell.style.display = 'none';
+                        }
                     });
+                    
+                    // Mostrar columnas seleccionadas
+                    camposAMostrar.forEach(campo => {
+                        document.querySelectorAll('.' + campo).forEach(cell => {
+                            cell.style.display = '';
+                        });
+                    });
+                    
+                    // Cerrar modal
+                    $('#camposExtras').modal('hide');
                 });
-                
-                // Cerrar modal
-                $('#camposExtras').modal('hide');
-            });
+            }
             
             // Selector "Todos"
-            document.getElementById('todosForView').addEventListener('change', function() {
-                const checkboxes = document.querySelectorAll('.checkForView');
-                checkboxes.forEach(cb => {
-                    cb.checked = this.checked;
+            const todosForView = document.getElementById('todosForView');
+            if (todosForView) {
+                todosForView.addEventListener('change', function() {
+                    const checkboxes = document.querySelectorAll('.checkForView');
+                    checkboxes.forEach(cb => {
+                        cb.checked = this.checked;
+                    });
                 });
-            });
+            }
             
-            // Botón de impresión
-            document.getElementById('printButton').addEventListener('click', function() {
-                window.print();
-            });
+            // Botón de impresión (verificar que existe antes de agregar listener)
+            const printButton = document.getElementById('printButton');
+            if (printButton) {
+                printButton.addEventListener('click', function() {
+                    window.print();
+                });
+            }
             
             // Inicializar tooltips de Bootstrap
             $(function () {
                 $('[data-toggle="tooltip"]').tooltip();
+                
+                // Cargar modal de cambio de habitación dinámicamente
+                $(document).on('click', '.cambiar-habitacion-link', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    var clienteId = $(this).data('cliente-id');
+                    if (!clienteId) {
+                        console.error('No se encontró el ID del cliente');
+                        alert('Error: No se pudo identificar al paciente');
+                        return;
+                    }
+                    
+                    var modalId = '#modalCambiarHabitacion' + clienteId;
+                    
+                    // Si el modal ya existe, solo mostrarlo
+                    if ($(modalId).length > 0) {
+                        $(modalId).modal('show');
+                        return;
+                    }
+                    
+                    // Construir la URL correctamente
+                    var url = '{{ path('cliente_cambiar_habitacion', {'id': 0}) }}';
+                    url = url.replace('/0', '/' + clienteId);
+                    
+                    console.log('Cargando modal para cliente:', clienteId, 'URL:', url);
+                    
+                    // Cargar el modal desde el servidor
+                    $.ajax({
+                        url: url,
+                        method: 'GET',
+                        success: function(data) {
+                            console.log('Modal cargado exitosamente');
+                            // Agregar el modal al body
+                            $('body').append(data);
+                            // Mostrar el modal
+                            $(modalId).modal('show');
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Error al cargar el formulario:', {
+                                status: status,
+                                error: error,
+                                responseText: xhr.responseText,
+                                statusCode: xhr.status
+                            });
+                            alert('Error al cargar el formulario de cambio de habitación. Ver consola para más detalles.');
+                        }
+                    });
+                });
+                
+                // Inicializar dropdowns de Bootstrap (configuración estándar)
+                $('.dropdown-toggle').dropdown();
             });
-            
-            // Inicializar dropdowns de Bootstrap (configuración estándar)
-            $('.dropdown-toggle').dropdown();
         });
     </script>
 {% endblock %}

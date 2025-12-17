@@ -1,0 +1,108 @@
+<div class="modal fade" id="modalCambiarHabitacion{{ cliente.id }}" tabindex="-1" role="dialog" aria-labelledby="modalCambiarHabitacionLabel{{ cliente.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCambiarHabitacionLabel{{ cliente.id }}">
+                    <i class="fas fa-bed"></i> Cambiar Habitación
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="{{ path('cliente_guardar_cambio_habitacion', {'id': cliente.id}) }}" method="POST">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="habitacion_{{ cliente.id }}">Nueva Habitación <span class="text-danger">*</span></label>
+                        <select class="form-control" id="habitacion_{{ cliente.id }}" name="habitacion" required>
+                            <option value="">Seleccione una habitación</option>
+                            {% for hab in habitacionesDisponibles %}
+                                <option value="{{ hab.id }}" 
+                                    data-camas='{{ hab.camasDisponibles|json_encode }}'
+                                    data-camas-totales="{{ hab.camasTotales }}"
+                                    data-camas-ocupadas="{{ hab.camasOcupadas }}"
+                                    {% if hab.esActual %}selected{% endif %}>
+                                    {{ hab.nombre }} 
+                                    ({{ hab.camasDisponibles|length }} camas disponibles de {{ hab.camasTotales }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <small class="form-text text-muted">
+                            Se muestran solo habitaciones con camas disponibles
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cama_{{ cliente.id }}">Cama <span class="text-danger">*</span></label>
+                        <select class="form-control" id="cama_{{ cliente.id }}" name="cama" required>
+                            <option value="">Primero seleccione una habitación</option>
+                        </select>
+                        <small class="form-text text-muted">
+                            Seleccione la cama en la nueva habitación
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="habPrivada_{{ cliente.id }}" name="habPrivada" value="1">
+                            <label class="form-check-label" for="habPrivada_{{ cliente.id }}">
+                                Habitación privada (ocupar todas las camas)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Guardar Cambio
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    var habitacionSelect = $('#habitacion_{{ cliente.id }}');
+    var camaSelect = $('#cama_{{ cliente.id }}');
+    var habPrivadaCheckbox = $('#habPrivada_{{ cliente.id }}');
+
+    // Cuando cambia la habitación, actualizar las camas disponibles
+    habitacionSelect.on('change', function() {
+        var selectedOption = $(this).find('option:selected');
+        var camasDisponibles = selectedOption.data('camas');
+        var camasTotales = selectedOption.data('camas-totales');
+        
+        camaSelect.empty();
+        
+        if (camasDisponibles && Object.keys(camasDisponibles).length > 0) {
+            $.each(camasDisponibles, function(key, value) {
+                camaSelect.append($('<option></option>').attr('value', value).text('Cama ' + value));
+            });
+        } else {
+            camaSelect.append($('<option></option>').attr('value', '').text('No hay camas disponibles'));
+        }
+
+        // Si es habitación privada, seleccionar automáticamente la cama 1
+        if (habPrivadaCheckbox.is(':checked')) {
+            camaSelect.val('1');
+        }
+    });
+
+    // Cuando se marca como habitación privada, seleccionar cama 1 automáticamente
+    habPrivadaCheckbox.on('change', function() {
+        if ($(this).is(':checked')) {
+            camaSelect.val('1');
+            camaSelect.prop('disabled', true);
+        } else {
+            camaSelect.prop('disabled', false);
+        }
+    });
+
+    // Inicializar las camas si hay una habitación seleccionada por defecto
+    if (habitacionSelect.val()) {
+        habitacionSelect.trigger('change');
+    }
+});
+</script>
+

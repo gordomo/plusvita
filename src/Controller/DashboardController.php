@@ -16,6 +16,9 @@ use App\Repository\HistoriaPacienteRepository;
 use App\Repository\HorarioTomaRepository;
 use App\Repository\ObraSocialRepository;
 use App\Repository\PresentesRepository;
+use App\Repository\SignosVitalesRepository;
+use App\Service\TurnoService;
+use App\Service\PatientStateService;
 use DateTime;
 use Doctrine\ORM\EntityNotFoundException;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -47,7 +50,17 @@ class DashboardController extends AbstractController
     /**
      * @Route("/", name="dashboard_index", methods={"GET"})
      */
-    public function index(HabitacionRepository $habitacionRepository, HistoriaPacienteRepository $historiaPacienteRepository, PresentesRepository $presentesRepository, ClienteRepository $clienteRepository): Response
+    public function index(
+        HabitacionRepository $habitacionRepository, 
+        HistoriaPacienteRepository $historiaPacienteRepository, 
+        PresentesRepository $presentesRepository, 
+        ClienteRepository $clienteRepository,
+        HorarioTomaRepository $horarioTomaRepository = null,
+        ConsumibleRepository $consumibleRepository = null,
+        SignosVitalesRepository $signosVitalesRepository = null,
+        TurnoService $turnoService = null,
+        PatientStateService $patientStateService = null
+    ): Response
     {
         // Verificar permisos para acceder al dashboard
         // Permitir acceso a usuarios autenticados con roles básicos
@@ -63,9 +76,23 @@ class DashboardController extends AbstractController
         } elseif ($this->isDoctor()) {
             return $this->dashboardDoctor();
         } elseif ($this->isEnfermero()) {
-            $horarioTomaRepository = $this->getDoctrine()->getRepository(\App\Entity\HorarioToma::class);
-            $consumibleRepository = $this->getDoctrine()->getRepository(\App\Entity\Consumible::class);
-            return $this->dashboardEnfermero($horarioTomaRepository, $consumibleRepository, $clienteRepository);
+            // Si no se inyectaron los servicios, obtenerlos manualmente
+            if (!$horarioTomaRepository) {
+                $horarioTomaRepository = $this->getDoctrine()->getRepository(\App\Entity\HorarioToma::class);
+            }
+            if (!$consumibleRepository) {
+                $consumibleRepository = $this->getDoctrine()->getRepository(\App\Entity\Consumible::class);
+            }
+            if (!$signosVitalesRepository) {
+                $signosVitalesRepository = $this->getDoctrine()->getRepository(\App\Entity\SignosVitales::class);
+            }
+            if (!$turnoService) {
+                $turnoService = $this->container->get(TurnoService::class);
+            }
+            if (!$patientStateService) {
+                $patientStateService = $this->container->get(PatientStateService::class);
+            }
+            return $this->dashboardEnfermero($horarioTomaRepository, $consumibleRepository, $clienteRepository, $signosVitalesRepository, $turnoService, $patientStateService);
         }
 
         // Dashboard por defecto para otros usuarios autenticados
@@ -169,7 +196,14 @@ class DashboardController extends AbstractController
     /**
      * Dashboard para enfermeros
      */
-    private function dashboardEnfermero(HorarioTomaRepository $horarioTomaRepository = null, ConsumibleRepository $consumibleRepository = null, ClienteRepository $clienteRepository = null): Response
+    private function dashboardEnfermero(
+        HorarioTomaRepository $horarioTomaRepository = null, 
+        ConsumibleRepository $consumibleRepository = null, 
+        ClienteRepository $clienteRepository = null,
+        SignosVitalesRepository $signosVitalesRepository = null,
+        TurnoService $turnoService = null,
+        PatientStateService $patientStateService = null
+    ): Response
     {
         $user = $this->getUser();
         
@@ -238,29 +272,129 @@ class DashboardController extends AbstractController
                     'enVentana' => $enVentana,
                     'estado' => $estado,
                     'minutosDiferencia' => $minutosDiferencia,
+                    'tipo' => 'indicacion', // Tipo para identificar que es una indicación médica
                 ];
             }
             
-            // Ordenar por fecha/hora (más urgentes primero)
-            usort($indicacionesProximas, function($a, $b) {
-                // Primero por estado (en_ventana > vencido > pendiente)
-                $prioridadEstado = ['en_ventana' => 1, 'vencido' => 2, 'pendiente' => 3];
-                $prioridadA = $prioridadEstado[$a['estado']] ?? 3;
-                $prioridadB = $prioridadEstado[$b['estado']] ?? 3;
+            // Agregar signos vitales pendientes para pacientes internados
+            if ($signosVitalesRepository && $turnoService && $patientStateService && $clienteRepository) {
+                $ahora = new \DateTime();
+                $turnoActual = $turnoService->obtenerTurnoActual($ahora);
+                $fechaBaseTurno = $turnoService->obtenerFechaBaseTurno($ahora, $turnoActual);
                 
-                if ($prioridadA !== $prioridadB) {
-                    return $prioridadA <=> $prioridadB;
+                // Obtener todos los pacientes internados
+                $pacientesInternados = $clienteRepository->findBy([
+                    'modalidad' => 2, // Modalidad 2 = internado
+                    'activo' => true
+                ]);
+                
+                foreach ($pacientesInternados as $paciente) {
+                    // Verificar que realmente esté internado (no derivado, no de permiso, sin fecha de egreso)
+                    $estadoActual = $patientStateService->getEstadoActual($paciente);
+                    if ($estadoActual !== PatientStateService::ESTADO_INTERNADO) {
+                        continue;
+                    }
+                    
+                    // Verificar si los signos vitales ya fueron completados para este turno
+                    if ($signosVitalesRepository->estaCompletado($paciente, $fechaBaseTurno, $turnoActual)) {
+                        continue; // Ya están completados, no mostrar
+                    }
+                    
+                    // Verificar si hay indicaciones pendientes que bloqueen los signos vitales
+                    $indicacionesPendientesEnTurno = $horarioTomaRepository->findIndicacionesPendientesEnTurno(
+                        $paciente->getId(),
+                        $turnoActual,
+                        $fechaBaseTurno
+                    );
+                    
+                    $bloqueado = !empty($indicacionesPendientesEnTurno);
+                    
+                    // Crear entrada para signos vitales
+                    $indicacionesProximas[] = [
+                        'horario' => null,
+                        'indicacion' => null,
+                        'cliente' => $paciente,
+                        'nombreMedicamento' => 'Medir Signos Vitales',
+                        'fechaHora' => $ahora, // Usar hora actual para ordenamiento
+                        'enVentana' => !$bloqueado, // En ventana si no está bloqueado
+                        'estado' => $bloqueado ? 'bloqueado' : 'en_ventana',
+                        'minutosDiferencia' => 0, // Prioridad alta
+                        'tipo' => 'signos_vitales', // Tipo para identificar que son signos vitales
+                        'turno' => $turnoActual,
+                        'bloqueado' => $bloqueado,
+                        'indicacionesPendientes' => count($indicacionesPendientesEnTurno),
+                    ];
+                }
+            }
+            
+            // Agrupar indicaciones por paciente y crear resumen
+            $indicacionesPorPaciente = [];
+            foreach ($indicacionesProximas as $item) {
+                $clienteId = $item['cliente']->getId();
+                
+                if (!isset($indicacionesPorPaciente[$clienteId])) {
+                    $indicacionesPorPaciente[$clienteId] = [
+                        'cliente' => $item['cliente'],
+                        'indicaciones' => [],
+                        'prioridadMaxima' => 999, // Para ordenamiento
+                        'fechaHoraMinima' => null, // Para ordenamiento
+                        'totalIndicaciones' => 0,
+                        'tieneSignosVitales' => false,
+                        'signosVitalesBloqueados' => false,
+                        'indicacionesEnVentana' => 0,
+                        'indicacionesVencidas' => 0,
+                        'estadoGeneral' => 'pendiente',
+                    ];
                 }
                 
-                // Luego por fecha/hora
-                return $a['fechaHora'] <=> $b['fechaHora'];
+                $indicacionesPorPaciente[$clienteId]['indicaciones'][] = $item;
+                $indicacionesPorPaciente[$clienteId]['totalIndicaciones']++;
+                
+                // Calcular prioridad para ordenamiento del paciente
+                $prioridadEstado = ['en_ventana' => 1, 'bloqueado' => 2, 'vencido' => 3, 'pendiente' => 4];
+                $prioridad = $prioridadEstado[$item['estado']] ?? 4;
+                
+                if ($prioridad < $indicacionesPorPaciente[$clienteId]['prioridadMaxima']) {
+                    $indicacionesPorPaciente[$clienteId]['prioridadMaxima'] = $prioridad;
+                    $indicacionesPorPaciente[$clienteId]['estadoGeneral'] = $item['estado'];
+                }
+                
+                // Guardar fecha/hora mínima para ordenamiento
+                if (!$indicacionesPorPaciente[$clienteId]['fechaHoraMinima'] || 
+                    $item['fechaHora'] < $indicacionesPorPaciente[$clienteId]['fechaHoraMinima']) {
+                    $indicacionesPorPaciente[$clienteId]['fechaHoraMinima'] = $item['fechaHora'];
+                }
+                
+                // Contar tipos de indicaciones
+                if ($item['tipo'] === 'signos_vitales') {
+                    $indicacionesPorPaciente[$clienteId]['tieneSignosVitales'] = true;
+                    if ($item['bloqueado']) {
+                        $indicacionesPorPaciente[$clienteId]['signosVitalesBloqueados'] = true;
+                    }
+                }
+                
+                if ($item['enVentana']) {
+                    $indicacionesPorPaciente[$clienteId]['indicacionesEnVentana']++;
+                }
+                
+                if ($item['estado'] === 'vencido') {
+                    $indicacionesPorPaciente[$clienteId]['indicacionesVencidas']++;
+                }
+            }
+            
+            // Ordenar pacientes por prioridad y luego por fecha/hora
+            uasort($indicacionesPorPaciente, function($a, $b) {
+                if ($a['prioridadMaxima'] !== $b['prioridadMaxima']) {
+                    return $a['prioridadMaxima'] <=> $b['prioridadMaxima'];
+                }
+                return $a['fechaHoraMinima'] <=> $b['fechaHoraMinima'];
             });
         }
         
         return $this->render('dashboard/enfermero.html.twig', [
             'dashboardActive' => 'active',
             'user' => $user,
-            'indicacionesProximas' => $indicacionesProximas,
+            'indicacionesPorPaciente' => $indicacionesPorPaciente ?? [],
         ]);
     }
 

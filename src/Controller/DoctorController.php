@@ -770,7 +770,9 @@ class DoctorController extends AbstractController
             $pacientes[] = $bookin->getCliente();
         }
 
-        $habitaciones = $habitacionRepository->getHabitacionesConPacientes();
+        // Obtener TODAS las habitaciones para el array, no solo las que tienen pacientes
+        // Esto asegura que todas las habitaciones estén disponibles para mostrar en el template
+        $habitaciones = $habitacionRepository->findAll();
 
         $habitacionesArray = [];
         foreach ($habitaciones as $habitacion) {

@@ -65,6 +65,13 @@ class PatientStateService
             return self::ESTADO_INACTIVO;
         }
         
+        // Si el paciente tiene una habitación asignada, está internado
+        // (a menos que esté derivado, de permiso o con fecha de egreso, ya verificados arriba)
+        if ($cliente->getHabitacion() !== null) {
+            return self::ESTADO_INTERNADO;
+        }
+        
+        // Solo si no tiene habitación, verificar si es ambulatorio
         if ($cliente->getAmbulatorio() || $cliente->getModalidad() == 1) {
             return self::ESTADO_AMBULATORIO;
         }
@@ -138,8 +145,10 @@ class PatientStateService
      */
     public function cambiarAAmbulatorio(Cliente $cliente, UserInterface $user): Cliente
     {
-        // Si estaba internado, liberar la cama
-        if ($this->getEstadoActual($cliente) === self::ESTADO_INTERNADO) {
+        // Si tenía habitación asignada, liberar la cama
+        // Verificamos directamente si tiene habitación, no solo el estado actual
+        // porque el estado actual podría estar inconsistente
+        if ($cliente->getHabitacion() !== null) {
             $this->liberarCamaCliente($cliente);
         }
         
@@ -150,15 +159,20 @@ class PatientStateService
         $cliente->setDerivado(false);
         $cliente->setDePermiso(false);
         
+        // Asegurar que habitación y cama estén limpias
+        $cliente->setHabitacion(null);
+        $cliente->setNCama(null);
+        $cliente->setHabPrivada(0);
+        
         // Cancelar turnos si es necesario
         $this->cancelarTurnosPaciente($cliente);
         
-        // Registrar en el historial
+        // Registrar en el historial - usar null en lugar de '' para que se interprete correctamente
         $parametrosHistorial = [
             'ambulatorio' => true,
             'modalidad' => 1,
-            'habitacion' => '',
-            'cama' => '',
+            'habitacion' => null,
+            'cama' => null,
             'dePermiso' => false,
             'derivadoEn' => null,
         ];
@@ -473,22 +487,16 @@ class PatientStateService
 
     /**
      * Actualiza la ocupación de una habitación
+     * NOTA: El campo camasOcupadas ya no existe en BD, las camas ocupadas se calculan
+     * dinámicamente consultando los pacientes reales. Este método ahora solo persiste
+     * la entidad habitación si es necesario para otros cambios.
      */
     private function actualizarOcupacionHabitacion(Habitacion $habitacion, int $camaId, int $habPrivada): void
     {
-        $camasOcupadas = $habitacion->getCamasOcupadas();
-        
-        if ($habPrivada) {
-            // Si es habitación privada, ocupar todas las camas
-            for ($i = 1; $i <= $habitacion->getCamasDisponibles(); $i++) {
-                $camasOcupadas[$i] = $i;
-            }
-        } else {
-            // Si no, ocupar solo la cama asignada
-            $camasOcupadas[$camaId] = $camaId;
-        }
-        
-        $habitacion->setCamasOcupadas($camasOcupadas);
+        // El campo camasOcupadas ya no existe en BD
+        // Las camas ocupadas se calculan dinámicamente desde los pacientes reales
+        // No es necesario actualizar ningún campo en la habitación
+        // Solo persistimos si hay otros cambios pendientes
         $this->entityManager->persist($habitacion);
     }
 
@@ -541,8 +549,9 @@ class PatientStateService
             }
         }
         
-        // Actualizar las camas ocupadas de la habitación
-        $habitacionActual->setCamasOcupadas($camasOcupadas);
+        // NOTA: El campo camasOcupadas ya no existe en BD
+        // Las camas ocupadas se calculan dinámicamente desde los pacientes reales
+        // No es necesario actualizar ningún campo en la habitación
         
         $cliente->setHabitacion(null);
         $cliente->setNCama(null);
@@ -588,8 +597,10 @@ class PatientStateService
         $nAfiliadoObraSocial = $parametros['nAfiliadoObraSocial'] ?? (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getNAfiliadoObraSocial() : null);
         $sistemaDeEmergencia = $parametros['sistemaDeEmergencia'] ?? (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getSistemaDeEmergencia() : null);
         $nAfiliadoSistemaDeEmergencia = $parametros['nAfiliadoSistemaDeEmergencia'] ?? (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getNAfiliadoSistemaDeEmergencia() : null);
-        $habitacion = $parametros['habitacion'] ?? (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getHabitacion() : null);
-        $cama = $parametros['cama'] ?? (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getCama() : null);
+        // Si habitacion o cama están explícitamente definidos (incluso como null o cadena vacía), usar ese valor
+        // Si no están definidos, preservar el valor del historial anterior
+        $habitacion = array_key_exists('habitacion', $parametros) ? ($parametros['habitacion'] === '' ? null : $parametros['habitacion']) : (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getHabitacion() : null);
+        $cama = array_key_exists('cama', $parametros) ? ($parametros['cama'] === '' ? null : $parametros['cama']) : (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getCama() : null);
         $fechaIngreso = $parametros['fechaIngreso'] ?? (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getFechaIngreso() : null);
         $fEgreso = $parametros['fEgreso'] ?? (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getFechaEngreso() : null);
         $fechaDerivacion = $parametros['fechaDerivacion'] ?? (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getFechaDerivacion() : null);
@@ -669,5 +680,77 @@ class PatientStateService
         
         $this->entityManager->persist($historial);
         $this->entityManager->flush();
+    }
+
+    /**
+     * Cambia la habitación de un paciente internado
+     * 
+     * @param Cliente $cliente El paciente
+     * @param UserInterface $user Usuario que realiza el cambio
+     * @param int $nuevaHabitacionId ID de la nueva habitación
+     * @param int $nuevaCamaId Número de cama en la nueva habitación
+     * @param int $habPrivada Si la nueva habitación es privada (0 o 1)
+     * @return Cliente El paciente actualizado
+     */
+    public function cambiarHabitacion(Cliente $cliente, UserInterface $user, int $nuevaHabitacionId, int $nuevaCamaId, int $habPrivada = 0): Cliente
+    {
+        // Verificar que el paciente está internado
+        if ($this->getEstadoActual($cliente) !== self::ESTADO_INTERNADO) {
+            throw new \InvalidArgumentException("Solo se puede cambiar la habitación de pacientes internados");
+        }
+
+        $habitacionAnteriorId = $cliente->getHabitacion();
+        $camaAnteriorId = $cliente->getNCama();
+        
+        // Verificar que la nueva habitación existe
+        $nuevaHabitacion = $this->habitacionRepository->find($nuevaHabitacionId);
+        if (!$nuevaHabitacion) {
+            throw new \InvalidArgumentException("Habitación no encontrada");
+        }
+
+        // Verificar que la cama está disponible en la nueva habitación
+        $pacientesEnNuevaHabitacion = $this->clienteRepository->findClienteEnHabitacion($nuevaHabitacion, true, true);
+        $camasOcupadas = [];
+        foreach ($pacientesEnNuevaHabitacion as $paciente) {
+            if ($paciente->getId() != $cliente->getId() && $paciente->getNCama() > 0) {
+                $camasOcupadas[$paciente->getNCama()] = $paciente->getNCama();
+            }
+        }
+
+        // Verificar que la cama solicitada está disponible
+        if (isset($camasOcupadas[$nuevaCamaId])) {
+            throw new \InvalidArgumentException("La cama {$nuevaCamaId} ya está ocupada en la habitación {$nuevaHabitacion->getNombre()}");
+        }
+
+        // Verificar que la cama está dentro del rango válido
+        if ($nuevaCamaId < 1 || $nuevaCamaId > $nuevaHabitacion->getCamasDisponibles()) {
+            throw new \InvalidArgumentException("La cama {$nuevaCamaId} no existe en la habitación {$nuevaHabitacion->getNombre()}");
+        }
+
+        // Si el paciente se está moviendo a otra habitación, liberar la cama anterior
+        if ($habitacionAnteriorId && $habitacionAnteriorId != $nuevaHabitacionId) {
+            $this->liberarCamaCliente($cliente);
+        }
+
+        // Asignar la nueva habitación y cama
+        $cliente->setHabitacion($nuevaHabitacionId);
+        $cliente->setNCama($nuevaCamaId);
+        $cliente->setHabPrivada($habPrivada);
+
+        // Actualizar la ocupación de la nueva habitación
+        $this->actualizarOcupacionHabitacion($nuevaHabitacion, $nuevaCamaId, $habPrivada);
+
+        // Registrar en el historial
+        $parametrosHistorial = [
+            'modalidad' => 2,
+            'habitacion' => $nuevaHabitacionId,
+            'cama' => $nuevaCamaId,
+            'ambulatorio' => false,
+            'habPrivada' => $habPrivada,
+        ];
+
+        $this->registrarCambioEnHistorial($cliente, $parametrosHistorial, $user);
+
+        return $cliente;
     }
 }

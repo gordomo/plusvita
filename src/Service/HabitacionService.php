@@ -103,13 +103,9 @@ class HabitacionService
         $cliente->setHabPrivada(1);
         $cliente->setNCama(0); // Convención: cama 0 para habitación privada
         
-        // Ocupar todas las camas
-        $camasOcupadas = [];
-        for ($i = 1; $i <= $habitacion->getCamasDisponibles(); $i++) {
-            $camasOcupadas[$i] = $i;
-        }
-        
-        $habitacion->setCamasOcupadas($camasOcupadas);
+        // NOTA: El campo camasOcupadas ya no existe en BD
+        // Las camas ocupadas se calculan dinámicamente desde los pacientes reales
+        // No es necesario actualizar ningún campo en la habitación
         
         $this->entityManager->persist($cliente);
         $this->entityManager->persist($habitacion);
@@ -144,8 +140,10 @@ class HabitacionService
             $this->entityManager->persist($paciente);
         }
         
-        // Actualizar las camas ocupadas
-        $habitacion->setCamasOcupadas($camasAsignadas);
+        // NOTA: El campo camasOcupadas ya no existe en BD
+        // Las camas ocupadas se calculan dinámicamente desde los pacientes reales
+        // No es necesario actualizar ningún campo en la habitación
+        
         $this->entityManager->persist($habitacion);
     }
 
@@ -168,11 +166,13 @@ class HabitacionService
             }
         }
         
-        $camasOcupadasActuales = $habitacion->getCamasOcupadas() ?? [];
+        // NOTA: El campo camasOcupadas ya no existe en BD
+        // Siempre retornamos que no hay inconsistencia porque el campo no existe
+        // Las camas ocupadas se calculan dinámicamente desde los pacientes reales
         
         return [
-            'tieneInconsistencia' => $camasOcupadasActuales != $camasOcupadasReales,
-            'camasOcupadasActuales' => $camasOcupadasActuales,
+            'tieneInconsistencia' => false, // El campo ya no existe, no puede haber inconsistencia
+            'camasOcupadasActuales' => [], // Campo inexistente
             'camasOcupadasReales' => $camasOcupadasReales,
             'pacientesEnHabitacion' => $pacientesEnHabitacion
         ];

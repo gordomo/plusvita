@@ -121,6 +121,72 @@ class HorarioTomaRepository extends ServiceEntityRepository
     }
 
     /**
+     * Encuentra indicaciones pendientes dentro de la ventana de tiempo de un turno específico
+     * 
+     * @param int $clienteId ID del cliente
+     * @param string $turno El turno ('mañana', 'tarde', 'noche')
+     * @param \DateTime $fechaBase La fecha base del turno
+     * @return array Array de HorarioToma pendientes
+     */
+    public function findIndicacionesPendientesEnTurno(int $clienteId, string $turno, \DateTime $fechaBase): array
+    {
+        // Determinar rango de horas según el turno
+        $horaInicio = 0;
+        $horaFin = 23;
+        
+        switch ($turno) {
+            case 'mañana':
+                $horaInicio = 6;
+                $horaFin = 14;
+                break;
+            case 'tarde':
+                $horaInicio = 14;
+                $horaFin = 22;
+                break;
+            case 'noche':
+                $horaInicio = 22;
+                $horaFin = 6; // Se maneja especial para cruzar medianoche
+                break;
+        }
+        
+        $qb = $this->createQueryBuilder('h')
+            ->join('h.indicacion', 'i')
+            ->where('i.clienteId = :clienteId')
+            ->andWhere('h.administrado = false')
+            ->andWhere('h.habilitado = true')
+            ->andWhere('i.activo = true')
+            ->andWhere('i.estadoSuspendido = false')
+            ->setParameter('clienteId', $clienteId);
+        
+        if ($turno === 'noche') {
+            // Turno noche cruza medianoche: desde las 22:00 del día base hasta las 06:00 del día siguiente
+            $fechaFin = clone $fechaBase;
+            $fechaFin->modify('+1 day');
+            
+            $qb->andWhere(
+                '(h.fecha = :fechaBase AND h.horario >= :horaInicio) OR ' .
+                '(h.fecha = :fechaFin AND h.horario < :horaFin)'
+            )
+            ->setParameter('fechaBase', $fechaBase->format('Y-m-d'))
+            ->setParameter('fechaFin', $fechaFin->format('Y-m-d'))
+            ->setParameter('horaInicio', sprintf('%02d:00:00', $horaInicio))
+            ->setParameter('horaFin', sprintf('%02d:00:00', $horaFin));
+        } else {
+            // Turnos mañana y tarde: dentro del mismo día
+            $qb->andWhere('h.fecha = :fecha')
+               ->andWhere('h.horario >= :horaInicio')
+               ->andWhere('h.horario < :horaFin')
+               ->setParameter('fecha', $fechaBase->format('Y-m-d'))
+               ->setParameter('horaInicio', sprintf('%02d:00:00', $horaInicio))
+               ->setParameter('horaFin', sprintf('%02d:00:00', $horaFin));
+        }
+        
+        return $qb->orderBy('h.horario', 'ASC')
+                  ->getQuery()
+                  ->getResult();
+    }
+
+    /**
      * Elimina horarios de toma para una indicación específica
      */
     public function eliminarHorariosPorIndicacion($indicacionId): void

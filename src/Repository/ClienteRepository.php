@@ -286,7 +286,12 @@ class ClienteRepository extends ServiceEntityRepository
         if ( $os ) {
             $query->orWhere('c.obraSocial = :os')->setParameter("os", $os);
         }
-        $query->andWhere('c.ambulatorio = 1 or (c.habitacion is null and c.derivado != 1)');
+        // Solo incluir pacientes ambulatorios que NO tengan habitación asignada
+        // Un paciente con habitación asignada debe aparecer como internado, no como ambulatorio
+        $query->andWhere('c.habitacion IS NULL')
+              ->andWhere('(c.ambulatorio = 1 OR c.modalidad = 1)')
+              ->andWhere('(c.derivado != 1 OR c.derivado IS NULL)')
+              ->andWhere('(c.dePermiso != 1 OR c.dePermiso IS NULL)');
         
         $paginator = $this->paginate($query, $currentPage, $limit);
         return array('paginator' => $paginator, 'query' => $query);

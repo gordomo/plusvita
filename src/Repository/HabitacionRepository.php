@@ -79,11 +79,10 @@ class HabitacionRepository extends ServiceEntityRepository
                     $resp[] = $habitacion;
                 }
             } else {
-                // Método antiguo basado en JSON de camas ocupadas (mantener por compatibilidad)
-                $arrayCamas = $habitacion->getCamasOcupadas();
-                if ($habitacion->getCamasDisponibles() == count($arrayCamas)) {
-                    $resp[] = $habitacion;
-                }
+                // Método legacy: el campo camasOcupadas ya no existe en BD
+                // Si no se pasa clienteRepository, retornar array vacío
+                // (el método legacy ya no funciona correctamente)
+                // Se recomienda siempre pasar clienteRepository
             }
         }
         return $resp;
@@ -99,15 +98,28 @@ class HabitacionRepository extends ServiceEntityRepository
             ;
     }
 
+    /**
+     * Obtiene todas las habitaciones que tienen pacientes asignados
+     * NOTA: El campo camasOcupadas ya no existe en BD, ahora se consulta directamente
+     * los pacientes reales asignados a cada habitación
+     */
     public function getHabitacionesConPacientes()
     {
         $resp = [];
         $todas = $this->findAll();
+        $clienteRepository = $this->getEntityManager()->getRepository(\App\Entity\Cliente::class);
+        
         foreach ($todas as $habitacion) {
-            $arrayCamas = $habitacion->getCamasOcupadas();
-
-            if ($arrayCamas) {
-                $resp[]  = $habitacion;
+            // Consultar pacientes reales en esta habitación
+            $pacientesEnHabitacion = $clienteRepository->findClienteEnHabitacion(
+                $habitacion, 
+                false, // incluir todos los pacientes, no solo los con cama física
+                true   // incluir pacientes de permiso
+            );
+            
+            // Si hay pacientes, incluir la habitación
+            if (count($pacientesEnHabitacion) > 0) {
+                $resp[] = $habitacion;
             }
         }
         return $resp;
