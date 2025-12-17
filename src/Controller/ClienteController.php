@@ -1342,6 +1342,29 @@ class ClienteController extends AbstractController
                     $docReferenteIds[] = $doc;
                 }
             }
+            
+            // VALIDACIÓN: Si el array está vacío pero el paciente tenía doctores referentes,
+            // preservar los doctores anteriores para evitar borrado accidental
+            if (empty($docReferenteIds) && $cliente->getId()) {
+                $historiaPacienteRepository = $this->getDoctrine()->getRepository(HistoriaPaciente::class);
+                $ultimoHistorial = $historiaPacienteRepository->findBy(['cliente' => $cliente], ['fecha' => 'desc'], ['limit' => 1]);
+                if (isset($ultimoHistorial[0]) && $ultimoHistorial[0]->getDocReferente()) {
+                    $docReferenteAnterior = json_decode($ultimoHistorial[0]->getDocReferente(), true);
+                    if (!empty($docReferenteAnterior) && is_array($docReferenteAnterior)) {
+                        // Restaurar los doctores referentes del historial anterior
+                        $docReferenteIds = $docReferenteAnterior;
+                        // También restaurar en la entidad Cliente
+                        $userRepository = $this->getDoctrine()->getRepository(User::class);
+                        foreach ($docReferenteAnterior as $docId) {
+                            $doctor = $userRepository->find($docId);
+                            if ($doctor) {
+                                $cliente->addDocReferente($doctor);
+                            }
+                        }
+                    }
+                }
+            }
+            
             $parametros = [
                 'cama' => $cliente->getNCama(),
                 'habitacion' => $cliente->getHabitacion(),
@@ -1648,6 +1671,29 @@ class ClienteController extends AbstractController
                         $docReferenteIds[] = $doc;
                     }
                 }
+                
+                // VALIDACIÓN: Si el array está vacío pero el paciente tenía doctores referentes,
+                // preservar los doctores anteriores para evitar borrado accidental
+                if (empty($docReferenteIds)) {
+                    $historiaPacienteRepository = $this->getDoctrine()->getRepository(HistoriaPaciente::class);
+                    $ultimoHistorial = $historiaPacienteRepository->findBy(['cliente' => $cliente], ['fecha' => 'desc'], ['limit' => 1]);
+                    if (isset($ultimoHistorial[0]) && $ultimoHistorial[0]->getDocReferente()) {
+                        $docReferenteAnterior = json_decode($ultimoHistorial[0]->getDocReferente(), true);
+                        if (!empty($docReferenteAnterior) && is_array($docReferenteAnterior)) {
+                            // Restaurar los doctores referentes del historial anterior
+                            $docReferenteIds = $docReferenteAnterior;
+                            // También restaurar en la entidad Cliente
+                            $userRepository = $this->getDoctrine()->getRepository(User::class);
+                            foreach ($docReferenteAnterior as $docId) {
+                                $doctor = $userRepository->find($docId);
+                                if ($doctor) {
+                                    $cliente->addDocReferente($doctor);
+                                }
+                            }
+                        }
+                    }
+                }
+                
                 $parametros = [
                     'cama' => $cliente->getNCama(),
                     'habitacion' => $cliente->getHabitacion(),
@@ -2817,28 +2863,35 @@ class ClienteController extends AbstractController
         $ambulatorio = (isset($parametros['ambulatorio'])) ? $parametros['ambulatorio'] : (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getAmbulatorio() : null);
         $docReferente = null;
         if ((isset($parametros['docReferente']))) {
+            $docReferenteArray = [];
             
             // Si es un array de objetos Doctor, extraer los IDs
             if (is_array($parametros['docReferente'])) {
                 foreach ($parametros['docReferente'] as $doc) {
                     if (is_object($doc) && method_exists($doc, 'getId')) {
-                        $docReferente[] = $doc->getId();
+                        $docReferenteArray[] = $doc->getId();
                     } elseif (is_numeric($doc)) {
                         // Si ya es un ID numérico
-                        $docReferente[] = $doc;
+                        $docReferenteArray[] = $doc;
                     }
                 }
             } 
             // Si es una colección de Doctrine
             elseif (is_object($parametros['docReferente']) && method_exists($parametros['docReferente'], 'toArray')) {
                 foreach ($parametros['docReferente']->toArray() as $doc) {
-                    $docReferente[] = $doc->getId();
+                    $docReferenteArray[] = $doc->getId();
                 }
             }
             
-            if ($docReferente !== null) {
-                $docReferente = json_encode($docReferente);
-
+            // IMPORTANTE: Solo actualizar doc_referente si el array NO está vacío
+            // Si está vacío, preservar el valor anterior del historial para evitar borrar accidentalmente
+            if (!empty($docReferenteArray)) {
+                $docReferente = json_encode($docReferenteArray);
+            } else {
+                // Si el array está vacío, preservar el valor anterior
+                if (isset($ultimoHistorial[0])) {
+                    $docReferente = $ultimoHistorial[0]->getDocReferente();
+                }
             }
         } else if (isset($ultimoHistorial[0])) {
             $docReferente = $ultimoHistorial[0]->getDocReferente();

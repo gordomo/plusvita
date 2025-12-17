@@ -612,14 +612,46 @@ class PatientStateService
         $fechaBajaPorPermiso = $parametros['fechaBajaPorPermiso'] ?? (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getFechaBajaPorPermiso() : null);
         $dePermiso = $parametros['dePermiso'] ?? (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getDePermiso() : null);
         $ambulatorio = $parametros['ambulatorio'] ?? (isset($ultimoHistorial[0]) ? $ultimoHistorial[0]->getAmbulatorio() : null);
+        
+        // VALIDACIÓN CRÍTICA: Si el paciente es ambulatorio, habitación y cama DEBEN ser NULL
+        // Esto previene inconsistencias donde un paciente ambulatorio tenga habitación/cama asignadas
+        if ($ambulatorio === true || $ambulatorio === 1) {
+            $habitacion = null;
+            $cama = null;
+        }
+        
         $docReferente = null;
         
         if ((isset($parametros['docReferente']))) {
             $docIds = [];
-            foreach ($parametros['docReferente'] as $doc) {
-                $docIds[] = $doc->getId();
+            
+            // Manejar diferentes tipos de entrada (array, colección, objetos)
+            if (is_array($parametros['docReferente'])) {
+                foreach ($parametros['docReferente'] as $doc) {
+                    if (is_object($doc) && method_exists($doc, 'getId')) {
+                        $docIds[] = $doc->getId();
+                    } elseif (is_numeric($doc)) {
+                        $docIds[] = $doc;
+                    }
+                }
+            } elseif (is_object($parametros['docReferente']) && method_exists($parametros['docReferente'], 'toArray')) {
+                foreach ($parametros['docReferente']->toArray() as $doc) {
+                    if (is_object($doc) && method_exists($doc, 'getId')) {
+                        $docIds[] = $doc->getId();
+                    }
+                }
             }
-            $docReferente = json_encode($docIds);
+            
+            // IMPORTANTE: Solo actualizar doc_referente si el array NO está vacío
+            // Si está vacío, preservar el valor anterior del historial para evitar borrar accidentalmente
+            if (!empty($docIds)) {
+                $docReferente = json_encode($docIds);
+            } else {
+                // Si el array está vacío, preservar el valor anterior
+                if (isset($ultimoHistorial[0])) {
+                    $docReferente = $ultimoHistorial[0]->getDocReferente();
+                }
+            }
         } else if (isset($ultimoHistorial[0])) {
             $docReferente = $ultimoHistorial[0]->getDocReferente();
         }
