@@ -179,6 +179,10 @@ class PatientStateService
         
         $this->registrarCambioEnHistorial($cliente, $parametrosHistorial, $user);
         
+        // Asegurar que todos los cambios se persistan correctamente
+        $this->entityManager->persist($cliente);
+        $this->entityManager->flush();
+        
         return $cliente;
     }
 

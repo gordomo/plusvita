@@ -1695,9 +1695,34 @@ class ClienteController extends AbstractController
                     }
                 }
                 
+                // VALIDACIÓN CRÍTICA: Si el paciente se está cambiando a ambulatorio,
+                // usar el servicio para asegurar que se libere la habitación y se actualice correctamente
+                $historiaPacienteRepository = $this->getDoctrine()->getRepository(HistoriaPaciente::class);
+                $ultimoHistorial = $historiaPacienteRepository->findBy(['cliente' => $cliente], ['fecha' => 'desc'], ['limit' => 1]);
+                $eraAmbulatorio = isset($ultimoHistorial[0]) ? ($ultimoHistorial[0]->getAmbulatorio() || $ultimoHistorial[0]->getModalidad() == 1) : false;
+                $esAmbulatorioAhora = $cliente->getAmbulatorio() || $cliente->getModalidad() == 1;
+                
+                // Si está cambiando a ambulatorio y tenía habitación, usar el servicio
+                if ($esAmbulatorioAhora && !$eraAmbulatorio && $cliente->getHabitacion() !== null) {
+                    $user = $this->security->getUser();
+                    $this->patientStateService->cambiarAAmbulatorio($cliente, $user);
+                    // El servicio ya crea el historial y hace flush, así que podemos retornar
+                    return $this->redirectToRoute('cliente_index');
+                }
+                
+                // Si es ambulatorio, asegurar que habitación y cama sean NULL
+                if ($esAmbulatorioAhora) {
+                    $cliente->setHabitacion(null);
+                    $cliente->setNCama(null);
+                    $cliente->setHabPrivada(0);
+                    // Asegurar que los parámetros también reflejen esto
+                    $parametros['habitacion'] = null;
+                    $parametros['cama'] = null;
+                }
+                
                 $parametros = [
-                    'cama' => $cliente->getNCama(),
-                    'habitacion' => $cliente->getHabitacion(),
+                    'cama' => $esAmbulatorioAhora ? null : $cliente->getNCama(),
+                    'habitacion' => $esAmbulatorioAhora ? null : $cliente->getHabitacion(),
                     'nAfiliadoObraSocial' => $cliente->getObraSocialAfiliado(),
                     'modalidad' => $cliente->getModalidad(),
                     'patologia' => $cliente->getMotivoIng(),
@@ -2620,8 +2645,67 @@ class ClienteController extends AbstractController
      * @Route("/download/pdf/adjunto/", name="download_pdf_adjunto")
      **/
     public function downloadFileAction(Request $request){
-        $response = new BinaryFileResponse($request->get('path'));
-        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT,$request->get('nombre'));
+        $path = $request->get('path');
+        $nombre = $request->get('nombre');
+        
+        // Si la ruta es una ruta de Windows o una ruta absoluta incorrecta, intentar corregirla
+        if (preg_match('/^[A-Z]:\\\\|^\/[A-Z]:/i', $path) || strpos($path, 'C:\\') !== false || strpos($path, 'C:/') !== false) {
+            // Es una ruta de Windows, extraer solo el nombre del archivo y buscar en el directorio correcto
+            $filename = basename($path);
+            
+            // Intentar encontrar el archivo en el directorio de adjuntos de pacientes
+            // La estructura debería ser: adjuntos_pacientes_directory/DNI/nombre_archivo
+            $baseDir = $this->getParameter('adjuntos_pacientes_directory');
+            
+            // Buscar en todos los subdirectorios del directorio base
+            $foundPath = null;
+            if (is_dir($baseDir)) {
+                $iterator = new \RecursiveIteratorIterator(
+                    new \RecursiveDirectoryIterator($baseDir, \RecursiveDirectoryIterator::SKIP_DOTS),
+                    \RecursiveIteratorIterator::SELF_FIRST
+                );
+                
+                foreach ($iterator as $file) {
+                    if ($file->isFile() && $file->getFilename() === $filename) {
+                        $foundPath = $file->getPathname();
+                        break;
+                    }
+                }
+            }
+            
+            if ($foundPath && file_exists($foundPath)) {
+                $path = $foundPath;
+            } else {
+                // Si no se encuentra, intentar construir la ruta relativa desde public
+                // Asumiendo que el archivo debería estar en uploads/adjuntos/pacientes/
+                $path = $this->getParameter('kernel.project_dir') . '/public/' . ltrim($path, '/');
+            }
+        } else {
+            // Si es una ruta relativa, construir la ruta completa desde el directorio public
+            if (!file_exists($path) && substr($path, 0, 1) !== '/') {
+                $path = $this->getParameter('kernel.project_dir') . '/public/' . ltrim($path, '/');
+            }
+        }
+        
+        // Validar que el archivo existe y está dentro del directorio permitido
+        if (!file_exists($path)) {
+            throw $this->createNotFoundException('El archivo no se encontró: ' . $path);
+        }
+        
+        // Validar que el archivo está dentro del directorio de adjuntos permitido
+        $baseDir = realpath($this->getParameter('adjuntos_pacientes_directory'));
+        $filePath = realpath($path);
+        
+        if ($baseDir && $filePath && strpos($filePath, $baseDir) !== 0) {
+            // También permitir archivos en public/uploads/adjuntos/pacientes/
+            $publicBaseDir = realpath($this->getParameter('kernel.project_dir') . '/public/uploads/adjuntos/pacientes/');
+            if (!$publicBaseDir || strpos($filePath, $publicBaseDir) !== 0) {
+                throw $this->createAccessDeniedException('Acceso denegado al archivo');
+            }
+        }
+        
+        $response = new BinaryFileResponse($path);
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $nombre);
         return $response;
     }
 
@@ -2914,6 +2998,13 @@ class ClienteController extends AbstractController
         $fecha = new \DateTime();
 
         $historial->setNAfiliadoObraSocial($nAfiliadoObraSocial);
+        // VALIDACIÓN CRÍTICA: Si el paciente es ambulatorio, habitación y cama DEBEN ser NULL
+        // Esto previene inconsistencias donde un paciente ambulatorio tenga habitación/cama asignadas
+        if ($ambulatorio === true || $ambulatorio === 1 || $modalidad == 1) {
+            $habitacion = null;
+            $cama = null;
+        }
+        
         $historial->setSistemaDeEmergencia($sistemaDeEmergencia);
         $historial->setNAfiliadoSistemaDeEmergencia($nAfiliadoSistemaDeEmergencia);
         $historial->setHabitacion($habitacion);
