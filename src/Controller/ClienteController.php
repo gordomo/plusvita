@@ -1382,6 +1382,14 @@ class ClienteController extends AbstractController
                 'docReferente' => $docReferenteIds,
             ];
 
+            // VALIDACIÓN CRÍTICA: Asegurar que fecha de nacimiento vacía o inválida se establezca como NULL
+            // Previene que se establezca una fecha por defecto incorrecta
+            $fechaNacimiento = $cliente->getFNacimiento();
+            if ($fechaNacimiento && ($fechaNacimiento > new \DateTime() || $fechaNacimiento->format('Y-m-d') === (new \DateTime())->format('Y-m-d'))) {
+                // Si la fecha es futura o es hoy (lo cual es sospechoso para fecha de nacimiento), establecer como NULL
+                $cliente->setFNacimiento(null);
+            }
+
             $entityManager->persist($cliente);
             $entityManager->flush();
 
@@ -1751,6 +1759,14 @@ class ClienteController extends AbstractController
                     'ambulatorio' => $cliente->getAmbulatorio(),
                     'docReferente' => $docReferenteIds,
                 ];
+
+                // VALIDACIÓN CRÍTICA: Asegurar que fecha de nacimiento vacía o inválida se establezca como NULL
+                // Previene que se establezca una fecha por defecto incorrecta
+                $fechaNacimiento = $cliente->getFNacimiento();
+                if ($fechaNacimiento && ($fechaNacimiento > new \DateTime() || $fechaNacimiento->format('Y-m-d') === (new \DateTime())->format('Y-m-d'))) {
+                    // Si la fecha es futura o es hoy (lo cual es sospechoso para fecha de nacimiento), establecer como NULL
+                    $cliente->setFNacimiento(null);
+                }
 
                 $historial = $this->getHistorialActualizado($cliente, $parametros, $user);
 

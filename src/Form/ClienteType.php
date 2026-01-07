@@ -60,8 +60,10 @@ class ClienteType extends AbstractType
                 ->add('telefono', TextType::class, ['label' => 'Teléfono', 'required' => false,])
                 ->add('fNacimiento', DateType::class, [
                     'widget' => 'single_text',
-                    'required' => false
-                    ])
+                    'required' => false,
+                    'empty_data' => null,
+                    'invalid_message' => 'La fecha de nacimiento no es válida.',
+                ])
                 ->add('hClinica', TextType::class, ['label' => 'Número de Historia Clínica', 'required' => false,])
                 ->add('obraSocial', EntityType::class, [
                     'class' => ObraSocial::class,
@@ -235,7 +237,7 @@ class ClienteType extends AbstractType
                     $this->setupMotivoIngEsp($form->getParent(), $motivoIng);
                 });
 
-                $builder->addEventListener(FormEvents::PRE_SET_DATA,function (FormEvent $event) {
+                $builder                ->addEventListener(FormEvents::PRE_SET_DATA,function (FormEvent $event) {
                     $data = $event->getData();
                     if (!$data) {
                         return;
@@ -247,6 +249,18 @@ class ClienteType extends AbstractType
                     );
                 }
                 );
+
+                // Listener para asegurar que fecha de nacimiento vacía se establezca como NULL
+                // Previene que se establezca una fecha por defecto cuando el campo está vacío
+                $builder->get('fNacimiento')->addEventListener(FormEvents::POST_SUBMIT, function(FormEvent $event) {
+                    $form = $event->getForm();
+                    $fechaNacimiento = $form->getData();
+                    
+                    // Si el campo está vacío o es una cadena vacía, establecer como NULL
+                    if (empty($fechaNacimiento) || $fechaNacimiento === '') {
+                        $form->getParent()->get('fNacimiento')->setData(null);
+                    }
+                });
 
             }
             if(!$options['is_new']) {
