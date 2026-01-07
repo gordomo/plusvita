@@ -230,22 +230,33 @@ class LiquidacionesController extends AbstractController
         $fechaLimiteHistorial = new \DateTime('2025-01-01');
 
         foreach ($evoluciones as $evolucion) {
+            // CRÍTICO: Usar la fecha de la evolución específica, no la fecha final del período
+            // Esto asegura que clasificamos según el estado del paciente en el momento exacto de la evolución
+            $fechaEvolucion = $evolucion->getFecha();
+            
+            // Si la evolución no tiene fecha, usar la fecha final del período como fallback
+            if (!$fechaEvolucion) {
+                $fechaEvolucion = $fechaHasta;
+            }
 
             // ESTRATEGIA HÍBRIDA: Usar tabla cliente para datos históricos, historial para datos nuevos
-            if ($evolucion->getFecha() < $fechaLimiteHistorial) {
+            if ($fechaEvolucion < $fechaLimiteHistorial) {
                 // DATOS HISTÓRICOS (antes de 2025): Usar tabla cliente (ya corregida)
                 $modalidadUsada = $evolucion->getPaciente()->getModalidad();
-                $clasificacion = 'cliente';
             } else {
-                // DATOS NUEVOS (2025 en adelante): Usar historia_paciente (ahora confiable)
-                $historia = $historiaRepository->findLastModalidadChange($evolucion->getPaciente()->getId(), $to);
+                // DATOS NUEVOS (2025 en adelante): Usar historia_paciente con la fecha EXACTA de la evolución
+                // Buscar el estado del paciente en el momento exacto de la evolución
+                $historia = $historiaRepository->findLastModalidadChange(
+                    $evolucion->getPaciente()->getId(), 
+                    $fechaEvolucion->format('Y-m-d H:i:s')
+                );
+                
                 if (isset($historia[0])) {
+                    // Usar la modalidad del historial en la fecha de la evolución
                     $modalidadUsada = $historia[0]->getModalidad();
-                    $clasificacion = 'historial';
                 } else {
-                    // Si no hay historial, fallback a tabla cliente
+                    // Si no hay historial para esa fecha, fallback a tabla cliente
                     $modalidadUsada = $evolucion->getPaciente()->getModalidad();
-                    $clasificacion = 'cliente_fallback';
                 }
             }
 
