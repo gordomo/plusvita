@@ -94,10 +94,37 @@ class LiberarCamasCommand extends Command
 
                     $habitacionActual->setCamasOcupadas($camasOcupadas);
 
+                    // Registrar en historia_paciente antes de liberar la cama
+                    $historiaPaciente = new HistoriaPaciente();
+                    $historiaPaciente->setCliente($cliente);
+                    $historiaPaciente->setFecha(new \DateTime());
+                    $historiaPaciente->setUsuario('system');
+                    $historiaPaciente->setHabitacion(null);
+                    $historiaPaciente->setCama(null);
+                    $historiaPaciente->setModalidad(1); // Ambulatorio al liberar cama
+                    $historiaPaciente->setAmbulatorio(true);
+                    $historiaPaciente->setIdPaciente($cliente->getId());
+
+                    // Obtener último historial para copiar valores
+                    $ultimoHistorial = $em->getRepository(HistoriaPaciente::class)->findBy(
+                        ['cliente' => $cliente],
+                        ['fecha' => 'desc'],
+                        ['limit' => 1]
+                    );
+                    if (!empty($ultimoHistorial)) {
+                        $ultimo = $ultimoHistorial[0];
+                        $historiaPaciente->setObraSocial($ultimo->getObraSocial());
+                        $historiaPaciente->setPatologia($ultimo->getPatologia());
+                        // Cerrar el registro anterior
+                        $ultimo->setFechaFin(new \DateTime());
+                        $em->persist($ultimo);
+                    }
+
                     $cliente->setHabitacion(null);
                     $cliente->setNCama(null);
                     $cliente->setHabPrivada(0);
 
+                    $em->persist($historiaPaciente);
                     $em->persist($habitacionActual);
                     $em->persist($cliente);
                     $em->flush();

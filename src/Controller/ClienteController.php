@@ -1538,10 +1538,17 @@ class ClienteController extends AbstractController
                 $cliente->setNCama($request->request->get('cliente')['nCama'] ?? 0);
             }
             try {
-                // Restauramos la modalidad original para evitar cambios no autorizados
-                $cliente->setModalidad($modalidadOriginal);
-                // Como la modalidad es fija, mantenemos la coherencia
-                $cliente->setAmbulatorio($modalidadOriginal == 1);
+                // LÓGICA DE MODALIDAD: Si el paciente tiene habitación asignada, debe ser internado
+                // Si no tiene habitación, mantener la modalidad original
+                if (!empty($cliente->getHabitacion())) {
+                    // Paciente con habitación = INTERNADO
+                    $cliente->setModalidad(2);
+                    $cliente->setAmbulatorio(false);
+                } else {
+                    // Paciente sin habitación = mantener modalidad original
+                    $cliente->setModalidad($modalidadOriginal);
+                    $cliente->setAmbulatorio($modalidadOriginal == 1);
+                }
                 
                 $entityManager = $this->getDoctrine()->getManager();
 
@@ -1616,10 +1623,19 @@ class ClienteController extends AbstractController
                     }
                 }
 
-                $habitacionNueva = $habitacionRepository->find($nuevaHabId);
-                $habVieja = $habitacionRepository->find($habitacionActualId);
-
-                $this->acomodarHabitacion($habitacionNueva, $nuevaCamaId, $habVieja, $camaActualId, $habPrivada, $habPrivadaNueva, $entityManager);
+                // Si hay cambio de habitación, usar PatientStateService para registrar correctamente
+                if ($nuevaHabId != $habitacionActualId || $nuevaCamaId != $camaActualId) {
+                    $habitacionNueva = $habitacionRepository->find($nuevaHabId);
+                    if ($habitacionNueva) {
+                        // Usar PatientStateService para cambiar habitación (registra en historial)
+                        $this->patientStateService->cambiarHabitacion($cliente, $user, $nuevaHabId, $nuevaCamaId, $habPrivadaNueva);
+                    }
+                } else {
+                    // No hay cambio de habitación, solo actualizar habPrivada si cambió
+                    if ($habPrivada != $habPrivadaNueva) {
+                        $cliente->setHabPrivada($habPrivadaNueva);
+                    }
+                }
 
                 $epicrisisIngreso = $form->get('epicrisisIngreso')->getData();
 

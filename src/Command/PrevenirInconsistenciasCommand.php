@@ -3,6 +3,7 @@
 namespace App\Command;
 
 use App\Service\HabitacionService;
+use App\Repository\HistoriaPacienteRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -16,13 +17,16 @@ class PrevenirInconsistenciasCommand extends Command
 
     private $entityManager;
     private $habitacionService;
+    private $historiaPacienteRepository;
 
     public function __construct(
         EntityManagerInterface $entityManager,
-        HabitacionService $habitacionService
+        HabitacionService $habitacionService,
+        HistoriaPacienteRepository $historiaPacienteRepository
     ) {
         $this->entityManager = $entityManager;
         $this->habitacionService = $habitacionService;
+        $this->historiaPacienteRepository = $historiaPacienteRepository;
         parent::__construct();
     }
 

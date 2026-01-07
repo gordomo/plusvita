@@ -4,8 +4,10 @@ namespace App\Service;
 
 use App\Entity\Cliente;
 use App\Entity\Habitacion;
+use App\Entity\HistoriaPaciente;
 use App\Repository\ClienteRepository;
 use App\Repository\HabitacionRepository;
+use App\Repository\HistoriaPacienteRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
 class HabitacionService
@@ -13,15 +15,18 @@ class HabitacionService
     private $entityManager;
     private $clienteRepository;
     private $habitacionRepository;
+    private $historiaPacienteRepository;
 
     public function __construct(
         EntityManagerInterface $entityManager,
         ClienteRepository $clienteRepository,
-        HabitacionRepository $habitacionRepository
+        HabitacionRepository $habitacionRepository,
+        HistoriaPacienteRepository $historiaPacienteRepository
     ) {
         $this->entityManager = $entityManager;
         $this->clienteRepository = $clienteRepository;
         $this->habitacionRepository = $habitacionRepository;
+        $this->historiaPacienteRepository = $historiaPacienteRepository;
     }
 
     /**
@@ -45,10 +50,17 @@ class HabitacionService
         // Asignar la cama al paciente
         $cliente->setNCama($numeroCama);
         $cliente->setHabitacion($habitacion->getId());
-        
+
+        // Actualizar la modalidad del paciente (debe ser internado si tiene habitación)
+        $cliente->setModalidad(2);
+        $cliente->setAmbulatorio(false);
+
+        // Registrar el cambio en historia_paciente
+        $this->registrarCambioHabitacion($cliente, $habitacion->getId(), $numeroCama, 'system');
+
         // Actualizar las camas ocupadas de la habitación
         $this->actualizarCamasOcupadas($habitacion);
-        
+
         $this->entityManager->persist($cliente);
     }
 
@@ -60,21 +72,25 @@ class HabitacionService
         if (!$cliente->getHabitacion()) {
             return;
         }
-        
+
         $habitacion = $this->habitacionRepository->find($cliente->getHabitacion());
         if (!$habitacion) {
             return;
         }
-        
+
+        // Registrar el cambio en historia_paciente antes de liberar
+        $this->registrarCambioHabitacion($cliente, null, null, 'system');
+
         // Limpiar la asignación del paciente
         $cliente->setHabitacion(null);
         $cliente->setNCama(null);
         $cliente->setHabPrivada(0);
-        
+
         // Actualizar las camas ocupadas de la habitación
         $this->actualizarCamasOcupadas($habitacion);
-        
+
         $this->entityManager->persist($cliente);
+        $this->entityManager->flush(); // Asegurar que los cambios se guardan inmediatamente
     }
 
     /**
@@ -176,5 +192,49 @@ class HabitacionService
             'camasOcupadasReales' => $camasOcupadasReales,
             'pacientesEnHabitacion' => $pacientesEnHabitacion
         ];
+    }
+
+    /**
+     * Registra un cambio de habitación en historia_paciente
+     */
+    private function registrarCambioHabitacion(Cliente $cliente, ?string $habitacionId, ?int $camaId, string $usuario): void
+    {
+        // Obtener el último historial para preservar otros valores
+        $ultimoHistorial = $this->historiaPacienteRepository->findBy(
+            ['cliente' => $cliente],
+            ['fecha' => 'desc'],
+            ['limit' => 1]
+        );
+
+        $historial = new HistoriaPaciente();
+
+        // Preservar valores previos
+        $modalidad = $habitacionId ? 2 : ($ultimoHistorial[0]->getModalidad() ?? 1);
+        $ambulatorio = $habitacionId ? false : ($ultimoHistorial[0]->getAmbulatorio() ?? true);
+
+        $historial->setCliente($cliente);
+        $historial->setModalidad($modalidad);
+        $historial->setAmbulatorio($ambulatorio);
+        $historial->setHabitacion($habitacionId);
+        $historial->setCama($camaId);
+        $historial->setIdPaciente($cliente->getId());
+        $historial->setFecha(new \DateTime());
+        $historial->setUsuario($usuario);
+
+        // Copiar otros valores del último historial si existe
+        if (!empty($ultimoHistorial)) {
+            $ultimo = $ultimoHistorial[0];
+            $historial->setObraSocial($ultimo->getObraSocial());
+            $historial->setPatologia($ultimo->getPatologia());
+            $historial->setPatologiaEspecifica($ultimo->getPatologiaEspecifica());
+        }
+
+        // Si hay un historial previo, cerrar ese registro
+        if (!empty($ultimoHistorial)) {
+            $ultimoHistorial[0]->setFechaFin(new \DateTime());
+            $this->entityManager->persist($ultimoHistorial[0]);
+        }
+
+        $this->entityManager->persist($historial);
     }
 }

@@ -226,25 +226,36 @@ class LiquidacionesController extends AbstractController
             $obrasSocialesArray[$obrasSocial->getId()] = $obrasSocial->getNombre();
         }
         
-        foreach ($evoluciones as $evolucion) {
-            
-            $historia = $historiaRepository->findLastModalidadChange($evolucion->getPaciente()->getId(), $to);
+        // Fecha límite para cambiar de estrategia: datos históricos usan cliente, datos nuevos usan historial
+        $fechaLimiteHistorial = new \DateTime('2025-01-01');
 
-            if (isset($historia[0]) && $historia[0]->getModalidad() == 2 ) {
-                $evolucionesCountActivos ++;
-                $evolucionesPivotOsActivos[$evolucion->getPaciente()->getObraSocial()->getNombre()][] = $evolucion;
-            }
-            else if (isset($historia[0]) && ($historia[0]->getModalidad() == 1 || $historia[0]->getModalidad() == 4 ) ) {
-                $evolucionesCountAmbulatorios ++;
-                $evolucionesPivotOsAmbulatorios[$evolucion->getPaciente()->getObraSocial()->getNombre()][] = $evolucion;
-            } else if (empty($historia)) {
-                if ($evolucion->getPaciente()->getModalidad() == 2) {
-                    $evolucionesCountActivos ++;
-                    $evolucionesPivotOsActivos[$evolucion->getPaciente()->getObraSocial()->getNombre()][] = $evolucion;
-                } else if ($evolucion->getPaciente()->getModalidad() == 1 || $evolucion->getPaciente()->getModalidad() == 4) {
-                    $evolucionesCountAmbulatorios ++;
-                    $evolucionesPivotOsAmbulatorios[$evolucion->getPaciente()->getObraSocial()->getNombre()][] = $evolucion;
+        foreach ($evoluciones as $evolucion) {
+
+            // ESTRATEGIA HÍBRIDA: Usar tabla cliente para datos históricos, historial para datos nuevos
+            if ($evolucion->getFecha() < $fechaLimiteHistorial) {
+                // DATOS HISTÓRICOS (antes de 2025): Usar tabla cliente (ya corregida)
+                $modalidadUsada = $evolucion->getPaciente()->getModalidad();
+                $clasificacion = 'cliente';
+            } else {
+                // DATOS NUEVOS (2025 en adelante): Usar historia_paciente (ahora confiable)
+                $historia = $historiaRepository->findLastModalidadChange($evolucion->getPaciente()->getId(), $to);
+                if (isset($historia[0])) {
+                    $modalidadUsada = $historia[0]->getModalidad();
+                    $clasificacion = 'historial';
+                } else {
+                    // Si no hay historial, fallback a tabla cliente
+                    $modalidadUsada = $evolucion->getPaciente()->getModalidad();
+                    $clasificacion = 'cliente_fallback';
                 }
+            }
+
+            // Clasificar basado en la modalidad obtenida
+            if ($modalidadUsada == 2) {
+                $evolucionesCountActivos++;
+                $evolucionesPivotOsActivos[$evolucion->getPaciente()->getObraSocial()->getNombre()][] = $evolucion;
+            } else if ($modalidadUsada == 1 || $modalidadUsada == 4) {
+                $evolucionesCountAmbulatorios++;
+                $evolucionesPivotOsAmbulatorios[$evolucion->getPaciente()->getObraSocial()->getNombre()][] = $evolucion;
             }
         }
 
