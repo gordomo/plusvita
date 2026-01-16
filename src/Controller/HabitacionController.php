@@ -123,8 +123,14 @@ class HabitacionController extends AbstractController
             if (count($clientes) > $camasDisponibles) {
                 while (count($clientes) > $camasDisponibles) {
                     $cliente = array_pop($clientes);
+                    // CRÍTICO: Al liberar habitación, actualizar modalidad y ambulatorio
                     $cliente->setHabitacion(null);
                     $cliente->setNcama(null);
+                    $cliente->setHabPrivada(0);
+                    // Si se libera la habitación, el paciente debe ser ambulatorio
+                    $cliente->setModalidad(1);
+                    $cliente->setAmbulatorio(true);
+                    $cliente->setFechaAmbulatorio(new \DateTime());
                     $entityManager->persist($cliente);
                 }
             }

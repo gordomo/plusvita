@@ -1632,11 +1632,37 @@ class ClienteController extends AbstractController
                 }
 
                 // Si hay cambio de habitación, usar PatientStateService para registrar correctamente
+                $cambioHabitacionManejado = false;
                 if ($nuevaHabId != $habitacionActualId || $nuevaCamaId != $camaActualId) {
-                    $habitacionNueva = $habitacionRepository->find($nuevaHabId);
-                    if ($habitacionNueva) {
-                        // Usar PatientStateService para cambiar habitación (registra en historial)
-                        $this->patientStateService->cambiarHabitacion($cliente, $user, $nuevaHabId, $nuevaCamaId, $habPrivadaNueva);
+                    // Caso 1: Se está liberando la habitación (nueva habitación es NULL o 0)
+                    if (empty($nuevaHabId) && !empty($habitacionActualId)) {
+                        // Usar PatientStateService para cambiar a ambulatorio (libera habitación y registra en historial)
+                        // Este método hace flush, así que debemos retornar después
+                        $this->patientStateService->cambiarAAmbulatorio($cliente, $user);
+                        $cambioHabitacionManejado = true;
+                        // Retornar inmediatamente porque cambiarAAmbulatorio ya hizo flush
+                        return $this->redirectToRoute('cliente_index');
+                    }
+                    // Caso 2: Se está asignando una nueva habitación
+                    elseif (!empty($nuevaHabId)) {
+                        $habitacionNueva = $habitacionRepository->find($nuevaHabId);
+                        if ($habitacionNueva) {
+                            // Si no tenía habitación antes, usar cambiarAInternado
+                            if (empty($habitacionActualId)) {
+                                $this->patientStateService->cambiarAInternado($cliente, $user, [
+                                    'habitacion' => $nuevaHabId,
+                                    'cama' => $nuevaCamaId,
+                                    'habPrivada' => $habPrivadaNueva
+                                ]);
+                                $cambioHabitacionManejado = true;
+                                // Retornar inmediatamente porque cambiarAInternado ya hizo flush
+                                return $this->redirectToRoute('cliente_index');
+                            } else {
+                                // Si ya tenía habitación, usar cambiarHabitacion (NO hace flush)
+                                $this->patientStateService->cambiarHabitacion($cliente, $user, $nuevaHabId, $nuevaCamaId, $habPrivadaNueva);
+                                $cambioHabitacionManejado = true;
+                            }
+                        }
                     }
                 } else {
                     // No hay cambio de habitación, solo actualizar habPrivada si cambió
@@ -1721,27 +1747,30 @@ class ClienteController extends AbstractController
                 
                 // VALIDACIÓN CRÍTICA: Si el paciente se está cambiando a ambulatorio,
                 // usar el servicio para asegurar que se libere la habitación y se actualice correctamente
-                $historiaPacienteRepository = $this->getDoctrine()->getRepository(HistoriaPaciente::class);
-                $ultimoHistorial = $historiaPacienteRepository->findBy(['cliente' => $cliente], ['fecha' => 'desc'], ['limit' => 1]);
-                $eraAmbulatorio = isset($ultimoHistorial[0]) ? ($ultimoHistorial[0]->getAmbulatorio() || $ultimoHistorial[0]->getModalidad() == 1) : false;
-                $esAmbulatorioAhora = $cliente->getAmbulatorio() || $cliente->getModalidad() == 1;
-                
-                // Si está cambiando a ambulatorio y tenía habitación, usar el servicio
-                if ($esAmbulatorioAhora && !$eraAmbulatorio && $cliente->getHabitacion() !== null) {
-                    $user = $this->security->getUser();
-                    $this->patientStateService->cambiarAAmbulatorio($cliente, $user);
-                    // El servicio ya crea el historial y hace flush, así que podemos retornar
-                    return $this->redirectToRoute('cliente_index');
-                }
-                
-                // Si es ambulatorio, asegurar que habitación y cama sean NULL
-                if ($esAmbulatorioAhora) {
-                    $cliente->setHabitacion(null);
-                    $cliente->setNCama(null);
-                    $cliente->setHabPrivada(0);
-                    // Asegurar que los parámetros también reflejen esto
-                    $parametros['habitacion'] = null;
-                    $parametros['cama'] = null;
+                // Solo ejecutar si NO se manejó el cambio de habitación arriba
+                if (!$cambioHabitacionManejado) {
+                    $historiaPacienteRepository = $this->getDoctrine()->getRepository(HistoriaPaciente::class);
+                    $ultimoHistorial = $historiaPacienteRepository->findBy(['cliente' => $cliente], ['fecha' => 'desc'], ['limit' => 1]);
+                    $eraAmbulatorio = isset($ultimoHistorial[0]) ? ($ultimoHistorial[0]->getAmbulatorio() || $ultimoHistorial[0]->getModalidad() == 1) : false;
+                    $esAmbulatorioAhora = $cliente->getAmbulatorio() || $cliente->getModalidad() == 1;
+                    
+                    // Si está cambiando a ambulatorio y tenía habitación, usar el servicio
+                    if ($esAmbulatorioAhora && !$eraAmbulatorio && $cliente->getHabitacion() !== null) {
+                        $user = $this->security->getUser();
+                        $this->patientStateService->cambiarAAmbulatorio($cliente, $user);
+                        // El servicio ya crea el historial y hace flush, así que podemos retornar
+                        return $this->redirectToRoute('cliente_index');
+                    }
+                    
+                    // Si es ambulatorio, asegurar que habitación y cama sean NULL
+                    if ($esAmbulatorioAhora) {
+                        $cliente->setHabitacion(null);
+                        $cliente->setNCama(null);
+                        $cliente->setHabPrivada(0);
+                        // Asegurar que los parámetros también reflejen esto
+                        $parametros['habitacion'] = null;
+                        $parametros['cama'] = null;
+                    }
                 }
                 
                 $parametros = [
@@ -2942,6 +2971,14 @@ class ClienteController extends AbstractController
             $cliente->setHabitacion(null);
             $cliente->setNCama(null);
             $cliente->setHabPrivada(0);
+
+            // CRÍTICO: Si el paciente sigue activo (sin egreso), actualizar modalidad a ambulatorio
+            // Si tiene egreso, mantener la modalidad porque ya está inactivo
+            if ($cliente->getFEgreso() === null || $cliente->getFEgreso() > new \DateTime()) {
+                $cliente->setModalidad(1);
+                $cliente->setAmbulatorio(true);
+                $cliente->setFechaAmbulatorio(new \DateTime());
+            }
 
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($cliente);

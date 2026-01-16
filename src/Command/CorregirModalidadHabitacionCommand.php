@@ -156,7 +156,7 @@ class CorregirModalidadHabitacionCommand extends Command
         }
 
         $io->newLine();
-        $io->info('📋 RECOMENDACIONES:');
+        $io->note('📋 RECOMENDACIONES:');
         $io->text('1. Regenerar las liquidaciones de diciembre para los profesionales afectados.');
         $io->text('2. Programar este comando para ejecutarse diariamente.');
         $io->text('3. Monitorear que no se produzcan nuevas inconsistencias.');

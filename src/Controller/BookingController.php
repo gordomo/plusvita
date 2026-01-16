@@ -345,9 +345,10 @@ class BookingController extends AbstractController
             } else {
                 // Si ya es un User, usarlo directamente y buscar el Doctor correspondiente
                 $doctorUser = $doctorEntity;
+                // Buscar el Doctor por email (case-insensitive para mayor robustez)
                 $doctorData = $this->getDoctrine()->getRepository(\App\Entity\Doctor::class)
                     ->createQueryBuilder('d')
-                    ->where('d.email = :email')
+                    ->where('LOWER(d.email) = LOWER(:email)')
                     ->setParameter('email', $doctorUser->getEmail())
                     ->getQuery()
                     ->getOneOrNullResult();
@@ -391,7 +392,8 @@ class BookingController extends AbstractController
                 } else {
                     $bookings = $bookingRepository->findBy(['doctor' => $doctor, 'beginAt' => $desde]);
                     $maxCliTurno = $doctorData ? $doctorData->getMaxCliTurno() : null;
-                    if ( count($bookings) >= $maxCliTurno && $maxCliTurno != null || ($maxCliTurno == null ) ) {
+                    // Solo validar límite si está configurado y se supera
+                    if ($maxCliTurno != null && count($bookings) >= $maxCliTurno) {
                         $error = true;
                         $arrayDeErrores[] = $desde->format(DATE_ATOM);
                     } else {
@@ -421,7 +423,8 @@ class BookingController extends AbstractController
                         } else {
                             $bookings = $bookingRepository->findBy(['doctor' => $doctor, 'beginAt' => $date]);
                             $maxCliTurno = $doctorData ? $doctorData->getMaxCliTurno() : null;
-                            if ( count($bookings) >= $maxCliTurno && $maxCliTurno != null || ($maxCliTurno == null ) ) {
+                            // Solo validar límite si está configurado y se supera
+                            if ($maxCliTurno != null && count($bookings) >= $maxCliTurno) {
                                 $error = true;
                                 $arrayDeErrores[] = $start;
                             } else {
@@ -668,9 +671,10 @@ class BookingController extends AbstractController
             }
             
             // Buscar el Doctor correspondiente para acceder a getMaxCliTurno()
+            // Usar búsqueda case-insensitive para mayor robustez
             $doctorData = $this->getDoctrine()->getRepository(\App\Entity\Doctor::class)
                 ->createQueryBuilder('d')
-                ->where('d.email = :email')
+                ->where('LOWER(d.email) = LOWER(:email)')
                 ->setParameter('email', $doctor->getEmail())
                 ->getQuery()
                 ->getOneOrNullResult();
@@ -771,9 +775,10 @@ class BookingController extends AbstractController
                 ->getResult();
 
             // Buscar el Doctor correspondiente para acceder a getMaxCliTurno()
+            // Usar búsqueda case-insensitive para mayor robustez
             $doctorData = $this->getDoctrine()->getRepository(\App\Entity\Doctor::class)
                 ->createQueryBuilder('d')
-                ->where('d.email = :email')
+                ->where('LOWER(d.email) = LOWER(:email)')
                 ->setParameter('email', $doctor->getEmail())
                 ->getQuery()
                 ->getOneOrNullResult();

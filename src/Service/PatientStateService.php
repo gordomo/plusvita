@@ -772,6 +772,11 @@ class PatientStateService
         $cliente->setHabitacion($nuevaHabitacionId);
         $cliente->setNCama($nuevaCamaId);
         $cliente->setHabPrivada($habPrivada);
+        
+        // CRÍTICO: Asegurar que modalidad y ambulatorio estén correctos
+        // Un paciente con habitación asignada DEBE ser internado
+        $cliente->setModalidad(2);
+        $cliente->setAmbulatorio(false);
 
         // Actualizar la ocupación de la nueva habitación
         $this->actualizarOcupacionHabitacion($nuevaHabitacion, $nuevaCamaId, $habPrivada);
