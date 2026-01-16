@@ -1245,6 +1245,23 @@ class ClienteController extends AbstractController
         $form = $this->createForm(ClienteType::class, $cliente, ['allow_extra_fields' =>true, 'is_new' => true, 'obrasSociales' => $obArray, 'habitaciones' => $haArray]);
 
         $form->handleRequest($request);
+        
+        // VALIDACIÓN PREVENTIVA: Asegurar que fecha de nacimiento no sea hoy o futura
+        // Esto previene que se establezca una fecha incorrecta antes de procesar el formulario
+        if ($form->isSubmitted()) {
+            $fechaNacimiento = $cliente->getFNacimiento();
+            if ($fechaNacimiento instanceof \DateTimeInterface) {
+                $hoy = new \DateTime();
+                $hoy->setTime(0, 0, 0);
+                $fechaComparar = clone $fechaNacimiento;
+                $fechaComparar->setTime(0, 0, 0);
+                
+                // Si la fecha es hoy o futura, establecer como NULL
+                if ($fechaComparar >= $hoy) {
+                    $cliente->setFNacimiento(null);
+                }
+            }
+        }
 
         if ( $form->isSubmitted() ) {
 
@@ -1540,6 +1557,23 @@ class ClienteController extends AbstractController
 
 
         $form->handleRequest($request);
+        
+        // VALIDACIÓN PREVENTIVA: Asegurar que fecha de nacimiento no sea hoy o futura
+        // Esto previene que se establezca una fecha incorrecta antes de procesar el formulario
+        if ($form->isSubmitted()) {
+            $fechaNacimiento = $cliente->getFNacimiento();
+            if ($fechaNacimiento instanceof \DateTimeInterface) {
+                $hoy = new \DateTime();
+                $hoy->setTime(0, 0, 0);
+                $fechaComparar = clone $fechaNacimiento;
+                $fechaComparar->setTime(0, 0, 0);
+                
+                // Si la fecha es hoy o futura, establecer como NULL
+                if ($fechaComparar >= $hoy) {
+                    $cliente->setFNacimiento(null);
+                }
+            }
+        }
 
         if ( $form->isSubmitted()) {
             if ( !$form->isValid() ) {
