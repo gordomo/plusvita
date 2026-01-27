@@ -52,6 +52,7 @@
                                     <th>Medicamento/Procedimiento</th>
                                     <th>Dosis</th>
                                     <th>Frecuencia</th>
+                                    <th>Próxima Toma</th>
                                     <th>Inicio</th>
                                     <th>Duración</th>
                                     <th>Notas</th>
@@ -81,6 +82,9 @@
                                                 {% endif %}
                                             </td>
                                             <td>{{ indicacion.frecuencia|default('N/D') }}</td>
+                                            <td id="proxima-toma-{{ indicacion.id }}">
+                                                <span class="text-muted">Calculando...</span>
+                                            </td>
                                             <td>{{ indicacion.fechaInicio ? indicacion.fechaInicio|date('d/m/Y') : 'N/D' }}</td>
                                             <td>{% if indicacion.duracion %}{{ indicacion.duracion }} días{% elseif indicacion.fechaFin %}Hasta {{ indicacion.fechaFin|date('d/m/Y') }}{% else %}N/D{% endif %}</td>
                                             <td>{{ indicacion.notas }}</td>
@@ -147,6 +151,7 @@
                                     <th>Medicamento/Procedimiento</th>
                                     <th>Dosis</th>
                                     <th>Frecuencia</th>
+                                    <th>Próxima Toma</th>
                                     <th>Inicio</th>
                                     <th>Duración</th>
                                     <th>Notas</th>
@@ -175,6 +180,9 @@
                                                 {% endif %}
                                             </td>
                                             <td>{{ indicacion.frecuencia|default('N/D') }}</td>
+                                            <td id="proxima-toma-{{ indicacion.id }}">
+                                                <span class="text-muted">Calculando...</span>
+                                            </td>
                                             <td>{{ indicacion.fechaInicio ? indicacion.fechaInicio|date('d/m/Y') : 'N/D' }}</td>
                                             <td>{% if indicacion.duracion %}{{ indicacion.duracion }} días{% elseif indicacion.fechaFin %}Hasta {{ indicacion.fechaFin|date('d/m/Y') }}{% else %}N/D{% endif %}</td>
                                             <td>{{ indicacion.notas }}</td>
@@ -206,6 +214,7 @@
                                     <th>Medicamento/Procedimiento</th>
                                     <th>Dosis</th>
                                     <th>Frecuencia</th>
+                                    <th>Próxima Toma</th>
                                     <th>Inicio</th>
                                     <th>Duración</th>
                                     <th>Notas</th>
@@ -234,6 +243,9 @@
                                                 {% endif %}
                                             </td>
                                             <td>{{ indicacion.frecuencia|default('N/D') }}</td>
+                                            <td id="proxima-toma-{{ indicacion.id }}">
+                                                <span class="text-muted">Calculando...</span>
+                                            </td>
                                             <td>{{ indicacion.fechaInicio ? indicacion.fechaInicio|date('d/m/Y') : 'N/D' }}</td>
                                             <td>{% if indicacion.duracion %}{{ indicacion.duracion }} días{% elseif indicacion.fechaFin %}Hasta {{ indicacion.fechaFin|date('d/m/Y') }}{% else %}N/D{% endif %}</td>
                                             <td>{{ indicacion.notas }}</td>
@@ -276,12 +288,13 @@
             <!-- Opción (medicamento o procedimiento) -->
             <div class="col-md-4">
                 <label for="consumible-nuevo">Opción</label>
-                <select class="form-control" id="consumible-nuevo">
-                    <option value="">-- Seleccione una opción --</option>
-                    {% for consumible in consumibles %}
-                        <option value="{{ consumible.id }}" data-unidades="{{ consumible.unidades }}">{{ consumible.nombre }}</option>
+                <input type="text" class="form-control" id="consumible-nuevo" list="consumibles-list" placeholder="Buscar consumible...">
+                <datalist id="consumibles-list">
+                    {% for id, nombre in consumiblesArray %}
+                        <option value="{{ nombre }}" data-id="{{ id }}">
                     {% endfor %}
-                </select>
+                </datalist>
+                <input type="hidden" id="consumible-id-nuevo">
                 <input type="text" class="form-control mt-2" id="procedimientoPersonalizado-nuevo" 
                        placeholder="Descripción personalizada" style="display: none;">
             </div>
@@ -497,11 +510,31 @@
                 }
             };
             
+            // Crear mapa de consumibles para búsqueda rápida
+            const consumiblesMap = {};
+            {% for id, nombre in consumiblesArray %}
+                consumiblesMap['{{ nombre|escape('js') }}'] = {{ id }};
+            {% endfor %}
+            
+            // Función para manejar la selección del consumible
+            $('#consumible-nuevo').on('input', function() {
+                const selectedValue = $(this).val();
+                const consumibleId = consumiblesMap[selectedValue];
+                $('#consumible-id-nuevo').val(consumibleId || '');
+                
+                // Si se selecciona un consumible válido, actualizar unidades si es necesario
+                if (consumibleId) {
+                    // Aquí podrías agregar lógica para actualizar unidades basadas en el consumible
+                    // Por ahora, mantener las unidades como están
+                }
+            });
+            
             // Limpia el formulario
             function limpiarFormulario() {
                 // Resetear todos los campos del formulario
                 $("#tipoIndicacion-nuevo").val("");
                 $("#consumible-nuevo").val("");
+                $("#consumible-id-nuevo").val("");
                 $("#procedimientoPersonalizado-nuevo").val("").hide();
                 $("#cantidad-nuevo").val("1");
                 $("#unidadMedida-nuevo").val("unidades");
@@ -531,9 +564,9 @@
                 
                 // Verificar medicamento o descripción personalizada
                 const tipoIndicacion = $("#tipoIndicacion-nuevo").val();
-                if (tipoIndicacion === "medicamento" && !$("#consumible-nuevo").val()) {
+                if (tipoIndicacion === "medicamento" && !$("#consumible-id-nuevo").val()) {
                     esValido = false;
-                    mensaje += "- Debe seleccionar un medicamento\n";
+                    mensaje += "- Debe seleccionar un medicamento válido\n";
                 } else if ((tipoIndicacion === "procedimiento" || tipoIndicacion === "control") && 
                            !$("#procedimientoPersonalizado-nuevo").val()) {
                     esValido = false;
@@ -611,7 +644,7 @@
                         clienteId: clienteId,
                         historiaPacienteId: historiaPacienteId,
                         tipoIndicacion: $("#tipoIndicacion-nuevo").val(),
-                        consumibleId: $("#tipoIndicacion-nuevo").val() === "medicamento" ? $("#consumible-nuevo").val() : null,
+                        consumibleId: $("#tipoIndicacion-nuevo").val() === "medicamento" ? $("#consumible-id-nuevo").val() : null,
                         procedimientoPersonalizado: $("#tipoIndicacion-nuevo").val() !== "medicamento" ? $("#procedimientoPersonalizado-nuevo").val() : null,
                         cantidad: $("#cantidad-nuevo").val(),
                         unidadMedida: $("#unidadMedida-nuevo").val(),
@@ -748,5 +781,81 @@
                 });
             }
         }
+        
+        // Función para calcular la próxima toma
+        function calcularProximaToma(fechaInicio, frecuencia, horario) {
+            if (!fechaInicio || !frecuencia) return 'N/D';
+            
+            const ahora = new Date();
+            const inicio = new Date(fechaInicio + 'T' + (horario || '08:00') + ':00');
+            
+            // Si la fecha de inicio es futura, la próxima toma es la primera
+            if (inicio > ahora) {
+                return inicio.toLocaleDateString('es-ES') + ' ' + inicio.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
+            }
+            
+            // Calcular intervalos en horas
+            let intervaloHoras = 24; // default diario
+            switch (frecuencia) {
+                case 'cada4h': intervaloHoras = 4; break;
+                case 'cada6h': intervaloHoras = 6; break;
+                case 'cada8h': intervaloHoras = 8; break;
+                case 'cada12h': intervaloHoras = 12; break;
+                case 'cada24h': intervaloHoras = 24; break;
+                case 'diario': intervaloHoras = 24; break;
+                case 'bid': intervaloHoras = 12; break; // 2 veces al día
+                case 'tid': intervaloHoras = 8; break;  // 3 veces al día
+                case 'semanal': intervaloHoras = 168; break; // 7 días
+                case 'sos': return 'Según necesidad';
+                default: intervaloHoras = 24;
+            }
+            
+            // Calcular la próxima toma
+            const diffMs = ahora - inicio;
+            const diffHoras = diffMs / (1000 * 60 * 60);
+            const tomasPasadas = Math.floor(diffHoras / intervaloHoras);
+            const proximaToma = new Date(inicio.getTime() + (tomasPasadas + 1) * intervaloHoras * 60 * 60 * 1000);
+            
+            return proximaToma.toLocaleDateString('es-ES') + ' ' + proximaToma.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
+        }
+        
+        // Calcular próximas tomas para todas las indicaciones activas
+        {% for indicacion in indicacionesActivas %}
+            {% if indicacion.fechaInicio %}
+                document.getElementById('proxima-toma-{{ indicacion.id }}').innerHTML = calcularProximaToma(
+                    '{{ indicacion.fechaInicio|date('Y-m-d') }}',
+                    '{{ indicacion.frecuencia }}',
+                    '{{ indicacion.horario }}'
+                );
+            {% else %}
+                document.getElementById('proxima-toma-{{ indicacion.id }}').innerHTML = 'N/D';
+            {% endif %}
+        {% endfor %}
+        
+        // Calcular próximas tomas para indicaciones próximas a vencer
+        {% for indicacion in indicacionesProximasVencer %}
+            {% if indicacion.fechaInicio %}
+                document.getElementById('proxima-toma-{{ indicacion.id }}').innerHTML = calcularProximaToma(
+                    '{{ indicacion.fechaInicio|date('Y-m-d') }}',
+                    '{{ indicacion.frecuencia }}',
+                    '{{ indicacion.horario }}'
+                );
+            {% else %}
+                document.getElementById('proxima-toma-{{ indicacion.id }}').innerHTML = 'N/D';
+            {% endif %}
+        {% endfor %}
+        
+        // Calcular próximas tomas para indicaciones históricas
+        {% for indicacion in indicacionesHistoricas %}
+            {% if indicacion.fechaInicio %}
+                document.getElementById('proxima-toma-{{ indicacion.id }}').innerHTML = calcularProximaToma(
+                    '{{ indicacion.fechaInicio|date('Y-m-d') }}',
+                    '{{ indicacion.frecuencia }}',
+                    '{{ indicacion.horario }}'
+                );
+            {% else %}
+                document.getElementById('proxima-toma-{{ indicacion.id }}').innerHTML = 'N/D';
+            {% endif %}
+        {% endfor %}
     </script>
 {% endblock %}

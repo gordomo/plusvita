@@ -721,6 +721,31 @@
                     </a>
                 </div>
                 <div class="col-lg-9 col-sm-12 col-md-9">
+                    <form method="get" action="{{ path('cliente_historial', {'id': cliente.id}) }}#indicacionesScroll" class="remover">
+                        <input type="hidden" name="section" value="indicaciones">
+                        <div class="form-group">
+                            <div class="form-row">
+                                <div class="col-xl-1 col-md-6 col-lg-6 col-sm-12 text-right" style="line-height: 40px;height: 35px;">
+                                    <label class="control-label">desde:</label>
+                                </div>
+                                <div class="col-xl-2 col-md-6 col-lg-6 col-sm-12 text-left">
+                                    <input class="form-control" type="date" name="indicacionesDesde" value="{{ indicacionesDesde }}">
+                                </div>
+                                <div class="col-xl-1 col-md-6 col-lg-6 col-sm-12 text-right" style="line-height: 40px;height: 35px;">
+                                    <label class="control-label">hasta:</label>
+                                </div>
+                                <div class="col-xl-2 col-md-6 col-lg-6 col-sm-12 text-left">
+                                    <input class="form-control" type="date" name="indicacionesHasta" value="{{ indicacionesHasta }}">
+                                </div>
+                                <div class="col-xl-1 col-md-6 col-lg-3 col-sm-6">
+                                    <button type="submit" class="btn btn-default" style="width: 100%;">filtrar</button>
+                                </div>
+                                <div class="col-xl-1 col-md-6 col-lg-3 col-sm-6">
+                                    <a class="btn btn-default" href="{{ path('cliente_historial', {'id': cliente.id}) }}#indicacionesScroll" style="width: 100%;">limpiar</a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
                     <div class="text-right">
                         <a href="{{ path('kardex_paciente', {'id': cliente.id}) }}" class="btn btn-info">
                             <i class="fas fa-clipboard-list"></i> Ver Kardex Completo
@@ -744,10 +769,12 @@
                                         <thead class="thead-light">
                                             <tr>
                                                 <th style="width: 12%">Fecha</th>
-                                                <th style="width: 25%">Medicamento</th>
-                                                <th>Indicación/Dosis</th>
-                                                <th style="width: 20%">Profesional</th>
-                                                <th style="width: 10%">Estado</th>
+                                                <th style="width: 20%">Medicamento</th>
+                                                <th style="width: 15%">Indicación/Dosis</th>
+                                                <th style="width: 15%">Profesional</th>
+                                                <th style="width: 8%">Estado</th>
+                                                <th style="width: 15%">Cumplimiento</th>
+                                                <th style="width: 15%">Última Administración</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -821,6 +848,37 @@
                                                             <span class="badge badge-secondary">Suspendida</span>
                                                         {% else %}
                                                             <span class="badge badge-info">Registrada</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if indicacion.totalTomas > 0 %}
+                                                            <div class="text-center">
+                                                                <div class="font-weight-bold">{{ indicacion.porcentajeCumplimiento }}%</div>
+                                                                <div class="small text-muted">
+                                                                    {{ indicacion.tomasAdministradas }}/{{ indicacion.totalTomas }} administradas
+                                                                </div>
+                                                                {% if indicacion.tomasPendientes > 0 %}
+                                                                    <div class="small text-warning">
+                                                                        {{ indicacion.tomasPendientes }} pendientes
+                                                                    </div>
+                                                                {% endif %}
+                                                            </div>
+                                                        {% else %}
+                                                            <div class="text-center">
+                                                                <span class="text-muted">Sin tomas programadas</span>
+                                                            </div>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if indicacion.ultimaAdministracion %}
+                                                            <div class="text-center">
+                                                                <div>{{ indicacion.ultimaAdministracion|date('d/m/Y') }}</div>
+                                                                <div class="small text-muted">{{ indicacion.ultimaAdministracion|date('H:i') }}</div>
+                                                            </div>
+                                                        {% else %}
+                                                            <div class="text-center">
+                                                                <span class="text-muted">Nunca administrada</span>
+                                                            </div>
                                                         {% endif %}
                                                     </td>
                                                 </tr>
@@ -1070,7 +1128,7 @@
                     $('.tituloHistoria').remove();
 
                     setTimeout(() => {
-                        let html = "<head><title>Historia</title><style>@media print {@page {margin-top: 10px;margin-left: 15mm;margin-right: 15mm;size: A4 portrait;}@media print {-webkit-print-color-adjust: exact;}.print-container {width: 100%;max-width: 100%;margin: 0;padding: 0;box-sizing: border-box;}.print-header {margin-bottom: 20px;}.print-footer {margin-top: 20px;}.table.table-responsive.table-striped th{text-align: left;}.table.table-responsive.table-striped td{text-align: left;padding-bottom: 15px;}.h4, h4 {font-size: 1.5rem;border-top: 1px solid;padding-top: 10px;margin: 0;}body {font-family: '-apple-system','BlinkMacSystemFont','Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji';margin: 0;padding: 0;}.print-content {width: 100%;max-width: 100%;margin: 0;padding: 0;box-sizing: border-box;}.print-content .row {margin: 0 !important;width: 100% !important;}.print-content .col-12 {padding: 0 !important;width: 100% !important;}.print-content .table {width: 100% !important;max-width: 100% !important;table-layout: auto !important;border-collapse: collapse;margin: 0;}.print-content .table td {width: 100% !important;max-width: 100% !important;padding: 8px 5px;word-wrap: break-word;overflow-wrap: break-word;box-sizing: border-box;white-space: normal;}.print-content .table td img {max-width: 120px !important;max-height: 70px !important;object-fit: contain;display: block;margin-left: auto;}.print-content .table tr {page-break-inside: avoid;}} </style></head>";
+                        let html = "<head><title>Historia</title><style>@media print {@page {margin-top: 10px;margin-left: 15mm;margin-right: 15mm;size: A4 portrait;}@media print {-webkit-print-color-adjust: exact;}.print-container {width: 100%;max-width: 100%;margin: 0;padding: 0;box-sizing: border-box;}.print-header {margin-bottom: 20px;}.print-footer {margin-top: 20px;}.table.table-responsive.table-striped th{text-align: left;}.table.table-responsive.table-striped td{text-align: left;padding-bottom: 15px;}.h4, h4 {font-size: 1.5rem;border-top: 1px solid;padding-top: 10px;margin: 0;}body {font-family: '-apple-system','BlinkMacSystemFont','Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji';margin: 0;padding: 0;}.print-content {width: 100%;max-width: 100%;margin: 0;padding: 0;box-sizing: border-box;}.print-content .row {margin: 0 !important;width: 100% !important;}.print-content .col-12 {padding: 0 !important;width: 100% !important;}.print-content .table {width: 100% !important;max-width: 100% !important;table-layout: auto !important;border-collapse: collapse;margin: 0;}.print-content .table td {width: 100% !important;max-width: 100% !important;padding: 8px 5px;word-wrap: break-word;overflow-wrap: break-word;box-sizing: border-box;white-space: normal;}.print-content .table td img {max-width: 120px !important;max-height: 70px !important;object-fit: contain;display: block;margin-left: auto;}.print-content .table tr {page-break-inside: avoid;}.indicaciones-imprimir .badge {display: inline-block;padding: 2px 6px;font-size: 11px;border-radius: 3px;margin-bottom: 2px;}.indicaciones-imprimir .font-weight-bold {font-weight: bold !important;}.indicaciones-imprimir .small {font-size: 11px !important;}.indicaciones-imprimir .text-muted {color: #6c757d !important;}.indicaciones-imprimir .text-success {color: #28a745 !important;}.indicaciones-imprimir .text-warning {color: #ffc107 !important;}} </style></head>";
                         $('body').find('.container-fluid').find('.buttons').remove();
                         html += '<body>';
                         html += '<div class="print-container">';

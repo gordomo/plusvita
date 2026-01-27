@@ -149,6 +149,38 @@ class MedicacionEnfermeriaController extends AbstractController
             $horariosPorIndicacion[$indicacionId]['horarios'][] = $horario;
         }
         
+        // Obtener horarios en ventana de administración ANTES de calcular próxima toma
+        $horariosEnVentana = $horarioTomaRepository->findHorariosEnVentana($cliente->getId());
+        $horariosEnVentanaIds = array_map(function($h) { return $h->getId(); }, $horariosEnVentana);
+        
+        // Calcular próxima toma para cada indicación
+        $ahora = new \DateTime();
+        foreach ($horariosPorIndicacion as $indicacionId => &$data) {
+            $proximaToma = null;
+            $horariosOrdenados = $data['horarios'];
+            
+            // Ordenar horarios por hora para asegurar orden correcto
+            usort($horariosOrdenados, function($a, $b) {
+                return $a->getHorario() <=> $b->getHorario();
+            });
+            
+            foreach ($horariosOrdenados as $horario) {
+                if (!$horario->isAdministrado()) {
+                    // Crear DateTime combinando fecha de hoy con hora del horario
+                    $horaHorario = clone $horario->getHorario();
+                    $fechaHoraHorario = new \DateTime($fechaHoy->format('Y-m-d') . ' ' . $horaHorario->format('H:i:s'));
+                    
+                    // Si está en el pasado o presente, es candidato (podría estar en ventana)
+                    // Si está en el futuro, también es válido como "próxima"
+                    if ($fechaHoraHorario >= $ahora || in_array($horario->getId(), $horariosEnVentanaIds)) {
+                        $proximaToma = $fechaHoraHorario;
+                        break; // Encontramos el primero disponible
+                    }
+                }
+            }
+            $data['proximaToma'] = $proximaToma;
+        }
+        
         // Agregar indicaciones activas que NO tienen horarios generados (para diagnóstico)
         foreach ($indicacionesActivas as $indicacion) {
             if (!isset($horariosPorIndicacion[$indicacion->getId()])) {
@@ -160,9 +192,7 @@ class MedicacionEnfermeriaController extends AbstractController
             }
         }
         
-        // Obtener horarios en ventana de administración y calcular límites de ventana
-        $horariosEnVentana = $horarioTomaRepository->findHorariosEnVentana($cliente->getId());
-        $horariosEnVentanaIds = array_map(function($h) { return $h->getId(); }, $horariosEnVentana);
+        // Calcular ventanas horarias para cada horario
         
         // Calcular ventanas horarias para cada horario
         $ventanasHorarias = [];

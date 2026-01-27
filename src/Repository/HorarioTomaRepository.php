@@ -49,7 +49,8 @@ class HorarioTomaRepository extends ServiceEntityRepository
             ->andWhere('i.estadoSuspendido = false')
             ->setParameter('clienteId', $clienteId)
             ->setParameter('fecha', $fecha->format('Y-m-d'))
-            ->orderBy('h.horario', 'ASC')
+            ->orderBy('h.administrado', 'ASC')  // Primero los no administrados
+            ->addOrderBy('h.horario', 'ASC')     // Luego por horario ascendente
             ->getQuery()
             ->getResult();
     }

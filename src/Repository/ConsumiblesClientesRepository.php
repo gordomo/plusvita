@@ -252,6 +252,134 @@ class ConsumiblesClientesRepository extends ServiceEntityRepository
         return $indicaciones;
     }
 
+    /**
+     * Encuentra indicaciones para un cliente con filtro de fechas
+     */
+    public function findIndicacionesParaElClienteConFiltroFecha($id, $fechaDesde = null, $fechaHasta = null, $limit = null, $soloActivas = true)
+    {
+        $qb = $this->createQueryBuilder('c');
+        
+        $query = $qb
+            ->select('c')
+            ->where('c.clienteId = :cid')
+            ->andWhere('c.accion = :accion')
+            ->setParameter('cid', $id)
+            ->setParameter('accion', '0');
+            
+        // Si soloActivas es true, filtramos para mostrar solo indicaciones activas
+        if ($soloActivas) {
+            $query->andWhere('c.activo = :activo')
+                  ->setParameter('activo', true);
+        }
+        
+        // Filtros de fecha
+        if ($fechaDesde !== null) {
+            $query->andWhere('c.fecha >= :fechaDesde')
+                  ->setParameter('fechaDesde', $fechaDesde);
+        }
+        
+        if ($fechaHasta !== null) {
+            $query->andWhere('c.fecha <= :fechaHasta')
+                  ->setParameter('fechaHasta', $fechaHasta);
+        }
+        
+        // Ordenar por fecha descendente (más nuevas primero)
+        $query->orderBy('c.fecha', 'DESC');
+        
+        // Aplicamos límite si está especificado
+        if ($limit !== null) {
+            $query->setMaxResults($limit);
+        }
+        
+        $result = $query->getQuery()->getResult();
+        
+        if (empty($result)) {
+            return [];
+        }
+        
+        $indicaciones = [];
+        
+        foreach ($result as $indicacion) {
+            $consumible = $this->getEntityManager()
+                ->getRepository('App\Entity\Consumible')
+                ->find($indicacion->getConsumibleId());
+            
+            $doctorNombre = "Usuario";
+            $doctorApellido = "del Sistema";
+            
+            // Obtener estadísticas de administración para esta indicación
+            $estadisticasAdministracion = $this->getEstadisticasAdministracionIndicacion($indicacion->getId());
+            
+            $indicacionArray = [
+                'id' => $indicacion->getId(),
+                'consumibleId' => $indicacion->getConsumibleId(),
+                'consumibleNombre' => $consumible ? $consumible->getNombre() : '',
+                'unidades' => $consumible ? $consumible->getUnidades() : '',
+                'tipo' => $consumible && method_exists($consumible, 'getTipo') && $consumible->getTipo() ? $consumible->getTipo()->getId() : null,
+                'clienteId' => $indicacion->getClienteId(),
+                'fecha' => $indicacion->getFecha(),
+                'mes' => $indicacion->getMes(),
+                'year' => $indicacion->getYear(),
+                'cantidad' => $indicacion->getCantidad(),
+                'accion' => $indicacion->getAccion(),
+                'doctorNombre' => $doctorNombre,
+                'doctorApellido' => $doctorApellido,
+                'notas' => $indicacion->getNotas(),
+                'activo' => method_exists($indicacion, 'isActivo') ? $indicacion->isActivo() : true,
+                'tipoIndicacion' => method_exists($indicacion, 'getTipoIndicacion') ? $indicacion->getTipoIndicacion() : null,
+                'frecuencia' => method_exists($indicacion, 'getFrecuencia') ? $indicacion->getFrecuencia() : null,
+                'duracion' => method_exists($indicacion, 'getDuracion') ? $indicacion->getDuracion() : null,
+                'viaAdministracion' => method_exists($indicacion, 'getViaAdministracion') ? $indicacion->getViaAdministracion() : null,
+                // Estadísticas de administración
+                'totalTomas' => $estadisticasAdministracion['total'],
+                'tomasAdministradas' => $estadisticasAdministracion['administradas'],
+                'tomasPendientes' => $estadisticasAdministracion['pendientes'],
+                'porcentajeCumplimiento' => $estadisticasAdministracion['porcentaje'],
+                'ultimaAdministracion' => $estadisticasAdministracion['ultima_administracion'],
+            ];
+            
+            $indicaciones[] = $indicacionArray;
+        }
+        
+        return $indicaciones;
+    }
+
+    /**
+     * Obtiene estadísticas de administración para una indicación específica
+     */
+    private function getEstadisticasAdministracionIndicacion($indicacionId): array
+    {
+        $horarioTomaRepository = $this->getEntityManager()->getRepository('App\Entity\HorarioToma');
+        
+        // Obtener todos los horarios de toma para esta indicación
+        $horarios = $horarioTomaRepository->findBy(['indicacion' => $indicacionId]);
+        
+        $total = count($horarios);
+        $administradas = 0;
+        $ultimaAdministracion = null;
+        
+        foreach ($horarios as $horario) {
+            if ($horario->isAdministrado()) {
+                $administradas++;
+                if ($horario->getFechaAdministracion() && 
+                    ($ultimaAdministracion === null || $horario->getFechaAdministracion() > $ultimaAdministracion)) {
+                    $ultimaAdministracion = $horario->getFechaAdministracion();
+                }
+            }
+        }
+        
+        $pendientes = $total - $administradas;
+        $porcentaje = $total > 0 ? round(($administradas / $total) * 100, 1) : 0;
+        
+        return [
+            'total' => $total,
+            'administradas' => $administradas,
+            'pendientes' => $pendientes,
+            'porcentaje' => $porcentaje,
+            'ultima_administracion' => $ultimaAdministracion,
+        ];
+    }
+
     public function findImputacionesMesConsumibleCliente($mes, $consumibleId, $cid, $year)
     {
         $query = $this->createQueryBuilder('c')

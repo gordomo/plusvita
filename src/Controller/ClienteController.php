@@ -2618,8 +2618,16 @@ class ClienteController extends AbstractController
         $notasHistoria = $notasHistoriaClinicaRepository->findBy(['cliente' => $cliente]);
         $historiaEgreso = $historiaEgresoRepository->findBy(['cliente' => $cliente]);
         
+        // Obtener parámetros de filtro para indicaciones médicas
+        $indicacionesDesde = $request->get('indicacionesDesde');
+        $indicacionesHasta = $request->get('indicacionesHasta');
+        $fechaIndicacionesDesde = $indicacionesDesde ? new \DateTime($indicacionesDesde . ' 0:0:0') : null;
+        $fechaIndicacionesHasta = $indicacionesHasta ? new \DateTime($indicacionesHasta . ' 23:59:59') : null;
+        
         // Obtener las indicaciones médicas actuales para mostrar en la historia clínica (solo activas)
-        $indicacionesRecientes = $consumiblesClientesRepository->findIndicacionesParaElCliente($cliente->getId(), null, null, 5, true);
+        // Si hay filtros aplicados, mostrar todas; si no, limitar a 5
+        $limitIndicaciones = ($indicacionesDesde || $indicacionesHasta) ? null : 5;
+        $indicacionesRecientes = $consumiblesClientesRepository->findIndicacionesParaElClienteConFiltroFecha($cliente->getId(), $fechaIndicacionesDesde, $fechaIndicacionesHasta, $limitIndicaciones, true);
         $ultimaIndicacion = !empty($indicacionesRecientes) ? $indicacionesRecientes[0] : null;
         
         // Nombres de los meses para mostrar en la plantilla
@@ -2692,6 +2700,8 @@ class ClienteController extends AbstractController
                 'doctorRepository'      => $doctorRepository,
                 'userRepository'        => $userRepository,
                 'epicrisisIngreso'      => $epicrisisIngreso,
+                'indicacionesDesde'     => $indicacionesDesde,
+                'indicacionesHasta'     => $indicacionesHasta,
                 'extensionEI'           => $extensionEI,
         ]);
     }
