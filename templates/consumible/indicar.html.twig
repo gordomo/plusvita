@@ -825,7 +825,7 @@
                 document.getElementById('proxima-toma-{{ indicacion.id }}').innerHTML = calcularProximaToma(
                     '{{ indicacion.fechaInicio|date('Y-m-d') }}',
                     '{{ indicacion.frecuencia }}',
-                    '{{ indicacion.horario }}'
+                    '{{ indicacion.horario ? indicacion.horario|date('H:i') : '' }}'
                 );
             {% else %}
                 document.getElementById('proxima-toma-{{ indicacion.id }}').innerHTML = 'N/D';
@@ -838,7 +838,7 @@
                 document.getElementById('proxima-toma-{{ indicacion.id }}').innerHTML = calcularProximaToma(
                     '{{ indicacion.fechaInicio|date('Y-m-d') }}',
                     '{{ indicacion.frecuencia }}',
-                    '{{ indicacion.horario }}'
+                    '{{ indicacion.horario ? indicacion.horario|date('H:i') : '' }}'
                 );
             {% else %}
                 document.getElementById('proxima-toma-{{ indicacion.id }}').innerHTML = 'N/D';
@@ -851,7 +851,7 @@
                 document.getElementById('proxima-toma-{{ indicacion.id }}').innerHTML = calcularProximaToma(
                     '{{ indicacion.fechaInicio|date('Y-m-d') }}',
                     '{{ indicacion.frecuencia }}',
-                    '{{ indicacion.horario }}'
+                    '{{ indicacion.horario ? indicacion.horario|date('H:i') : '' }}'
                 );
             {% else %}
                 document.getElementById('proxima-toma-{{ indicacion.id }}').innerHTML = 'N/D';
