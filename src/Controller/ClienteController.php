@@ -1580,17 +1580,10 @@ class ClienteController extends AbstractController
                 $cliente->setNCama($request->request->get('cliente')['nCama'] ?? 0);
             }
             try {
-                // LÓGICA DE MODALIDAD: Si el paciente tiene habitación asignada, debe ser internado
-                // Si no tiene habitación, mantener la modalidad original
-                if (!empty($cliente->getHabitacion())) {
-                    // Paciente con habitación = INTERNADO
-                    $cliente->setModalidad(2);
-                    $cliente->setAmbulatorio(false);
-                } else {
-                    // Paciente sin habitación = mantener modalidad original
-                    $cliente->setModalidad($modalidadOriginal);
-                    $cliente->setAmbulatorio($modalidadOriginal == 1);
-                }
+                // NOTA: La lógica de cambio de modalidad se maneja más abajo mediante PatientStateService
+                // cuando realmente hay un cambio de habitación (líneas ~1668-1706)
+                // NO debemos cambiar la modalidad automáticamente aquí porque se ejecuta incluso
+                // cuando solo se editan otros campos como posicionEnArchivo
                 
                 $entityManager = $this->getDoctrine()->getManager();
 
@@ -2306,6 +2299,8 @@ class ClienteController extends AbstractController
             ];
 
             if($cliente->getFEgreso() <= new \DateTime()) {
+                // Al dar egreso, solo liberamos la habitación física
+                // No es necesario cambiar la modalidad porque el paciente está inactivo (egresado)
                 $this->liberarCamaCliente($cliente);
                 $parametros['habitacion'] = '';
                 $parametros['cama'] = '';   
@@ -2353,21 +2348,45 @@ class ClienteController extends AbstractController
 
             $habitacion = $form->get('habitacion')->getData() ? $habitacionRepository->find($form->get('habitacion')->getData()) : null;
 
-
-
-            if($habitacion) {
+            // IMPORTANTE: Establecer la modalidad según si tiene habitación o no
+            if($habitacion && $ncama) {
+                // Reingreso como INTERNADO (con habitación y cama)
                 $habPrivada = $request->request->get('cliente')['habPrivada'] ?? null;
 
                 if ($habPrivada) {
                     $cliente->setHabPrivada(1);
+                } else {
+                    $cliente->setHabPrivada(0);
                 }
+                
+                $cliente->setModalidad(2);  // Internado
+                $cliente->setAmbulatorio(false);
+                $cliente->setHabitacion($habitacion->getId());
+                $cliente->setNCama($ncama);
+                $cliente->setFechaAmbulatorio(null);
+                
                 // Ya no necesitamos actualizar el campo camasOcupadas - se calcula dinámicamente
                 $historial->setHabitacion($habitacion->getId());
+                $historial->setModalidad(2);
+                $historial->setAmbulatorio(false);
+            } else {
+                // Reingreso como AMBULATORIO (sin habitación o sin cama)
+                $cliente->setModalidad(1);  // Ambulatorio
+                $cliente->setAmbulatorio(true);
+                $cliente->setFechaAmbulatorio(new \DateTime());
+                
+                // Limpiar campos de habitación
+                $cliente->setHabitacion(null);
+                $cliente->setNCama(null);
+                $cliente->setHabPrivada(0);
+                
+                $historial->setModalidad(1);
+                $historial->setAmbulatorio(true);
+                $historial->setHabitacion(null);
+                $ncama = null;  // Asegurar que no se asigne cama
             }
 
             $cliente->setDerivado(false);
-            $cliente->setNCama($ncama);
-
 
             $historial->setCama($ncama);
             $historial->setCliente($cliente);
@@ -2379,9 +2398,6 @@ class ClienteController extends AbstractController
             $historial->setMotivoDerivacion($form->get('motivoReingresoDerivacion')->getData() ?? null);
             $historial->setEmpresaTransporteDerivacion(null);
             $historial->setUsuario($user->getUsername());
-            
-
-
 
             $entityManager->persist($cliente);
 
@@ -3016,13 +3032,10 @@ class ClienteController extends AbstractController
             $cliente->setNCama(null);
             $cliente->setHabPrivada(0);
 
-            // CRÍTICO: Si el paciente sigue activo (sin egreso), actualizar modalidad a ambulatorio
-            // Si tiene egreso, mantener la modalidad porque ya está inactivo
-            if ($cliente->getFEgreso() === null || $cliente->getFEgreso() > new \DateTime()) {
-                $cliente->setModalidad(1);
-                $cliente->setAmbulatorio(true);
-                $cliente->setFechaAmbulatorio(new \DateTime());
-            }
+            // NOTA: NO cambiamos la modalidad aquí automáticamente
+            // La modalidad debe cambiarse explícitamente mediante PatientStateService
+            // o en los métodos específicos (egreso, delete, etc.)
+            // Este método solo libera la habitación física
 
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($cliente);
