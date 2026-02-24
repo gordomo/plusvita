@@ -1776,11 +1776,16 @@ class ClienteController extends AbstractController
                 // usar el servicio para asegurar que se libere la habitación y se actualice correctamente
                 // Solo ejecutar si NO se manejó el cambio de habitación arriba
                 if (!$cambioHabitacionManejado) {
+                    // Preservar modalidad original cuando solo se editan otros campos (ej. posición en archivo)
+                    // Así evitamos que el formulario o el binding cambie internado ↔ ambulatorio por error
+                    $cliente->setModalidad($modalidadOriginal);
+                    $cliente->setAmbulatorio($modalidadOriginal == 1);
+
                     $historiaPacienteRepository = $this->getDoctrine()->getRepository(HistoriaPaciente::class);
                     $ultimoHistorial = $historiaPacienteRepository->findBy(['cliente' => $cliente], ['fecha' => 'desc'], ['limit' => 1]);
                     $eraAmbulatorio = isset($ultimoHistorial[0]) ? ($ultimoHistorial[0]->getAmbulatorio() || $ultimoHistorial[0]->getModalidad() == 1) : false;
                     $esAmbulatorioAhora = $cliente->getAmbulatorio() || $cliente->getModalidad() == 1;
-                    
+
                     // Si está cambiando a ambulatorio y tenía habitación, usar el servicio
                     if ($esAmbulatorioAhora && !$eraAmbulatorio && $cliente->getHabitacion() !== null) {
                         $user = $this->security->getUser();
@@ -1788,7 +1793,7 @@ class ClienteController extends AbstractController
                         // El servicio ya crea el historial y hace flush, así que podemos retornar
                         return $this->redirectToRoute('cliente_index');
                     }
-                    
+
                     // Si es ambulatorio, asegurar que habitación y cama sean NULL
                     if ($esAmbulatorioAhora) {
                         $cliente->setHabitacion(null);
