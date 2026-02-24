@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Entity\Doctor;
+use App\Entity\PresentesDoctores;
 use App\Form\UserType;
 use App\Repository\BookingRepository;
 use App\Repository\UserRepository;
@@ -478,6 +479,13 @@ class UserController extends AbstractController
                 foreach ( $bookingsDelUsuario as $book ) {
                     $book->setUser($user);
                 }
+
+                // Eliminar registros de presentes_doctores que referencian a este usuario (doctor_id)
+                $presentesDoctores = $entityManager->getRepository(PresentesDoctores::class)->findBy(['doctor' => $user_to_delete]);
+                foreach ($presentesDoctores as $pd) {
+                    $entityManager->remove($pd);
+                }
+
                 $entityManager->remove($user_to_delete);
                 $entityManager->flush();
             }    
