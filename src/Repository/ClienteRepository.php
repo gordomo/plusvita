@@ -41,7 +41,8 @@ class ClienteRepository extends ServiceEntityRepository
             // ->orWhere('c.dePermiso is null')
             ->andWhere('c.ambulatorio = 0')
             ->orWhere('c.ambulatorio is null')
-            ->andWhere('c.habitacion is not null');
+            // Incluir internados con habitación O internados sin habitación (inconsistencia a corregir)
+            ->andWhere('(c.habitacion IS NOT NULL OR (c.modalidad = 2 AND (c.ambulatorio = 0 OR c.ambulatorio IS NULL)))');
             if($hab != null) {
                 $query->andWhere('c.habitacion = :hab')->setParameter('hab',$hab);
             }
@@ -90,6 +91,7 @@ class ClienteRepository extends ServiceEntityRepository
         }
         
         // Agrupar condiciones de estado con paréntesis para la correcta lógica SQL
+        // Incluir internados con habitación O internados sin habitación (inconsistencia a corregir)
         $query->andWhere($query->expr()->andX(
             $query->expr()->orX(
                 $query->expr()->eq('c.derivado', 0),
@@ -103,7 +105,16 @@ class ClienteRepository extends ServiceEntityRepository
                 $query->expr()->eq('c.ambulatorio', 0),
                 $query->expr()->isNull('c.ambulatorio')
             ),
-            $query->expr()->isNotNull('c.habitacion')
+            $query->expr()->orX(
+                $query->expr()->isNotNull('c.habitacion'),
+                $query->expr()->andX(
+                    $query->expr()->eq('c.modalidad', 2),
+                    $query->expr()->orX(
+                        $query->expr()->eq('c.ambulatorio', 0),
+                        $query->expr()->isNull('c.ambulatorio')
+                    )
+                )
+            )
         ));
         
         // Agregar filtro de habitación si existe
