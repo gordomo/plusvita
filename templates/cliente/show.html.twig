@@ -81,30 +81,48 @@
                                 </p>
                             </div>
                             <div class="form-group">
-                                <label class="font-weight-bold">Doctores Referentes:</label>
+                                <label class="font-weight-bold">Disponible para Terapia:</label>
                                 <p class="form-control-plaintext">
-                                    {% if doctoresReferentes is not empty %}
-                                        {% for doctor in doctoresReferentes %}
-                                            {{ doctor.nombre }} {{ doctor.apellido }}{% if not loop.last %}, {% endif %}
-                                        {% endfor %}
+                                    {% if cliente.disponibleParaTerapia %}
+                                        <span class="badge badge-success">Sí</span>
                                     {% else %}
-                                        No asignados
+                                        <span class="badge badge-secondary">No</span>
                                     {% endif %}
                                 </p>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="font-weight-bold">Motivo de Ingreso:</label>
-                                <p class="form-control-plaintext">{{ motivoIngresoTexto }}</p>
-                            </div>
-                            <div class="form-group">
-                                <label class="font-weight-bold">Motivo Específico:</label>
-                                <p class="form-control-plaintext">{{ cliente.motivoIngEspecifico ?: 'No especificado' }}</p>
                             </div>
                             <div class="form-group">
                                 <label class="font-weight-bold">Dieta:</label>
                                 <p class="form-control-plaintext">{{ cliente.dieta ?: 'No especificada' }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Patología de Ingreso:</label>
+                                <p class="form-control-plaintext">
+                                    <span class="badge badge-warning" style="font-size: 1rem;">{{ motivoIngresoTexto }}</span>
+                                </p>
+                            </div>
+                            <div class="form-group">
+                                <label class="font-weight-bold">Patología Específica de Ingreso:</label>
+                                <p class="form-control-plaintext">
+                                    {% if cliente.motivoIngEspecifico %}
+                                        <span class="badge badge-info" style="font-size: 1rem;">{{ cliente.motivoIngEspecifico }}</span>
+                                    {% else %}
+                                        <span class="text-muted">No especificado</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="form-group">
+                                <label class="font-weight-bold">Doctores Referentes:</label>
+                                <p class="form-control-plaintext">
+                                    {% if doctoresReferentes is not empty %}
+                                        {% for doctor in doctoresReferentes %}
+                                            <span class="badge badge-secondary">{{ doctor.nombre }} {{ doctor.apellido }}</span>{% if not loop.last %} {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="text-muted">No asignados</span>
+                                    {% endif %}
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -181,6 +199,39 @@
                 </div>
             </div>
 
+            <!-- Información Adicional -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle"></i> Información Adicional
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Viene de:</label>
+                                <p class="form-control-plaintext">{{ cliente.vieneDe ?: 'No especificado' }}</p>
+                            </div>
+                            <div class="form-group">
+                                <label class="font-weight-bold">Profesional Derivante:</label>
+                                <p class="form-control-plaintext">{{ cliente.docDerivante ?: 'No especificado' }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Posición en Archivo:</label>
+                                <p class="form-control-plaintext">{{ cliente.posicionEnArchivo ?: 'No especificada' }}</p>
+                            </div>
+                            <div class="form-group">
+                                <label class="font-weight-bold">Edad:</label>
+                                <p class="form-control-plaintext">{{ cliente.edad ?: 'No especificada' }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Fechas Importantes -->
             <div class="card mb-4">
                 <div class="card-header">
@@ -193,13 +244,21 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="font-weight-bold">Fecha de Ingreso:</label>
-                                <p class="form-control-plaintext">{{ cliente.fIngreso ? cliente.fIngreso|date('d/m/Y H:i') : 'No especificada' }}</p>
+                                <p class="form-control-plaintext">{{ cliente.fIngreso ? cliente.fIngreso|date('d/m/Y') : 'No especificada' }}</p>
+                            </div>
+                            <div class="form-group">
+                                <label class="font-weight-bold">Fecha de Egreso:</label>
+                                <p class="form-control-plaintext">{{ cliente.fEgreso ? cliente.fEgreso|date('d/m/Y') : 'No especificada' }}</p>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label class="font-weight-bold">Fecha de Egreso:</label>
-                                <p class="form-control-plaintext">{{ cliente.fEgreso ? cliente.fEgreso|date('d/m/Y H:i') : 'No especificada' }}</p>
+                                <label class="font-weight-bold">Vencimiento de Sesiones:</label>
+                                <p class="form-control-plaintext">{{ cliente.vtoSesiones ? cliente.vtoSesiones|date('d/m/Y') : 'No especificado' }}</p>
+                            </div>
+                            <div class="form-group">
+                                <label class="font-weight-bold">Sesiones Disponibles:</label>
+                                <p class="form-control-plaintext">{{ cliente.sesionesDisp ?: 'No especificado' }}</p>
                             </div>
                         </div>
                     </div>
