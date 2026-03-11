@@ -379,9 +379,10 @@ class DoctorType extends AbstractType
                     ]);
 
 
-            $builder->get('tipo')->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event) {
+            $builder->get('tipo')->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event) {
                 $form = $event->getForm();
-                $tipo = empty($form->getData()) ? null : $form->getData();
+                $tipo = $event->getData();
+                $tipo = empty($tipo) ? null : (int)$tipo;
                 $this->setupModalidad($form->getParent(), $tipo);
             });
 

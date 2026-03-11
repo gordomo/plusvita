@@ -231,9 +231,10 @@ class ClienteType extends AbstractType
                 ->add("familiarResponsableExtra", HiddenType::class, array("mapped" => false, "label" => false))
                 ->add('posicionEnArchivo', TextType::class, ['required'=>false, 'label' => 'Posición en Archivo']);
 
-                $builder->get('motivoIng')->addEventListener(FormEvents::POST_SUBMIT, function(FormEvent $event) {
+                $builder->get('motivoIng')->addEventListener(FormEvents::PRE_SUBMIT, function(FormEvent $event) {
                     $form = $event->getForm();
-                    $motivoIng = empty($form->getData()) ? null : $form->getData();
+                    $motivoIng = $event->getData();
+                    $motivoIng = empty($motivoIng) ? null : (int)$motivoIng;
                     $this->setupMotivoIngEsp($form->getParent(), $motivoIng);
                 });
 
@@ -249,33 +250,6 @@ class ClienteType extends AbstractType
                     );
                 }
                 );
-
-                // Listener para asegurar que fecha de nacimiento vacía o sospechosa se establezca como NULL
-                // Previene que se establezca una fecha por defecto cuando el campo está vacío
-                // También previene fechas sospechosas (hoy o futuras) que pueden venir del navegador
-                $builder->get('fNacimiento')->addEventListener(FormEvents::POST_SUBMIT, function(FormEvent $event) {
-                    $form = $event->getForm();
-                    $fechaNacimiento = $form->getData();
-                    
-                    // Si el campo está vacío o es una cadena vacía, establecer como NULL
-                    if (empty($fechaNacimiento) || $fechaNacimiento === '') {
-                        $form->getParent()->get('fNacimiento')->setData(null);
-                        return;
-                    }
-                    
-                    // Si es un objeto DateTime, verificar si es sospechoso (hoy o futuro)
-                    if ($fechaNacimiento instanceof \DateTimeInterface) {
-                        $hoy = new \DateTime();
-                        $hoy->setTime(0, 0, 0);
-                        $fechaComparar = clone $fechaNacimiento;
-                        $fechaComparar->setTime(0, 0, 0);
-                        
-                        // Si la fecha es hoy o futura, establecer como NULL (sospechoso para fecha de nacimiento)
-                        if ($fechaComparar >= $hoy) {
-                            $form->getParent()->get('fNacimiento')->setData(null);
-                        }
-                    }
-                });
 
             }
             if(!$options['is_new']) {
