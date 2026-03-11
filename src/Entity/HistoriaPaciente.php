@@ -160,7 +160,10 @@ class HistoriaPaciente
         if(is_array($this->docReferente)) {
             return $this->docReferente;
         }
-        return json_decode($this->docReferente, true);
+        if(empty($this->docReferente) || !is_string($this->docReferente)) {
+            return [];
+        }
+        return json_decode($this->docReferente, true) ?: [];
     }
 
     /**

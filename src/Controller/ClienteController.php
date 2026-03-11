@@ -1261,6 +1261,12 @@ class ClienteController extends AbstractController
                     $cliente->setFNacimiento(null);
                 }
             }
+            
+            // VALIDACIÓN: Asegurar que motivoIngEspecifico sea siempre un string
+            $motivoIngEspecifico = $cliente->getMotivoIngEspecifico();
+            if (is_array($motivoIngEspecifico)) {
+                $cliente->setMotivoIngEspecifico(reset($motivoIngEspecifico) ?: null);
+            }
         }
 
         if ( $form->isSubmitted() ) {
@@ -1572,6 +1578,12 @@ class ClienteController extends AbstractController
                 if ($fechaComparar >= $hoy) {
                     $cliente->setFNacimiento(null);
                 }
+            }
+            
+            // VALIDACIÓN: Asegurar que motivoIngEspecifico sea siempre un string
+            $motivoIngEspecifico = $cliente->getMotivoIngEspecifico();
+            if (is_array($motivoIngEspecifico)) {
+                $cliente->setMotivoIngEspecifico(reset($motivoIngEspecifico) ?: null);
             }
         }
 
