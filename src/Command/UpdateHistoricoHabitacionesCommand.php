@@ -155,10 +155,12 @@ class UpdateHistoricoHabitacionesCommand extends Command
         $ambulatorio = (!empty($parametros['ambulatorio'])) ? $parametros['ambulatorio'] : (!empty($ultimoHistorial) ? $ultimoHistorial[0]->getAmbulatorio() : null);
         $docReferente = null;
         if ((!empty($parametros['docReferente']))) {
+            $docReferenteArray = [];
             foreach ($parametros['docReferente'] as $doc) {
-                $docReferente[] = $doc->getId();
+                $docReferenteArray[] = $doc->getId();
             }
-            $docReferente = json_encode($docReferente);
+            // No usar json_encode porque el campo es tipo 'json' y Doctrine lo serializa automáticamente
+            $docReferente = $docReferenteArray;
         } else if (!empty($ultimoHistorial)) {
             $docReferente = $ultimoHistorial[0]->getDocReferente();
         }

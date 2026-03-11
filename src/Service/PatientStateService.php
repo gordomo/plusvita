@@ -649,7 +649,8 @@ class PatientStateService
             // IMPORTANTE: Solo actualizar doc_referente si el array NO está vacío
             // Si está vacío, preservar el valor anterior del historial para evitar borrar accidentalmente
             if (!empty($docIds)) {
-                $docReferente = json_encode($docIds);
+                // No usar json_encode porque el campo es tipo 'json' y Doctrine lo serializa automáticamente
+                $docReferente = $docIds;
             } else {
                 // Si el array está vacío, preservar el valor anterior
                 if (isset($ultimoHistorial[0])) {

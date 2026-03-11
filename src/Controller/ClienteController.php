@@ -1373,7 +1373,7 @@ class ClienteController extends AbstractController
                 $historiaPacienteRepository = $this->getDoctrine()->getRepository(HistoriaPaciente::class);
                 $ultimoHistorial = $historiaPacienteRepository->findBy(['cliente' => $cliente], ['fecha' => 'desc'], ['limit' => 1]);
                 if (isset($ultimoHistorial[0]) && $ultimoHistorial[0]->getDocReferente()) {
-                    $docReferenteAnterior = json_decode($ultimoHistorial[0]->getDocReferente(), true);
+                    $docReferenteAnterior = $ultimoHistorial[0]->getDocReferenteArray();
                     if (!empty($docReferenteAnterior) && is_array($docReferenteAnterior)) {
                         // Restaurar los doctores referentes del historial anterior
                         $docReferenteIds = $docReferenteAnterior;
@@ -1768,7 +1768,7 @@ class ClienteController extends AbstractController
                     $historiaPacienteRepository = $this->getDoctrine()->getRepository(HistoriaPaciente::class);
                     $ultimoHistorial = $historiaPacienteRepository->findBy(['cliente' => $cliente], ['fecha' => 'desc'], ['limit' => 1]);
                     if (isset($ultimoHistorial[0]) && $ultimoHistorial[0]->getDocReferente()) {
-                        $docReferenteAnterior = json_decode($ultimoHistorial[0]->getDocReferente(), true);
+                        $docReferenteAnterior = $ultimoHistorial[0]->getDocReferenteArray();
                         if (!empty($docReferenteAnterior) && is_array($docReferenteAnterior)) {
                             // Restaurar los doctores referentes del historial anterior
                             $docReferenteIds = $docReferenteAnterior;
@@ -2889,8 +2889,8 @@ class ClienteController extends AbstractController
                     $docReferenteIds[] = $doc->getId();
                 }
                 
-                // Actualizar el registro
-                $historia->setDocReferente(json_encode($docReferenteIds));
+                // Actualizar el registro (no usar json_encode, Doctrine lo hace automáticamente)
+                $historia->setDocReferente($docReferenteIds);
                 $em->persist($historia);
                 $actualizados++;
                 
@@ -3114,7 +3114,8 @@ class ClienteController extends AbstractController
             // IMPORTANTE: Solo actualizar doc_referente si el array NO está vacío
             // Si está vacío, preservar el valor anterior del historial para evitar borrar accidentalmente
             if (!empty($docReferenteArray)) {
-                $docReferente = json_encode($docReferenteArray);
+                // No usar json_encode porque el campo es tipo 'json' y Doctrine lo serializa automáticamente
+                $docReferente = $docReferenteArray;
             } else {
                 // Si el array está vacío, preservar el valor anterior
                 if (isset($ultimoHistorial[0])) {
