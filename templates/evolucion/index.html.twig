@@ -10,9 +10,12 @@
                 <i class="fas fa-plus"></i> Agregar Evolución
             </a>
             <a href="{{ path('cliente_index') }}" class="btn btn-secondary btn">Volver</a>
+            {% if error is not empty %}
+                <div class="alert alert-danger">{{ error }}</div>
+            {% endif %}
         </div>
     </div>
-    
+    {% if error is empty %}
     <div class="row">
         <div class="col-8 m-4">
             <form method="GET" action="{{ path('evolucion_index')}}">
@@ -155,6 +158,7 @@
         </tbody>
     </table>
     </div>
+    {% endif %}
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}

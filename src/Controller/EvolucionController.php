@@ -57,8 +57,12 @@ class EvolucionController extends AbstractController
         $clientId = $request->get('cliente');
         $cliente = $clienteRepository->find($clientId);
 
-        if(!$userEvolutionService->canEvolveToday() && !$cliente->getAmbulatorioPresente()) {
-            die('No puede evolucionar');
+        if (!$userEvolutionService->canEvolveToday()) {
+            die('No puede evolucionar sin el presente del usuario');
+        }
+
+        if(!$cliente->getAmbulatorioPresente()) {
+            die('No puede evolucionar sin el presente del paciente');
         }
 
         $evoluciones = $evolucionRepository->findByClienteYTipo($cliente, $tipoSeleccionado, $currentPage, $limit, $fechaDesde, $fechaHasta);
