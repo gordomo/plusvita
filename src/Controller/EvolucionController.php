@@ -57,11 +57,11 @@ class EvolucionController extends AbstractController
         $clientId = $request->get('cliente');
         $cliente = $clienteRepository->find($clientId);
 
-        if (!$userEvolutionService->canEvolveToday()) {
+        if (!$userEvolutionService->canEvolveToday() && !$this->isGranted('patient.evolve_without_presence')) {
             die('No puede evolucionar sin el presente del usuario');
         }
 
-        if(!$cliente->getAmbulatorioPresente()) {
+        if(!$cliente->getAmbulatorioPresente() && !$this->isGranted('patient.evolve_without_presence')) {
             die('No puede evolucionar sin el presente del paciente');
         }
 
