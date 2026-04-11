@@ -13,12 +13,20 @@ use Symfony\Component\HttpFoundation\Response;
 use App\Service\ResetPasswordMailerService;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 /**
  * @Route("/restPass")
  */
 class ResetPassController extends AbstractController
 {
+    private $passwordEncoder;
+
+    public function __construct(UserPasswordEncoderInterface $passwordEncoder)
+    {
+        $this->passwordEncoder = $passwordEncoder;
+    }
+
     /**
      * @Route("/", name="reset_password_index", methods={"GET"})
      */
@@ -42,21 +50,14 @@ class ResetPassController extends AbstractController
         if ($isCsrfTokenValid) {
             $code = $request->get('code');
             $pass = $request->get('clave');
-            global $kernel;
-            if (method_exists($kernel, 'getKernel')) $kernel = $kernel->getKernel();
-
-
 
             $userMail = $request->get('email');
-            //dd($code);
-            //dd($userMail);
             $mailCode = $mailCodeRepository->findOneBy(['mail' => $userMail, 'code' => $code]);
 
             if ($mailCode) {
                 switch ($mailCode->getType()) {
                     case 1:
                         $user = $userRepository->findOneBy(['email' => $userMail]);
-                        $pass = $kernel->getContainer()->get('security.password_encoder')->encodePassword($user, $pass);
                         break;
                     case 2:
                         $user = $staffRepository->findOneBy(['email' => $userMail]);
@@ -66,8 +67,10 @@ class ResetPassController extends AbstractController
                         break;
                 }
                 if($user) {
-
-                    $user->setPassword($pass);
+                    // Codificar la contraseña para cualquier tipo de usuario
+                    $encodedPassword = $this->passwordEncoder->encodePassword($user, $pass);
+                    $user->setPassword($encodedPassword);
+                    
                     $entityManager = $this->getDoctrine()->getManager();
                     $entityManager->persist($user);
                     $entityManager->flush();
