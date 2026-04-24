@@ -265,7 +265,10 @@ class LiquidacionesController extends AbstractController
                 }
             }
 
-            $nombreObraSocial = $paciente->getObraSocial()?->getNombre() ?? 'Sin obra social';
+            $obraSocialPaciente = $paciente->getObraSocial();
+            $nombreObraSocial = $obraSocialPaciente !== null
+                ? $obraSocialPaciente->getNombre()
+                : 'Sin obra social';
 
             // Clasificar basado en la modalidad obtenida
             if ($modalidadUsada == 2) {
