@@ -230,6 +230,11 @@ class LiquidacionesController extends AbstractController
         $fechaLimiteHistorial = new \DateTime('2025-01-01');
 
         foreach ($evoluciones as $evolucion) {
+            $paciente = $evolucion->getPaciente();
+            if ($paciente === null) {
+                continue;
+            }
+
             // CRÍTICO: Usar la fecha de la evolución específica, no la fecha final del período
             // Esto asegura que clasificamos según el estado del paciente en el momento exacto de la evolución
             $fechaEvolucion = $evolucion->getFecha();
@@ -242,12 +247,12 @@ class LiquidacionesController extends AbstractController
             // ESTRATEGIA HÍBRIDA: Usar tabla cliente para datos históricos, historial para datos nuevos
             if ($fechaEvolucion < $fechaLimiteHistorial) {
                 // DATOS HISTÓRICOS (antes de 2025): Usar tabla cliente (ya corregida)
-                $modalidadUsada = $evolucion->getPaciente()->getModalidad();
+                $modalidadUsada = $paciente->getModalidad();
             } else {
                 // DATOS NUEVOS (2025 en adelante): Usar historia_paciente con la fecha EXACTA de la evolución
                 // Buscar el estado del paciente en el momento exacto de la evolución
                 $historia = $historiaRepository->findLastModalidadChange(
-                    $evolucion->getPaciente()->getId(), 
+                    $paciente->getId(),
                     $fechaEvolucion->format('Y-m-d H:i:s')
                 );
                 
@@ -256,17 +261,19 @@ class LiquidacionesController extends AbstractController
                     $modalidadUsada = $historia[0]->getModalidad();
                 } else {
                     // Si no hay historial para esa fecha, fallback a tabla cliente
-                    $modalidadUsada = $evolucion->getPaciente()->getModalidad();
+                    $modalidadUsada = $paciente->getModalidad();
                 }
             }
+
+            $nombreObraSocial = $paciente->getObraSocial()?->getNombre() ?? 'Sin obra social';
 
             // Clasificar basado en la modalidad obtenida
             if ($modalidadUsada == 2) {
                 $evolucionesCountActivos++;
-                $evolucionesPivotOsActivos[$evolucion->getPaciente()->getObraSocial()->getNombre()][] = $evolucion;
+                $evolucionesPivotOsActivos[$nombreObraSocial][] = $evolucion;
             } else if ($modalidadUsada == 1 || $modalidadUsada == 4) {
                 $evolucionesCountAmbulatorios++;
-                $evolucionesPivotOsAmbulatorios[$evolucion->getPaciente()->getObraSocial()->getNombre()][] = $evolucion;
+                $evolucionesPivotOsAmbulatorios[$nombreObraSocial][] = $evolucion;
             }
         }
 

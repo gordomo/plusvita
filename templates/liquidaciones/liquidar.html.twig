@@ -77,7 +77,7 @@
                     <tr class="collapse multi-collapse-{{nombre | slug}}">
                         <td class="paciente">{{ evolucion.paciente.nombre }} {{ evolucion.paciente.apellido }}</td>
                         <td class="fecha">
-                            <div>{{ evolucion.paciente.obraSocial.nombre }}</div>
+                            <div>{{ evolucion.paciente.obraSocial ? evolucion.paciente.obraSocial.nombre : '—' }}</div>
                         </td>
                         <td class="fecha">{{ evolucion.fecha | date('d/m/Y') }}</td>
                         <td class="desc">{{ (evolucion.description|length > 50 ? evolucion.description | striptags |slice(0, 50) ~ '…'   : evolucion.description | striptags )  }}</td>
@@ -90,7 +90,7 @@
                 <tr>
                     <td class="paciente">{{ evolucion.paciente.nombre }} {{ evolucion.paciente.apellido }}</td>
                     <td class="fecha">
-                        <div>{{ evolucion.paciente.obraSocial.nombre }}</div>
+                        <div>{{ evolucion.paciente.obraSocial ? evolucion.paciente.obraSocial.nombre : '—' }}</div>
                     </td>
                     <td class="fecha">{{ evolucion.fecha | date('m/d/Y') }}</td>
                     <td class="desc">{{ (evolucion.description|length > 50 ? evolucion.description | striptags |slice(0, 50) ~ '…'   : evolucion.description | striptags )  }}</td>
