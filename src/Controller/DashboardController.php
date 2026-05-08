@@ -139,9 +139,12 @@ class DashboardController extends AbstractController
         $permisosHoy = $historiaPacienteRepository->getPacientesDePermisoPorMes(new \DateTime(), new \DateTime());
         $ReingresadosPermisosHoy = $historiaPacienteRepository->getPacientesReingresoDerivadosPorMes(new \DateTime(), new \DateTime());
         
-        $numeroEgresos = count($egresosEsteMes);
+        $egresadosDesdeInternacion = array_filter(
+            $egresosEsteMes,
+            fn($c) => !$c->getDerivado() && !$c->getDePermiso()
+        );
         $estadaMedia = $this->calcularEstadaMedia($egresosEsteMes);
-        $rotacionCamas = $this->calcularRotacionCamas($numeroEgresos, $infoHabitaciones);
+        $rotacionCamas = $this->calcularRotacionCamas(count($egresadosDesdeInternacion), $infoHabitaciones);
         
         return $this->render('dashboard/admin.html.twig',
             [
