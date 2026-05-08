@@ -187,7 +187,8 @@ class MedicacionEnfermeriaController extends AbstractController
                 $horariosPorIndicacion[$indicacion->getId()] = [
                     'indicacion' => $indicacion,
                     'horarios' => [],
-                    'sin_horarios' => true  // Flag para identificar indicaciones sin horarios
+                    'sin_horarios' => true,
+                    'proximaToma' => null
                 ];
             }
         }
