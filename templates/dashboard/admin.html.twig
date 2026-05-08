@@ -586,12 +586,13 @@
             // Activar tooltips
             $('[data-toggle="tooltip"]').tooltip();
             
+            {% if infoHabitacionesTotalyPorPiso is defined and infoHabitacionesTotalyPorPiso['total'] is defined %}
             // Gráfico de camas - solo renderizar si el elemento existe y hay datos
             var ctChart = document.querySelector('.ct-chart');
             if (ctChart && typeof Chartist !== 'undefined') {
                 var data = {
                     series: [
-                        {{ infoHabitacionesTotalyPorPiso['total'].total_camas_disponibles }}, 
+                        {{ infoHabitacionesTotalyPorPiso['total'].total_camas_disponibles }},
                         {{ infoHabitacionesTotalyPorPiso['total'].total_camas_ocupadas }}
                     ]
                 };
@@ -610,6 +611,7 @@
                     console.error('Error al inicializar gráfico Chartist:', e);
                 }
             }
+            {% endif %}
         });
     </script>
 {% endblock %}
