@@ -595,7 +595,13 @@ class ClienteController extends AbstractController
                     
                     // Si está derivado y NO se quiere incluir derivados, excluirlo
                     if ($estaDerivado && !$incluirDerivados) {
-                        continue; // Excluir derivados cuando el checkbox no está marcado
+                        continue;
+                    }
+
+                    // Si se filtra por internados (modalidad=2), los días derivados no se muestran
+                    // aunque el checkbox de incluir derivados esté activo
+                    if ($estaDerivado && $modalidad == 2) {
+                        continue;
                     }
                     
                     // FILTRO IMPORTANTE: Si se seleccionó una modalidad específica, usar la última modalidad activa
@@ -983,8 +989,8 @@ class ClienteController extends AbstractController
             }
             
             foreach ($paciente['periodos'] as $periodo) {
-                // Procesar pacientes internados
-                if ($periodo['estado'] === 'Internado') {
+                // Procesar pacientes internados y derivados (ambos ocupan la cama)
+                if ($periodo['estado'] === 'Internado' || $periodo['estado'] === 'Derivado') {
                     $totalDiasCama += $periodo['dias'];
                     
                     // Si tiene profesional asignado, sumar a los días con fisiatra
