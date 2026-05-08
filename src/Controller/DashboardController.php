@@ -141,7 +141,7 @@ class DashboardController extends AbstractController
         
         $egresadosDesdeInternacion = array_filter(
             $egresosEsteMes,
-            fn($c) => !$c->getDerivado() && !$c->getDePermiso()
+            function($c) { return !$c->getDerivado() && !$c->getDePermiso(); }
         );
         $estadaMedia = $this->calcularEstadaMedia($egresosEsteMes);
         $rotacionCamas = $this->calcularRotacionCamas(count($egresadosDesdeInternacion), $infoHabitaciones);
