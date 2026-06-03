@@ -339,7 +339,7 @@ class ClienteController extends AbstractController
     /**
      * @Route("/historico/prueba", name="cliente_historicos_habitaciones", methods={"GET"})
      */
-    public function historicoPrueba(Request $request, HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, DoctorRepository $doctorRepository, UserRepository $userRepository, HistoriaPacienteRepository $historiaPacienteRepository, PresentesRepository $presentesRepository): Response
+    public function historicoPrueba(Request $request, HabitacionRepository $habitacionRepository, ClienteRepository $clienteRepository, ObraSocialRepository $obraSocialRepository, DoctorRepository $doctorRepository, UserRepository $userRepository, HistoriaPacienteRepository $historiaPacienteRepository, PresentesRepository $presentesRepository, HistoriaHabitacionesRepository $historiaHabitacionesRepository): Response
     {
         $user = $this->getUser();
         if (!$user) {
@@ -450,6 +450,7 @@ class ClienteController extends AbstractController
             
             // Crear un mapa de historias por paciente y por fecha
             $historiasPorPaciente = [];
+            $habitacionesPorPacienteFecha = [];
             $clientesIdsInvolucrados = []; // Guardar IDs de clientes para cargarlos una sola vez
             
             // Ordenar historias de más antigua a más reciente para que las recientes sobrescriban
@@ -487,7 +488,32 @@ class ClienteController extends AbstractController
                     $historiasPorPaciente[$clienteId][$fechaStr] = $historia;
                 }
             }
-            
+
+            // Cargar historia_habitaciones como fuente primaria de internación diaria
+            $historiasHabitaciones = $historiaHabitacionesRepository->findByDate($fechaDesde, $fechaHasta);
+            foreach ($historiasHabitaciones as $historiaHabitacion) {
+                $clienteHab = $historiaHabitacion->getCliente();
+                $habitacionHab = $historiaHabitacion->getHabitacion();
+                if (!$clienteHab || !$habitacionHab) {
+                    continue;
+                }
+
+                $clienteIdHab = $clienteHab->getId();
+                $fechaHabStr = $historiaHabitacion->getFecha()->format('d/m/Y');
+                $clientesIdsInvolucrados[$clienteIdHab] = true;
+
+                $habitacionesPorPacienteFecha[$clienteIdHab][$fechaHabStr] = [
+                    'habitacionId' => $habitacionHab->getId(),
+                    'habitacionNombre' => $habitacionHab->getNombre(),
+                    'cama' => $historiaHabitacion->getNCama(),
+                ];
+
+                // Incluir también este día en el set a renderizar aunque no haya historia_paciente
+                if (!isset($historiasPorPaciente[$clienteIdHab][$fechaHabStr])) {
+                    $historiasPorPaciente[$clienteIdHab][$fechaHabStr] = null;
+                }
+            }
+
             // Cargar datos de presencia para todos los pacientes involucrados
             $presentes = [];
             if (!empty($clientesIdsInvolucrados)) {
@@ -547,6 +573,7 @@ class ClienteController extends AbstractController
                     $fecha = \DateTime::createFromFormat('d/m/Y', $fechaStr);
                     $texto = '';
                     $cliente = null;
+                    $habitacionDia = $habitacionesPorPacienteFecha[$clienteId][$fechaStr] ?? null;
                     
                     // Buscar cliente en la lista ya cargada
                     foreach ($todosClientesInvolucrados as $posibleCliente) {
@@ -561,12 +588,6 @@ class ClienteController extends AbstractController
                     // Verificar si hay registro de presentes para esta fecha y cliente
                     $estaPresenteHoy = isset($presentes[$clienteId][$fechaStr]) ? $presentes[$clienteId][$fechaStr] : null;
                     
-                    
-                    // Si está marcado explícitamente como ausente, no lo mostramos
-                    if ($estaPresenteHoy === false) {
-                        continue; // Saltamos a la siguiente fecha
-                    }
-                    
                     // Verificar primero si está derivado en esta fecha
                     // LÓGICA CORREGIDA:
                     // Un paciente está DERIVADO si tiene fecha_derivacion Y:
@@ -574,7 +595,7 @@ class ClienteController extends AbstractController
                     // - fecha_reingreso es ANTERIOR a fecha_derivacion (reingreso de ciclo anterior, no del actual), O
                     // - la fecha actual es ANTES de la fecha_reingreso (aún no ha reingresado)
                     $estaDerivado = false;
-                    if ($historia->getFechaDerivacion() && $fecha >= $historia->getFechaDerivacion()) {
+                    if ($historia && $historia->getFechaDerivacion() && $fecha >= $historia->getFechaDerivacion()) {
                         // Si no hay fecha de reingreso, está derivado
                         if (!$historia->getFechaReingresoDerivacion()) {
                             $estaDerivado = true;
@@ -589,9 +610,17 @@ class ClienteController extends AbstractController
                             $estaDerivado = true;
                         }
                     }
+
+                    // Estado de permiso diario: ventana entre baja y alta por permiso
+                    $estaDePermiso = false;
+                    if ($historia && $historia->getFechaBajaPorPermiso() && $fecha >= $historia->getFechaBajaPorPermiso()) {
+                        if (!$historia->getFechaAltaPorPermiso() || $fecha <= $historia->getFechaAltaPorPermiso()) {
+                            $estaDePermiso = true;
+                        }
+                    }
                     
-                    // Obtener la modalidad de la historia (última modalidad activa antes de derivarse)
-                    $historiaModalidad = $historia->getModalidad();
+                    // Modalidad efectiva diaria: cama asignada prevalece como internado
+                    $historiaModalidad = $habitacionDia ? 2 : ($historia ? $historia->getModalidad() : null);
                     
                     // Si está derivado y NO se quiere incluir derivados, excluirlo
                     if ($estaDerivado && !$incluirDerivados) {
@@ -643,13 +672,23 @@ class ClienteController extends AbstractController
                         $texto = 'Derivado';
                         $derivados[$fechaStr][$clienteId] = '1';
                     }
+                    // Si está de permiso en esta fecha
+                    else if ($estaDePermiso) {
+                        $texto = 'De permiso';
+                    }
+                    // Si tiene cama asignada ese día, prevalece internación
+                    else if ($habitacionDia) {
+                        $texto = 'Internado';
+                        $internados[$fechaStr][$clienteId] = '1';
+                        $texto .= '<br>H:' . $habitacionDia['habitacionNombre'] . ' C: ' . ($habitacionDia['cama'] ?: 'sin cama');
+                    }
                     
                     // Si tiene una modalidad ambulatoria (no es internación) y no está derivado
-                    if (empty($texto) && $historia->getModalidad() != 2) {
+                    if (empty($texto) && $historiaModalidad != 2) {
                         // Para ambulatorios: SOLO mostrar si están explícitamente marcados como presentes
                         // Esto asegura que solo se muestren los días con registros en la tabla presentes
                         if ($estaPresenteHoy === true || $estaPresenteHoy === 1 || $estaPresenteHoy === '1') {
-                            switch ($historia->getModalidad()) {
+                            switch ($historiaModalidad) {
                                 case 1:
                                     $texto = 'Ambulatorio';
                                     $ambulatorios[$fechaStr][$clienteId] = '1';
@@ -668,7 +707,7 @@ class ClienteController extends AbstractController
                                     break;
                             }
                         } else {
-                            // Si está explícitamente marcado como ausente o no cumple las condiciones, lo saltamos
+                            // Sin registro compatible de internación ni presencia ambulatoria: dejar en blanco
                             continue; // Saltamos a la siguiente fecha
                         }
                     }
@@ -683,7 +722,7 @@ class ClienteController extends AbstractController
                         $internados[$fechaStr][$clienteId] = '1';
                         
                         // Agregar información de habitación si está disponible
-                        if ($historia->getHabitacion() && isset($habitacionesPorId[$historia->getHabitacion()])) {
+                        if ($historia && $historia->getHabitacion() && isset($habitacionesPorId[$historia->getHabitacion()])) {
                             $habitacion = $habitacionesPorId[$historia->getHabitacion()];
                             $texto .= '<br>H:' . $habitacion->getNombre() . ' C: ' . $historia->getCama();
                         } else {
@@ -692,7 +731,7 @@ class ClienteController extends AbstractController
                     }
                     
                     // Agregar profesionales referentes
-                    $docReferentes = $historia->getDocReferenteArray() ?? [];
+                    $docReferentes = $historia ? ($historia->getDocReferenteArray() ?? []) : [];
 
                     $profesionalesAgregados = false;
                     
@@ -712,7 +751,7 @@ class ClienteController extends AbstractController
                     }
                     
                     // Agregar obra social
-                    $obraSocialId = $historia->getObraSocial();
+                    $obraSocialId = $historia ? $historia->getObraSocial() : ($cliente->getObraSocial() ? $cliente->getObraSocial()->getId() : null);
                     if (isset($obArray[$obraSocialId])) {
                         $texto .= '<br><small><b>' . $obArray[$obraSocialId] . '</b></small>';
                         $obrasSocialesTotales[$fechaStr][$obArray[$obraSocialId]][$clienteId] = "1";
@@ -885,13 +924,20 @@ class ClienteController extends AbstractController
                         // Para ambulatorios, siempre guardamos el período anterior
                         $periodos[] = $periodoActual;
                     } else if ($estado === $estadoAnterior) {
-                        // Para otros estados, continuamos el período si es el mismo estado
-                        $periodoActual['hasta'] = $fecha;
-                        // Actualizar los días del período
-                        $desde = \DateTime::createFromFormat('d/m/Y', $periodoActual['desde']);
-                        $hasta = \DateTime::createFromFormat('d/m/Y', $periodoActual['hasta']);
-                        $periodoActual['dias'] = $hasta->diff($desde)->days + 1;
-                        continue;
+                        // Para otros estados, continuamos el período SOLO si los días son consecutivos
+                        $ultimaFecha = \DateTime::createFromFormat('d/m/Y', $periodoActual['hasta']);
+                        $fechaActual = \DateTime::createFromFormat('d/m/Y', $fecha);
+                        $diffDias = (int)$ultimaFecha->diff($fechaActual)->days;
+                        if ($diffDias === 1) {
+                            // Días consecutivos: extender el período
+                            $periodoActual['hasta'] = $fecha;
+                            $desde = \DateTime::createFromFormat('d/m/Y', $periodoActual['desde']);
+                            $periodoActual['dias'] = $fechaActual->diff($desde)->days + 1;
+                            continue;
+                        } else {
+                            // Hay un gap (días derivados excluidos): cerrar el período actual y abrir uno nuevo
+                            $periodos[] = $periodoActual;
+                        }
                     } else {
                         // Si cambió el estado, guardamos el período anterior
                         $periodos[] = $periodoActual;
@@ -903,21 +949,28 @@ class ClienteController extends AbstractController
                 $obra_social = '';
                 
                 // Extraer información de las líneas
+                $estadosIgnorados = ['Internado', 'Derivado', 'Egreso', 'De permiso', 'Ambulatorio', 'Hospital de día', 'ART', 'Sin modalidad registrada'];
                 foreach ($lineas as $linea) {
                     $linea = trim($linea);
-                    if (strpos($linea, 'H:') === 0) {
+                    if (empty($linea)) {
+                        continue;
+                    } elseif (in_array($linea, $estadosIgnorados)) {
+                        // Primera línea: es el estado, ignorar
+                        continue;
+                    } elseif (strpos($linea, 'H:') === 0) {
                         $habitacionCama = explode(' C:', $linea);
                         $habitacion = trim(str_replace('H:', '', $habitacionCama[0]));
                         if (count($habitacionCama) > 1) {
                             $cama = trim($habitacionCama[1]);
                         }
-                    } elseif (strpos($linea, 'sin profesional asignado') === false && 
-                             strpos($linea, 'H:') === false && 
-                             strpos($linea, 'sin obra social') === false &&
-                             !in_array($linea, ['Internado', 'Derivado', 'Egreso'])) {
+                    } elseif (strpos($linea, '<small>') !== false || strpos($linea, '<b>') !== false) {
+                        // La obra social siempre está envuelta en <small><b>...</b></small>
+                        $obra_social = strip_tags($linea);
+                    } elseif (strpos($linea, 'sin profesional asignado') !== false || strpos($linea, 'sin datos de habitación') !== false) {
+                        // Ignorar líneas de placeholders
+                        continue;
+                    } else {
                         $profesional = $linea;
-                    } elseif (strpos($linea, 'sin obra social') === false) {
-                        $obra_social = $linea;
                     }
                 }
                 // Crear nuevo período
@@ -1319,6 +1372,25 @@ class ClienteController extends AbstractController
 
             $entityManager = $this->getDoctrine()->getManager();
             
+            // VALIDACIÓN: evitar DNI duplicado antes de persistir
+            $dniNuevo = $cliente->getDni();
+            if ($dniNuevo) {
+                $clienteConMismoDni = $clienteRepository->findOneBy(['dni' => $dniNuevo]);
+                if ($clienteConMismoDni) {
+                    $errorMsg = addslashes(
+                        'DNI ' . $dniNuevo . ' ya registrado: '
+                        . $clienteConMismoDni->getApellido() . ' ' . $clienteConMismoDni->getNombre()
+                        . ' (HC ' . $clienteConMismoDni->getHClinica() . '). '
+                        . 'Usá la opción Reingreso sobre ese paciente en lugar de crear uno nuevo.'
+                    );
+                    return $this->render('cliente/new.html.twig', [
+                        'cliente' => $cliente,
+                        'form' => $form->createView(),
+                        'error' => $errorMsg,
+                    ]);
+                }
+            }
+
             // Primero persistir el cliente para que tenga un ID
             $entityManager->persist($cliente);
             $entityManager->flush(); // Flush para obtener el ID del cliente
@@ -2423,6 +2495,7 @@ class ClienteController extends AbstractController
             $historial->setUsuario($user->getUsername());
 
             $entityManager->persist($cliente);
+            $entityManager->persist($historial);
 
             $entityManager->flush();
 

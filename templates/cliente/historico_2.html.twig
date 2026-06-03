@@ -1118,10 +1118,10 @@ function createCompactTableForPrint(checkboxes) {
     if (pacientes && pacientes.length > 0) {
         pacientes.forEach(function(paciente) {
             if (!paciente.periodos || paciente.periodos.length === 0) return;
-            // Calcular total de días cama para este paciente (internado + derivado, excluye ambulatorio/egreso)
+            // Calcular total de días para este paciente (solo períodos Internado, excluye Derivado)
             let totalDiasPaciente = 0;
             paciente.periodos.forEach(function(p) {
-                if (p.estado === 'Internado' || p.estado === 'Derivado') {
+                if (p.estado === 'Internado') {
                     totalDiasPaciente += parseInt(p.dias || 0);
                 }
             });
