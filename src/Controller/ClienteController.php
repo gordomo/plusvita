@@ -434,11 +434,11 @@ class ClienteController extends AbstractController
             }
 
             
-            // Cargar todos los doctores para evitar consultas repetidas
-            $todosDoctores = $doctorRepository->findAll();
+            // Cargar todos los usuarios (doc_referente guarda user IDs, no doctor IDs)
+            $todosUsers = $userRepository->findAll();
             $doctoresPorId = [];
-            foreach ($todosDoctores as $doctor) {
-                $doctoresPorId[$doctor->getId()] = $doctor;
+            foreach ($todosUsers as $user) {
+                $doctoresPorId[$user->getId()] = $user;
             }
             
             // Cargar todas las habitaciones para evitar consultas repetidas
