@@ -457,13 +457,24 @@ class ClienteController extends AbstractController
             usort($historias, function($a, $b) {
                 return $a->getFecha() <=> $b->getFecha();
             });
-            
+
+            // Guardar, por paciente, la historia más reciente cuya vigencia cae dentro del rango.
+            // Sirve para mostrar la obra social vigente en el período (y no la más reciente de
+            // todos los tiempos), de forma coherente con los filtros aplicados.
+            $historiaVigentePorCliente = [];
+
             foreach ($historias as $historia) {
                 $cliente = $historia->getCliente();
                 if (!$cliente) continue;
-                
+
                 $clienteId = $cliente->getId();
                 $clientesIdsInvolucrados[$clienteId] = true; // Marcar este ID para cargarlo después
+
+                // Como $historias está ordenado ascendente por fecha, la última que entre acá
+                // (con fecha dentro del rango) queda como la vigente en el período.
+                if ($historia->getFecha() <= $fechaHasta) {
+                    $historiaVigentePorCliente[$clienteId] = $historia;
+                }
                 
                 // El rango de validez de esta historia es desde su 'fecha' hasta su 'fecha_fin'
                 // NO usar fecha_ingreso porque eso es la entrada original del paciente
@@ -500,6 +511,17 @@ class ClienteController extends AbstractController
 
                 $clienteIdHab = $clienteHab->getId();
                 $fechaHabStr = $historiaHabitacion->getFecha()->format('d/m/Y');
+
+                // Si hay un filtro de obra social o profesional activo, solo se consideran
+                // los días de cama respaldados por una historia que coincide con el filtro
+                // (ya mapeada en $historiasPorPaciente). De lo contrario, un paciente
+                // internado en el rango aparecería por su sola asignación de cama aunque su
+                // obra social vigente en esos días no sea la filtrada -> resultados mezclados.
+                $diaRespaldadoPorHistoria = isset($historiasPorPaciente[$clienteIdHab][$fechaHabStr]);
+                if (($obraSocial || $prof) && !$diaRespaldadoPorHistoria) {
+                    continue;
+                }
+
                 $clientesIdsInvolucrados[$clienteIdHab] = true;
 
                 $habitacionesPorPacienteFecha[$clienteIdHab][$fechaHabStr] = [
@@ -540,12 +562,13 @@ class ClienteController extends AbstractController
             // Cargar todos los clientes involucrados de una sola vez para evitar consultas repetidas
             $todosClientesInvolucrados = $clienteRepository->findBy(['id' => array_keys($clientesIdsInvolucrados)]);
             foreach ($todosClientesInvolucrados as $cliente) {
-                // Obtener la historia más reciente del paciente para conocer su obra social en ese momento
-                $historiaReciente = $historiaPacienteRepository->findOneBy(
+                // Obtener la obra social vigente dentro del rango de fechas seleccionado.
+                // Si por algún motivo no hubo historia dentro del rango, caer a la más reciente.
+                $historiaReciente = $historiaVigentePorCliente[$cliente->getId()] ?? $historiaPacienteRepository->findOneBy(
                     ['cliente' => $cliente->getId()],
                     ['fecha' => 'DESC']
                 );
-                
+
                 $obraSocialId = null;
                 $obraSocialNombre = 'Sin obra social';
                 

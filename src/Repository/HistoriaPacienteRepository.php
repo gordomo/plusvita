@@ -203,28 +203,32 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
             }
         }
 
-        // Para filtros de prof y obraSocial, usar consulta SQL si es necesario
-        if ( $prof || $obraSocial) {
-            $newQuery = "Select DISTINCT historia_paciente.cliente_id from historia_paciente where fecha_ingreso <= '" . $hasta->format('Y-m-d') . "' and ( fecha_ingreso >= '". $desde->format('Y-m-d') . "' or fecha_ingreso is not null )";
-            
-            if ( $prof ) { 
-                $prof = '%'.$prof.'%';
-                $newQuery .= " and doc_referente like '" . $prof ."'";
-            }
-            if ($obraSocial) { 
-                if (is_array($obraSocial)) {
-                    if (count($obraSocial) > 0) {
-                        $obrasSocialesIDs = implode(',', array_map('intval', $obraSocial));
-                        $newQuery .= " and obra_social IN (" . $obrasSocialesIDs . ")";
-                    }
-                } else {
-                    // Mantener compatibilidad con versiones anteriores (un solo ID)
-                    $newQuery .= " and obra_social = " . $obraSocial;
+        // Filtro de obra social: se aplica directamente sobre las filas de historia.
+        // Cada fila tiene su ventana de vigencia [fecha, fecha_fin) y su propia obra_social,
+        // por lo que filtrar acá (y dejar que el controlador recorte por rango de fechas)
+        // hace que solo aparezcan los pacientes cuya obra social filtrada estuvo vigente
+        // dentro del rango desde/hasta seleccionado.
+        if ($obraSocial) {
+            if (is_array($obraSocial)) {
+                if (count($obraSocial) > 0) {
+                    $query->andWhere('h.obra_social IN (:obraSocial)')
+                        ->setParameter('obraSocial', array_map('intval', $obraSocial));
                 }
+            } else {
+                // Mantener compatibilidad con versiones anteriores (un solo ID)
+                $query->andWhere('h.obra_social = :obraSocial')
+                    ->setParameter('obraSocial', (int) $obraSocial);
             }
-            
+        }
+
+        // Filtro por profesional referente (doc_referente es JSON): se mantiene vía subconsulta
+        // a nivel de cliente porque requiere LIKE sobre el contenido del JSON.
+        if ( $prof ) {
+            $newQuery = "Select DISTINCT historia_paciente.cliente_id from historia_paciente where fecha_ingreso <= '" . $hasta->format('Y-m-d') . "' and ( fecha_ingreso >= '". $desde->format('Y-m-d') . "' or fecha_ingreso is not null )";
+            $newQuery .= " and doc_referente like '%" . $prof . "%'";
+
             $ids = $this->em->getConnection()->prepare($newQuery)->executeQuery()->fetchFirstColumn();
-            
+
             if (!empty($ids)) {
                 $query->andWhere('c.id in (:newQuery)')->setParameter('newQuery', $ids);
             } else {
