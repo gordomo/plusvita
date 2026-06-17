@@ -186,22 +186,13 @@ class HistoriaPacienteRepository extends ServiceEntityRepository
             $query->andWhere('c.hClinica = :hc')->setParameter('hc', $hc);
         }
 
-        // Aplicar filtro de modalidad directamente en la consulta DQL
-        if ( $modalidad && $modalidad != 0 ) { 
-            if ( $modalidad == 1 ) { 
-                // Ambulatorios incluye modalidad 1 y 4 (ART)
-                $query->andWhere('(h.modalidad = 1 OR h.modalidad = 4)');
-            } elseif ( $modalidad == 2 ) {
-                // Internados: solo modalidad 2
-                $query->andWhere('h.modalidad = 2');
-            } elseif ( $modalidad == 4 ) {
-                // ART: solo modalidad 4
-                $query->andWhere('h.modalidad = 4');
-            } else {
-                // Cualquier otra modalidad específica
-                $query->andWhere('h.modalidad = :modalidad')->setParameter('modalidad', $modalidad);
-            }
-        }
+        // NOTA: el filtro de modalidad (Estado) NO se aplica acá a propósito.
+        // El filtro de Estado decide QUÉ pacientes aparecen, pero una vez que un paciente
+        // califica se muestra su timeline completo (todos sus días con su estado real, ej.
+        // internado y luego ambulatorio). Por eso se devuelven todas las filas del rango y
+        // es el controlador el que, día por día, determina la modalidad efectiva y filtra
+        // los pacientes que no tuvieron ningún día en el estado seleccionado.
+        // El parámetro $modalidad se mantiene por compatibilidad de firma.
 
         // Filtro de obra social: se aplica directamente sobre las filas de historia.
         // Cada fila tiene su ventana de vigencia [fecha, fecha_fin) y su propia obra_social,

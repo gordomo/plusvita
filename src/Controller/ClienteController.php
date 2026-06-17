@@ -587,11 +587,15 @@ class ClienteController extends AbstractController
             }
             
             
+            // Marca qué pacientes tuvieron al menos un día en la modalidad filtrada.
+            // El filtro de Estado decide qué pacientes aparecen; el timeline igual se muestra completo.
+            $clienteCalificaModalidad = [];
+
             // Procesar cada paciente y cada día
             foreach ($historiasPorPaciente as $clienteId => $historiasPorFecha) {
                 if (!isset($clientesData[$clienteId])) continue; // Verificar que tenemos los datos del cliente
-                
-                
+
+
                 foreach ($historiasPorFecha as $fechaStr => $historia) {
                     $fecha = \DateTime::createFromFormat('d/m/Y', $fechaStr);
                     $texto = '';
@@ -650,38 +654,26 @@ class ClienteController extends AbstractController
                         continue;
                     }
 
-                    // Si se filtra por internados (modalidad=2), los días derivados no se muestran
-                    // aunque el checkbox de incluir derivados esté activo
-                    if ($estaDerivado && $modalidad == 2) {
-                        continue;
-                    }
-                    
-                    // FILTRO IMPORTANTE: Si se seleccionó una modalidad específica, usar la última modalidad activa
-                    // Si el paciente está derivado y se quiere incluir, usar su última modalidad antes de derivarse para el filtro
+                    // El filtro de Estado (modalidad) ya NO descarta días: se muestra el
+                    // timeline completo del paciente (ej. días internado y luego ambulatorio).
+                    // En su lugar calculamos si este día coincide con la modalidad filtrada,
+                    // para después decidir si el paciente califica (debe aparecer en el listado).
                     if ($modalidad != 0) {
+                        $coincideModalidad = false;
                         if ($modalidad == 1) {
                             // Ambulatorios incluye modalidad 1 y 4 (ART)
-                            // Si está derivado pero su última modalidad era ambulatoria, incluirlo (si incluirDerivados está activado)
-                            if ($historiaModalidad != 1 && $historiaModalidad != 4) {
-                                continue; // Saltar esta fecha si no coincide con la modalidad filtrada
-                            }
+                            $coincideModalidad = ($historiaModalidad == 1 || $historiaModalidad == 4);
                         } elseif ($modalidad == 2) {
-                            // Internados: solo modalidad 2
-                            // Si está derivado pero su última modalidad era internado, incluirlo (si incluirDerivados está activado)
-                            if ($historiaModalidad != 2) {
-                                continue; // Saltar esta fecha si no coincide con la modalidad filtrada
-                            }
+                            // Internados: modalidad 2 y que no esté derivado ese día
+                            $coincideModalidad = ($historiaModalidad == 2 && !$estaDerivado);
                         } elseif ($modalidad == 4) {
                             // ART: solo modalidad 4
-                            // Si está derivado pero su última modalidad era ART, incluirlo (si incluirDerivados está activado)
-                            if ($historiaModalidad != 4) {
-                                continue; // Saltar esta fecha si no coincide con la modalidad filtrada
-                            }
+                            $coincideModalidad = ($historiaModalidad == 4);
                         } else {
-                            // Cualquier otra modalidad específica
-                            if ($historiaModalidad != $modalidad) {
-                                continue; // Saltar esta fecha si no coincide con la modalidad filtrada
-                            }
+                            $coincideModalidad = ($historiaModalidad == $modalidad);
+                        }
+                        if ($coincideModalidad) {
+                            $clienteCalificaModalidad[$clienteId] = true;
                         }
                     }
                     
@@ -785,6 +777,32 @@ class ClienteController extends AbstractController
                     // Agregar a los arrays para la vista
                     $arrayParaLaVista[$clienteId][$fechaStr] = $texto;
                     $totalDia[$fechaStr][$clienteId] = '1';
+                }
+
+                // Si hay filtro de Estado y este paciente no tuvo ningún día en esa modalidad,
+                // se lo quita por completo del listado y de los totales (no califica).
+                if ($modalidad != 0 && empty($clienteCalificaModalidad[$clienteId])) {
+                    unset($arrayParaLaVista[$clienteId]);
+                    foreach (array_keys($historiasPorFecha) as $fechaStr) {
+                        unset(
+                            $totalDia[$fechaStr][$clienteId],
+                            $internados[$fechaStr][$clienteId],
+                            $derivados[$fechaStr][$clienteId],
+                            $ambulatorios[$fechaStr][$clienteId],
+                            $egresos[$fechaStr][$clienteId],
+                            $sinModalidad[$fechaStr][$clienteId]
+                        );
+                        if (isset($obrasSocialesTotales[$fechaStr])) {
+                            foreach (array_keys($obrasSocialesTotales[$fechaStr]) as $osNombre) {
+                                unset($obrasSocialesTotales[$fechaStr][$osNombre][$clienteId]);
+                            }
+                        }
+                        if (isset($referentes[$fechaStr])) {
+                            foreach (array_keys($referentes[$fechaStr]) as $profNombre) {
+                                unset($referentes[$fechaStr][$profNombre][$clienteId]);
+                            }
+                        }
+                    }
                 }
             }
         }
